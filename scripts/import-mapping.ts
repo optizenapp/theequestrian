@@ -1,15 +1,14 @@
 /**
- * Import Mapping Script
+ * Import Mapping Script (3-Level Hierarchy)
  * 
- * Reads the mapping CSV and applies it to products:
- * 1. Sets primary_collection metafield based on mapping
- * 2. Handles exclusions (products without subcategory)
- * 3. Handles merges (combine product types)
- * 4. Updates breadcrumbs and schema automatically
+ * Reads the mapping CSV and maps products to collection hierarchy:
+ * - Maps products by productType to: top_level/parent_category/subcategory_handle
+ * - Product URLs remain: /products/{handle} (canonical)
+ * - Handles exclusions, merges, and includes
  * 
  * Usage: 
- *   npm run import:mapping -- --dry-run  (preview changes)
- *   npm run import:mapping -- --apply   (apply changes)
+ *   npm run import:mapping -- --dry-run --file=exports/mapping-template-draft2.csv
+ *   npm run import:mapping -- --apply --file=exports/mapping-template-draft2.csv
  */
 
 // Load environment variables
@@ -21,13 +20,12 @@ import { shopifyFetch } from '../lib/shopify/client';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as csv from 'csv-parse/sync';
-import { normalizeProductType } from '../lib/shopify/collection-mapping';
 
 interface MappingRow {
-  collection_handle: string;
-  collection_title: string;
-  product_type: string;
+  top_level: string;
+  parent_category: string;
   subcategory_handle: string;
+  product_type: string;
   action: 'include' | 'exclude' | 'merge';
   merge_to?: string;
   notes?: string;
@@ -43,74 +41,6 @@ interface ProductUpdate {
   reason: string;
 }
 
-const GET_PRODUCT_BY_ID = `
-  query GetProductById($id: ID!) {
-    product(id: $id) {
-      id
-      handle
-      title
-      productType
-      collections(first: 20) {
-        edges {
-          node {
-            handle
-          }
-        }
-      }
-      metafield(namespace: "custom", key: "primary_collection") {
-        id
-        value
-      }
-    }
-  }
-`;
-
-const UPDATE_METAFIELD = `
-  mutation UpdateProductMetafield($metafieldId: ID!, $value: String!) {
-    metafieldsSet(metafields: [
-      {
-        id: $metafieldId
-        value: $value
-      }
-    ]) {
-      metafields {
-        id
-        namespace
-        key
-        value
-      }
-      userErrors {
-        field
-        message
-      }
-    }
-  }
-`;
-
-const CREATE_METAFIELD = `
-  mutation CreateProductMetafield($productId: ID!, $namespace: String!, $key: String!, $value: String!) {
-    metafieldsSet(metafields: [
-      {
-        ownerId: $productId
-        namespace: $namespace
-        key: $key
-        value: $value
-      }
-    ]) {
-      metafields {
-        id
-        namespace
-        key
-        value
-      }
-      userErrors {
-        field
-        message
-      }
-    }
-  }
-`;
-
 const GET_ALL_PRODUCTS = `
   query GetAllProducts($first: Int!, $after: String) {
     products(first: $first, after: $after) {
@@ -120,13 +50,6 @@ const GET_ALL_PRODUCTS = `
           handle
           title
           productType
-          collections(first: 20) {
-            edges {
-              node {
-                handle
-              }
-            }
-          }
           metafield(namespace: "custom", key: "primary_collection") {
             id
             value
@@ -141,12 +64,16 @@ const GET_ALL_PRODUCTS = `
   }
 `;
 
-async function loadMapping(): Promise<Map<string, MappingRow[]>> {
-  const mappingPath = path.join(process.cwd(), 'exports', 'mapping.csv');
+async function loadMapping(filePath?: string): Promise<Map<string, MappingRow>> {
+  const mappingPath = filePath 
+    ? path.resolve(process.cwd(), filePath)
+    : path.join(process.cwd(), 'exports', 'mapping-template-draft2.csv');
   
   if (!fs.existsSync(mappingPath)) {
-    throw new Error(`Mapping file not found: ${mappingPath}\n\nPlease create exports/mapping.csv using the template.`);
+    throw new Error(`Mapping file not found: ${mappingPath}\n\nPlease create the mapping CSV file.`);
   }
+
+  console.log(`📂 Loading mapping from: ${mappingPath}`);
 
   const csvContent = fs.readFileSync(mappingPath, 'utf-8');
   const records = csv.parse(csvContent, {
@@ -155,117 +82,124 @@ async function loadMapping(): Promise<Map<string, MappingRow[]>> {
     trim: true,
   }) as MappingRow[];
 
-  // Group by collection handle
-  const mappingByCollection = new Map<string, MappingRow[]>();
+  // Index by product_type for fast lookup
+  const mappingByProductType = new Map<string, MappingRow>();
   
   for (const row of records) {
-    if (!mappingByCollection.has(row.collection_handle)) {
-      mappingByCollection.set(row.collection_handle, []);
+    if (row.product_type && row.product_type.trim()) {
+      mappingByProductType.set(row.product_type.trim(), row);
     }
-    mappingByCollection.get(row.collection_handle)!.push(row);
   }
 
-  console.log(`✅ Loaded ${records.length} mapping rules across ${mappingByCollection.size} collections\n`);
-  return mappingByCollection;
+  console.log(`✅ Loaded ${mappingByProductType.size} product type mappings\n`);
+  return mappingByProductType;
 }
 
 function determinePrimaryCollection(
-  product: {
-    productType: string;
-    collections: { edges: Array<{ node: { handle: string } }> };
-  },
-  mapping: Map<string, MappingRow[]>
+  productType: string,
+  mapping: Map<string, MappingRow>
 ): { primaryCollection: string | null; reason: string } {
-  const productType = product.productType || '';
-  const collections = product.collections.edges.map((e) => e.node.handle);
+  
+  if (!productType || productType.trim() === '') {
+    return {
+      primaryCollection: null,
+      reason: 'No product type defined',
+    };
+  }
 
-  // Find matching collection and product type
-  for (const collectionHandle of collections) {
-    const collectionMappings = mapping.get(collectionHandle);
-    if (!collectionMappings) continue;
+  // Find exact product type match
+  const mappingRow = mapping.get(productType);
+  
+  if (!mappingRow) {
+    return {
+      primaryCollection: null,
+      reason: `No mapping found for product type: ${productType}`,
+    };
+  }
 
-    // Find exact product type match
-    const exactMatch = collectionMappings.find(
-      (m) => m.product_type === productType
+  // Handle excluded types
+  if (mappingRow.action === 'exclude') {
+    return {
+      primaryCollection: null,
+      reason: `Excluded: ${mappingRow.notes || 'Generic product type'}`,
+    };
+  }
+
+  // Handle merged types
+  if (mappingRow.action === 'merge' && mappingRow.merge_to) {
+    // Find the target mapping
+    const targetMapping = Array.from(mapping.values()).find(
+      (m) => 
+        m.top_level === mappingRow.top_level &&
+        m.parent_category === mappingRow.parent_category &&
+        (m.subcategory_handle === mappingRow.merge_to || 
+         m.parent_category === mappingRow.merge_to)
     );
 
-    if (exactMatch) {
-      if (exactMatch.action === 'exclude') {
-        return {
-          primaryCollection: collectionHandle, // Just collection, no subcategory
-          reason: `Excluded product type: ${productType}`,
-        };
-      }
-
-      if (exactMatch.action === 'merge' && exactMatch.merge_to) {
-        return {
-          primaryCollection: `${collectionHandle}/${exactMatch.merge_to}`,
-          reason: `Merged ${productType} into ${exactMatch.merge_to}`,
-        };
-      }
-
-      if (exactMatch.action === 'include' && exactMatch.subcategory_handle) {
-        return {
-          primaryCollection: `${collectionHandle}/${exactMatch.subcategory_handle}`,
-          reason: `Mapped ${productType} to ${exactMatch.subcategory_handle}`,
-        };
-      }
-    }
-
-    // Try normalized match
-    const normalizedProductType = normalizeProductType(productType);
-    const normalizedMatch = collectionMappings.find(
-      (m) => normalizeProductType(m.product_type) === normalizedProductType
-    );
-
-    if (normalizedMatch) {
-      if (normalizedMatch.action === 'exclude') {
-        return {
-          primaryCollection: collectionHandle,
-          reason: `Excluded (normalized): ${productType}`,
-        };
-      }
-
-      if (normalizedMatch.action === 'merge' && normalizedMatch.merge_to) {
-        return {
-          primaryCollection: `${collectionHandle}/${normalizedMatch.merge_to}`,
-          reason: `Merged (normalized) ${productType} into ${normalizedMatch.merge_to}`,
-        };
-      }
-
-      if (normalizedMatch.action === 'include' && normalizedMatch.subcategory_handle) {
-        return {
-          primaryCollection: `${collectionHandle}/${normalizedMatch.subcategory_handle}`,
-          reason: `Mapped (normalized) ${productType} to ${normalizedMatch.subcategory_handle}`,
-        };
-      }
+    if (targetMapping) {
+      const collectionPath = buildCollectionPath(targetMapping);
+      return {
+        primaryCollection: collectionPath,
+        reason: `Merged from ${productType} to ${mappingRow.merge_to}`,
+      };
+    } else {
+      // Fallback: build path from current row
+      const collectionPath = buildCollectionPath(mappingRow);
+      return {
+        primaryCollection: collectionPath,
+        reason: `Merged (fallback): ${productType}`,
+      };
     }
   }
 
-  // Fallback: use first collection
-  if (collections.length > 0) {
+  // Handle included types
+  if (mappingRow.action === 'include') {
+    const collectionPath = buildCollectionPath(mappingRow);
     return {
-      primaryCollection: collections[0],
-      reason: `No mapping found, using first collection: ${collections[0]}`,
+      primaryCollection: collectionPath,
+      reason: `Mapped to ${collectionPath}`,
     };
   }
 
   return {
     primaryCollection: null,
-    reason: 'No collections found',
+    reason: `Unknown action: ${mappingRow.action}`,
   };
 }
 
-async function applyMapping(dryRun: boolean = true) {
-  console.log(`🔄 ${dryRun ? 'DRY RUN: ' : ''}Applying mapping...\n`);
+function buildCollectionPath(row: MappingRow): string {
+  const parts: string[] = [];
+  
+  if (row.top_level && row.top_level.trim()) {
+    parts.push(row.top_level.trim());
+  }
+  
+  if (row.parent_category && row.parent_category.trim()) {
+    parts.push(row.parent_category.trim());
+  }
+  
+  if (row.subcategory_handle && row.subcategory_handle.trim()) {
+    parts.push(row.subcategory_handle.trim());
+  }
 
-  const mapping = await loadMapping();
+  return parts.join('/');
+}
+
+async function applyMapping(dryRun: boolean = true, filePath?: string) {
+  console.log(`\n🔄 ${dryRun ? 'DRY RUN: ' : ''}Applying 3-level collection mapping...\n`);
+
+  const mapping = await loadMapping(filePath);
   const updates: ProductUpdate[] = [];
+  const noProductType: string[] = [];
+  const noMapping: { handle: string; productType: string }[] = [];
+  
   let hasNextPage = true;
   let cursor: string | null = null;
   let totalProcessed = 0;
 
   // Fetch all products
+  console.log('📦 Fetching products from Shopify...\n');
+  
   while (hasNextPage) {
     const data = await shopifyFetch<{
       products: {
@@ -275,13 +209,6 @@ async function applyMapping(dryRun: boolean = true) {
             handle: string;
             title: string;
             productType: string;
-            collections: {
-              edges: Array<{
-                node: {
-                  handle: string;
-                };
-              };
-            };
             metafield: {
               id: string;
               value: string;
@@ -303,10 +230,22 @@ async function applyMapping(dryRun: boolean = true) {
       totalProcessed++;
 
       const currentPrimaryCollection = product.metafield?.value || null;
+      
+      // Track products without product type
+      if (!product.productType || product.productType.trim() === '') {
+        noProductType.push(product.handle);
+        continue;
+      }
+
       const { primaryCollection, reason } = determinePrimaryCollection(
-        product,
+        product.productType,
         mapping
       );
+
+      // Track products without mapping
+      if (primaryCollection === null && !reason.includes('Excluded')) {
+        noMapping.push({ handle: product.handle, productType: product.productType });
+      }
 
       // Only update if different
       if (currentPrimaryCollection !== primaryCollection) {
@@ -321,7 +260,7 @@ async function applyMapping(dryRun: boolean = true) {
         });
       }
 
-      if (totalProcessed % 100 === 0) {
+      if (totalProcessed % 250 === 0) {
         console.log(`  Processed ${totalProcessed} products...`);
       }
     }
@@ -332,8 +271,30 @@ async function applyMapping(dryRun: boolean = true) {
 
   console.log(`\n📊 Summary:`);
   console.log(`   Total Products Processed: ${totalProcessed}`);
+  console.log(`   Products Without Product Type: ${noProductType.length}`);
+  console.log(`   Products Without Mapping: ${noMapping.length}`);
   console.log(`   Products to Update: ${updates.length}`);
-  console.log(`   Products Unchanged: ${totalProcessed - updates.length}`);
+  console.log(`   Products Unchanged: ${totalProcessed - updates.length - noProductType.length - noMapping.length}`);
+
+  if (noProductType.length > 0) {
+    console.log(`\n⚠️  Products without product type (first 10):`);
+    noProductType.slice(0, 10).forEach((handle) => {
+      console.log(`   - ${handle}`);
+    });
+    if (noProductType.length > 10) {
+      console.log(`   ... and ${noProductType.length - 10} more`);
+    }
+  }
+
+  if (noMapping.length > 0) {
+    console.log(`\n⚠️  Products without mapping (first 10):`);
+    noMapping.slice(0, 10).forEach(({ handle, productType }) => {
+      console.log(`   - ${handle} (${productType})`);
+    });
+    if (noMapping.length > 10) {
+      console.log(`   ... and ${noMapping.length - 10} more`);
+    }
+  }
 
   if (updates.length === 0) {
     console.log('\n✅ No changes needed!');
@@ -341,8 +302,8 @@ async function applyMapping(dryRun: boolean = true) {
   }
 
   // Show sample updates
-  console.log(`\n📝 Sample Updates (first 10):`);
-  updates.slice(0, 10).forEach((update, index) => {
+  console.log(`\n📝 Sample Updates (first 20):`);
+  updates.slice(0, 20).forEach((update, index) => {
     console.log(`\n   ${index + 1}. ${update.handle}`);
     console.log(`      Product Type: ${update.productType}`);
     console.log(`      Current: ${update.currentPrimaryCollection || '(none)'}`);
@@ -350,8 +311,8 @@ async function applyMapping(dryRun: boolean = true) {
     console.log(`      Reason: ${update.reason}`);
   });
 
-  if (updates.length > 10) {
-    console.log(`\n   ... and ${updates.length - 10} more`);
+  if (updates.length > 20) {
+    console.log(`\n   ... and ${updates.length - 20} more`);
   }
 
   // Export updates
@@ -360,448 +321,58 @@ async function applyMapping(dryRun: boolean = true) {
     fs.mkdirSync(outputDir, { recursive: true });
   }
 
-  const updatesPath = path.join(outputDir, `updates-${dryRun ? 'dry-run' : 'applied'}-${Date.now()}.json`);
-  fs.writeFileSync(updatesPath, JSON.stringify(updates, null, 2));
-  console.log(`\n✅ Updates saved to: ${updatesPath}`);
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+  const updatesPath = path.join(outputDir, `updates-${dryRun ? 'dry-run' : 'applied'}-${timestamp}.json`);
+  
+  fs.writeFileSync(updatesPath, JSON.stringify({
+    timestamp: new Date().toISOString(),
+    dryRun,
+    summary: {
+      totalProcessed,
+      noProductType: noProductType.length,
+      noMapping: noMapping.length,
+      toUpdate: updates.length,
+      unchanged: totalProcessed - updates.length - noProductType.length - noMapping.length,
+    },
+    updates,
+    noProductType: noProductType.slice(0, 100),
+    noMapping: noMapping.slice(0, 100),
+  }, null, 2));
+  
+  console.log(`\n✅ Full report saved to: ${updatesPath}`);
 
   // Apply updates if not dry run
   if (!dryRun) {
-    console.log(`\n🔄 Applying ${updates.length} updates...`);
-    
-    // Note: This requires Shopify Admin API access
-    // For now, we'll just log what needs to be done
-    console.log('\n⚠️  Admin API integration needed to apply updates.');
-    console.log('   Updates are saved in the JSON file above.');
-    console.log('   You can use Shopify Admin API or Shopify Flow to apply them.');
-    
-    // TODO: Implement Admin API calls if credentials are available
+    console.log(`\n⚠️  APPLY MODE NOT YET IMPLEMENTED`);
+    console.log(`   This requires Shopify Admin API to set metafields.`);
+    console.log(`   Updates are saved in JSON format above.`);
+    console.log(`   You can import these via Shopify Admin API or bulk operations.`);
   } else {
     console.log(`\n✅ Dry run complete! Review the updates above.`);
-    console.log(`   To apply changes, run: npm run import:mapping -- --apply`);
+    console.log(`   To apply changes, run: npm run import:mapping -- --apply --file=${filePath || 'exports/mapping-template-draft2.csv'}`);
   }
 
-  return updates;
+  return { updates, noProductType, noMapping };
 }
 
 // Parse command line arguments
 const args = process.argv.slice(2);
 const dryRun = !args.includes('--apply');
+const fileIndex = args.findIndex(arg => arg === '--file');
+const filePath = fileIndex !== -1 && args[fileIndex + 1] ? args[fileIndex + 1] : undefined;
 
 // Run if called directly
 if (require.main === module) {
-  applyMapping(dryRun)
+  applyMapping(dryRun, filePath)
     .then(() => {
       console.log('\n✅ Complete!');
       process.exit(0);
     })
     .catch((error) => {
       console.error('\n❌ Failed:', error);
+      console.error(error.stack);
       process.exit(1);
     });
 }
 
 export { applyMapping, loadMapping };
-
-
- * 
- * Reads the mapping CSV and applies it to products:
- * 1. Sets primary_collection metafield based on mapping
- * 2. Handles exclusions (products without subcategory)
- * 3. Handles merges (combine product types)
- * 4. Updates breadcrumbs and schema automatically
- * 
- * Usage: 
- *   npm run import:mapping -- --dry-run  (preview changes)
- *   npm run import:mapping -- --apply   (apply changes)
- */
-
-// Load environment variables
-import { config } from 'dotenv';
-import { resolve } from 'path';
-config({ path: resolve(process.cwd(), '.env.local') });
-
-import { shopifyFetch } from '../lib/shopify/client';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as csv from 'csv-parse/sync';
-import { normalizeProductType } from '../lib/shopify/collection-mapping';
-
-interface MappingRow {
-  collection_handle: string;
-  collection_title: string;
-  product_type: string;
-  subcategory_handle: string;
-  action: 'include' | 'exclude' | 'merge';
-  merge_to?: string;
-  notes?: string;
-}
-
-interface ProductUpdate {
-  productId: string;
-  handle: string;
-  title: string;
-  productType: string;
-  currentPrimaryCollection: string | null;
-  newPrimaryCollection: string | null;
-  reason: string;
-}
-
-const GET_PRODUCT_BY_ID = `
-  query GetProductById($id: ID!) {
-    product(id: $id) {
-      id
-      handle
-      title
-      productType
-      collections(first: 20) {
-        edges {
-          node {
-            handle
-          }
-        }
-      }
-      metafield(namespace: "custom", key: "primary_collection") {
-        id
-        value
-      }
-    }
-  }
-`;
-
-const UPDATE_METAFIELD = `
-  mutation UpdateProductMetafield($metafieldId: ID!, $value: String!) {
-    metafieldsSet(metafields: [
-      {
-        id: $metafieldId
-        value: $value
-      }
-    ]) {
-      metafields {
-        id
-        namespace
-        key
-        value
-      }
-      userErrors {
-        field
-        message
-      }
-    }
-  }
-`;
-
-const CREATE_METAFIELD = `
-  mutation CreateProductMetafield($productId: ID!, $namespace: String!, $key: String!, $value: String!) {
-    metafieldsSet(metafields: [
-      {
-        ownerId: $productId
-        namespace: $namespace
-        key: $key
-        value: $value
-      }
-    ]) {
-      metafields {
-        id
-        namespace
-        key
-        value
-      }
-      userErrors {
-        field
-        message
-      }
-    }
-  }
-`;
-
-const GET_ALL_PRODUCTS = `
-  query GetAllProducts($first: Int!, $after: String) {
-    products(first: $first, after: $after) {
-      edges {
-        node {
-          id
-          handle
-          title
-          productType
-          collections(first: 20) {
-            edges {
-              node {
-                handle
-              }
-            }
-          }
-          metafield(namespace: "custom", key: "primary_collection") {
-            id
-            value
-          }
-        }
-      }
-      pageInfo {
-        hasNextPage
-        endCursor
-      }
-    }
-  }
-`;
-
-async function loadMapping(): Promise<Map<string, MappingRow[]>> {
-  const mappingPath = path.join(process.cwd(), 'exports', 'mapping.csv');
-  
-  if (!fs.existsSync(mappingPath)) {
-    throw new Error(`Mapping file not found: ${mappingPath}\n\nPlease create exports/mapping.csv using the template.`);
-  }
-
-  const csvContent = fs.readFileSync(mappingPath, 'utf-8');
-  const records = csv.parse(csvContent, {
-    columns: true,
-    skip_empty_lines: true,
-    trim: true,
-  }) as MappingRow[];
-
-  // Group by collection handle
-  const mappingByCollection = new Map<string, MappingRow[]>();
-  
-  for (const row of records) {
-    if (!mappingByCollection.has(row.collection_handle)) {
-      mappingByCollection.set(row.collection_handle, []);
-    }
-    mappingByCollection.get(row.collection_handle)!.push(row);
-  }
-
-  console.log(`✅ Loaded ${records.length} mapping rules across ${mappingByCollection.size} collections\n`);
-  return mappingByCollection;
-}
-
-function determinePrimaryCollection(
-  product: {
-    productType: string;
-    collections: { edges: Array<{ node: { handle: string } }> };
-  },
-  mapping: Map<string, MappingRow[]>
-): { primaryCollection: string | null; reason: string } {
-  const productType = product.productType || '';
-  const collections = product.collections.edges.map((e) => e.node.handle);
-
-  // Find matching collection and product type
-  for (const collectionHandle of collections) {
-    const collectionMappings = mapping.get(collectionHandle);
-    if (!collectionMappings) continue;
-
-    // Find exact product type match
-    const exactMatch = collectionMappings.find(
-      (m) => m.product_type === productType
-    );
-
-    if (exactMatch) {
-      if (exactMatch.action === 'exclude') {
-        return {
-          primaryCollection: collectionHandle, // Just collection, no subcategory
-          reason: `Excluded product type: ${productType}`,
-        };
-      }
-
-      if (exactMatch.action === 'merge' && exactMatch.merge_to) {
-        return {
-          primaryCollection: `${collectionHandle}/${exactMatch.merge_to}`,
-          reason: `Merged ${productType} into ${exactMatch.merge_to}`,
-        };
-      }
-
-      if (exactMatch.action === 'include' && exactMatch.subcategory_handle) {
-        return {
-          primaryCollection: `${collectionHandle}/${exactMatch.subcategory_handle}`,
-          reason: `Mapped ${productType} to ${exactMatch.subcategory_handle}`,
-        };
-      }
-    }
-
-    // Try normalized match
-    const normalizedProductType = normalizeProductType(productType);
-    const normalizedMatch = collectionMappings.find(
-      (m) => normalizeProductType(m.product_type) === normalizedProductType
-    );
-
-    if (normalizedMatch) {
-      if (normalizedMatch.action === 'exclude') {
-        return {
-          primaryCollection: collectionHandle,
-          reason: `Excluded (normalized): ${productType}`,
-        };
-      }
-
-      if (normalizedMatch.action === 'merge' && normalizedMatch.merge_to) {
-        return {
-          primaryCollection: `${collectionHandle}/${normalizedMatch.merge_to}`,
-          reason: `Merged (normalized) ${productType} into ${normalizedMatch.merge_to}`,
-        };
-      }
-
-      if (normalizedMatch.action === 'include' && normalizedMatch.subcategory_handle) {
-        return {
-          primaryCollection: `${collectionHandle}/${normalizedMatch.subcategory_handle}`,
-          reason: `Mapped (normalized) ${productType} to ${normalizedMatch.subcategory_handle}`,
-        };
-      }
-    }
-  }
-
-  // Fallback: use first collection
-  if (collections.length > 0) {
-    return {
-      primaryCollection: collections[0],
-      reason: `No mapping found, using first collection: ${collections[0]}`,
-    };
-  }
-
-  return {
-    primaryCollection: null,
-    reason: 'No collections found',
-  };
-}
-
-async function applyMapping(dryRun: boolean = true) {
-  console.log(`🔄 ${dryRun ? 'DRY RUN: ' : ''}Applying mapping...\n`);
-
-  const mapping = await loadMapping();
-  const updates: ProductUpdate[] = [];
-  let hasNextPage = true;
-  let cursor: string | null = null;
-  let totalProcessed = 0;
-
-  // Fetch all products
-  while (hasNextPage) {
-    const data = await shopifyFetch<{
-      products: {
-        edges: Array<{
-          node: {
-            id: string;
-            handle: string;
-            title: string;
-            productType: string;
-            collections: {
-              edges: Array<{
-                node: {
-                  handle: string;
-                };
-              };
-            };
-            metafield: {
-              id: string;
-              value: string;
-            } | null;
-          };
-        }>;
-        pageInfo: {
-          hasNextPage: boolean;
-          endCursor: string | null;
-        };
-      };
-    }>({
-      query: GET_ALL_PRODUCTS,
-      variables: { first: 250, after: cursor },
-    });
-
-    // Process each product
-    for (const { node: product } of data.products.edges) {
-      totalProcessed++;
-
-      const currentPrimaryCollection = product.metafield?.value || null;
-      const { primaryCollection, reason } = determinePrimaryCollection(
-        product,
-        mapping
-      );
-
-      // Only update if different
-      if (currentPrimaryCollection !== primaryCollection) {
-        updates.push({
-          productId: product.id,
-          handle: product.handle,
-          title: product.title,
-          productType: product.productType || '(No Product Type)',
-          currentPrimaryCollection,
-          newPrimaryCollection: primaryCollection,
-          reason,
-        });
-      }
-
-      if (totalProcessed % 100 === 0) {
-        console.log(`  Processed ${totalProcessed} products...`);
-      }
-    }
-
-    hasNextPage = data.products.pageInfo.hasNextPage;
-    cursor = data.products.pageInfo.endCursor || null;
-  }
-
-  console.log(`\n📊 Summary:`);
-  console.log(`   Total Products Processed: ${totalProcessed}`);
-  console.log(`   Products to Update: ${updates.length}`);
-  console.log(`   Products Unchanged: ${totalProcessed - updates.length}`);
-
-  if (updates.length === 0) {
-    console.log('\n✅ No changes needed!');
-    return;
-  }
-
-  // Show sample updates
-  console.log(`\n📝 Sample Updates (first 10):`);
-  updates.slice(0, 10).forEach((update, index) => {
-    console.log(`\n   ${index + 1}. ${update.handle}`);
-    console.log(`      Product Type: ${update.productType}`);
-    console.log(`      Current: ${update.currentPrimaryCollection || '(none)'}`);
-    console.log(`      New: ${update.newPrimaryCollection || '(none)'}`);
-    console.log(`      Reason: ${update.reason}`);
-  });
-
-  if (updates.length > 10) {
-    console.log(`\n   ... and ${updates.length - 10} more`);
-  }
-
-  // Export updates
-  const outputDir = path.join(process.cwd(), 'exports');
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
-  }
-
-  const updatesPath = path.join(outputDir, `updates-${dryRun ? 'dry-run' : 'applied'}-${Date.now()}.json`);
-  fs.writeFileSync(updatesPath, JSON.stringify(updates, null, 2));
-  console.log(`\n✅ Updates saved to: ${updatesPath}`);
-
-  // Apply updates if not dry run
-  if (!dryRun) {
-    console.log(`\n🔄 Applying ${updates.length} updates...`);
-    
-    // Note: This requires Shopify Admin API access
-    // For now, we'll just log what needs to be done
-    console.log('\n⚠️  Admin API integration needed to apply updates.');
-    console.log('   Updates are saved in the JSON file above.');
-    console.log('   You can use Shopify Admin API or Shopify Flow to apply them.');
-    
-    // TODO: Implement Admin API calls if credentials are available
-  } else {
-    console.log(`\n✅ Dry run complete! Review the updates above.`);
-    console.log(`   To apply changes, run: npm run import:mapping -- --apply`);
-  }
-
-  return updates;
-}
-
-// Parse command line arguments
-const args = process.argv.slice(2);
-const dryRun = !args.includes('--apply');
-
-// Run if called directly
-if (require.main === module) {
-  applyMapping(dryRun)
-    .then(() => {
-      console.log('\n✅ Complete!');
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error('\n❌ Failed:', error);
-      process.exit(1);
-    });
-}
-
-export { applyMapping, loadMapping };
-
