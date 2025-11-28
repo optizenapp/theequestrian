@@ -2,6 +2,9 @@ import { notFound } from 'next/navigation';
 import { getProductByHandle } from '@/lib/shopify/products';
 import type { Metadata } from 'next';
 
+// ISR Configuration: Revalidate every 5 minutes (more frequent for product pages)
+export const revalidate = 300;
+
 interface ProductPageProps {
   params: Promise<{
     handle: string;

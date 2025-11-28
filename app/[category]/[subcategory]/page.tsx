@@ -12,6 +12,9 @@ import {
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
+// ISR Configuration: Revalidate every 15 minutes
+export const revalidate = 900;
+
 interface SubcategoryPageProps {
   params: Promise<{
     category: string;
@@ -173,4 +176,29 @@ export async function generateMetadata({ params }: SubcategoryPageProps): Promis
     title: `${collectionTitle} | The Equestrian`,
     description: `Shop ${collectionTitle} products at The Equestrian. Quality equestrian supplies and equipment.`,
   };
+}
+
+/**
+ * Generate static params for popular subcategory combinations
+ * Pre-renders the most visited pages for instant loading
+ */
+export async function generateStaticParams() {
+  // Pre-render popular subcategory combinations from mapping
+  // You can expand this list based on analytics
+  const popularPaths = [
+    { category: 'horse', subcategory: 'boots' },
+    { category: 'horse', subcategory: 'rugs' },
+    { category: 'horse', subcategory: 'bits' },
+    { category: 'horse', subcategory: 'grooming' },
+    { category: 'horse', subcategory: 'saddles' },
+    { category: 'rider', subcategory: 'helmets' },
+    { category: 'rider', subcategory: 'gloves' },
+    { category: 'rider', subcategory: 'boots' },
+    { category: 'clothing', subcategory: 'womens' },
+    { category: 'clothing', subcategory: 'mens' },
+    { category: 'pet', subcategory: 'dog' },
+    { category: 'pet', subcategory: 'cat' },
+  ];
+
+  return popularPaths;
 }

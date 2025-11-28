@@ -14,6 +14,9 @@ import {
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
+// ISR Configuration: Revalidate every 15 minutes
+export const revalidate = 900;
+
 interface CategoryPageProps {
   params: Promise<{
     category: string;
@@ -240,3 +243,31 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 /**
  * Generate metadata for SEO
  */
+export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
+  const { category } = await params;
+  const collectionTitle = getCollectionTitle(category);
+
+  return {
+    title: `${collectionTitle} | The Equestrian`,
+    description: `Shop ${collectionTitle} products at The Equestrian. Quality equestrian supplies and equipment.`,
+  };
+}
+
+/**
+ * Generate static params for all top-level categories at build time
+ * This pre-renders the most important pages for instant loading
+ */
+export async function generateStaticParams() {
+  // Pre-render all top-level categories from mapping
+  const topLevelCategories = [
+    'horse',
+    'rider',
+    'clothing',
+    'pet',
+    'accessories',
+  ];
+
+  return topLevelCategories.map((category) => ({
+    category,
+  }));
+}
