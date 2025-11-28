@@ -134,11 +134,19 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   // Fetch ALL products from Shopify
   const allProducts = await getAllProducts();
   
+  console.log(`[${category}] Total products from Shopify:`, allProducts.length);
+  console.log(`[${category}] Allowed product types:`, allowedProductTypes);
+  console.log(`[${category}] Sample product types from Shopify:`, 
+    allProducts.slice(0, 5).map(p => ({ title: p.title, productType: p.productType }))
+  );
+  
   // Filter products by productType using our mapping
   const filteredProducts = filterProductsByCollection(
     allProducts,
     category
   );
+  
+  console.log(`[${category}] Filtered products:`, filteredProducts.length);
 
   // Get subcategories from our mapping
   const subcategories = getMappingSubcategories(category);

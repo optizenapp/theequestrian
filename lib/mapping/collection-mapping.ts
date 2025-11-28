@@ -191,20 +191,33 @@ export function filterProductsByCollection<T extends { productType?: string | nu
 ): T[] {
   const allowedProductTypes = getProductTypesForCollection(category, subcategory, subsubcategory);
   
+  console.log(`[filterProductsByCollection] ${category}/${subcategory || ''}/${subsubcategory || ''}`);
+  console.log(`  Allowed types (${allowedProductTypes.length}):`, allowedProductTypes.slice(0, 10));
+  console.log(`  Total products:`, products.length);
+  console.log(`  Sample product types:`, products.slice(0, 10).map(p => p.productType));
+  
   if (allowedProductTypes.length === 0) {
+    console.log(`  No mapping found - returning all products`);
     // If no mapping found, show all products (fallback behavior)
     return products;
   }
 
-  // Create a Set for faster lookup
-  const allowedSet = new Set(allowedProductTypes);
+  // Create a Set for faster lookup (case-insensitive, trimmed)
+  const allowedSet = new Set(
+    allowedProductTypes.map(pt => pt.toLowerCase().trim())
+  );
 
-  return products.filter((product) => {
+  const filtered = products.filter((product) => {
     if (!product.productType) {
       return false;
     }
-    return allowedSet.has(product.productType);
+    const normalizedType = product.productType.toLowerCase().trim();
+    return allowedSet.has(normalizedType);
   });
+  
+  console.log(`  Filtered products:`, filtered.length);
+  
+  return filtered;
 }
 
 /**

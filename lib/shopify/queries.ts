@@ -177,8 +177,14 @@ export const GET_ALL_PRODUCTS = `
           handle
           title
           availableForSale
+          productType
+          tags
           priceRange {
             minVariantPrice {
+              amount
+              currencyCode
+            }
+            maxVariantPrice {
               amount
               currencyCode
             }
@@ -190,6 +196,36 @@ export const GET_ALL_PRODUCTS = `
                 altText
                 width
                 height
+              }
+            }
+          }
+          variants(first: 50) {
+            edges {
+              node {
+                id
+                title
+                availableForSale
+                price {
+                  amount
+                  currencyCode
+                }
+                compareAtPrice {
+                  amount
+                  currencyCode
+                }
+                selectedOptions {
+                  name
+                  value
+                }
+              }
+            }
+          }
+          collections(first: 20) {
+            edges {
+              node {
+                id
+                handle
+                title
               }
             }
           }
