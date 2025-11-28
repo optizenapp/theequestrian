@@ -1,0 +1,679 @@
+
+> the-equestrian@0.1.0 build
+> next build
+
+   ▲ Next.js 16.0.1 (Turbopack)
+   - Environments: .env.local
+
+ ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+   Creating an optimized production build ...
+
+> Build error occurred
+Error: Turbopack build failed with 35 errors:
+./app/[category]/[subcategory]/page.tsx:276:8
+Ecmascript file had an error
+[0m [90m 274 |[39m [36mimport[39m { [33mProductGridWithFilters[39m } [36mfrom[39m [32m'@/components/filters/ProductGridWithFilters'[39m[33m;[39m
+ [90m 275 |[39m [36mimport[39m { generateCollectionStructuredData } [36mfrom[39m [32m'@/lib/structured-data/collection'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 276 |[39m [36mimport[39m [33mLink[39m [36mfrom[39m [32m'next/link'[39m[33m;[39m
+ [90m     |[39m        [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 277 |[39m [36mimport[39m type { [33mMetadata[39m } [36mfrom[39m [32m'next'[39m[33m;[39m
+ [90m 278 |[39m [36mimport[39m type { [33mShopifyProduct[39m } [36mfrom[39m [32m'@/types/shopify'[39m[33m;[39m
+ [90m 279 |[39m[0m
+
+the name `Link` is defined multiple times
+
+
+./app/[category]/[subcategory]/page.tsx:274:10
+Ecmascript file had an error
+[0m [90m 272 |[39m [36mimport[39m { getProductsByCollectionAndType } [36mfrom[39m [32m'@/lib/shopify/products-by-type'[39m[33m;[39m
+ [90m 273 |[39m [36mimport[39m { getSubcategoriesForCollection } [36mfrom[39m [32m'@/lib/filters/category-filter'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 274 |[39m [36mimport[39m { [33mProductGridWithFilters[39m } [36mfrom[39m [32m'@/components/filters/ProductGridWithFilters'[39m[33m;[39m
+ [90m     |[39m          [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 275 |[39m [36mimport[39m { generateCollectionStructuredData } [36mfrom[39m [32m'@/lib/structured-data/collection'[39m[33m;[39m
+ [90m 276 |[39m [36mimport[39m [33mLink[39m [36mfrom[39m [32m'next/link'[39m[33m;[39m
+ [90m 277 |[39m [36mimport[39m type { [33mMetadata[39m } [36mfrom[39m [32m'next'[39m[33m;[39m[0m
+
+the name `ProductGridWithFilters` is defined multiple times
+
+
+./app/[category]/[subcategory]/page.tsx:275:10
+Ecmascript file had an error
+[0m [90m 273 |[39m [36mimport[39m { getSubcategoriesForCollection } [36mfrom[39m [32m'@/lib/filters/category-filter'[39m[33m;[39m
+ [90m 274 |[39m [36mimport[39m { [33mProductGridWithFilters[39m } [36mfrom[39m [32m'@/components/filters/ProductGridWithFilters'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 275 |[39m [36mimport[39m { generateCollectionStructuredData } [36mfrom[39m [32m'@/lib/structured-data/collection'[39m[33m;[39m
+ [90m     |[39m          [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 276 |[39m [36mimport[39m [33mLink[39m [36mfrom[39m [32m'next/link'[39m[33m;[39m
+ [90m 277 |[39m [36mimport[39m type { [33mMetadata[39m } [36mfrom[39m [32m'next'[39m[33m;[39m
+ [90m 278 |[39m [36mimport[39m type { [33mShopifyProduct[39m } [36mfrom[39m [32m'@/types/shopify'[39m[33m;[39m[0m
+
+the name `generateCollectionStructuredData` is defined multiple times
+
+
+./app/[category]/[subcategory]/page.tsx:271:10
+Ecmascript file had an error
+[0m [90m 269 |[39m
+ [90m 270 |[39m
+[31m[1m>[22m[39m[90m 271 |[39m [36mimport[39m { getCollectionContent } [36mfrom[39m [32m'@/lib/content/collections'[39m[33m;[39m
+ [90m     |[39m          [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 272 |[39m [36mimport[39m { getProductsByCollectionAndType } [36mfrom[39m [32m'@/lib/shopify/products-by-type'[39m[33m;[39m
+ [90m 273 |[39m [36mimport[39m { getSubcategoriesForCollection } [36mfrom[39m [32m'@/lib/filters/category-filter'[39m[33m;[39m
+ [90m 274 |[39m [36mimport[39m { [33mProductGridWithFilters[39m } [36mfrom[39m [32m'@/components/filters/ProductGridWithFilters'[39m[33m;[39m[0m
+
+the name `getCollectionContent` is defined multiple times
+
+
+./app/[category]/[subcategory]/page.tsx:272:10
+Ecmascript file had an error
+[0m [90m 270 |[39m
+ [90m 271 |[39m [36mimport[39m { getCollectionContent } [36mfrom[39m [32m'@/lib/content/collections'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 272 |[39m [36mimport[39m { getProductsByCollectionAndType } [36mfrom[39m [32m'@/lib/shopify/products-by-type'[39m[33m;[39m
+ [90m     |[39m          [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 273 |[39m [36mimport[39m { getSubcategoriesForCollection } [36mfrom[39m [32m'@/lib/filters/category-filter'[39m[33m;[39m
+ [90m 274 |[39m [36mimport[39m { [33mProductGridWithFilters[39m } [36mfrom[39m [32m'@/components/filters/ProductGridWithFilters'[39m[33m;[39m
+ [90m 275 |[39m [36mimport[39m { generateCollectionStructuredData } [36mfrom[39m [32m'@/lib/structured-data/collection'[39m[33m;[39m[0m
+
+the name `getProductsByCollectionAndType` is defined multiple times
+
+
+./app/[category]/[subcategory]/page.tsx:273:10
+Ecmascript file had an error
+[0m [90m 271 |[39m [36mimport[39m { getCollectionContent } [36mfrom[39m [32m'@/lib/content/collections'[39m[33m;[39m
+ [90m 272 |[39m [36mimport[39m { getProductsByCollectionAndType } [36mfrom[39m [32m'@/lib/shopify/products-by-type'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 273 |[39m [36mimport[39m { getSubcategoriesForCollection } [36mfrom[39m [32m'@/lib/filters/category-filter'[39m[33m;[39m
+ [90m     |[39m          [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 274 |[39m [36mimport[39m { [33mProductGridWithFilters[39m } [36mfrom[39m [32m'@/components/filters/ProductGridWithFilters'[39m[33m;[39m
+ [90m 275 |[39m [36mimport[39m { generateCollectionStructuredData } [36mfrom[39m [32m'@/lib/structured-data/collection'[39m[33m;[39m
+ [90m 276 |[39m [36mimport[39m [33mLink[39m [36mfrom[39m [32m'next/link'[39m[33m;[39m[0m
+
+the name `getSubcategoriesForCollection` is defined multiple times
+
+
+./app/[category]/page.tsx:339:8
+Ecmascript file had an error
+[0m [90m 337 |[39m [36mimport[39m { [33mProductGridWithFilters[39m } [36mfrom[39m [32m'@/components/filters/ProductGridWithFilters'[39m[33m;[39m
+ [90m 338 |[39m [36mimport[39m { generateCollectionStructuredData } [36mfrom[39m [32m'@/lib/structured-data/collection'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 339 |[39m [36mimport[39m [33mLink[39m [36mfrom[39m [32m'next/link'[39m[33m;[39m
+ [90m     |[39m        [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 340 |[39m [36mimport[39m type { [33mMetadata[39m } [36mfrom[39m [32m'next'[39m[33m;[39m
+ [90m 341 |[39m
+ [90m 342 |[39m[0m
+
+the name `Link` is defined multiple times
+
+
+./app/[category]/page.tsx:337:10
+Ecmascript file had an error
+[0m [90m 335 |[39m [36mimport[39m { getCollectionContent } [36mfrom[39m [32m'@/lib/content/collections'[39m[33m;[39m
+ [90m 336 |[39m [36mimport[39m { getSubcategoriesForCollection } [36mfrom[39m [32m'@/lib/filters/category-filter'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 337 |[39m [36mimport[39m { [33mProductGridWithFilters[39m } [36mfrom[39m [32m'@/components/filters/ProductGridWithFilters'[39m[33m;[39m
+ [90m     |[39m          [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 338 |[39m [36mimport[39m { generateCollectionStructuredData } [36mfrom[39m [32m'@/lib/structured-data/collection'[39m[33m;[39m
+ [90m 339 |[39m [36mimport[39m [33mLink[39m [36mfrom[39m [32m'next/link'[39m[33m;[39m
+ [90m 340 |[39m [36mimport[39m type { [33mMetadata[39m } [36mfrom[39m [32m'next'[39m[33m;[39m[0m
+
+the name `ProductGridWithFilters` is defined multiple times
+
+
+./app/[category]/page.tsx:338:10
+Ecmascript file had an error
+[0m [90m 336 |[39m [36mimport[39m { getSubcategoriesForCollection } [36mfrom[39m [32m'@/lib/filters/category-filter'[39m[33m;[39m
+ [90m 337 |[39m [36mimport[39m { [33mProductGridWithFilters[39m } [36mfrom[39m [32m'@/components/filters/ProductGridWithFilters'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 338 |[39m [36mimport[39m { generateCollectionStructuredData } [36mfrom[39m [32m'@/lib/structured-data/collection'[39m[33m;[39m
+ [90m     |[39m          [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 339 |[39m [36mimport[39m [33mLink[39m [36mfrom[39m [32m'next/link'[39m[33m;[39m
+ [90m 340 |[39m [36mimport[39m type { [33mMetadata[39m } [36mfrom[39m [32m'next'[39m[33m;[39m
+ [90m 341 |[39m[0m
+
+the name `generateCollectionStructuredData` is defined multiple times
+
+
+./app/[category]/page.tsx:335:10
+Ecmascript file had an error
+[0m [90m 333 |[39m
+ [90m 334 |[39m [36mimport[39m { getProductByHandle[33m,[39m getProductCanonicalUrl } [36mfrom[39m [32m'@/lib/shopify/products'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 335 |[39m [36mimport[39m { getCollectionContent } [36mfrom[39m [32m'@/lib/content/collections'[39m[33m;[39m
+ [90m     |[39m          [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 336 |[39m [36mimport[39m { getSubcategoriesForCollection } [36mfrom[39m [32m'@/lib/filters/category-filter'[39m[33m;[39m
+ [90m 337 |[39m [36mimport[39m { [33mProductGridWithFilters[39m } [36mfrom[39m [32m'@/components/filters/ProductGridWithFilters'[39m[33m;[39m
+ [90m 338 |[39m [36mimport[39m { generateCollectionStructuredData } [36mfrom[39m [32m'@/lib/structured-data/collection'[39m[33m;[39m[0m
+
+the name `getCollectionContent` is defined multiple times
+
+
+./app/[category]/page.tsx:334:10
+Ecmascript file had an error
+[0m [90m 332 |[39m
+ [90m 333 |[39m
+[31m[1m>[22m[39m[90m 334 |[39m [36mimport[39m { getProductByHandle[33m,[39m getProductCanonicalUrl } [36mfrom[39m [32m'@/lib/shopify/products'[39m[33m;[39m
+ [90m     |[39m          [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 335 |[39m [36mimport[39m { getCollectionContent } [36mfrom[39m [32m'@/lib/content/collections'[39m[33m;[39m
+ [90m 336 |[39m [36mimport[39m { getSubcategoriesForCollection } [36mfrom[39m [32m'@/lib/filters/category-filter'[39m[33m;[39m
+ [90m 337 |[39m [36mimport[39m { [33mProductGridWithFilters[39m } [36mfrom[39m [32m'@/components/filters/ProductGridWithFilters'[39m[33m;[39m[0m
+
+the name `getProductByHandle` is defined multiple times
+
+
+./app/[category]/page.tsx:334:30
+Ecmascript file had an error
+[0m [90m 332 |[39m
+ [90m 333 |[39m
+[31m[1m>[22m[39m[90m 334 |[39m [36mimport[39m { getProductByHandle[33m,[39m getProductCanonicalUrl } [36mfrom[39m [32m'@/lib/shopify/products'[39m[33m;[39m
+ [90m     |[39m                              [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 335 |[39m [36mimport[39m { getCollectionContent } [36mfrom[39m [32m'@/lib/content/collections'[39m[33m;[39m
+ [90m 336 |[39m [36mimport[39m { getSubcategoriesForCollection } [36mfrom[39m [32m'@/lib/filters/category-filter'[39m[33m;[39m
+ [90m 337 |[39m [36mimport[39m { [33mProductGridWithFilters[39m } [36mfrom[39m [32m'@/components/filters/ProductGridWithFilters'[39m[33m;[39m[0m
+
+the name `getProductCanonicalUrl` is defined multiple times
+
+
+./app/[category]/page.tsx:336:10
+Ecmascript file had an error
+[0m [90m 334 |[39m [36mimport[39m { getProductByHandle[33m,[39m getProductCanonicalUrl } [36mfrom[39m [32m'@/lib/shopify/products'[39m[33m;[39m
+ [90m 335 |[39m [36mimport[39m { getCollectionContent } [36mfrom[39m [32m'@/lib/content/collections'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 336 |[39m [36mimport[39m { getSubcategoriesForCollection } [36mfrom[39m [32m'@/lib/filters/category-filter'[39m[33m;[39m
+ [90m     |[39m          [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 337 |[39m [36mimport[39m { [33mProductGridWithFilters[39m } [36mfrom[39m [32m'@/components/filters/ProductGridWithFilters'[39m[33m;[39m
+ [90m 338 |[39m [36mimport[39m { generateCollectionStructuredData } [36mfrom[39m [32m'@/lib/structured-data/collection'[39m[33m;[39m
+ [90m 339 |[39m [36mimport[39m [33mLink[39m [36mfrom[39m [32m'next/link'[39m[33m;[39m[0m
+
+the name `getSubcategoriesForCollection` is defined multiple times
+
+
+./app/font-test/page.tsx:375:53
+Ecmascript file had an error
+[0m [90m 373 |[39m
+ [90m 374 |[39m [36mimport[39m { useState } [36mfrom[39m [32m'react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 375 |[39m [36mimport[39m { [33mInter[39m[33m,[39m [33mPlus_Jakarta_Sans[39m[33m,[39m [33mOutfit[39m[33m,[39m [33mManrope[39m[33m,[39m [33mDM_Sans[39m[33m,[39m [33mPlayfair_Display[39m } [36mfrom[39m [32m'next/font/google'[39m[33m;[39m
+ [90m     |[39m                                                     [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 376 |[39m
+ [90m 377 |[39m[0m
+
+the name `DM_Sans` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./app/font-test/page.tsx [Client Component Browser]
+    ./app/font-test/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/font-test/page.tsx [Client Component SSR]
+    ./app/font-test/page.tsx [Server Component]
+
+
+./app/font-test/page.tsx:375:10
+Ecmascript file had an error
+[0m [90m 373 |[39m
+ [90m 374 |[39m [36mimport[39m { useState } [36mfrom[39m [32m'react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 375 |[39m [36mimport[39m { [33mInter[39m[33m,[39m [33mPlus_Jakarta_Sans[39m[33m,[39m [33mOutfit[39m[33m,[39m [33mManrope[39m[33m,[39m [33mDM_Sans[39m[33m,[39m [33mPlayfair_Display[39m } [36mfrom[39m [32m'next/font/google'[39m[33m;[39m
+ [90m     |[39m          [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 376 |[39m
+ [90m 377 |[39m[0m
+
+the name `Inter` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./app/font-test/page.tsx [Client Component Browser]
+    ./app/font-test/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/font-test/page.tsx [Client Component SSR]
+    ./app/font-test/page.tsx [Server Component]
+
+
+./app/font-test/page.tsx:375:44
+Ecmascript file had an error
+[0m [90m 373 |[39m
+ [90m 374 |[39m [36mimport[39m { useState } [36mfrom[39m [32m'react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 375 |[39m [36mimport[39m { [33mInter[39m[33m,[39m [33mPlus_Jakarta_Sans[39m[33m,[39m [33mOutfit[39m[33m,[39m [33mManrope[39m[33m,[39m [33mDM_Sans[39m[33m,[39m [33mPlayfair_Display[39m } [36mfrom[39m [32m'next/font/google'[39m[33m;[39m
+ [90m     |[39m                                            [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 376 |[39m
+ [90m 377 |[39m[0m
+
+the name `Manrope` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./app/font-test/page.tsx [Client Component Browser]
+    ./app/font-test/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/font-test/page.tsx [Client Component SSR]
+    ./app/font-test/page.tsx [Server Component]
+
+
+./app/font-test/page.tsx:375:36
+Ecmascript file had an error
+[0m [90m 373 |[39m
+ [90m 374 |[39m [36mimport[39m { useState } [36mfrom[39m [32m'react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 375 |[39m [36mimport[39m { [33mInter[39m[33m,[39m [33mPlus_Jakarta_Sans[39m[33m,[39m [33mOutfit[39m[33m,[39m [33mManrope[39m[33m,[39m [33mDM_Sans[39m[33m,[39m [33mPlayfair_Display[39m } [36mfrom[39m [32m'next/font/google'[39m[33m;[39m
+ [90m     |[39m                                    [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 376 |[39m
+ [90m 377 |[39m[0m
+
+the name `Outfit` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./app/font-test/page.tsx [Client Component Browser]
+    ./app/font-test/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/font-test/page.tsx [Client Component SSR]
+    ./app/font-test/page.tsx [Server Component]
+
+
+./app/font-test/page.tsx:375:62
+Ecmascript file had an error
+[0m [90m 373 |[39m
+ [90m 374 |[39m [36mimport[39m { useState } [36mfrom[39m [32m'react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 375 |[39m [36mimport[39m { [33mInter[39m[33m,[39m [33mPlus_Jakarta_Sans[39m[33m,[39m [33mOutfit[39m[33m,[39m [33mManrope[39m[33m,[39m [33mDM_Sans[39m[33m,[39m [33mPlayfair_Display[39m } [36mfrom[39m [32m'next/font/google'[39m[33m;[39m
+ [90m     |[39m                                                              [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 376 |[39m
+ [90m 377 |[39m[0m
+
+the name `Playfair_Display` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./app/font-test/page.tsx [Client Component Browser]
+    ./app/font-test/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/font-test/page.tsx [Client Component SSR]
+    ./app/font-test/page.tsx [Server Component]
+
+
+./app/font-test/page.tsx:375:17
+Ecmascript file had an error
+[0m [90m 373 |[39m
+ [90m 374 |[39m [36mimport[39m { useState } [36mfrom[39m [32m'react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 375 |[39m [36mimport[39m { [33mInter[39m[33m,[39m [33mPlus_Jakarta_Sans[39m[33m,[39m [33mOutfit[39m[33m,[39m [33mManrope[39m[33m,[39m [33mDM_Sans[39m[33m,[39m [33mPlayfair_Display[39m } [36mfrom[39m [32m'next/font/google'[39m[33m;[39m
+ [90m     |[39m                 [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 376 |[39m
+ [90m 377 |[39m[0m
+
+the name `Plus_Jakarta_Sans` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./app/font-test/page.tsx [Client Component Browser]
+    ./app/font-test/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/font-test/page.tsx [Client Component SSR]
+    ./app/font-test/page.tsx [Server Component]
+
+
+./app/font-test/page.tsx:374:10
+Ecmascript file had an error
+[0m [90m 372 |[39m
+ [90m 373 |[39m
+[31m[1m>[22m[39m[90m 374 |[39m [36mimport[39m { useState } [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m     |[39m          [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 375 |[39m [36mimport[39m { [33mInter[39m[33m,[39m [33mPlus_Jakarta_Sans[39m[33m,[39m [33mOutfit[39m[33m,[39m [33mManrope[39m[33m,[39m [33mDM_Sans[39m[33m,[39m [33mPlayfair_Display[39m } [36mfrom[39m [32m'next/font/google'[39m[33m;[39m
+ [90m 376 |[39m
+ [90m 377 |[39m[0m
+
+the name `useState` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./app/font-test/page.tsx [Client Component Browser]
+    ./app/font-test/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/font-test/page.tsx [Client Component SSR]
+    ./app/font-test/page.tsx [Server Component]
+
+
+./lib/shopify/collections.ts:229:23
+Ecmascript file had an error
+[0m [90m 227 |[39m [90m * Get all collections (for sitemap, navigation, etc.)[39m
+ [90m 228 |[39m [90m */[39m
+[31m[1m>[22m[39m[90m 229 |[39m [36mexport[39m [36masync[39m [36mfunction[39m getAllCollections()[33m:[39m [33mPromise[39m[33m<[39m[33mCollectionWithParent[39m[][33m>[39m {
+ [90m     |[39m                       [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 230 |[39m   [36mtry[39m {
+ [90m 231 |[39m     [36mconst[39m data [33m=[39m [36mawait[39m shopifyFetch[33m<[39m[33mCollectionsResponse[39m[33m>[39m({
+ [90m 232 |[39m       query[33m:[39m [33mGET_ALL_COLLECTIONS[39m[33m,[39m[0m
+
+the name `getAllCollections` is defined multiple times
+
+Import traces:
+  App Route:
+    ./lib/shopify/collections.ts
+    ./app/api/admin/debug-subcategory/route.ts
+
+  Server Component:
+    ./lib/shopify/collections.ts
+    ./app/page.tsx
+
+
+./lib/shopify/collections.ts:279:23
+Ecmascript file had an error
+[0m [90m 277 |[39m [90m * Get child collections for a parent[39m
+ [90m 278 |[39m [90m */[39m
+[31m[1m>[22m[39m[90m 279 |[39m [36mexport[39m [36masync[39m [36mfunction[39m getChildCollections(
+ [90m     |[39m                       [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 280 |[39m   parentHandle[33m:[39m string
+ [90m 281 |[39m )[33m:[39m [33mPromise[39m[33m<[39m[33mCollectionWithParent[39m[][33m>[39m {
+ [90m 282 |[39m   [36mconst[39m collections [33m=[39m [36mawait[39m getAllCollections()[33m;[39m[0m
+
+the name `getChildCollections` is defined multiple times
+
+Import traces:
+  App Route:
+    ./lib/shopify/collections.ts
+    ./app/api/admin/debug-subcategory/route.ts
+
+  Server Component:
+    ./lib/shopify/collections.ts
+    ./app/page.tsx
+
+
+./lib/shopify/collections.ts:180:23
+Ecmascript file had an error
+[0m [90m 178 |[39m [90m * Get a collection by its handle[39m
+ [90m 179 |[39m [90m */[39m
+[31m[1m>[22m[39m[90m 180 |[39m [36mexport[39m [36masync[39m [36mfunction[39m getCollectionByHandle(
+ [90m     |[39m                       [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 181 |[39m   handle[33m:[39m string[33m,[39m
+ [90m 182 |[39m   productsFirst[33m:[39m number [33m=[39m [35m50[39m
+ [90m 183 |[39m )[33m:[39m [33mPromise[39m[33m<[39m[33mCollectionWithParent[39m [33m|[39m [36mnull[39m[33m>[39m {[0m
+
+the name `getCollectionByHandle` is defined multiple times
+
+Import traces:
+  App Route:
+    ./lib/shopify/collections.ts
+    ./app/api/admin/debug-subcategory/route.ts
+
+  Server Component:
+    ./lib/shopify/collections.ts
+    ./app/page.tsx
+
+
+./lib/shopify/collections.ts:251:23
+Ecmascript file had an error
+[0m [90m 249 |[39m [90m * Returns a map of parent collections to their children[39m
+ [90m 250 |[39m [90m */[39m
+[31m[1m>[22m[39m[90m 251 |[39m [36mexport[39m [36masync[39m [36mfunction[39m getCollectionHierarchy()[33m:[39m [33mPromise[39m[33m<[39m
+ [90m     |[39m                       [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 252 |[39m   [33mMap[39m[33m<[39m[33mstring[39m[33m,[39m [33mCollectionWithParent[39m[][33m>[39m
+ [90m 253 |[39m [33m>[39m {
+ [90m 254 |[39m   [36mconst[39m collections [33m=[39m [36mawait[39m getAllCollections()[33m;[39m[0m
+
+the name `getCollectionHierarchy` is defined multiple times
+
+Import traces:
+  App Route:
+    ./lib/shopify/collections.ts
+    ./app/api/admin/debug-subcategory/route.ts
+
+  Server Component:
+    ./lib/shopify/collections.ts
+    ./app/page.tsx
+
+
+./lib/shopify/collections.ts:271:23
+Ecmascript file had an error
+[0m [90m 269 |[39m [90m * Get top-level (parent) collections[39m
+ [90m 270 |[39m [90m */[39m
+[31m[1m>[22m[39m[90m 271 |[39m [36mexport[39m [36masync[39m [36mfunction[39m getParentCollections()[33m:[39m [33mPromise[39m[33m<[39m[33mCollectionWithParent[39m[][33m>[39m {
+ [90m     |[39m                       [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 272 |[39m   [36mconst[39m collections [33m=[39m [36mawait[39m getAllCollections()[33m;[39m
+ [90m 273 |[39m   [36mreturn[39m collections[33m.[39mfilter((c) [33m=>[39m [33m![39mc[33m.[39mparentCollection)[33m;[39m
+ [90m 274 |[39m }[0m
+
+the name `getParentCollections` is defined multiple times
+
+Import traces:
+  App Route:
+    ./lib/shopify/collections.ts
+    ./app/api/admin/debug-subcategory/route.ts
+
+  Server Component:
+    ./lib/shopify/collections.ts
+    ./app/page.tsx
+
+
+./app/api/admin/debug-collection/route.ts:65:21
+Parsing ecmascript source code failed
+[0m [90m 63 |[39m         count[33m:[39m [35m0[39m[33m,[39m
+ [90m 64 |[39m         normalized[33m,[39m
+[31m[1m>[22m[39m[90m 65 |[39m         samples[33m:[39m [][33m,[39m
+ [90m    |[39m                     [31m[1m^[22m[39m
+ [90m 66 |[39m[0m
+
+Unexpected token `<eof>`. Expected identifier, string literal, numeric literal or [ for the computed key
+
+
+./lib/content/collections.ts:100:2
+Parsing ecmascript source code failed
+[0m [90m  98 |[39m
+ [90m  99 |[39m
+[31m[1m>[22m[39m[90m 100 |[39m  [33m*[39m [33mContent[39m [33mManagement[39m [36mfor[39m [33mCollections[39m and [33mSubcollections[39m
+ [90m     |[39m  [31m[1m^[22m[39m
+ [90m 101 |[39m  [33m*[39m 
+ [90m 102 |[39m  [33m*[39m [33mHandles[39m rich content [36mfrom[39m [33mShopify[39m metafields [36mwith[39m fallback to basic descriptions
+ [90m 103 |[39m  [33m*[39m[33m/[39m[0m
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./lib/content/collections.ts
+    ./app/[category]/page.tsx
+
+
+./lib/filters/category-filter.ts:86:2
+Parsing ecmascript source code failed
+[0m [90m 84 |[39m
+ [90m 85 |[39m
+[31m[1m>[22m[39m[90m 86 |[39m  [33m*[39m [33mCategory[39m [33mFilter[39m [33mUtilities[39m
+ [90m    |[39m  [31m[1m^[22m[39m
+ [90m 87 |[39m  [33m*[39m 
+ [90m 88 |[39m  [33m*[39m [33mGets[39m product types (subcategories) [36mfor[39m a collection
+ [90m 89 |[39m  [33m*[39m and groups them by parent collection[0m
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./lib/filters/category-filter.ts
+    ./app/[category]/page.tsx
+
+
+./lib/filters/localStorage.ts:149:2
+Parsing ecmascript source code failed
+[0m [90m 147 |[39m
+ [90m 148 |[39m
+[31m[1m>[22m[39m[90m 149 |[39m  [33m*[39m localStorage utilities [36mfor[39m filter persistence
+ [90m     |[39m  [31m[1m^[22m[39m
+ [90m 150 |[39m  [33m*[39m [33mStores[39m filter preferences per collection
+ [90m 151 |[39m  [33m*[39m[33m/[39m
+ [90m 152 |[39m[0m
+
+Expression expected
+
+Import traces:
+  Client Component Browser:
+    ./lib/filters/localStorage.ts [Client Component Browser]
+    ./components/filters/ProductGridWithFilters.tsx [Client Component Browser]
+    ./components/filters/ProductGridWithFilters.tsx [Server Component]
+    ./app/[category]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./lib/filters/localStorage.ts [Client Component SSR]
+    ./components/filters/ProductGridWithFilters.tsx [Client Component SSR]
+    ./components/filters/ProductGridWithFilters.tsx [Server Component]
+    ./app/[category]/page.tsx [Server Component]
+
+
+./lib/filters/product-filters.ts:287:2
+Parsing ecmascript source code failed
+[0m [90m 285 |[39m
+ [90m 286 |[39m
+[31m[1m>[22m[39m[90m 287 |[39m  [33m*[39m 
+ [90m     |[39m  [31m[1m^[22m[39m
+ [90m 288 |[39m  [33m*[39m [33mExtracts[39m filter options (size[33m,[39m color[33m,[39m brand[33m,[39m etc[33m.[39m) [36mfrom[39m products
+ [90m 289 |[39m  [33m*[39m and provides filtering logic
+ [90m 290 |[39m  [33m*[39m[33m/[39m[0m
+
+Expression expected
+
+Import traces:
+  Client Component Browser:
+    ./lib/filters/product-filters.ts [Client Component Browser]
+    ./components/filters/ProductGridWithFilters.tsx [Client Component Browser]
+    ./components/filters/ProductGridWithFilters.tsx [Server Component]
+    ./app/[category]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./lib/filters/product-filters.ts [Client Component SSR]
+    ./components/filters/ProductGridWithFilters.tsx [Client Component SSR]
+    ./components/filters/ProductGridWithFilters.tsx [Server Component]
+    ./app/[category]/page.tsx [Server Component]
+
+
+./lib/shopify/primary-collection.ts:258:2
+Parsing ecmascript source code failed
+[0m [90m 256 |[39m
+ [90m 257 |[39m
+[31m[1m>[22m[39m[90m 258 |[39m  [33m*[39m [36mfor[39m products based on their productType and collections
+ [90m     |[39m  [31m[1m^[22m[39m
+ [90m 259 |[39m  [33m*[39m[33m/[39m
+ [90m 260 |[39m
+ [90m 261 |[39m[0m
+
+Expression expected
+
+Import trace:
+  App Route:
+    ./lib/shopify/primary-collection.ts
+    ./app/api/admin/set-primary-collections/route.ts
+
+
+./lib/shopify/products-by-type.ts:175:2
+Parsing ecmascript source code failed
+[0m [90m 173 |[39m
+ [90m 174 |[39m
+[31m[1m>[22m[39m[90m 175 |[39m  [33m*[39m [33mUsed[39m [36mfor[39m product type[33m-[39mbased subcategory pages
+ [90m     |[39m  [31m[1m^[22m[39m
+ [90m 176 |[39m  [33m*[39m[33m/[39m
+ [90m 177 |[39m
+ [90m 178 |[39m[0m
+
+Expression expected
+
+Import traces:
+  App Route:
+    ./lib/shopify/products-by-type.ts
+    ./app/api/admin/debug-subcategory/route.ts
+
+  Server Component:
+    ./lib/shopify/products-by-type.ts
+    ./app/[category]/[subcategory]/page.tsx
+
+
+./lib/shopify/queries.ts:400:2
+Parsing ecmascript source code failed
+[0m [90m 398 |[39m
+ [90m 399 |[39m
+[31m[1m>[22m[39m[90m 400 |[39m  [33m*[39m[33m/[39m
+ [90m     |[39m  [31m[1m^[22m[39m
+ [90m 401 |[39m
+ [90m 402 |[39m [36mexport[39m [36mconst[39m [33mPRODUCT_FRAGMENT[39m [33m=[39m [32m`[39m
+ [90m 403 |[39m [32m  fragment ProductFragment on Product {[39m[0m
+
+Expression expected
+
+Import traces:
+  App Route:
+    ./lib/shopify/queries.ts
+    ./lib/shopify/collections.ts
+    ./app/api/admin/debug-subcategory/route.ts
+
+  Server Component:
+    ./lib/shopify/queries.ts
+    ./lib/shopify/collections.ts
+    ./app/[category]/page.tsx
+
+
+./lib/shopify/queries.ts:400:3
+Parsing ecmascript source code failed
+[0m [90m 398 |[39m
+ [90m 399 |[39m
+[31m[1m>[22m[39m[90m 400 |[39m  [33m*[39m[33m/[39m
+ [90m     |[39m   [31m[1m^[22m[39m
+ [90m 401 |[39m
+ [90m 402 |[39m [36mexport[39m [36mconst[39m [33mPRODUCT_FRAGMENT[39m [33m=[39m [32m`[39m
+ [90m 403 |[39m [32m  fragment ProductFragment on Product {[39m[0m
+
+Unterminated regexp literal
+
+Import traces:
+  App Route:
+    ./lib/shopify/queries.ts
+    ./lib/shopify/collections.ts
+    ./app/api/admin/debug-subcategory/route.ts
+
+  Server Component:
+    ./lib/shopify/queries.ts
+    ./lib/shopify/collections.ts
+    ./app/[category]/page.tsx
+
+
+./lib/structured-data/collection.ts:104:2
+Parsing ecmascript source code failed
+[0m [90m 102 |[39m
+ [90m 103 |[39m
+[31m[1m>[22m[39m[90m 104 |[39m  [33m*[39m [33mStructured[39m [33mData[39m [33mUtilities[39m [36mfor[39m [33mCollections[39m
+ [90m     |[39m  [31m[1m^[22m[39m
+ [90m 105 |[39m  [33m*[39m 
+ [90m 106 |[39m  [33m*[39m [33mGenerates[39m [33mJSON[39m[33m-[39m[33mLD[39m structured data [36mfor[39m collection pages
+ [90m 107 |[39m  [33m*[39m including hasOfferCatalog [36mfor[39m filtered views[0m
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./lib/structured-data/collection.ts
+    ./app/[category]/page.tsx
+
+
+    at <unknown> (./app/[category]/[subcategory]/page.tsx:276:8)
+    at <unknown> (./app/[category]/[subcategory]/page.tsx:274:10)
+    at <unknown> (./app/[category]/[subcategory]/page.tsx:275:10)
+    at <unknown> (./app/[category]/[subcategory]/page.tsx:271:10)
+    at <unknown> (./app/[category]/[subcategory]/page.tsx:272:10)
+    at <unknown> (./app/[category]/[subcategory]/page.tsx:273:10)
+    at <unknown> (./app/[category]/page.tsx:339:8)
+    at <unknown> (./app/[category]/page.tsx:337:10)
+    at <unknown> (./app/[category]/page.tsx:338:10)
+    at <unknown> (./app/[category]/page.tsx:335:10)
+    at <unknown> (./app/[category]/page.tsx:334:10)
+    at <unknown> (./app/[category]/page.tsx:334:30)
+    at <unknown> (./app/[category]/page.tsx:336:10)
+    at <unknown> (./app/font-test/page.tsx:375:53)
+    at <unknown> (./app/font-test/page.tsx:375:10)
+    at <unknown> (./app/font-test/page.tsx:375:44)
+    at <unknown> (./app/font-test/page.tsx:375:36)
+    at <unknown> (./app/font-test/page.tsx:375:62)
+    at <unknown> (./app/font-test/page.tsx:375:17)
+    at <unknown> (./app/font-test/page.tsx:374:10)
+    at <unknown> (./lib/shopify/collections.ts:229:23)
+    at <unknown> (./lib/shopify/collections.ts:279:23)
+    at <unknown> (./lib/shopify/collections.ts:180:23)
+    at <unknown> (./lib/shopify/collections.ts:251:23)
+    at <unknown> (./lib/shopify/collections.ts:271:23)
+    at <unknown> (./app/api/admin/debug-collection/route.ts:65:21)
+    at <unknown> (./lib/content/collections.ts:100:2)
+    at <unknown> (./lib/filters/category-filter.ts:86:2)
+    at <unknown> (./lib/filters/localStorage.ts:149:2)
+    at <unknown> (./lib/filters/product-filters.ts:287:2)
+    at <unknown> (./lib/shopify/primary-collection.ts:258:2)
+    at <unknown> (./lib/shopify/products-by-type.ts:175:2)
+    at <unknown> (./lib/shopify/queries.ts:400:2)
+    at <unknown> (./lib/shopify/queries.ts:400:3)
+    at <unknown> (./lib/structured-data/collection.ts:104:2)

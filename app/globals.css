@@ -1,26 +1,226 @@
 @import "tailwindcss";
 
 :root {
+  /* Brand Colors - The Equestrian */
+  --primary: #BD7AB3;           /* Mauve - main CTAs, links, active states */
+  --primary-dark: #9D5A93;      /* Darker shade for hover states */
+  --primary-light: #D9A5D0;     /* Light shade for backgrounds */
+  --primary-pale: #F3E8F1;      /* Very light for subtle backgrounds */
+  
+  --secondary: #5DBEBD;         /* Teal - secondary CTAs, accents */
+  --secondary-dark: #4A9E9D;    /* Darker teal for hover */
+  --secondary-light: #A8E0DF;   /* Light teal for backgrounds */
+  --secondary-pale: #E8F7F7;    /* Very light teal */
+  
+  /* Neutral Colors (Back Market inspired) */
+  --gray-900: #1A1A1A;          /* Headings, primary text */
+  --gray-800: #2D2D2D;          /* Body text */
+  --gray-700: #4A4A4A;          /* Secondary text (matches logo frame) */
+  --gray-600: #6B6B6B;          /* Muted text */
+  --gray-500: #9B9B9B;          /* Borders, dividers */
+  --gray-400: #C4C4C4;          /* Light borders */
+  --gray-300: #E0E0E0;          /* Subtle borders */
+  --gray-200: #EFEFEF;          /* Light backgrounds */
+  --gray-100: #F7F7F7;          /* Section backgrounds */
+  --white: #FFFFFF;             /* Card backgrounds */
+  
+  /* Semantic Colors */
+  --success: #00B894;           /* In stock, success messages */
+  --warning: #FDCB6E;           /* Low stock warnings */
+  --error: #D63031;             /* Out of stock, errors */
+  --info: #5DBEBD;              /* Info messages (teal) */
+  
+  /* Shadows (Back Market style - subtle) */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.16);
+  
+  /* Border Radius */
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+  
+  /* Spacing Scale */
+  --space-xs: 0.25rem;    /* 4px */
+  --space-sm: 0.5rem;     /* 8px */
+  --space-md: 1rem;       /* 16px */
+  --space-lg: 1.5rem;     /* 24px */
+  --space-xl: 2rem;       /* 32px */
+  --space-2xl: 3rem;      /* 48px */
+  --space-3xl: 4rem;      /* 64px */
+  
+  /* Typography - Manrope */
+  --font-primary: var(--font-manrope), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  
+  /* Legacy variables for compatibility */
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #1A1A1A;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  
+  /* Brand colors for Tailwind */
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-light: var(--primary-light);
+  --color-primary-pale: var(--primary-pale);
+  
+  --color-secondary: var(--secondary);
+  --color-secondary-dark: var(--secondary-dark);
+  --color-secondary-light: var(--secondary-light);
+  --color-secondary-pale: var(--secondary-pale);
+  
+  /* Gray scale */
+  --color-gray-900: var(--gray-900);
+  --color-gray-800: var(--gray-800);
+  --color-gray-700: var(--gray-700);
+  --color-gray-600: var(--gray-600);
+  --color-gray-500: var(--gray-500);
+  --color-gray-400: var(--gray-400);
+  --color-gray-300: var(--gray-300);
+  --color-gray-200: var(--gray-200);
+  --color-gray-100: var(--gray-100);
+  
+  /* Semantic colors */
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-info: var(--info);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* Custom animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-from-top {
+  from {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(4px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+.fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+.slide-in-from-top-2 {
+  animation: slide-in-from-top 0.2s ease-out;
+}
+
+.slide-up {
+  animation: slide-up 0.2s ease-out;
+}
+
+/* Back Market inspired button styles */
+.btn-primary {
+  background-color: var(--primary);
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-dark);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background-color: var(--secondary);
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background-color: var(--secondary-dark);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.btn-secondary:active {
+  transform: translateY(0);
+}
+
+.btn-outline {
+  border: 2px solid var(--primary);
+  color: var(--primary);
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+  background-color: transparent;
+}
+
+.btn-outline:hover {
+  background-color: var(--primary);
+  color: white;
+  box-shadow: var(--shadow-md);
+}
+
+.card {
+  background-color: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  transition: all 0.2s;
+  box-shadow: var(--shadow);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+/* Utility classes for brand colors */
+.text-primary { color: var(--primary); }
+.text-secondary { color: var(--secondary); }
+.bg-primary { background-color: var(--primary); }
+.bg-secondary { background-color: var(--secondary); }
+.border-primary { border-color: var(--primary); }
+.border-secondary { border-color: var(--secondary); }

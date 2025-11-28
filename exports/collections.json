@@ -1,0 +1,6647 @@
+{
+  "exportedAt": "2025-11-25T03:07:07.245Z",
+  "totalCollections": 109,
+  "collections": [
+    {
+      "handle": "horse-grooming-supplies",
+      "title": "Horse Grooming Gear & Accessories",
+      "description": "A great range of grooming gear for home and competition. Great brands and quality products from Australia and international manufacturers. Popular brands include Champion Tails shampoo and the Equinade range. Another hugely popular brand is Cowboy Magic shampoos and conditioners for horses. Also check out Hairy Pony and Sterling Essentials.",
+      "productCount": 250,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Veterinary",
+          "count": 13
+        },
+        {
+          "productType": "STABLE: Show Preparation",
+          "count": 51
+        },
+        {
+          "productType": "Coat, Hoof & Grooming",
+          "count": 4
+        },
+        {
+          "productType": "(No Product Type)",
+          "count": 32
+        },
+        {
+          "productType": "Fly Control",
+          "count": 1
+        },
+        {
+          "productType": "Horse Grooming Combs, Brushes & Mitts",
+          "count": 27
+        },
+        {
+          "productType": "STABLE: Grooming",
+          "count": 54
+        },
+        {
+          "productType": "STABLE: Leather Care & Proofing",
+          "count": 7
+        },
+        {
+          "productType": "Horse Grooming",
+          "count": 3
+        },
+        {
+          "productType": "Health Care",
+          "count": 2
+        },
+        {
+          "productType": "Shampoo",
+          "count": 1
+        },
+        {
+          "productType": "Storage",
+          "count": 1
+        },
+        {
+          "productType": "STABLE: Hoof Care",
+          "count": 10
+        },
+        {
+          "productType": "Care Products",
+          "count": 2
+        },
+        {
+          "productType": "Luggage",
+          "count": 1
+        },
+        {
+          "productType": "Grooming",
+          "count": 3
+        },
+        {
+          "productType": "Hoof Care",
+          "count": 2
+        },
+        {
+          "productType": "Dog Grooming & Coat Care",
+          "count": 20
+        },
+        {
+          "productType": "Small Animal",
+          "count": 1
+        },
+        {
+          "productType": "STABLE: First Aid & Dressings",
+          "count": 3
+        },
+        {
+          "productType": "STABLE: Supplements",
+          "count": 1
+        },
+        {
+          "productType": "Cat Potions & Lotions",
+          "count": 1
+        },
+        {
+          "productType": "Dog Potions & Lotions",
+          "count": 1
+        },
+        {
+          "productType": "Dog Wormer & Flea",
+          "count": 3
+        },
+        {
+          "productType": "Strapping - Halters",
+          "count": 2
+        },
+        {
+          "productType": "Care",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "handle": "horse-health",
+      "title": "Horse Health & Nutrition",
+      "description": "A great range of health and nutrition products for your horse or pony. Includes feed supplements, vitamins and minerals, medicines, topical spray and ointments, and everything else in between. Check out our hoof care selection, fly and insect repellent for horses, and equine vitamins and supplements.",
+      "productCount": 250,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "probiotics",
+          "count": 1
+        },
+        {
+          "productType": "Veterinary",
+          "count": 57
+        },
+        {
+          "productType": "Horse Supplements",
+          "count": 5
+        },
+        {
+          "productType": "Accessories",
+          "count": 9
+        },
+        {
+          "productType": "STABLE: Wormers",
+          "count": 6
+        },
+        {
+          "productType": "Fly Control",
+          "count": 9
+        },
+        {
+          "productType": "Pet Supplements",
+          "count": 2
+        },
+        {
+          "productType": "Feed Supplements",
+          "count": 23
+        },
+        {
+          "productType": "(No Product Type)",
+          "count": 2
+        },
+        {
+          "productType": "HORSE: Flyveils & Bonnets",
+          "count": 13
+        },
+        {
+          "productType": "STABLE: First Aid & Dressings",
+          "count": 18
+        },
+        {
+          "productType": "STABLE: Horse Treats & Toys",
+          "count": 14
+        },
+        {
+          "productType": "STABLE: Supplements",
+          "count": 36
+        },
+        {
+          "productType": "Health Care",
+          "count": 8
+        },
+        {
+          "productType": "Fly Mask",
+          "count": 4
+        },
+        {
+          "productType": "STABLE: Hoof Care",
+          "count": 7
+        },
+        {
+          "productType": "Care",
+          "count": 1
+        },
+        {
+          "productType": "Supplements",
+          "count": 1
+        },
+        {
+          "productType": "Horse Grooming",
+          "count": 1
+        },
+        {
+          "productType": "Ear Net",
+          "count": 4
+        },
+        {
+          "productType": "fly bonnet",
+          "count": 1
+        },
+        {
+          "productType": "Fly Veil",
+          "count": 11
+        },
+        {
+          "productType": "Horse Boots",
+          "count": 2
+        },
+        {
+          "productType": "Stable Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Dog Treats",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Horse Boots",
+          "count": 2
+        },
+        {
+          "productType": "STABLE: Farrier",
+          "count": 3
+        },
+        {
+          "productType": "STABLE: Stable Equipment",
+          "count": 1
+        },
+        {
+          "productType": "STABLE: Instruments",
+          "count": 2
+        },
+        {
+          "productType": "Dog Potions & Lotions",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "handle": "saddle-pads",
+      "title": "Saddle Blankets, Pads & Squares",
+      "description": "We have a really cool range of top quality pads and blankets for all disciplines including jumping, dressage, all purpose, sheepskin, and western saddle blankets. Brands include the popular Thinline and Lemieux, and the PS Of Sweden range.",
+      "productCount": 250,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "(No Product Type)",
+          "count": 24
+        },
+        {
+          "productType": "Saddle Cloths",
+          "count": 110
+        },
+        {
+          "productType": "Wither relief saddlepad",
+          "count": 1
+        },
+        {
+          "productType": "Western Pads",
+          "count": 10
+        },
+        {
+          "productType": "saddle pad",
+          "count": 4
+        },
+        {
+          "productType": "Saddle Pads & Blankets",
+          "count": 2
+        },
+        {
+          "productType": "Saddles",
+          "count": 2
+        },
+        {
+          "productType": "Saddles - Saddle Accessories",
+          "count": 2
+        },
+        {
+          "productType": "Saddle Pad",
+          "count": 19
+        },
+        {
+          "productType": "Saddle cloths",
+          "count": 1
+        },
+        {
+          "productType": "Saddle Cloth",
+          "count": 1
+        },
+        {
+          "productType": "saddle pads",
+          "count": 1
+        },
+        {
+          "productType": "Saddlepad",
+          "count": 4
+        },
+        {
+          "productType": "HORSE: Saddlecloths",
+          "count": 37
+        },
+        {
+          "productType": "HORSE: Wither & Back Pads",
+          "count": 12
+        },
+        {
+          "productType": "SADDLES: All Purpose Saddles",
+          "count": 2
+        },
+        {
+          "productType": "half pad",
+          "count": 1
+        },
+        {
+          "productType": "Boots",
+          "count": 1
+        },
+        {
+          "productType": "RIDER: Chapettes & Gaiters",
+          "count": 1
+        },
+        {
+          "productType": "Horse Boots",
+          "count": 1
+        },
+        {
+          "productType": "Half Pads",
+          "count": 3
+        },
+        {
+          "productType": "Saddlepads",
+          "count": 10
+        },
+        {
+          "productType": "Shetland Pony",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "horse-riding-apparel",
+      "title": "Competition, Training & Casual - Horse Riding Clothes",
+      "description": "We list some of most popular and premium equestrian clothing brands available in Australia. Both Australian and international brands to purchase online. Our range include tops, quality women's breeches, and men's breeches, competition jackets, casual wear and more for men, women and children. Other popular collections include the riding tights range.",
+      "productCount": 250,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Breeches",
+          "count": 29
+        },
+        {
+          "productType": "Helmet Brim",
+          "count": 1
+        },
+        {
+          "productType": "Sleepwear",
+          "count": 1
+        },
+        {
+          "productType": "belts",
+          "count": 2
+        },
+        {
+          "productType": "Clothing - Clothing Accessories",
+          "count": 11
+        },
+        {
+          "productType": "Jodhpurs",
+          "count": 5
+        },
+        {
+          "productType": "Clothing",
+          "count": 12
+        },
+        {
+          "productType": "Clothing - Ladies Clothing",
+          "count": 79
+        },
+        {
+          "productType": "top",
+          "count": 1
+        },
+        {
+          "productType": "Riding Apparel & Accessories",
+          "count": 1
+        },
+        {
+          "productType": "RIDER: Gloves",
+          "count": 4
+        },
+        {
+          "productType": "Clothing - Kid's Clothing",
+          "count": 8
+        },
+        {
+          "productType": "Ultimate Tights",
+          "count": 2
+        },
+        {
+          "productType": "Shirt",
+          "count": 2
+        },
+        {
+          "productType": "HORSE: Number Holders",
+          "count": 4
+        },
+        {
+          "productType": "CLOTHING: Hats & Caps",
+          "count": 2
+        },
+        {
+          "productType": "Jewellery",
+          "count": 1
+        },
+        {
+          "productType": "Stirrup Irons",
+          "count": 6
+        },
+        {
+          "productType": "Boots",
+          "count": 3
+        },
+        {
+          "productType": "Active Tights",
+          "count": 3
+        },
+        {
+          "productType": "shirt",
+          "count": 4
+        },
+        {
+          "productType": "breeches",
+          "count": 5
+        },
+        {
+          "productType": "shirts",
+          "count": 2
+        },
+        {
+          "productType": "beanies",
+          "count": 1
+        },
+        {
+          "productType": "Equestrian",
+          "count": 2
+        },
+        {
+          "productType": "Breeches & Riding Tights",
+          "count": 3
+        },
+        {
+          "productType": "CLOTHING: Clothing Childs",
+          "count": 1
+        },
+        {
+          "productType": "CLOTHING: Clothing Ladies",
+          "count": 1
+        },
+        {
+          "productType": "STABLE: Farrier",
+          "count": 1
+        },
+        {
+          "productType": "CLOTHING: Jodhpurs & Breeches Ladies",
+          "count": 2
+        },
+        {
+          "productType": "t-shirt",
+          "count": 1
+        },
+        {
+          "productType": "jumper",
+          "count": 1
+        },
+        {
+          "productType": "Stirrup Irons - Stirrup Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Belt",
+          "count": 2
+        },
+        {
+          "productType": "(No Product Type)",
+          "count": 10
+        },
+        {
+          "productType": "Gloves",
+          "count": 9
+        },
+        {
+          "productType": "Clothing - Men's Clothing",
+          "count": 9
+        },
+        {
+          "productType": "Saddle Cloths",
+          "count": 1
+        },
+        {
+          "productType": "Accessories",
+          "count": 2
+        },
+        {
+          "productType": "accessoriess",
+          "count": 1
+        },
+        {
+          "productType": "Outerwear",
+          "count": 1
+        },
+        {
+          "productType": "Active tights",
+          "count": 1
+        },
+        {
+          "productType": "cap",
+          "count": 1
+        },
+        {
+          "productType": "stock",
+          "count": 2
+        },
+        {
+          "productType": "Sweater",
+          "count": 2
+        },
+        {
+          "productType": "socks",
+          "count": 1
+        },
+        {
+          "productType": "Top",
+          "count": 1
+        },
+        {
+          "productType": "jacket",
+          "count": 4
+        },
+        {
+          "productType": "Gift Card",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "strapping",
+      "title": "Bridles & Strapping - Top Brands For All Disciplines",
+      "description": "We list a great range of bridles, reins, breastplates, martingales, rings, halters, everything else in between. Top brands including the popular Micklem bridle and Australian made bridles and strapping.",
+      "productCount": 250,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Strapping - Reins",
+          "count": 3
+        },
+        {
+          "productType": "Strapping - Breast Plates",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Stock & Western",
+          "count": 8
+        },
+        {
+          "productType": "Stirrup Irons",
+          "count": 7
+        },
+        {
+          "productType": "HORSE: Stirrup Leathers",
+          "count": 3
+        },
+        {
+          "productType": "HORSE: Reins",
+          "count": 18
+        },
+        {
+          "productType": "HORSE: Racing & PVC",
+          "count": 28
+        },
+        {
+          "productType": "HORSE: Lungeing & Schooling",
+          "count": 3
+        },
+        {
+          "productType": "HORSE: Bridles",
+          "count": 19
+        },
+        {
+          "productType": "Strapping - Girths",
+          "count": 29
+        },
+        {
+          "productType": "Girth Loop Adjustable",
+          "count": 1
+        },
+        {
+          "productType": "Strapping - Halters",
+          "count": 14
+        },
+        {
+          "productType": "Stirrup Irons - Stirrup Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Gloves",
+          "count": 1
+        },
+        {
+          "productType": "Strapping - Strapping Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Strapping - Bridles - Bridle Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Strapping - Bridles",
+          "count": 3
+        },
+        {
+          "productType": "Strapping - Martingales",
+          "count": 1
+        },
+        {
+          "productType": "Accessories",
+          "count": 1
+        },
+        {
+          "productType": "(No Product Type)",
+          "count": 1
+        },
+        {
+          "productType": "Racing",
+          "count": 4
+        },
+        {
+          "productType": "Dog Accessories",
+          "count": 1
+        },
+        {
+          "productType": "STABLE: Grooming",
+          "count": 3
+        },
+        {
+          "productType": "HORSE: Stirrup Irons",
+          "count": 28
+        },
+        {
+          "productType": "STABLE: Stable Equipment",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Girths",
+          "count": 3
+        },
+        {
+          "productType": "HORSE: Nosebands & Browbands",
+          "count": 11
+        },
+        {
+          "productType": "HORSE: Breastplates & Martingales",
+          "count": 15
+        },
+        {
+          "productType": "Dog Collars & Leads",
+          "count": 5
+        },
+        {
+          "productType": "RIDER: Giftware",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Bits",
+          "count": 1
+        },
+        {
+          "productType": "Bridles",
+          "count": 12
+        },
+        {
+          "productType": "breastplate",
+          "count": 5
+        },
+        {
+          "productType": "Reins",
+          "count": 10
+        },
+        {
+          "productType": "Stirrup Leathers",
+          "count": 1
+        },
+        {
+          "productType": "Girths",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "handle": "pets",
+      "title": "Pets - Products For Dogs, Cats, & Other Small Animals",
+      "description": "Below you can see our range of quality pet products from some of the best and most popular brands available in Australia. Categories included are dog food, dog coats and rugs, dog accessories, pet grooming, pet treats, pet toys, pet health, and much more.",
+      "productCount": 250,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Pet Supplements",
+          "count": 2
+        },
+        {
+          "productType": "Horse Supplements",
+          "count": 2
+        },
+        {
+          "productType": "Dog Collars & Leads",
+          "count": 28
+        },
+        {
+          "productType": "Dog Toys",
+          "count": 27
+        },
+        {
+          "productType": "Dog Wormer & Flea",
+          "count": 8
+        },
+        {
+          "productType": "STABLE: Show Preparation",
+          "count": 1
+        },
+        {
+          "productType": "STABLE: Supplements",
+          "count": 4
+        },
+        {
+          "productType": "Animals & Pet Supplies",
+          "count": 1
+        },
+        {
+          "productType": "Dog Rugs & Fashion",
+          "count": 12
+        },
+        {
+          "productType": "Dog Treats",
+          "count": 30
+        },
+        {
+          "productType": "Cat Gyms & Toys",
+          "count": 1
+        },
+        {
+          "productType": "Dog Accessories",
+          "count": 24
+        },
+        {
+          "productType": "STABLE: First Aid & Dressings",
+          "count": 2
+        },
+        {
+          "productType": "Dog Potions & Lotions",
+          "count": 9
+        },
+        {
+          "productType": "Dog Walking",
+          "count": 16
+        },
+        {
+          "productType": "Dog Bedding",
+          "count": 1
+        },
+        {
+          "productType": "Veterinary",
+          "count": 1
+        },
+        {
+          "productType": "Dog Grooming & Coat Care",
+          "count": 20
+        },
+        {
+          "productType": "Cat Food & Treats",
+          "count": 5
+        },
+        {
+          "productType": "Pet",
+          "count": 51
+        },
+        {
+          "productType": "Fly Control",
+          "count": 1
+        },
+        {
+          "productType": "STABLE: Clippers",
+          "count": 3
+        },
+        {
+          "productType": "Bird Potions & Lotions",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "trailrace-equestrian-outfitters",
+      "title": "Trailrace Equestrian Outfitters",
+      "description": "",
+      "productCount": 250,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Horse Rugs",
+          "count": 17
+        },
+        {
+          "productType": "Clothing - Clothing Accessories",
+          "count": 7
+        },
+        {
+          "productType": "Veterinary",
+          "count": 32
+        },
+        {
+          "productType": "Boots",
+          "count": 10
+        },
+        {
+          "productType": "Saddle Pad",
+          "count": 2
+        },
+        {
+          "productType": "Fly Control",
+          "count": 12
+        },
+        {
+          "productType": "Clothing",
+          "count": 5
+        },
+        {
+          "productType": "Clothing - Ladies Clothing",
+          "count": 28
+        },
+        {
+          "productType": "Strapping - Reins",
+          "count": 3
+        },
+        {
+          "productType": "Strapping - Strapping Accessories",
+          "count": 2
+        },
+        {
+          "productType": "Saddle Cloths",
+          "count": 13
+        },
+        {
+          "productType": "Feed Supplements",
+          "count": 7
+        },
+        {
+          "productType": "Strapping - Halters",
+          "count": 4
+        },
+        {
+          "productType": "Horse Boots",
+          "count": 12
+        },
+        {
+          "productType": "Spurs & Straps",
+          "count": 5
+        },
+        {
+          "productType": "Bits",
+          "count": 18
+        },
+        {
+          "productType": "Clothing - Kid's Clothing",
+          "count": 8
+        },
+        {
+          "productType": "Strapping - Breast Plates",
+          "count": 1
+        },
+        {
+          "productType": "Helmets",
+          "count": 12
+        },
+        {
+          "productType": "Racing",
+          "count": 2
+        },
+        {
+          "productType": "Girth Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Accessories - Luggage",
+          "count": 1
+        },
+        {
+          "productType": "Stirrup Irons",
+          "count": 6
+        },
+        {
+          "productType": "Bits - Bit Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Horse Rugs - Rug Accessories",
+          "count": 2
+        },
+        {
+          "productType": "Gloves",
+          "count": 6
+        },
+        {
+          "productType": "Strapping - Girths",
+          "count": 4
+        },
+        {
+          "productType": "Strapping - Girths - Girth Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Halters",
+          "count": 1
+        },
+        {
+          "productType": "Care",
+          "count": 1
+        },
+        {
+          "productType": "Stirrup Irons - Stirrup Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Spurs & Straps - Spurs Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Saddles",
+          "count": 1
+        },
+        {
+          "productType": "Luggage",
+          "count": 3
+        },
+        {
+          "productType": "Clothing - Men's Clothing",
+          "count": 4
+        },
+        {
+          "productType": "Boots - Boot Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Strapping - Bridles - Bridle Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Strapping - Bridles",
+          "count": 3
+        },
+        {
+          "productType": "Strapping - Martingales",
+          "count": 1
+        },
+        {
+          "productType": "Western Pads",
+          "count": 3
+        },
+        {
+          "productType": "saddle pads",
+          "count": 1
+        },
+        {
+          "productType": "Helmet",
+          "count": 5
+        },
+        {
+          "productType": "Grooming",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "dapple-eq",
+      "title": "Dapple EQ",
+      "description": "",
+      "productCount": 250,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Bag",
+          "count": 5
+        },
+        {
+          "productType": "quarter guard",
+          "count": 1
+        },
+        {
+          "productType": "Fly Mask",
+          "count": 6
+        },
+        {
+          "productType": "Breeches",
+          "count": 20
+        },
+        {
+          "productType": "Horse Boots & Leg Wraps",
+          "count": 1
+        },
+        {
+          "productType": "Travel Boots",
+          "count": 1
+        },
+        {
+          "productType": "Ladies Breeches",
+          "count": 10
+        },
+        {
+          "productType": "riding rug",
+          "count": 1
+        },
+        {
+          "productType": "backpack",
+          "count": 1
+        },
+        {
+          "productType": "stable Bag",
+          "count": 1
+        },
+        {
+          "productType": "Saddle Pads & Blankets",
+          "count": 1
+        },
+        {
+          "productType": "LADIES SHIRT",
+          "count": 1
+        },
+        {
+          "productType": "beanie",
+          "count": 2
+        },
+        {
+          "productType": "grooming",
+          "count": 5
+        },
+        {
+          "productType": "plaiting kit",
+          "count": 1
+        },
+        {
+          "productType": "brush",
+          "count": 5
+        },
+        {
+          "productType": "horse care",
+          "count": 5
+        },
+        {
+          "productType": "Saddle Pad",
+          "count": 10
+        },
+        {
+          "productType": "saddle pad",
+          "count": 1
+        },
+        {
+          "productType": "Shorts",
+          "count": 1
+        },
+        {
+          "productType": "Boots",
+          "count": 1
+        },
+        {
+          "productType": "jumper",
+          "count": 2
+        },
+        {
+          "productType": "Shirt",
+          "count": 5
+        },
+        {
+          "productType": "Belts",
+          "count": 13
+        },
+        {
+          "productType": "HAT",
+          "count": 10
+        },
+        {
+          "productType": "hats",
+          "count": 2
+        },
+        {
+          "productType": "Competition Jacket",
+          "count": 9
+        },
+        {
+          "productType": "UGG Boots",
+          "count": 1
+        },
+        {
+          "productType": "Care Products",
+          "count": 11
+        },
+        {
+          "productType": "Lead Rope",
+          "count": 2
+        },
+        {
+          "productType": "Hats",
+          "count": 1
+        },
+        {
+          "productType": "Wallet",
+          "count": 1
+        },
+        {
+          "productType": "Accessories",
+          "count": 6
+        },
+        {
+          "productType": "Fly Veil",
+          "count": 20
+        },
+        {
+          "productType": "Ankle Boots",
+          "count": 3
+        },
+        {
+          "productType": "Show Shirt",
+          "count": 11
+        },
+        {
+          "productType": "Horse Boots",
+          "count": 1
+        },
+        {
+          "productType": "Fetlock boots",
+          "count": 2
+        },
+        {
+          "productType": "Tendon Boots",
+          "count": 3
+        },
+        {
+          "productType": "breeches",
+          "count": 1
+        },
+        {
+          "productType": "casual footwear",
+          "count": 2
+        },
+        {
+          "productType": "Casual Jacket",
+          "count": 2
+        },
+        {
+          "productType": "t-shirt",
+          "count": 3
+        },
+        {
+          "productType": "Polo Shirt",
+          "count": 3
+        },
+        {
+          "productType": "Sweater",
+          "count": 4
+        },
+        {
+          "productType": "Apparel & Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Shirts & Tops",
+          "count": 1
+        },
+        {
+          "productType": "TShirt",
+          "count": 2
+        },
+        {
+          "productType": "shirt",
+          "count": 1
+        },
+        {
+          "productType": "Boys Show Shirt",
+          "count": 2
+        },
+        {
+          "productType": "Polo Top",
+          "count": 1
+        },
+        {
+          "productType": "Socks",
+          "count": 10
+        },
+        {
+          "productType": "Mens Show Shirt",
+          "count": 2
+        },
+        {
+          "productType": "Halter",
+          "count": 4
+        },
+        {
+          "productType": "Horse Halters",
+          "count": 1
+        },
+        {
+          "productType": "Halter Set",
+          "count": 1
+        },
+        {
+          "productType": "Equestrian Helmets",
+          "count": 1
+        },
+        {
+          "productType": "Knitwear",
+          "count": 5
+        },
+        {
+          "productType": "Cap",
+          "count": 2
+        },
+        {
+          "productType": "Mens Competition Jacket",
+          "count": 2
+        },
+        {
+          "productType": "Trousers",
+          "count": 1
+        },
+        {
+          "productType": "Jeans",
+          "count": 4
+        },
+        {
+          "productType": "jacket",
+          "count": 2
+        },
+        {
+          "productType": "Boys Competition Jacket",
+          "count": 2
+        },
+        {
+          "productType": "Girls Breeches",
+          "count": 2
+        },
+        {
+          "productType": "long sleeve",
+          "count": 1
+        },
+        {
+          "productType": "Mens Breeches",
+          "count": 1
+        },
+        {
+          "productType": "Girls Competition Jacket",
+          "count": 1
+        },
+        {
+          "productType": "ladies jacket",
+          "count": 1
+        },
+        {
+          "productType": "Scarf",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "ascot-saddlery",
+      "title": "Ascot Saddlery",
+      "description": "",
+      "productCount": 250,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "HORSE RUG CLEARANCE",
+          "count": 1
+        },
+        {
+          "productType": "Bird Food & Treats",
+          "count": 4
+        },
+        {
+          "productType": "STABLE: Wormers",
+          "count": 4
+        },
+        {
+          "productType": "RUGS: Winter Rugs, Neck Rugs & Hoods",
+          "count": 5
+        },
+        {
+          "productType": "STABLE: Show Preparation",
+          "count": 12
+        },
+        {
+          "productType": "STABLE: Grooming",
+          "count": 11
+        },
+        {
+          "productType": "RIDER: Gloves",
+          "count": 4
+        },
+        {
+          "productType": "RIDER: Body Protectors",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Flyveils & Bonnets",
+          "count": 4
+        },
+        {
+          "productType": "Cat Gyms & Toys",
+          "count": 2
+        },
+        {
+          "productType": "Dog Rugs & Fashion",
+          "count": 3
+        },
+        {
+          "productType": "HORSE: Number Holders",
+          "count": 1
+        },
+        {
+          "productType": "STABLE: First Aid & Dressings",
+          "count": 8
+        },
+        {
+          "productType": "Dog Accessories",
+          "count": 2
+        },
+        {
+          "productType": "RUGS: Summer Rugs, Neck Rugs & Hoods",
+          "count": 5
+        },
+        {
+          "productType": "Dog Collars & Leads",
+          "count": 13
+        },
+        {
+          "productType": "RIDER: Whips",
+          "count": 5
+        },
+        {
+          "productType": "STABLE: Stable Equipment",
+          "count": 6
+        },
+        {
+          "productType": "HORSE: Stock & Western",
+          "count": 5
+        },
+        {
+          "productType": "Dog Toys",
+          "count": 7
+        },
+        {
+          "productType": "Dog Wormer & Flea",
+          "count": 3
+        },
+        {
+          "productType": "STABLE: Horse Treats & Toys",
+          "count": 6
+        },
+        {
+          "productType": "STABLE: Leather Care & Proofing",
+          "count": 11
+        },
+        {
+          "productType": "STABLE: Supplements",
+          "count": 16
+        },
+        {
+          "productType": "STABLE: Feed Bins & Hay Bags",
+          "count": 4
+        },
+        {
+          "productType": "RIDER: Helmets",
+          "count": 2
+        },
+        {
+          "productType": "HORSE: Headstalls",
+          "count": 3
+        },
+        {
+          "productType": "HORSE: Horse Boots",
+          "count": 13
+        },
+        {
+          "productType": "RIDER: Giftware",
+          "count": 10
+        },
+        {
+          "productType": "RUGS: Rug Accessories",
+          "count": 3
+        },
+        {
+          "productType": "FOOTWEAR: Western & Roper Boots",
+          "count": 4
+        },
+        {
+          "productType": "CLOTHING: Hats & Caps",
+          "count": 2
+        },
+        {
+          "productType": "CLOTHING: Socks",
+          "count": 1
+        },
+        {
+          "productType": "STABLE: Clippers",
+          "count": 2
+        },
+        {
+          "productType": "Dog Kennels Carriers & Pens",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Lungeing & Schooling",
+          "count": 7
+        },
+        {
+          "productType": "FOOTWEAR CLEARANCE",
+          "count": 1
+        },
+        {
+          "productType": "RIDER: Luggage",
+          "count": 1
+        },
+        {
+          "productType": "SADDLES: All Purpose Saddles",
+          "count": 1
+        },
+        {
+          "productType": "Small Animal",
+          "count": 3
+        },
+        {
+          "productType": "Dog Treats",
+          "count": 5
+        },
+        {
+          "productType": "STABLE: Hoof Care",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Stirrup Leathers",
+          "count": 2
+        },
+        {
+          "productType": "SADDLES: Saddle Accessories & Gullets",
+          "count": 1
+        },
+        {
+          "productType": "STABLE: Farrier",
+          "count": 6
+        },
+        {
+          "productType": "RIDER: Spurs & Straps",
+          "count": 4
+        },
+        {
+          "productType": "HORSE: Leads & Snap Hooks",
+          "count": 2
+        },
+        {
+          "productType": "HORSE: Saddlecloths",
+          "count": 2
+        },
+        {
+          "productType": "HORSE: Bits",
+          "count": 8
+        },
+        {
+          "productType": "HORSE: Reins",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Racing & PVC",
+          "count": 1
+        },
+        {
+          "productType": "STABLE: Ice Boots",
+          "count": 5
+        },
+        {
+          "productType": "CLOTHING: Clothing Childs",
+          "count": 1
+        },
+        {
+          "productType": "CLOTHING: Clothing Ladies",
+          "count": 1
+        },
+        {
+          "productType": "CLOTHING: Jodhpurs & Breeches Childs",
+          "count": 1
+        },
+        {
+          "productType": "Dog Potions & Lotions",
+          "count": 2
+        },
+        {
+          "productType": "HORSE: Girths",
+          "count": 2
+        },
+        {
+          "productType": "RIDER: Glasses & Goggles",
+          "count": 1
+        },
+        {
+          "productType": "Dog Walking",
+          "count": 4
+        },
+        {
+          "productType": "Dog Bedding",
+          "count": 1
+        },
+        {
+          "productType": "Bird Cages & Furniture",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "handle": "cavalleria-toscana",
+      "title": "Shop Cavalleria Toscana Equestrian Apparel & Horse Gear",
+      "description": "Below you can see the full range of Cavalleria Toscana products. With a brilliant range including breeches for men and women, saddle pads, competition jackets, CT shirts, and CT tops, you'll be sure to find exactly what you're looking for from this European equestrian apparel and fashion powerhouse.",
+      "productCount": 250,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Clothing - Clothing Accessories",
+          "count": 41
+        },
+        {
+          "productType": "Clothing",
+          "count": 53
+        },
+        {
+          "productType": "Clothing - Kid's Clothing",
+          "count": 18
+        },
+        {
+          "productType": "Clothing - Ladies Clothing",
+          "count": 103
+        },
+        {
+          "productType": "Clothing - Men's Clothing",
+          "count": 19
+        },
+        {
+          "productType": "Gloves",
+          "count": 3
+        },
+        {
+          "productType": "Saddle Cloths",
+          "count": 1
+        },
+        {
+          "productType": "Accessories",
+          "count": 4
+        },
+        {
+          "productType": "Stirrup Irons - Stirrup Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Horse Boots",
+          "count": 4
+        },
+        {
+          "productType": "Whips",
+          "count": 1
+        },
+        {
+          "productType": "Ladies Clothing",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "handle": "on-sale",
+      "title": "On Sale - Discount On The Best Brands & Gear",
+      "description": "Below you can view all products that are currently on sale in our store. Use the filters on the left sidebar (or top middle if on mobile) to filter results as you need.",
+      "productCount": 250,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Horse Rugs",
+          "count": 5
+        },
+        {
+          "productType": "Veterinary",
+          "count": 14
+        },
+        {
+          "productType": "Horse Grooming",
+          "count": 1
+        },
+        {
+          "productType": "Sleepwear",
+          "count": 2
+        },
+        {
+          "productType": "STABLE: Wormers",
+          "count": 3
+        },
+        {
+          "productType": "Clothing - Clothing Accessories",
+          "count": 3
+        },
+        {
+          "productType": "Saddle Pad",
+          "count": 1
+        },
+        {
+          "productType": "Fly Control",
+          "count": 7
+        },
+        {
+          "productType": "Clothing",
+          "count": 2
+        },
+        {
+          "productType": "Clothing - Ladies Clothing",
+          "count": 12
+        },
+        {
+          "productType": "Strapping - Reins",
+          "count": 1
+        },
+        {
+          "productType": "Saddle Cloths",
+          "count": 4
+        },
+        {
+          "productType": "RUGS: Winter Rugs, Neck Rugs & Hoods",
+          "count": 5
+        },
+        {
+          "productType": "STABLE: Show Preparation",
+          "count": 9
+        },
+        {
+          "productType": "Boots",
+          "count": 3
+        },
+        {
+          "productType": "top",
+          "count": 1
+        },
+        {
+          "productType": "STABLE: Grooming",
+          "count": 10
+        },
+        {
+          "productType": "RIDER: Gloves",
+          "count": 4
+        },
+        {
+          "productType": "HORSE: Flyveils & Bonnets",
+          "count": 3
+        },
+        {
+          "productType": "Spurs & Straps",
+          "count": 2
+        },
+        {
+          "productType": "Bits",
+          "count": 4
+        },
+        {
+          "productType": "Clothing - Kid's Clothing",
+          "count": 6
+        },
+        {
+          "productType": "Strapping - Breast Plates",
+          "count": 1
+        },
+        {
+          "productType": "Saddlepads",
+          "count": 1
+        },
+        {
+          "productType": "Socks",
+          "count": 1
+        },
+        {
+          "productType": "Ultimate Tights",
+          "count": 1
+        },
+        {
+          "productType": "Shirt",
+          "count": 1
+        },
+        {
+          "productType": "Breeches",
+          "count": 4
+        },
+        {
+          "productType": "HORSE: Number Holders",
+          "count": 1
+        },
+        {
+          "productType": "STABLE: First Aid & Dressings",
+          "count": 8
+        },
+        {
+          "productType": "RUGS: Summer Rugs, Neck Rugs & Hoods",
+          "count": 5
+        },
+        {
+          "productType": "Horse Boots",
+          "count": 7
+        },
+        {
+          "productType": "Racing",
+          "count": 1
+        },
+        {
+          "productType": "Feed Supplements",
+          "count": 4
+        },
+        {
+          "productType": "Helmets",
+          "count": 1
+        },
+        {
+          "productType": "Accessories - Luggage",
+          "count": 1
+        },
+        {
+          "productType": "RIDER: Whips",
+          "count": 5
+        },
+        {
+          "productType": "STABLE: Stable Equipment",
+          "count": 5
+        },
+        {
+          "productType": "STABLE: Horse Treats & Toys",
+          "count": 6
+        },
+        {
+          "productType": "STABLE: Leather Care & Proofing",
+          "count": 4
+        },
+        {
+          "productType": "STABLE: Supplements",
+          "count": 11
+        },
+        {
+          "productType": "STABLE: Feed Bins & Hay Bags",
+          "count": 4
+        },
+        {
+          "productType": "RIDER: Helmets",
+          "count": 2
+        },
+        {
+          "productType": "HORSE: Headstalls",
+          "count": 3
+        },
+        {
+          "productType": "HORSE: Horse Boots",
+          "count": 8
+        },
+        {
+          "productType": "RIDER: Giftware",
+          "count": 2
+        },
+        {
+          "productType": "RUGS: Rug Accessories",
+          "count": 2
+        },
+        {
+          "productType": "CLOTHING: Hats & Caps",
+          "count": 2
+        },
+        {
+          "productType": "Rug",
+          "count": 1
+        },
+        {
+          "productType": "Stirrup Irons",
+          "count": 1
+        },
+        {
+          "productType": "(No Product Type)",
+          "count": 1
+        },
+        {
+          "productType": "Freedom Tights",
+          "count": 1
+        },
+        {
+          "productType": "Girth",
+          "count": 1
+        },
+        {
+          "productType": "FOOTWEAR: Western & Roper Boots",
+          "count": 1
+        },
+        {
+          "productType": "CLOTHING: Socks",
+          "count": 1
+        },
+        {
+          "productType": "Gloves",
+          "count": 1
+        },
+        {
+          "productType": "Equestrian",
+          "count": 2
+        },
+        {
+          "productType": "Tights",
+          "count": 1
+        },
+        {
+          "productType": "Active Tights",
+          "count": 1
+        },
+        {
+          "productType": "beanies",
+          "count": 1
+        },
+        {
+          "productType": "STABLE: Clippers",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Lungeing & Schooling",
+          "count": 6
+        },
+        {
+          "productType": "Jodhpurs",
+          "count": 1
+        },
+        {
+          "productType": "SADDLES: All Purpose Saddles",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Stock & Western",
+          "count": 4
+        },
+        {
+          "productType": "Strapping - Girths",
+          "count": 1
+        },
+        {
+          "productType": "STABLE: Hoof Care",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Stirrup Leathers",
+          "count": 2
+        },
+        {
+          "productType": "SADDLES: Saddle Accessories & Gullets",
+          "count": 1
+        },
+        {
+          "productType": "STABLE: Farrier",
+          "count": 6
+        },
+        {
+          "productType": "RIDER: Spurs & Straps",
+          "count": 4
+        },
+        {
+          "productType": "HORSE: Leads & Snap Hooks",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Saddlecloths",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Bits",
+          "count": 6
+        },
+        {
+          "productType": "HORSE: Reins",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Racing & PVC",
+          "count": 1
+        },
+        {
+          "productType": "STABLE: Ice Boots",
+          "count": 1
+        },
+        {
+          "productType": "CLOTHING: Clothing Childs",
+          "count": 1
+        },
+        {
+          "productType": "CLOTHING: Jodhpurs & Breeches Childs",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Girths",
+          "count": 2
+        },
+        {
+          "productType": "RIDER: Glasses & Goggles",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "globo_basis_collection",
+      "title": "Globo basis collection - Do not delete",
+      "description": "",
+      "productCount": 250,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "probiotics",
+          "count": 1
+        },
+        {
+          "productType": "Horse Rugs",
+          "count": 7
+        },
+        {
+          "productType": "Breeches",
+          "count": 7
+        },
+        {
+          "productType": "Clothing - Clothing Accessories",
+          "count": 3
+        },
+        {
+          "productType": "Helmet Brim",
+          "count": 1
+        },
+        {
+          "productType": "Veterinary",
+          "count": 15
+        },
+        {
+          "productType": "Horse Grooming",
+          "count": 1
+        },
+        {
+          "productType": "Sleepwear",
+          "count": 2
+        },
+        {
+          "productType": "HORSE RUG CLEARANCE",
+          "count": 1
+        },
+        {
+          "productType": "belts",
+          "count": 2
+        },
+        {
+          "productType": "(No Product Type)",
+          "count": 12
+        },
+        {
+          "productType": "Horse Supplements",
+          "count": 4
+        },
+        {
+          "productType": "Boots",
+          "count": 5
+        },
+        {
+          "productType": "Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Bird Food & Treats",
+          "count": 1
+        },
+        {
+          "productType": "STABLE: Wormers",
+          "count": 2
+        },
+        {
+          "productType": "Bicycle Helmet Brim Visor",
+          "count": 1
+        },
+        {
+          "productType": "Saddle Pad",
+          "count": 1
+        },
+        {
+          "productType": "Jodhpurs",
+          "count": 2
+        },
+        {
+          "productType": "Fly Control",
+          "count": 6
+        },
+        {
+          "productType": "Pet Supplements",
+          "count": 2
+        },
+        {
+          "productType": "Clothing",
+          "count": 1
+        },
+        {
+          "productType": "Clothing - Ladies Clothing",
+          "count": 9
+        },
+        {
+          "productType": "Strapping - Reins",
+          "count": 1
+        },
+        {
+          "productType": "Strapping - Strapping Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Saddle Cloths",
+          "count": 4
+        },
+        {
+          "productType": "RUGS: Winter Rugs, Neck Rugs & Hoods",
+          "count": 5
+        },
+        {
+          "productType": "Feed Supplements",
+          "count": 4
+        },
+        {
+          "productType": "STABLE: Show Preparation",
+          "count": 4
+        },
+        {
+          "productType": "Hats & Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Strapping - Halters",
+          "count": 1
+        },
+        {
+          "productType": "General",
+          "count": 1
+        },
+        {
+          "productType": "Coat, Hoof & Grooming",
+          "count": 3
+        },
+        {
+          "productType": "cap",
+          "count": 1
+        },
+        {
+          "productType": "top",
+          "count": 1
+        },
+        {
+          "productType": "Riding Apparel & Accessories",
+          "count": 1
+        },
+        {
+          "productType": "STABLE: Grooming",
+          "count": 3
+        },
+        {
+          "productType": "RIDER: Gloves",
+          "count": 1
+        },
+        {
+          "productType": "Horse Boots",
+          "count": 4
+        },
+        {
+          "productType": "RIDER: Body Protectors",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Flyveils & Bonnets",
+          "count": 1
+        },
+        {
+          "productType": "Jewellery",
+          "count": 3
+        },
+        {
+          "productType": "Spurs & Straps",
+          "count": 4
+        },
+        {
+          "productType": "DIY Kit",
+          "count": 3
+        },
+        {
+          "productType": "Bits",
+          "count": 5
+        },
+        {
+          "productType": "Clothing - Kid's Clothing",
+          "count": 7
+        },
+        {
+          "productType": "Strapping - Breast Plates",
+          "count": 1
+        },
+        {
+          "productType": "Helmets",
+          "count": 6
+        },
+        {
+          "productType": "Saddlepads",
+          "count": 1
+        },
+        {
+          "productType": "Socks",
+          "count": 1
+        },
+        {
+          "productType": "Bag",
+          "count": 3
+        },
+        {
+          "productType": "Ultimate Tights",
+          "count": 1
+        },
+        {
+          "productType": "Shirt",
+          "count": 1
+        },
+        {
+          "productType": "Cat Gyms & Toys",
+          "count": 1
+        },
+        {
+          "productType": "Belts & Bracelets",
+          "count": 1
+        },
+        {
+          "productType": "Apparel - Ladies",
+          "count": 3
+        },
+        {
+          "productType": "Dog Rugs & Fashion",
+          "count": 1
+        },
+        {
+          "productType": "Bell Boots",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Number Holders",
+          "count": 2
+        },
+        {
+          "productType": "STABLE: First Aid & Dressings",
+          "count": 4
+        },
+        {
+          "productType": "Dog Accessories",
+          "count": 1
+        },
+        {
+          "productType": "RUGS: Summer Rugs, Neck Rugs & Hoods",
+          "count": 3
+        },
+        {
+          "productType": "Dog Collars & Leads",
+          "count": 1
+        },
+        {
+          "productType": "Racing",
+          "count": 1
+        },
+        {
+          "productType": "Girth Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Accessories - Luggage",
+          "count": 1
+        },
+        {
+          "productType": "RIDER: Whips",
+          "count": 2
+        },
+        {
+          "productType": "STABLE: Stable Equipment",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Stock & Western",
+          "count": 1
+        },
+        {
+          "productType": "Dog Toys",
+          "count": 2
+        },
+        {
+          "productType": "Dog Wormer & Flea",
+          "count": 1
+        },
+        {
+          "productType": "STABLE: Horse Treats & Toys",
+          "count": 2
+        },
+        {
+          "productType": "STABLE: Leather Care & Proofing",
+          "count": 3
+        },
+        {
+          "productType": "STABLE: Supplements",
+          "count": 2
+        },
+        {
+          "productType": "STABLE: Feed Bins & Hay Bags",
+          "count": 1
+        },
+        {
+          "productType": "RIDER: Helmets",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Headstalls",
+          "count": 2
+        },
+        {
+          "productType": "HORSE: Horse Boots",
+          "count": 3
+        },
+        {
+          "productType": "RIDER: Giftware",
+          "count": 1
+        },
+        {
+          "productType": "RUGS: Rug Accessories",
+          "count": 1
+        },
+        {
+          "productType": "FOOTWEAR: Western & Roper Boots",
+          "count": 2
+        },
+        {
+          "productType": "CLOTHING: Hats & Caps",
+          "count": 1
+        },
+        {
+          "productType": "Health Care",
+          "count": 1
+        },
+        {
+          "productType": "Horse Boots & Bandages",
+          "count": 3
+        },
+        {
+          "productType": "Rug",
+          "count": 1
+        },
+        {
+          "productType": "Stirrup Irons",
+          "count": 1
+        },
+        {
+          "productType": "Bits - Bit Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Horse Rugs - Rug Accessories",
+          "count": 1
+        },
+        {
+          "productType": "quarter guard",
+          "count": 1
+        },
+        {
+          "productType": "Martingale Attachment",
+          "count": 1
+        },
+        {
+          "productType": "Handbag",
+          "count": 1
+        },
+        {
+          "productType": "Freedom Tights",
+          "count": 1
+        },
+        {
+          "productType": "Girth",
+          "count": 1
+        },
+        {
+          "productType": "Saddle Gullet",
+          "count": 2
+        },
+        {
+          "productType": "Default",
+          "count": 1
+        },
+        {
+          "productType": "Dogs",
+          "count": 1
+        },
+        {
+          "productType": "Hat",
+          "count": 1
+        },
+        {
+          "productType": "CLOTHING: Socks",
+          "count": 1
+        },
+        {
+          "productType": "Tights",
+          "count": 2
+        },
+        {
+          "productType": "Gloves",
+          "count": 1
+        },
+        {
+          "productType": "Equestrian",
+          "count": 2
+        },
+        {
+          "productType": "Animals & Pet Supplies",
+          "count": 1
+        },
+        {
+          "productType": "Necklace",
+          "count": 1
+        },
+        {
+          "productType": "Coat Care",
+          "count": 1
+        },
+        {
+          "productType": "Active Tights",
+          "count": 1
+        },
+        {
+          "productType": "shirt",
+          "count": 1
+        },
+        {
+          "productType": "breeches",
+          "count": 1
+        },
+        {
+          "productType": "shirts",
+          "count": 2
+        },
+        {
+          "productType": "beanies",
+          "count": 1
+        },
+        {
+          "productType": "Horse Grooming Combs, Brushes & Mitts",
+          "count": 1
+        },
+        {
+          "productType": "STABLE: Clippers",
+          "count": 1
+        },
+        {
+          "productType": "Dog Kennels Carriers & Pens",
+          "count": 1
+        },
+        {
+          "productType": "Lead Rope",
+          "count": 1
+        },
+        {
+          "productType": "Breeches & Riding Tights",
+          "count": 3
+        },
+        {
+          "productType": "HORSE: Lungeing & Schooling",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "handle": "tacklet",
+      "title": "Tacklet",
+      "description": "",
+      "productCount": 250,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Saddlepads",
+          "count": 16
+        },
+        {
+          "productType": "Socks",
+          "count": 2
+        },
+        {
+          "productType": "Leads",
+          "count": 11
+        },
+        {
+          "productType": "Leather Care",
+          "count": 1
+        },
+        {
+          "productType": "Helmets",
+          "count": 7
+        },
+        {
+          "productType": "Coat Care",
+          "count": 8
+        },
+        {
+          "productType": "Stable Accessories",
+          "count": 7
+        },
+        {
+          "productType": "Hanoverian Bridle",
+          "count": 4
+        },
+        {
+          "productType": "Bits",
+          "count": 5
+        },
+        {
+          "productType": "Bitless Bridle",
+          "count": 5
+        },
+        {
+          "productType": "Hair Accessories",
+          "count": 8
+        },
+        {
+          "productType": "Number Holders",
+          "count": 2
+        },
+        {
+          "productType": "Hoof Care",
+          "count": 5
+        },
+        {
+          "productType": "Medical Supplies",
+          "count": 4
+        },
+        {
+          "productType": "Nosebandless Bridle",
+          "count": 1
+        },
+        {
+          "productType": "Bell Boots",
+          "count": 6
+        },
+        {
+          "productType": "Breastplates",
+          "count": 9
+        },
+        {
+          "productType": "Grooming",
+          "count": 15
+        },
+        {
+          "productType": "Fly Masks",
+          "count": 1
+        },
+        {
+          "productType": "Grackle Bridle",
+          "count": 2
+        },
+        {
+          "productType": "Whips and Crops",
+          "count": 6
+        },
+        {
+          "productType": "Lunge Line",
+          "count": 2
+        },
+        {
+          "productType": "Halter",
+          "count": 15
+        },
+        {
+          "productType": "Bandages",
+          "count": 3
+        },
+        {
+          "productType": "Riding Boots",
+          "count": 6
+        },
+        {
+          "productType": "Browbands",
+          "count": 10
+        },
+        {
+          "productType": "Ear Bonnets",
+          "count": 3
+        },
+        {
+          "productType": "Rug",
+          "count": 13
+        },
+        {
+          "productType": "Jackets",
+          "count": 2
+        },
+        {
+          "productType": "Anatomic Bridle",
+          "count": 2
+        },
+        {
+          "productType": "Breeches",
+          "count": 3
+        },
+        {
+          "productType": "Double Bridle",
+          "count": 2
+        },
+        {
+          "productType": "Stirrups",
+          "count": 1
+        },
+        {
+          "productType": "Noseband",
+          "count": 4
+        },
+        {
+          "productType": "Studs",
+          "count": 2
+        },
+        {
+          "productType": "Dog Collars & Leads",
+          "count": 1
+        },
+        {
+          "productType": "Tendon Boots",
+          "count": 3
+        },
+        {
+          "productType": "Magnetic Boots",
+          "count": 2
+        },
+        {
+          "productType": "Float Boots",
+          "count": 1
+        },
+        {
+          "productType": "Cold Water/Ice Boots",
+          "count": 2
+        },
+        {
+          "productType": "Saddle",
+          "count": 4
+        },
+        {
+          "productType": "Fly Boots",
+          "count": 1
+        },
+        {
+          "productType": "Half Pads",
+          "count": 2
+        },
+        {
+          "productType": "Reins",
+          "count": 3
+        },
+        {
+          "productType": "Other Care Products",
+          "count": 1
+        },
+        {
+          "productType": "Martingales",
+          "count": 1
+        },
+        {
+          "productType": "Girths",
+          "count": 10
+        },
+        {
+          "productType": "Jumping Boots",
+          "count": 1
+        },
+        {
+          "productType": "Back Protectors",
+          "count": 3
+        },
+        {
+          "productType": "Half Chaps",
+          "count": 2
+        },
+        {
+          "productType": "Tail Protector",
+          "count": 2
+        },
+        {
+          "productType": "Plaiting",
+          "count": 4
+        },
+        {
+          "productType": "Spurs",
+          "count": 1
+        },
+        {
+          "productType": "Belts",
+          "count": 4
+        },
+        {
+          "productType": "Rider Accessories",
+          "count": 3
+        },
+        {
+          "productType": "Fly Repellant",
+          "count": 1
+        },
+        {
+          "productType": "Dog Supplements",
+          "count": 1
+        },
+        {
+          "productType": "Shirts",
+          "count": 2
+        },
+        {
+          "productType": "Lunge Roller",
+          "count": 1
+        },
+        {
+          "productType": "Bridle Strapping",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "shire-saddleworld",
+      "title": "Shire Saddleworld",
+      "description": "",
+      "productCount": 250,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "General",
+          "count": 1
+        },
+        {
+          "productType": "(No Product Type)",
+          "count": 236
+        },
+        {
+          "productType": "Martingale Attachment",
+          "count": 1
+        },
+        {
+          "productType": "Girth",
+          "count": 1
+        },
+        {
+          "productType": "Saddle Gullet",
+          "count": 2
+        },
+        {
+          "productType": "Default",
+          "count": 1
+        },
+        {
+          "productType": "Dogs",
+          "count": 1
+        },
+        {
+          "productType": "Hat",
+          "count": 1
+        },
+        {
+          "productType": "Grooming Bags and Brushes",
+          "count": 1
+        },
+        {
+          "productType": "Mens Footwear",
+          "count": 1
+        },
+        {
+          "productType": "Gloves",
+          "count": 1
+        },
+        {
+          "productType": "Mens Jeans",
+          "count": 2
+        },
+        {
+          "productType": "Dressage Pads",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "samshield",
+      "title": "Shop Samshield Helmets & Equestrian Products",
+      "description": "Check out the great range of Samshield helmets, equestrian gear and products. This brand has an amazing reputation for high quality products. Browse below the options.",
+      "productCount": 245,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Clothing - Ladies Clothing",
+          "count": 122
+        },
+        {
+          "productType": "Helmets",
+          "count": 44
+        },
+        {
+          "productType": "Clothing - Clothing Accessories",
+          "count": 21
+        },
+        {
+          "productType": "Gloves",
+          "count": 3
+        },
+        {
+          "productType": "Helmet",
+          "count": 15
+        },
+        {
+          "productType": "Clothing",
+          "count": 16
+        },
+        {
+          "productType": "Clothing - Men's Clothing",
+          "count": 20
+        },
+        {
+          "productType": "Stirrup Irons",
+          "count": 1
+        },
+        {
+          "productType": "Ladies Clothing",
+          "count": 2
+        },
+        {
+          "productType": "Clothing Accessories",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "top-brands",
+      "title": "Top Brands",
+      "description": "",
+      "productCount": 223,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Hats & Accessories",
+          "count": 12
+        },
+        {
+          "productType": "Coat, Hoof & Grooming",
+          "count": 6
+        },
+        {
+          "productType": "Jewellery",
+          "count": 88
+        },
+        {
+          "productType": "Belts & Bracelets",
+          "count": 12
+        },
+        {
+          "productType": "Apparel - Ladies",
+          "count": 16
+        },
+        {
+          "productType": "Health Care",
+          "count": 12
+        },
+        {
+          "productType": "Horse Boots & Bandages",
+          "count": 23
+        },
+        {
+          "productType": "Breeches & Riding Tights",
+          "count": 18
+        },
+        {
+          "productType": "The Trail of Painted Ponies",
+          "count": 22
+        },
+        {
+          "productType": "Books & Magazines",
+          "count": 4
+        },
+        {
+          "productType": "Gloves",
+          "count": 6
+        },
+        {
+          "productType": "Footwear & Chaps",
+          "count": 2
+        },
+        {
+          "productType": "Socks",
+          "count": 1
+        },
+        {
+          "productType": "Books",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "little-equine-co",
+      "title": "Little Equine Co",
+      "description": "",
+      "productCount": 211,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Bell Boots",
+          "count": 1
+        },
+        {
+          "productType": "Lead Rope",
+          "count": 2
+        },
+        {
+          "productType": "Riding Boots",
+          "count": 9
+        },
+        {
+          "productType": "Halter",
+          "count": 3
+        },
+        {
+          "productType": "t-shirt",
+          "count": 4
+        },
+        {
+          "productType": "jumper",
+          "count": 3
+        },
+        {
+          "productType": "(No Product Type)",
+          "count": 1
+        },
+        {
+          "productType": "Casual Jacket",
+          "count": 10
+        },
+        {
+          "productType": "Competition Jacket",
+          "count": 7
+        },
+        {
+          "productType": "Ladies Shirt",
+          "count": 8
+        },
+        {
+          "productType": "Tall Boots",
+          "count": 8
+        },
+        {
+          "productType": "Belt",
+          "count": 7
+        },
+        {
+          "productType": "T-Shirt",
+          "count": 2
+        },
+        {
+          "productType": "Polo Shirt",
+          "count": 1
+        },
+        {
+          "productType": "Vest",
+          "count": 3
+        },
+        {
+          "productType": "Saddle Pad",
+          "count": 16
+        },
+        {
+          "productType": "Socks",
+          "count": 6
+        },
+        {
+          "productType": "Cap",
+          "count": 3
+        },
+        {
+          "productType": "Head Band",
+          "count": 1
+        },
+        {
+          "productType": "Beanie",
+          "count": 2
+        },
+        {
+          "productType": "beanie",
+          "count": 3
+        },
+        {
+          "productType": "Horse Rug",
+          "count": 13
+        },
+        {
+          "productType": "Jumper",
+          "count": 1
+        },
+        {
+          "productType": "Ladies Top",
+          "count": 2
+        },
+        {
+          "productType": "breeches",
+          "count": 1
+        },
+        {
+          "productType": "Ear Net",
+          "count": 11
+        },
+        {
+          "productType": "breastplate",
+          "count": 6
+        },
+        {
+          "productType": "Kids Jacket",
+          "count": 1
+        },
+        {
+          "productType": "Men's",
+          "count": 2
+        },
+        {
+          "productType": "Belts",
+          "count": 4
+        },
+        {
+          "productType": "Hats",
+          "count": 2
+        },
+        {
+          "productType": "Bridles",
+          "count": 11
+        },
+        {
+          "productType": "Reins",
+          "count": 10
+        },
+        {
+          "productType": "Horse Grooming",
+          "count": 4
+        },
+        {
+          "productType": "Therapy Boots",
+          "count": 3
+        },
+        {
+          "productType": "Fly Mask",
+          "count": 1
+        },
+        {
+          "productType": "Breeches",
+          "count": 13
+        },
+        {
+          "productType": "Gift Card",
+          "count": 1
+        },
+        {
+          "productType": "Tack Cleaning",
+          "count": 1
+        },
+        {
+          "productType": "Wrap Bag",
+          "count": 1
+        },
+        {
+          "productType": "Rug Rack",
+          "count": 1
+        },
+        {
+          "productType": "Stable Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Half Chaps",
+          "count": 1
+        },
+        {
+          "productType": "long socks",
+          "count": 7
+        },
+        {
+          "productType": "Riding Pants",
+          "count": 1
+        },
+        {
+          "productType": "Bandages",
+          "count": 2
+        },
+        {
+          "productType": "Bandage Pads",
+          "count": 1
+        },
+        {
+          "productType": "Fly Bonnet",
+          "count": 1
+        },
+        {
+          "productType": "Exercise Boots",
+          "count": 2
+        },
+        {
+          "productType": "Saddle Pads & Blankets",
+          "count": 2
+        },
+        {
+          "productType": "Fly Hood",
+          "count": 1
+        },
+        {
+          "productType": "Riding Jacket",
+          "count": 2
+        },
+        {
+          "productType": "Shirt",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "horse-bits",
+      "title": "Shop & Buy Horse Bits - Quality Brands - All Types",
+      "description": "We have a large range of bits for every purpose, including some of the most popular brands. Check out the amazing Bombers Bits range, Trust bits, Sprenger bits, and more. Also see our Myler bits, snaffle bits, and Pelham bits collection.",
+      "productCount": 208,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Bits",
+          "count": 124
+        },
+        {
+          "productType": "Bits - Bit Accessories",
+          "count": 3
+        },
+        {
+          "productType": "HORSE: Bits",
+          "count": 77
+        },
+        {
+          "productType": "HORSE: Reins",
+          "count": 1
+        },
+        {
+          "productType": "Reins",
+          "count": 1
+        },
+        {
+          "productType": "Spurs & Straps",
+          "count": 1
+        },
+        {
+          "productType": "Strapping - Bridles - Bridle Accessories",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "ariat",
+      "title": "Shop & Buy Ariat Clothing & Footwear",
+      "description": "Below you can see the great range of the very popular Ariat country and equestrian products, including Ariat boots and footwear, Ariat breeches, tops, jeans, jackets, bags and more.",
+      "productCount": 202,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Clothing - Ladies Clothing",
+          "count": 15
+        },
+        {
+          "productType": "Accessories - Luggage",
+          "count": 1
+        },
+        {
+          "productType": "CLOTHING: Hats & Caps",
+          "count": 3
+        },
+        {
+          "productType": "Clothing - Kid's Clothing",
+          "count": 3
+        },
+        {
+          "productType": "Boots",
+          "count": 16
+        },
+        {
+          "productType": "FOOTWEAR: Western & Roper Boots",
+          "count": 7
+        },
+        {
+          "productType": "FOOTWEAR CLEARANCE",
+          "count": 1
+        },
+        {
+          "productType": "RIDER: Spurs & Straps",
+          "count": 37
+        },
+        {
+          "productType": "FOOTWEAR: Casual Footwear",
+          "count": 4
+        },
+        {
+          "productType": "Clothing - Clothing Accessories",
+          "count": 4
+        },
+        {
+          "productType": "Boots - Boot Accessories",
+          "count": 1
+        },
+        {
+          "productType": "CLOTHING: Clothing Mens",
+          "count": 1
+        },
+        {
+          "productType": "CLOTHING: Clothing Ladies",
+          "count": 3
+        },
+        {
+          "productType": "Womens",
+          "count": 20
+        },
+        {
+          "productType": "Womens Footwear",
+          "count": 9
+        },
+        {
+          "productType": "Caps",
+          "count": 2
+        },
+        {
+          "productType": "Kids",
+          "count": 12
+        },
+        {
+          "productType": "Mens Footwear",
+          "count": 12
+        },
+        {
+          "productType": "Accessories",
+          "count": 2
+        },
+        {
+          "productType": "Womens Jeans",
+          "count": 1
+        },
+        {
+          "productType": "Mens",
+          "count": 6
+        },
+        {
+          "productType": "Wallets & Handbags",
+          "count": 1
+        },
+        {
+          "productType": "Mens Jeans",
+          "count": 1
+        },
+        {
+          "productType": "Gear Bag",
+          "count": 1
+        },
+        {
+          "productType": "RIDER: Luggage",
+          "count": 24
+        },
+        {
+          "productType": "FOOTWEAR: Equestrian Footwear",
+          "count": 9
+        },
+        {
+          "productType": "CLOTHING: Socks",
+          "count": 1
+        },
+        {
+          "productType": "CLOTHING: Jeans",
+          "count": 1
+        },
+        {
+          "productType": "RIDER: Chapettes & Gaiters",
+          "count": 1
+        },
+        {
+          "productType": "RIDER: Hats & Caps",
+          "count": 1
+        },
+        {
+          "productType": "Ladies Clothing",
+          "count": 1
+        },
+        {
+          "productType": "Clothing",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "footwear",
+      "title": "Horse Riding Boots & Footwear, Trainers, Workers",
+      "description": "We have a nice range of footwear for riders, trainers, and workers including riding boots, work boots, and casual footwear from top Australian and international brands. Includes men's and women's, and boots and shoes for children. Brands include Tucci, Ariat & Durango. You can also view our unisex range of riding boots for men and women, and horse riding clothes.",
+      "productCount": 194,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Boots",
+          "count": 53
+        },
+        {
+          "productType": "Spurs & Straps",
+          "count": 44
+        },
+        {
+          "productType": "FOOTWEAR: Western & Roper Boots",
+          "count": 13
+        },
+        {
+          "productType": "FOOTWEAR CLEARANCE",
+          "count": 1
+        },
+        {
+          "productType": "RIDER: Spurs & Straps",
+          "count": 25
+        },
+        {
+          "productType": "FOOTWEAR: Casual Footwear",
+          "count": 8
+        },
+        {
+          "productType": "Riding Boots",
+          "count": 9
+        },
+        {
+          "productType": "Spurs & Straps - Spurs Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Clothing - Ladies Clothing",
+          "count": 1
+        },
+        {
+          "productType": "Boots - Boot Accessories",
+          "count": 2
+        },
+        {
+          "productType": "(No Product Type)",
+          "count": 6
+        },
+        {
+          "productType": "Leather Care",
+          "count": 1
+        },
+        {
+          "productType": "Saddles - Saddle Accessories",
+          "count": 1
+        },
+        {
+          "productType": "RIDER: Luggage",
+          "count": 1
+        },
+        {
+          "productType": "FOOTWEAR: Equestrian Footwear",
+          "count": 10
+        },
+        {
+          "productType": "CLOTHING: Socks",
+          "count": 1
+        },
+        {
+          "productType": "CLOTHING: Jeans",
+          "count": 1
+        },
+        {
+          "productType": "RIDER: Chapettes & Gaiters",
+          "count": 1
+        },
+        {
+          "productType": "Tall Boots",
+          "count": 4
+        },
+        {
+          "productType": "Spurs",
+          "count": 9
+        },
+        {
+          "productType": "Key Chain Clip",
+          "count": 1
+        },
+        {
+          "productType": "Clothing - Clothing Accessories",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "breeches",
+      "title": "Horse Riding Breeches - Quality International & National Brands",
+      "description": "Below you can see the super range of breeches from quality brands around the world and also Australia made.",
+      "productCount": 187,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Breeches",
+          "count": 52
+        },
+        {
+          "productType": "Jodhpurs",
+          "count": 9
+        },
+        {
+          "productType": "Clothing - Kid's Clothing",
+          "count": 9
+        },
+        {
+          "productType": "Clothing - Ladies Clothing",
+          "count": 63
+        },
+        {
+          "productType": "breeches",
+          "count": 3
+        },
+        {
+          "productType": "Breeches & Riding Tights",
+          "count": 9
+        },
+        {
+          "productType": "Clothing - Men's Clothing",
+          "count": 11
+        },
+        {
+          "productType": "Ladies Breeches",
+          "count": 11
+        },
+        {
+          "productType": "CLOTHING: Jodhpurs & Breeches Ladies",
+          "count": 1
+        },
+        {
+          "productType": "Riding Pants",
+          "count": 2
+        },
+        {
+          "productType": "(No Product Type)",
+          "count": 1
+        },
+        {
+          "productType": "Jeans",
+          "count": 2
+        },
+        {
+          "productType": "Girls Breeches",
+          "count": 3
+        },
+        {
+          "productType": "Mens Breeches",
+          "count": 1
+        },
+        {
+          "productType": "Ladies Clothing",
+          "count": 1
+        },
+        {
+          "productType": "Clothing",
+          "count": 9
+        }
+      ]
+    },
+    {
+      "handle": "horse-boots",
+      "title": "Horse Boots - All Types",
+      "description": "Browse our selection of boots for horse for all purposes and equestrian disciplines. Everything from jumping to tendon boots, to float boots.",
+      "productCount": 183,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "HORSE: Horse Boots",
+          "count": 51
+        },
+        {
+          "productType": "Horse Boots & Bandages",
+          "count": 4
+        },
+        {
+          "productType": "Therapy Boots",
+          "count": 4
+        },
+        {
+          "productType": "Exercise Boots",
+          "count": 2
+        },
+        {
+          "productType": "Horse Boots",
+          "count": 86
+        },
+        {
+          "productType": "(No Product Type)",
+          "count": 3
+        },
+        {
+          "productType": "Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Boots",
+          "count": 1
+        },
+        {
+          "productType": "Hoof Care",
+          "count": 1
+        },
+        {
+          "productType": "Socks",
+          "count": 1
+        },
+        {
+          "productType": "Overreach Boots",
+          "count": 3
+        },
+        {
+          "productType": "Horse Boots & Leg Wraps",
+          "count": 1
+        },
+        {
+          "productType": "Tendon Boots",
+          "count": 2
+        },
+        {
+          "productType": "ICE BOOTS",
+          "count": 1
+        },
+        {
+          "productType": "Travel Boots",
+          "count": 1
+        },
+        {
+          "productType": "Fetlock boots",
+          "count": 1
+        },
+        {
+          "productType": "Clothing - Men's Clothing",
+          "count": 1
+        },
+        {
+          "productType": "Clothing - Kid's Clothing",
+          "count": 1
+        },
+        {
+          "productType": "Clothing - Ladies Clothing",
+          "count": 1
+        },
+        {
+          "productType": "STABLE: Ice Boots",
+          "count": 9
+        },
+        {
+          "productType": "HORSE: Flyveils & Bonnets",
+          "count": 1
+        },
+        {
+          "productType": "Bell Boots",
+          "count": 6
+        },
+        {
+          "productType": "Horse Rugs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "zilco",
+      "title": "Shop Zilco Rugs, Horse Boots & Accessories",
+      "description": "Zilco have a great range of quality horse and pony gear for all seasons and all disciplines. In particular, the all seasons Zilco horse rugs are very popular.",
+      "productCount": 180,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Horse Rugs",
+          "count": 12
+        },
+        {
+          "productType": "Racing",
+          "count": 8
+        },
+        {
+          "productType": "SADDLES: All Purpose Saddles",
+          "count": 1
+        },
+        {
+          "productType": "Horse Boots",
+          "count": 7
+        },
+        {
+          "productType": "RUGS: Rug Accessories",
+          "count": 5
+        },
+        {
+          "productType": "HORSE: Stock & Western",
+          "count": 6
+        },
+        {
+          "productType": "STABLE: Ice Boots",
+          "count": 2
+        },
+        {
+          "productType": "HORSE: Girths",
+          "count": 1
+        },
+        {
+          "productType": "Default",
+          "count": 1
+        },
+        {
+          "productType": "Rain Rugs",
+          "count": 1
+        },
+        {
+          "productType": "Bits",
+          "count": 4
+        },
+        {
+          "productType": "Stirrup Irons",
+          "count": 2
+        },
+        {
+          "productType": "Grooming Products",
+          "count": 4
+        },
+        {
+          "productType": "Saddle Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Chaps",
+          "count": 1
+        },
+        {
+          "productType": "Stable",
+          "count": 1
+        },
+        {
+          "productType": "Helmets",
+          "count": 5
+        },
+        {
+          "productType": "Winter Rugs",
+          "count": 1
+        },
+        {
+          "productType": "Gloves",
+          "count": 1
+        },
+        {
+          "productType": "Lead Ropes",
+          "count": 1
+        },
+        {
+          "productType": "Stock & Western Pads",
+          "count": 2
+        },
+        {
+          "productType": "Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Ear Bonnet",
+          "count": 1
+        },
+        {
+          "productType": "Gear Bag",
+          "count": 1
+        },
+        {
+          "productType": "Mesh Rug",
+          "count": 1
+        },
+        {
+          "productType": "RUGS: Winter Rugs, Neck Rugs & Hoods",
+          "count": 7
+        },
+        {
+          "productType": "HORSE: Saddlecloths",
+          "count": 16
+        },
+        {
+          "productType": "HORSE: Racing & PVC",
+          "count": 21
+        },
+        {
+          "productType": "RUGS: Summer Rugs, Neck Rugs & Hoods",
+          "count": 6
+        },
+        {
+          "productType": "HORSE: Headstalls",
+          "count": 9
+        },
+        {
+          "productType": "HORSE: Leads & Snap Hooks",
+          "count": 10
+        },
+        {
+          "productType": "HORSE: Bits",
+          "count": 4
+        },
+        {
+          "productType": "HORSE: Lungeing & Schooling",
+          "count": 2
+        },
+        {
+          "productType": "HORSE: Stirrup Leathers",
+          "count": 1
+        },
+        {
+          "productType": "RIDER: Spurs & Straps",
+          "count": 3
+        },
+        {
+          "productType": "SADDLES: Saddle Accessories & Gullets",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Bridles",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Horse Boots",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Wither & Back Pads",
+          "count": 1
+        },
+        {
+          "productType": "RIDER: Luggage",
+          "count": 1
+        },
+        {
+          "productType": "RIDER: Glasses & Goggles",
+          "count": 13
+        },
+        {
+          "productType": "HORSE: Breastplates & Martingales",
+          "count": 1
+        },
+        {
+          "productType": "Strapping - Girths",
+          "count": 1
+        },
+        {
+          "productType": "Gifts",
+          "count": 1
+        },
+        {
+          "productType": "Strapping - Halters",
+          "count": 3
+        },
+        {
+          "productType": "Strapping",
+          "count": 1
+        },
+        {
+          "productType": "Strapping - Martingales",
+          "count": 1
+        },
+        {
+          "productType": "Saddle Cloths",
+          "count": 1
+        },
+        {
+          "productType": "Rugs",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "handle": "kentucky",
+      "title": "Shop Kentucky Horsewear - Boots, Pads, Bonnets, Girths, Bandages & More",
+      "description": "Kentucky is synonymous with exceptional quality horse gear. Loved by professionals and amateurs alike, it's become a very popular brand in Australia. In particular check out the Kentucky tendon boots, bandages, showjumping pads, ear bonnets, Kentucky show rugs and more.",
+      "productCount": 165,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Strapping - Strapping Accessories",
+          "count": 3
+        },
+        {
+          "productType": "Horse Rugs",
+          "count": 12
+        },
+        {
+          "productType": "Horse Rugs - Rug Accessories",
+          "count": 6
+        },
+        {
+          "productType": "Horse Boots",
+          "count": 63
+        },
+        {
+          "productType": "Strapping - Girths",
+          "count": 4
+        },
+        {
+          "productType": "Clothing - Clothing Accessories",
+          "count": 3
+        },
+        {
+          "productType": "Saddle Cloths",
+          "count": 30
+        },
+        {
+          "productType": "Saddle Pad",
+          "count": 1
+        },
+        {
+          "productType": "saddle pad",
+          "count": 1
+        },
+        {
+          "productType": "Stable Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Accessories",
+          "count": 12
+        },
+        {
+          "productType": "Saddles - Saddle Accessories",
+          "count": 2
+        },
+        {
+          "productType": "Strapping - Halters",
+          "count": 6
+        },
+        {
+          "productType": "Fly Control",
+          "count": 2
+        },
+        {
+          "productType": "Accessories - Luggage",
+          "count": 1
+        },
+        {
+          "productType": "Fly Mask",
+          "count": 1
+        },
+        {
+          "productType": "Fly Veil",
+          "count": 1
+        },
+        {
+          "productType": "Halter",
+          "count": 4
+        },
+        {
+          "productType": "Horse Halters",
+          "count": 1
+        },
+        {
+          "productType": "Halter Set",
+          "count": 1
+        },
+        {
+          "productType": "Socks",
+          "count": 1
+        },
+        {
+          "productType": "Therapy Boots",
+          "count": 1
+        },
+        {
+          "productType": "Overreach Boots",
+          "count": 2
+        },
+        {
+          "productType": "Tendon Boots",
+          "count": 2
+        },
+        {
+          "productType": "ICE BOOTS",
+          "count": 1
+        },
+        {
+          "productType": "Clothing Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Strapping - Bridles - Bridle Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Rug",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "horse-rugs",
+      "title": "Horse Rugs - All Types",
+      "description": "Below is our range of horse rugs and blankets of all types and sizes. It doesn't matter if your in need of a show or paddock rug, a winter or summer horse rugs for sale, or rug accessories, we have it all. Australia's top brands. Also includes used and 2nd hand rugs.",
+      "productCount": 160,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Horse Rugs",
+          "count": 49
+        },
+        {
+          "productType": "RUGS: Winter Rugs, Neck Rugs & Hoods",
+          "count": 18
+        },
+        {
+          "productType": "RUGS: Summer Rugs, Neck Rugs & Hoods",
+          "count": 33
+        },
+        {
+          "productType": "RUGS: Rug Accessories",
+          "count": 11
+        },
+        {
+          "productType": "Rug",
+          "count": 5
+        },
+        {
+          "productType": "Horse Rugs - Rug Accessories",
+          "count": 6
+        },
+        {
+          "productType": "Hood",
+          "count": 4
+        },
+        {
+          "productType": "Tailbag",
+          "count": 3
+        },
+        {
+          "productType": "Sale",
+          "count": 1
+        },
+        {
+          "productType": "HORSE RUG CLEARANCE",
+          "count": 3
+        },
+        {
+          "productType": "Fly Mask",
+          "count": 1
+        },
+        {
+          "productType": "Veterinary",
+          "count": 1
+        },
+        {
+          "productType": "Horse Rug",
+          "count": 11
+        },
+        {
+          "productType": "Therapy Boots",
+          "count": 1
+        },
+        {
+          "productType": "Rug Rack",
+          "count": 1
+        },
+        {
+          "productType": "(No Product Type)",
+          "count": 6
+        },
+        {
+          "productType": "Rugs",
+          "count": 5
+        },
+        {
+          "productType": "Horse Boots",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "eurohunter",
+      "title": "Shop Eurohunter Equestrian Gear & Accessories",
+      "description": "Eurohunter has a great reputations for quality equestrian gear and product's including rugs, saddle pads, boots, halter and more. Amazing value for money.",
+      "productCount": 149,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "RUGS: Winter Rugs, Neck Rugs & Hoods",
+          "count": 8
+        },
+        {
+          "productType": "RUGS: Summer Rugs, Neck Rugs & Hoods",
+          "count": 18
+        },
+        {
+          "productType": "RUGS: Rug Accessories",
+          "count": 5
+        },
+        {
+          "productType": "Girth",
+          "count": 4
+        },
+        {
+          "productType": "HORSE: Headstalls",
+          "count": 2
+        },
+        {
+          "productType": "HORSE: Lungeing & Schooling",
+          "count": 13
+        },
+        {
+          "productType": "HORSE: Saddlecloths",
+          "count": 15
+        },
+        {
+          "productType": "HORSE: Horse Boots",
+          "count": 10
+        },
+        {
+          "productType": "English Reins",
+          "count": 2
+        },
+        {
+          "productType": "Rug Accessories",
+          "count": 2
+        },
+        {
+          "productType": "Chaps",
+          "count": 2
+        },
+        {
+          "productType": "Stock & Western Reins",
+          "count": 1
+        },
+        {
+          "productType": "Grooming Bags and Brushes",
+          "count": 3
+        },
+        {
+          "productType": "Gloves",
+          "count": 1
+        },
+        {
+          "productType": "Horse Boots",
+          "count": 3
+        },
+        {
+          "productType": "Cotton Rugs",
+          "count": 3
+        },
+        {
+          "productType": "Womens Footwear",
+          "count": 1
+        },
+        {
+          "productType": "Winter Rugs",
+          "count": 2
+        },
+        {
+          "productType": "Stirrup Irons",
+          "count": 1
+        },
+        {
+          "productType": "Default",
+          "count": 1
+        },
+        {
+          "productType": "Travel",
+          "count": 1
+        },
+        {
+          "productType": "Dogs",
+          "count": 1
+        },
+        {
+          "productType": "Mesh Rug",
+          "count": 1
+        },
+        {
+          "productType": "Lead Ropes",
+          "count": 2
+        },
+        {
+          "productType": "Footwear Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Halter",
+          "count": 2
+        },
+        {
+          "productType": "Bridle",
+          "count": 1
+        },
+        {
+          "productType": "Helmets",
+          "count": 1
+        },
+        {
+          "productType": "Flag Rug",
+          "count": 1
+        },
+        {
+          "productType": "Rope",
+          "count": 1
+        },
+        {
+          "productType": "SADDLES: Saddle Accessories & Gullets",
+          "count": 1
+        },
+        {
+          "productType": "FOOTWEAR: Equestrian Footwear",
+          "count": 6
+        },
+        {
+          "productType": "STABLE: First Aid & Dressings",
+          "count": 5
+        },
+        {
+          "productType": "HORSE: Leads & Snap Hooks",
+          "count": 4
+        },
+        {
+          "productType": "Veterinary",
+          "count": 4
+        },
+        {
+          "productType": "STABLE: Feed Bins & Hay Bags",
+          "count": 1
+        },
+        {
+          "productType": "RIDER: Helmets",
+          "count": 3
+        },
+        {
+          "productType": "HORSE: Stock & Western",
+          "count": 2
+        },
+        {
+          "productType": "HORSE: Girths",
+          "count": 1
+        },
+        {
+          "productType": "RIDER: Chapettes & Gaiters",
+          "count": 4
+        },
+        {
+          "productType": "HORSE: Bridles",
+          "count": 6
+        },
+        {
+          "productType": "Strapping - Girths",
+          "count": 2
+        },
+        {
+          "productType": "(No Product Type)",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "horse-jewellery",
+      "title": "Horse Jewellery - Equine & Equestrian Themed",
+      "description": "Below you can see our range of quality equine jewellery. Specifically you can also visit the Kelly Herd jewellery range, earrings and also the horse ring jewellery range. Also see our Sabona athletic bracelet range.",
+      "productCount": 141,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Riding Apparel & Accessories",
+          "count": 5
+        },
+        {
+          "productType": "Jewellery",
+          "count": 59
+        },
+        {
+          "productType": "DIY Kit",
+          "count": 29
+        },
+        {
+          "productType": "Pendants",
+          "count": 4
+        },
+        {
+          "productType": "Bracelet",
+          "count": 14
+        },
+        {
+          "productType": "Pearl Necklace",
+          "count": 5
+        },
+        {
+          "productType": "Rings",
+          "count": 2
+        },
+        {
+          "productType": "Fob",
+          "count": 1
+        },
+        {
+          "productType": "Charm Bead",
+          "count": 2
+        },
+        {
+          "productType": "Locket",
+          "count": 1
+        },
+        {
+          "productType": "Key Chain Clip",
+          "count": 5
+        },
+        {
+          "productType": "Custom Orders",
+          "count": 1
+        },
+        {
+          "productType": "bead",
+          "count": 1
+        },
+        {
+          "productType": "Book",
+          "count": 1
+        },
+        {
+          "productType": "Earrings",
+          "count": 2
+        },
+        {
+          "productType": "Hatband",
+          "count": 1
+        },
+        {
+          "productType": "Gift Set",
+          "count": 3
+        },
+        {
+          "productType": "Necklace",
+          "count": 1
+        },
+        {
+          "productType": "Gift Certificates",
+          "count": 1
+        },
+        {
+          "productType": "tie",
+          "count": 1
+        },
+        {
+          "productType": "keyring",
+          "count": 1
+        },
+        {
+          "productType": "Bookmarks",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "horse-riding-helmets",
+      "title": "Buy Horse Riding Helmets For Equestrians",
+      "description": "We have a nice range of quality riding helmets from some of the top brands on the market. Brands include Kask, KEP, Samshield, Charles Owen brand, Suomy and more. If you're looking for helmets you might also be interested in our range of horse riding boots and riding clothing. Other safety categories include horse riding body protectors and horse riding air vests",
+      "productCount": 132,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Helmet",
+          "count": 30
+        },
+        {
+          "productType": "Helmets",
+          "count": 81
+        },
+        {
+          "productType": "Bicycle Helmet Brim Visor",
+          "count": 1
+        },
+        {
+          "productType": "Hats & Accessories",
+          "count": 1
+        },
+        {
+          "productType": "RIDER: Helmets",
+          "count": 16
+        },
+        {
+          "productType": "helmet",
+          "count": 2
+        },
+        {
+          "productType": "Helmet Brim",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "birds",
+      "title": "Shop Birds - Feed, Treats, Accessories, Supplies",
+      "description": "",
+      "productCount": 124,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Bird Food & Treats",
+          "count": 16
+        },
+        {
+          "productType": "STABLE: Show Preparation",
+          "count": 2
+        },
+        {
+          "productType": "Small Animal",
+          "count": 5
+        },
+        {
+          "productType": "Feed Supplements",
+          "count": 1
+        },
+        {
+          "productType": "Bird Cages & Furniture",
+          "count": 28
+        },
+        {
+          "productType": "Dog Toys",
+          "count": 2
+        },
+        {
+          "productType": "Belts & Bracelets",
+          "count": 1
+        },
+        {
+          "productType": "Dog Kennels Carriers & Pens",
+          "count": 1
+        },
+        {
+          "productType": "Cat Gyms & Toys",
+          "count": 7
+        },
+        {
+          "productType": "Poultry",
+          "count": 6
+        },
+        {
+          "productType": "Bird Potions & Lotions",
+          "count": 4
+        },
+        {
+          "productType": "Bird Assorted",
+          "count": 3
+        },
+        {
+          "productType": "STABLE: First Aid & Dressings",
+          "count": 2
+        },
+        {
+          "productType": "STABLE: Supplements",
+          "count": 2
+        },
+        {
+          "productType": "Dog Potions & Lotions",
+          "count": 2
+        },
+        {
+          "productType": "Dog Accessories",
+          "count": 5
+        },
+        {
+          "productType": "Bird Toys",
+          "count": 37
+        }
+      ]
+    },
+    {
+      "handle": "vivarchie-equestrian",
+      "title": "Vivarchie Equestrian",
+      "description": "",
+      "productCount": 118,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "(No Product Type)",
+          "count": 116
+        },
+        {
+          "productType": "Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Boots",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "horse-halters",
+      "title": "Shop Horse Halters",
+      "description": "Below you can see our great range of horse and pony halters. We have some fantastic brands, such as Lemieux halters, Vibrant Equestrian, Cavallo, Kentucky and more. Also see our range of horse reins, bits, and western horse girths. Also see our rope halters, leather halters, and breakaway halters.",
+      "productCount": 113,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "(No Product Type)",
+          "count": 4
+        },
+        {
+          "productType": "Strapping - Halters",
+          "count": 27
+        },
+        {
+          "productType": "HORSE: Number Holders",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Headstalls",
+          "count": 56
+        },
+        {
+          "productType": "Jewellery",
+          "count": 3
+        },
+        {
+          "productType": "Halter",
+          "count": 7
+        },
+        {
+          "productType": "Halters",
+          "count": 1
+        },
+        {
+          "productType": "Lead Rope",
+          "count": 1
+        },
+        {
+          "productType": "lead rope",
+          "count": 1
+        },
+        {
+          "productType": "halter",
+          "count": 1
+        },
+        {
+          "productType": "Racing",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Racing & PVC",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Leads & Snap Hooks",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Flyveils & Bonnets",
+          "count": 1
+        },
+        {
+          "productType": "Horse Halters",
+          "count": 1
+        },
+        {
+          "productType": "Halter Set",
+          "count": 1
+        },
+        {
+          "productType": "Strapping - Strapping Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Strapping - Bridles - Bridle Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Feed Supplements",
+          "count": 2
+        },
+        {
+          "productType": "Horse Rugs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "living-horse-tales-jewellery-by-monika",
+      "title": "Living Horse Tales Jewellery By Monika",
+      "description": "",
+      "productCount": 103,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "DIY Kit",
+          "count": 32
+        },
+        {
+          "productType": "Necklace",
+          "count": 15
+        },
+        {
+          "productType": "Cuff",
+          "count": 1
+        },
+        {
+          "productType": "Fob",
+          "count": 3
+        },
+        {
+          "productType": "Other",
+          "count": 2
+        },
+        {
+          "productType": "Pendants",
+          "count": 2
+        },
+        {
+          "productType": "Locket",
+          "count": 2
+        },
+        {
+          "productType": "Hatband",
+          "count": 2
+        },
+        {
+          "productType": "Earrings",
+          "count": 8
+        },
+        {
+          "productType": "Key Chain Clip",
+          "count": 7
+        },
+        {
+          "productType": "Bracelet",
+          "count": 16
+        },
+        {
+          "productType": "Key chain ring",
+          "count": 1
+        },
+        {
+          "productType": "Charm Bead",
+          "count": 2
+        },
+        {
+          "productType": "Custom Orders",
+          "count": 1
+        },
+        {
+          "productType": "bead",
+          "count": 1
+        },
+        {
+          "productType": "Book",
+          "count": 1
+        },
+        {
+          "productType": "Gift Set",
+          "count": 3
+        },
+        {
+          "productType": "Gift Certificates",
+          "count": 1
+        },
+        {
+          "productType": "tie",
+          "count": 1
+        },
+        {
+          "productType": "keyring",
+          "count": 1
+        },
+        {
+          "productType": "Bookmarks",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "stirrups",
+      "title": "Shop Horse Riding Stirrups & Leathers",
+      "description": "Browse this collection that includes a range of high-quality stirrups designed to improve the riding experience, featuring leading brands like Freejump, Zilco, and Prestige. These stirrups offer enhanced safety, comfort, and performance for riders of all levels. Be sure to check out the dedicated stirrup leathers collection and freejump stirrups.",
+      "productCount": 96,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "HORSE: Stock & Western",
+          "count": 5
+        },
+        {
+          "productType": "Stirrup Irons",
+          "count": 22
+        },
+        {
+          "productType": "(No Product Type)",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Stirrup Leathers",
+          "count": 24
+        },
+        {
+          "productType": "Stirrup Irons - Stirrup Accessories",
+          "count": 4
+        },
+        {
+          "productType": "Synthetic Stirrup Straps",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Stirrup Irons",
+          "count": 30
+        },
+        {
+          "productType": "Saddles - Saddle Accessories",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Racing & PVC",
+          "count": 5
+        },
+        {
+          "productType": "Stirrup Leathers",
+          "count": 1
+        },
+        {
+          "productType": "Strapping - Stirrup Leathers",
+          "count": 1
+        },
+        {
+          "productType": "Strapping",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "horse-bandages",
+      "title": "Leg Wraps & Bandages For Your Horse Or Pony",
+      "description": "We have a great selection of bandages from some of the top international and Australian brands, including ANKY bandages, Kentucky bandages, PS Of Sweden bandages and more. You may also be interested in our horse boots collection, and dedicated dressage bandage selection.",
+      "productCount": 78,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Horse Boots & Bandages",
+          "count": 3
+        },
+        {
+          "productType": "Veterinary",
+          "count": 11
+        },
+        {
+          "productType": "Horse Boots",
+          "count": 40
+        },
+        {
+          "productType": "Stable Accessories",
+          "count": 1
+        },
+        {
+          "productType": "STABLE: First Aid & Dressings",
+          "count": 15
+        },
+        {
+          "productType": "RUGS: Rug Accessories",
+          "count": 1
+        },
+        {
+          "productType": "STABLE: Leather Care & Proofing",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Horse Boots",
+          "count": 3
+        },
+        {
+          "productType": "HORSE: Bits",
+          "count": 1
+        },
+        {
+          "productType": "Bandage Pads",
+          "count": 1
+        },
+        {
+          "productType": "Ear Net",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "equipe",
+      "title": "Shop Equipe",
+      "description": "Equipe are a very popular and high quality European brand. Check out the range below.",
+      "productCount": 69,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Strapping - Breast Plates",
+          "count": 6
+        },
+        {
+          "productType": "Saddles",
+          "count": 15
+        },
+        {
+          "productType": "Strapping - Bridles",
+          "count": 10
+        },
+        {
+          "productType": "Strapping - Reins",
+          "count": 7
+        },
+        {
+          "productType": "Saddles - Saddle Accessories",
+          "count": 1
+        },
+        {
+          "productType": "saddles",
+          "count": 2
+        },
+        {
+          "productType": "Grooming",
+          "count": 1
+        },
+        {
+          "productType": "Clothing",
+          "count": 1
+        },
+        {
+          "productType": "Clothing - Clothing Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Strapping",
+          "count": 8
+        },
+        {
+          "productType": "Strapping - Bridles - Bridle Accessories",
+          "count": 3
+        },
+        {
+          "productType": "Bridle Accessories",
+          "count": 2
+        },
+        {
+          "productType": "Strapping - Martingales",
+          "count": 3
+        },
+        {
+          "productType": "Bridles",
+          "count": 2
+        },
+        {
+          "productType": "Saddle Cloths",
+          "count": 7
+        }
+      ]
+    },
+    {
+      "handle": "ippico-equestrian",
+      "title": "Ippico Equestrian",
+      "description": "",
+      "productCount": 69,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Sleepwear",
+          "count": 2
+        },
+        {
+          "productType": "Riding Apparel & Accessories",
+          "count": 11
+        },
+        {
+          "productType": "Equestrian",
+          "count": 6
+        },
+        {
+          "productType": "Coat Care",
+          "count": 1
+        },
+        {
+          "productType": "Horse Grooming Combs, Brushes & Mitts",
+          "count": 33
+        },
+        {
+          "productType": "Hair Accessory",
+          "count": 9
+        },
+        {
+          "productType": "Bell Boots",
+          "count": 6
+        },
+        {
+          "productType": "Storage",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "accessories",
+      "title": "Accessories",
+      "description": "Below you can see our range of horse riding accessories.",
+      "productCount": 69,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Clothing - Clothing Accessories",
+          "count": 11
+        },
+        {
+          "productType": "Clothing",
+          "count": 16
+        },
+        {
+          "productType": "Horse Rugs",
+          "count": 2
+        },
+        {
+          "productType": "HORSE: Stock & Western",
+          "count": 4
+        },
+        {
+          "productType": "Gloves",
+          "count": 9
+        },
+        {
+          "productType": "(No Product Type)",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Girths",
+          "count": 1
+        },
+        {
+          "productType": "Small Animal",
+          "count": 2
+        },
+        {
+          "productType": "Dog Walking",
+          "count": 2
+        },
+        {
+          "productType": "Horse Boots",
+          "count": 1
+        },
+        {
+          "productType": "Clothing Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Clothing - Ladies Clothing",
+          "count": 8
+        },
+        {
+          "productType": "Ladies Clothing",
+          "count": 2
+        },
+        {
+          "productType": "Clothing - Kid's Clothing",
+          "count": 1
+        },
+        {
+          "productType": "Boots",
+          "count": 2
+        },
+        {
+          "productType": "Strapping",
+          "count": 2
+        },
+        {
+          "productType": "Saddle Cloths",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "handle": "cavallo",
+      "title": "Shop Cavallo Products",
+      "description": "See the range of great Cavallo equestrian products.",
+      "productCount": 67,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Riding Boots",
+          "count": 9
+        },
+        {
+          "productType": "Halter",
+          "count": 1
+        },
+        {
+          "productType": "Saddle Pad",
+          "count": 8
+        },
+        {
+          "productType": "(No Product Type)",
+          "count": 1
+        },
+        {
+          "productType": "Casual Jacket",
+          "count": 1
+        },
+        {
+          "productType": "Belt",
+          "count": 5
+        },
+        {
+          "productType": "long socks",
+          "count": 5
+        },
+        {
+          "productType": "Belts",
+          "count": 1
+        },
+        {
+          "productType": "Socks",
+          "count": 2
+        },
+        {
+          "productType": "Tall Boots",
+          "count": 4
+        },
+        {
+          "productType": "Cap",
+          "count": 1
+        },
+        {
+          "productType": "jumper",
+          "count": 2
+        },
+        {
+          "productType": "Riding Pants",
+          "count": 1
+        },
+        {
+          "productType": "Breeches",
+          "count": 3
+        },
+        {
+          "productType": "Bandages",
+          "count": 2
+        },
+        {
+          "productType": "Bandage Pads",
+          "count": 1
+        },
+        {
+          "productType": "Fly Bonnet",
+          "count": 1
+        },
+        {
+          "productType": "Exercise Boots",
+          "count": 2
+        },
+        {
+          "productType": "Ear Net",
+          "count": 3
+        },
+        {
+          "productType": "Horse Rug",
+          "count": 2
+        },
+        {
+          "productType": "Saddle Pads & Blankets",
+          "count": 2
+        },
+        {
+          "productType": "Fly Hood",
+          "count": 1
+        },
+        {
+          "productType": "Competition Jacket",
+          "count": 2
+        },
+        {
+          "productType": "t-shirt",
+          "count": 2
+        },
+        {
+          "productType": "Ladies Shirt",
+          "count": 3
+        },
+        {
+          "productType": "Shirt",
+          "count": 1
+        },
+        {
+          "productType": "Ladies Top",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "jnk-collective",
+      "title": "JNK Collective",
+      "description": "",
+      "productCount": 66,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Ultimate Tights",
+          "count": 2
+        },
+        {
+          "productType": "Freedom Tights",
+          "count": 6
+        },
+        {
+          "productType": "Tights",
+          "count": 11
+        },
+        {
+          "productType": "Active Tights",
+          "count": 4
+        },
+        {
+          "productType": "Tank",
+          "count": 4
+        },
+        {
+          "productType": "Horseware",
+          "count": 4
+        },
+        {
+          "productType": "Shirts",
+          "count": 13
+        },
+        {
+          "productType": "Breeches",
+          "count": 5
+        },
+        {
+          "productType": "Elite Tights",
+          "count": 2
+        },
+        {
+          "productType": "Accessoriess",
+          "count": 5
+        },
+        {
+          "productType": "Cap",
+          "count": 1
+        },
+        {
+          "productType": "Outerwear",
+          "count": 3
+        },
+        {
+          "productType": "Leggings",
+          "count": 2
+        },
+        {
+          "productType": "shirts",
+          "count": 2
+        },
+        {
+          "productType": "accessoriess",
+          "count": 1
+        },
+        {
+          "productType": "Active tights",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "bare-equestrian",
+      "title": "Shop BARE Equestrian Apparel & Gear",
+      "description": "BARE Equestrian is one the most popular equestrian brands in Australia right now, and their range of stylish equestrian wear including riding tights and leggings, polo tops, and a range of other accessories. Browser below the various products of the brand.",
+      "productCount": 61,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Clothing - Kid's Clothing",
+          "count": 2
+        },
+        {
+          "productType": "Clothing - Ladies Clothing",
+          "count": 21
+        },
+        {
+          "productType": "Clothing",
+          "count": 26
+        },
+        {
+          "productType": "(No Product Type)",
+          "count": 4
+        },
+        {
+          "productType": "Clothing - Clothing Accessories",
+          "count": 6
+        },
+        {
+          "productType": "Ladies Clothing",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "handle": "saddles",
+      "title": "Saddles For All Disciplines",
+      "description": "Check out our range of saddles for jumping, dressage, western, stock, all purpose and more. Some of the most popular brands available in Australia. We have come excellent brands including Eqiupe, Arena and more.",
+      "productCount": 57,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Saddles",
+          "count": 22
+        },
+        {
+          "productType": "SADDLES: Dressage Saddles",
+          "count": 8
+        },
+        {
+          "productType": "SADDLES: All Purpose Saddles",
+          "count": 8
+        },
+        {
+          "productType": "SADDLES: Jumping Saddles",
+          "count": 4
+        },
+        {
+          "productType": "SADDLES: Saddle Accessories & Gullets",
+          "count": 4
+        },
+        {
+          "productType": "Saddles - Saddle Accessories",
+          "count": 4
+        },
+        {
+          "productType": "saddles",
+          "count": 6
+        },
+        {
+          "productType": "Grooming",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "qj-riding-wear",
+      "title": "QJ Riding Wear",
+      "description": "",
+      "productCount": 56,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "belts",
+          "count": 2
+        },
+        {
+          "productType": "cap",
+          "count": 2
+        },
+        {
+          "productType": "top",
+          "count": 1
+        },
+        {
+          "productType": "Shirt",
+          "count": 2
+        },
+        {
+          "productType": "Breeches",
+          "count": 23
+        },
+        {
+          "productType": "shirt",
+          "count": 4
+        },
+        {
+          "productType": "breeches",
+          "count": 5
+        },
+        {
+          "productType": "shirts",
+          "count": 2
+        },
+        {
+          "productType": "beanies",
+          "count": 1
+        },
+        {
+          "productType": "(No Product Type)",
+          "count": 2
+        },
+        {
+          "productType": "riding tights",
+          "count": 1
+        },
+        {
+          "productType": "stock",
+          "count": 2
+        },
+        {
+          "productType": "Sweater",
+          "count": 2
+        },
+        {
+          "productType": "socks",
+          "count": 1
+        },
+        {
+          "productType": "Top",
+          "count": 1
+        },
+        {
+          "productType": "jacket",
+          "count": 4
+        },
+        {
+          "productType": "Gift Card",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "horse-toys",
+      "title": "Shop Kids Horse Toys",
+      "description": "Below you can see our range of quality kids toys. Great as gifts or for entertaining those young ones with an enthusiasm for equestrian. Be sure to check out our specific collections on Trail Of The Painted Pony toys, and Breyer kids horse toys. and horse books.",
+      "productCount": 54,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "RIDER: Giftware",
+          "count": 44
+        },
+        {
+          "productType": "The Trail of Painted Ponies",
+          "count": 10
+        }
+      ]
+    },
+    {
+      "handle": "hitchley-harrow",
+      "title": "Hitchley & Harrow",
+      "description": "",
+      "productCount": 54,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Handbag",
+          "count": 2
+        },
+        {
+          "productType": "Pendants",
+          "count": 4
+        },
+        {
+          "productType": "Belt",
+          "count": 20
+        },
+        {
+          "productType": "(No Product Type)",
+          "count": 11
+        },
+        {
+          "productType": "Resin",
+          "count": 2
+        },
+        {
+          "productType": "Bangles",
+          "count": 5
+        },
+        {
+          "productType": "Pearl Necklace",
+          "count": 5
+        },
+        {
+          "productType": "Log Book Cover",
+          "count": 2
+        },
+        {
+          "productType": "Rings",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "handle": "thinline-global-australia",
+      "title": "Shop Thinline Global Australia",
+      "description": "Below you can see our range of Thinline Global products including saddle pads and squares, boots for horses and a range of other quality accessories for horse and riders. Visit Thinline Global in the USA for more information on the brand.",
+      "productCount": 50,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "(No Product Type)",
+          "count": 25
+        },
+        {
+          "productType": "Saddle Pad",
+          "count": 2
+        },
+        {
+          "productType": "Strapping - Reins",
+          "count": 1
+        },
+        {
+          "productType": "Saddle Cloths",
+          "count": 4
+        },
+        {
+          "productType": "Strapping - Halters",
+          "count": 3
+        },
+        {
+          "productType": "Horse Boots",
+          "count": 2
+        },
+        {
+          "productType": "Western Pads",
+          "count": 9
+        },
+        {
+          "productType": "Saddles - Saddle Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Stirrup Irons - Stirrup Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Strapping - Girths",
+          "count": 1
+        },
+        {
+          "productType": "Strapping - Bridles - Bridle Accessories",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "hairy-pony",
+      "title": "Shop Hairy Pony Grooming Products",
+      "description": "Below you can see the great range of grooming products from Hairy Pony. They have a nice range of brushes, shampoos, gloss and much more. You may also be interested in our full collection of grooming supplies, including shampoo for horses and brands such as Sterling Essentials.",
+      "productCount": 48,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "STABLE: Grooming",
+          "count": 24
+        },
+        {
+          "productType": "STABLE: Show Preparation",
+          "count": 16
+        },
+        {
+          "productType": "grooming",
+          "count": 4
+        },
+        {
+          "productType": "plaiting kit",
+          "count": 1
+        },
+        {
+          "productType": "brush",
+          "count": 2
+        },
+        {
+          "productType": "Horse Grooming",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "luggage",
+      "title": "Luggage For The Horse Rider",
+      "description": "Check out our selection of luggage for the rider from the top brands including Lemieux, Kentucky, Animo, and PS Of Sweden. Also see our dedicated page for Ariat gear bags and clutches & handbags.",
+      "productCount": 45,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Accessories - Luggage",
+          "count": 1
+        },
+        {
+          "productType": "RIDER: Luggage",
+          "count": 34
+        },
+        {
+          "productType": "Luggage",
+          "count": 5
+        },
+        {
+          "productType": "Boots - Boot Accessories",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Stock & Western",
+          "count": 2
+        },
+        {
+          "productType": "Dog Walking",
+          "count": 1
+        },
+        {
+          "productType": "STABLE: Leather Care & Proofing",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "farrier-tools",
+      "title": "Shop Farrier Tools",
+      "description": "Below you can see our selection of farrier tools including hammers, nippers, studs, hoof knives, aprons, and everything else you'll ever need.",
+      "productCount": 42,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "STABLE: Farrier",
+          "count": 40
+        },
+        {
+          "productType": "STABLE: Supplements",
+          "count": 1
+        },
+        {
+          "productType": "Hoof Care",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "plum-tack",
+      "title": "Plum Tack - Quality Australia Riding Apparel & Clothing",
+      "description": "",
+      "productCount": 42,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Jodhpurs",
+          "count": 17
+        },
+        {
+          "productType": "Riding Tights",
+          "count": 1
+        },
+        {
+          "productType": "Breeches",
+          "count": 10
+        },
+        {
+          "productType": "Riding Pants",
+          "count": 7
+        },
+        {
+          "productType": "Riding Apparel & Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Tops",
+          "count": 6
+        }
+      ]
+    },
+    {
+      "handle": "stable-and-yard",
+      "title": "Stable & Arena Gear",
+      "description": "We have a great selection of gear for keeping your stable, sheds, and arena neat and tidy, spotless, maintained and efficient. Categories include farriery, fencing gear, saddle racks, tack care, wheelbarrows, feeders, arena equipment and more!",
+      "productCount": 41,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "(No Product Type)",
+          "count": 5
+        },
+        {
+          "productType": "STABLE: Feed Bins & Hay Bags",
+          "count": 21
+        },
+        {
+          "productType": "Leather Care",
+          "count": 12
+        },
+        {
+          "productType": "STABLE: Horse Treats & Toys",
+          "count": 2
+        },
+        {
+          "productType": "Small Animal",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "the-equestrian",
+      "title": "The Equestrian",
+      "description": "",
+      "productCount": 36,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Horse Grooming",
+          "count": 1
+        },
+        {
+          "productType": "Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Saddle Pad",
+          "count": 5
+        },
+        {
+          "productType": "(No Product Type)",
+          "count": 11
+        },
+        {
+          "productType": "Shampoo",
+          "count": 1
+        },
+        {
+          "productType": "Dog Grooming & Coat Care",
+          "count": 1
+        },
+        {
+          "productType": "Jewellery",
+          "count": 1
+        },
+        {
+          "productType": "saddle pad",
+          "count": 4
+        },
+        {
+          "productType": "HORSE: Saddlecloths",
+          "count": 1
+        },
+        {
+          "productType": "Horse Boots",
+          "count": 4
+        },
+        {
+          "productType": "Bridles",
+          "count": 1
+        },
+        {
+          "productType": "Saddlepad",
+          "count": 4
+        },
+        {
+          "productType": "Wither relief saddlepad",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "animo",
+      "title": "Shop Animo Equestrian Gear",
+      "description": "Animo is one of the most recognisable brands in the world when it comes to equestrian gear and clothing. Super quality at an affordable price. Check out our Animo women's breeches, men's Animo breeches.",
+      "productCount": 35,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Breeches",
+          "count": 13
+        },
+        {
+          "productType": "Socks",
+          "count": 4
+        },
+        {
+          "productType": "Cap",
+          "count": 1
+        },
+        {
+          "productType": "Mens Competition Jacket",
+          "count": 1
+        },
+        {
+          "productType": "Trousers",
+          "count": 1
+        },
+        {
+          "productType": "jacket",
+          "count": 1
+        },
+        {
+          "productType": "Competition Jacket",
+          "count": 2
+        },
+        {
+          "productType": "Mens Breeches",
+          "count": 1
+        },
+        {
+          "productType": "Belts",
+          "count": 2
+        },
+        {
+          "productType": "t-shirt",
+          "count": 1
+        },
+        {
+          "productType": "Show Shirt",
+          "count": 1
+        },
+        {
+          "productType": "Boys Show Shirt",
+          "count": 1
+        },
+        {
+          "productType": "Ladies Breeches",
+          "count": 2
+        },
+        {
+          "productType": "Girls Breeches",
+          "count": 1
+        },
+        {
+          "productType": "Casual Jacket",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "handle": "dyon",
+      "title": "Shop Dy'On European Classic Equestrian Gear",
+      "description": "Below you can see our range of Dy'On. The brand was started in Belgium in 1964 with a pair of long chaps, and the brand grew from their. Included in the range are riding belts, Dy'on bridles, chaps, reins, and more.",
+      "productCount": 34,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Bridles",
+          "count": 11
+        },
+        {
+          "productType": "breastplate",
+          "count": 5
+        },
+        {
+          "productType": "Reins",
+          "count": 10
+        },
+        {
+          "productType": "Wrap Bag",
+          "count": 1
+        },
+        {
+          "productType": "Rug Rack",
+          "count": 1
+        },
+        {
+          "productType": "Stable Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Socks",
+          "count": 1
+        },
+        {
+          "productType": "Horse Rug",
+          "count": 1
+        },
+        {
+          "productType": "Belts",
+          "count": 2
+        },
+        {
+          "productType": "Half Chaps",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "elt",
+      "title": "ELT  Equestrian",
+      "description": "Below you can see our range of ELT equestrian gear and clothing.",
+      "productCount": 28,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Apparel - Ladies",
+          "count": 10
+        },
+        {
+          "productType": "Gloves",
+          "count": 2
+        },
+        {
+          "productType": "Horse Boots & Bandages",
+          "count": 1
+        },
+        {
+          "productType": "Breeches & Riding Tights",
+          "count": 10
+        },
+        {
+          "productType": "Footwear & Chaps",
+          "count": 2
+        },
+        {
+          "productType": "Clothing - Ladies Clothing",
+          "count": 1
+        },
+        {
+          "productType": "Clothing",
+          "count": 1
+        },
+        {
+          "productType": "Boots",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "ps-of-sweden",
+      "title": "PS Of Sweden",
+      "description": "Check out the range of quality PS Of Sweden products available from a number of different sellers within our marketplace. Products include dressage saddle pads, all purpose bridles, horse bandages, training shirts, casual tops, jackets, browbands and more. Visit the dedicated PS Of Sweden saddle pads range.",
+      "productCount": 27,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "(No Product Type)",
+          "count": 22
+        },
+        {
+          "productType": "Horse Boots",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "handle": "fly-veils-and-hoods",
+      "title": "Mask & Fly Veils For Horses & Ponies",
+      "description": "Browse our great selection of masks and fly veils for horses and ponies. Some great brands including masks by Lemieux, Fly Veils By Design, Buzz Off and Bucas, Wild Horse and many more.",
+      "productCount": 26,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Fly Control",
+          "count": 7
+        },
+        {
+          "productType": "(No Product Type)",
+          "count": 8
+        },
+        {
+          "productType": "fly bonnet",
+          "count": 1
+        },
+        {
+          "productType": "Fly Mask",
+          "count": 1
+        },
+        {
+          "productType": "Ear Net",
+          "count": 4
+        },
+        {
+          "productType": "Fly Bonnet",
+          "count": 1
+        },
+        {
+          "productType": "Fly Hood",
+          "count": 1
+        },
+        {
+          "productType": "Bridle Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Strapping - Bridles - Bridle Accessories",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "handle": "base-layers",
+      "title": "Shop Horse Riding Base Layers",
+      "description": "Below you can see our range of base layers from various brands such as Bare Equestrian, Ariat clothing and Lemieux clothing. Also check out our full women's horse riding apparel and men's horse riding apparel.",
+      "productCount": 25,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Clothing - Ladies Clothing",
+          "count": 9
+        },
+        {
+          "productType": "top",
+          "count": 1
+        },
+        {
+          "productType": "Clothing - Kid's Clothing",
+          "count": 1
+        },
+        {
+          "productType": "(No Product Type)",
+          "count": 2
+        },
+        {
+          "productType": "Womens",
+          "count": 1
+        },
+        {
+          "productType": "shirts",
+          "count": 2
+        },
+        {
+          "productType": "shirt",
+          "count": 1
+        },
+        {
+          "productType": "Equestrian",
+          "count": 1
+        },
+        {
+          "productType": "RUGS: Summer Rugs, Neck Rugs & Hoods",
+          "count": 1
+        },
+        {
+          "productType": "CLOTHING: Casual Clothing Childs",
+          "count": 1
+        },
+        {
+          "productType": "CLOTHING CLEARANCE",
+          "count": 1
+        },
+        {
+          "productType": "Ladies Shirt",
+          "count": 1
+        },
+        {
+          "productType": "Merchandise",
+          "count": 1
+        },
+        {
+          "productType": "long sleeve",
+          "count": 1
+        },
+        {
+          "productType": "Clothing",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "ego-7",
+      "title": "Ego 7",
+      "description": "Below is our range of Ego 7 propducts.",
+      "productCount": 24,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Boots",
+          "count": 9
+        },
+        {
+          "productType": "Clothing - Ladies Clothing",
+          "count": 13
+        },
+        {
+          "productType": "Clothing - Clothing Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Clothing",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "visentin-equestrian",
+      "title": "Visentin Equestrian",
+      "description": "",
+      "productCount": 23,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "HORSE: Number Holders",
+          "count": 11
+        },
+        {
+          "productType": "(No Product Type)",
+          "count": 12
+        }
+      ]
+    },
+    {
+      "handle": "cavalor-equicare",
+      "title": "Cavalor Equicare",
+      "description": "",
+      "productCount": 21,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Horse Supplements",
+          "count": 1
+        },
+        {
+          "productType": "Care",
+          "count": 7
+        },
+        {
+          "productType": "Supplements",
+          "count": 11
+        },
+        {
+          "productType": "Merchandise",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "handle": "acavallo",
+      "title": "Shop Acavallo Horse Riding Essentials",
+      "description": "Browse Acavallo's exclusive range of equestrian gear, featuring high-quality bridles, girths, and riding accessories. Ideal for dressage, jumping, and all equestrian enthusiasts, this collection offers the best in horse riding equipment. They are particularly well know for gel pads.",
+      "productCount": 21,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "HORSE: Wither & Back Pads",
+          "count": 9
+        },
+        {
+          "productType": "Saddle Pad",
+          "count": 2
+        },
+        {
+          "productType": "saddle pads",
+          "count": 1
+        },
+        {
+          "productType": "Saddle Cloths",
+          "count": 2
+        },
+        {
+          "productType": "Gel & Comfort Pads",
+          "count": 3
+        },
+        {
+          "productType": "HORSE: Bridles",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Stirrup Irons",
+          "count": 1
+        },
+        {
+          "productType": "Saddles",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "handle": "gifts",
+      "title": "Horse & Equine Gifts",
+      "description": "Below you can see the range of gifts and accessories themed for the horse lover!",
+      "productCount": 21,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Keyring",
+          "count": 4
+        },
+        {
+          "productType": "Toys",
+          "count": 2
+        },
+        {
+          "productType": "Clothing",
+          "count": 2
+        },
+        {
+          "productType": "Clothing - Clothing Accessories",
+          "count": 4
+        },
+        {
+          "productType": "Clothing Accessories",
+          "count": 2
+        },
+        {
+          "productType": "Pet",
+          "count": 1
+        },
+        {
+          "productType": "Accessories",
+          "count": 3
+        },
+        {
+          "productType": "Wallets & Handbags",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "handle": "anna-scarpati",
+      "title": "Shop Anna Scarpati",
+      "description": "Anna Scarpati stands at the intersection of tradition and innovation in equestrian gear. Discover accessories that elevate your riding experience, crafted with the rider in mind.",
+      "productCount": 20,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Saddle Pad",
+          "count": 8
+        },
+        {
+          "productType": "Ear Net",
+          "count": 4
+        },
+        {
+          "productType": "t-shirt",
+          "count": 1
+        },
+        {
+          "productType": "T-Shirt",
+          "count": 1
+        },
+        {
+          "productType": "RIDER: Giftware",
+          "count": 1
+        },
+        {
+          "productType": "Breeches",
+          "count": 2
+        },
+        {
+          "productType": "Girls Breeches",
+          "count": 1
+        },
+        {
+          "productType": "Show Shirt",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "handle": "eac-animal-care",
+      "title": "EAC Animal Care",
+      "description": "View the very popular range from EAC. In particlular, check out their dog probiotic.",
+      "productCount": 17,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Horse Supplements",
+          "count": 7
+        },
+        {
+          "productType": "Pet Supplements",
+          "count": 3
+        },
+        {
+          "productType": "Donation",
+          "count": 3
+        },
+        {
+          "productType": "(No Product Type)",
+          "count": 2
+        },
+        {
+          "productType": "Cover Donation Fee",
+          "count": 1
+        },
+        {
+          "productType": "Animal Husbandry",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "horse-books",
+      "title": "Books - Fiction & Non Fiction",
+      "description": "Below you can see books available in a range of genres including novels, fiction and non- fiction, training and informational",
+      "productCount": 15,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Books & Magazines",
+          "count": 4
+        },
+        {
+          "productType": "RIDER: Giftware",
+          "count": 5
+        },
+        {
+          "productType": "Books",
+          "count": 1
+        },
+        {
+          "productType": "Log Book Cover",
+          "count": 2
+        },
+        {
+          "productType": "Book",
+          "count": 1
+        },
+        {
+          "productType": "DIY Kit",
+          "count": 1
+        },
+        {
+          "productType": "Bookmarks",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "wintec",
+      "title": "Shop Wintec - Saddles & Equestrian Gear",
+      "description": "Wintec has established itself as a leading equestrian brands, particularly for it's range of synthetic saddles. Don't let that put you off however, and over the years their products have improved to be of an exceptional standard. See our full Wintec saddles range.",
+      "productCount": 15,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Saddle Gullet",
+          "count": 1
+        },
+        {
+          "productType": "Synthetic Stirrup Straps",
+          "count": 2
+        },
+        {
+          "productType": "All Purpose",
+          "count": 4
+        },
+        {
+          "productType": "Stock & Western",
+          "count": 5
+        },
+        {
+          "productType": "Stock Stirrup Straps",
+          "count": 1
+        },
+        {
+          "productType": "Leather",
+          "count": 1
+        },
+        {
+          "productType": "Dressage Saddle",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "diamond-deluxe-horsewear",
+      "title": "Diamond Deluxe Horsewear",
+      "description": "",
+      "productCount": 13,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Rug",
+          "count": 4
+        },
+        {
+          "productType": "Hood",
+          "count": 4
+        },
+        {
+          "productType": "Tailbag",
+          "count": 3
+        },
+        {
+          "productType": "Sale",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "handle": "sterling-essentials",
+      "title": "Sterling Essentials",
+      "description": "",
+      "productCount": 13,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Leather Care",
+          "count": 13
+        }
+      ]
+    },
+    {
+      "handle": "horse-queened",
+      "title": "HORSE QUEENED",
+      "description": "",
+      "productCount": 13,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Health Care",
+          "count": 8
+        },
+        {
+          "productType": "Horse Grooming",
+          "count": 3
+        },
+        {
+          "productType": "STABLE: Hoof Care",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "handle": "prestige",
+      "title": "Shop Prestige Saddles, Bridles & Equestrian Gear",
+      "description": "Below you can see the range of Prestige saddles, bridles, strapping and other quality tack. Exceptional value for money.",
+      "productCount": 10,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Bridle",
+          "count": 1
+        },
+        {
+          "productType": "Girth",
+          "count": 2
+        },
+        {
+          "productType": "Dressage Saddle",
+          "count": 1
+        },
+        {
+          "productType": "Leather Stirrup Straps",
+          "count": 1
+        },
+        {
+          "productType": "Strapping - Girths",
+          "count": 1
+        },
+        {
+          "productType": "Stirrup Irons",
+          "count": 1
+        },
+        {
+          "productType": "saddles",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "handle": "freejump",
+      "title": "Shop FreeJump Stirrups & FreejumpSystem Range",
+      "description": "Below you can see the range of Freejump stirrups and other products. You may also be interested in our full riding stirrup range.",
+      "productCount": 9,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Stirrup Irons",
+          "count": 7
+        },
+        {
+          "productType": "Spurs & Straps",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "handle": "peter-williams",
+      "title": "Peter Williams Riding Apparel - Breeches, Jodphurs, Earlwwodd & More",
+      "description": "Below you can see our range of Peter Williams riding apparel including breeches. the Earlwood brand, for men, women and children.",
+      "productCount": 9,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "CLOTHING: Jodhpurs & Breeches Ladies",
+          "count": 6
+        },
+        {
+          "productType": "CLOTHING: Jodhpurs & Breeches Mens",
+          "count": 1
+        },
+        {
+          "productType": "CLOTHING: Jodhpurs & Breeches Childs",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "handle": "noble-outfitters",
+      "title": "Shop Noble Outfitters - Quality Equestrian Apparel & Accessories",
+      "description": "Below you can view our range of products from the popular Noble Outfitters brand. With a range of apparel including gloves, socks, belts, bracelets, and breeches, there is something for everyone. Great prices and value for money.",
+      "productCount": 8,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Breeches & Riding Tights",
+          "count": 8
+        }
+      ]
+    },
+    {
+      "handle": "vibrant-equestrian",
+      "title": "Vibrant Equestrian",
+      "description": "",
+      "productCount": 7,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "helmet",
+          "count": 2
+        },
+        {
+          "productType": "Dog Rugs & Fashion",
+          "count": 1
+        },
+        {
+          "productType": "fly bonnet",
+          "count": 1
+        },
+        {
+          "productType": "half pad",
+          "count": 1
+        },
+        {
+          "productType": "lead rope",
+          "count": 1
+        },
+        {
+          "productType": "halter",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "the-barbie-collection",
+      "title": "The Barbie Collection",
+      "description": "Below you can see our very cool selection of Barbie themed product.",
+      "productCount": 7,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "RIDER: Helmets",
+          "count": 1
+        },
+        {
+          "productType": "STABLE: Grooming",
+          "count": 4
+        },
+        {
+          "productType": "HORSE: Horse Boots",
+          "count": 1
+        },
+        {
+          "productType": "HORSE: Headstalls",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "paddock-blade",
+      "title": "Shop Paddock Blade",
+      "description": "Below you can view the range of paddock blade products.",
+      "productCount": 7,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Paddock Blades",
+          "count": 7
+        }
+      ]
+    },
+    {
+      "handle": "body-protectors",
+      "title": "Horse Riding Safety Vests",
+      "description": "Below you can see the range of body protectors and horse riding safety vests we have available from quality brands such as Champion and Vipa.",
+      "productCount": 5,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "RIDER: Body Protectors",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "handle": "horseware-australia",
+      "title": "Horseware Australia",
+      "description": "",
+      "productCount": 5,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "(No Product Type)",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "handle": "jp-equestrian-fashion",
+      "title": "JP Equestrian Fashion",
+      "description": "",
+      "productCount": 5,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Breeches",
+          "count": 1
+        },
+        {
+          "productType": "Socks",
+          "count": 1
+        },
+        {
+          "productType": "Shirt",
+          "count": 2
+        },
+        {
+          "productType": "Gloves",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "anky",
+      "title": "Shop ANKY",
+      "description": "The ANKY collection offers premium equestrian gear tailored for both casual and competitive riders. It features high-quality riding apparel, including breeches, jackets, and accessories designed for optimal performance and style.",
+      "productCount": 5,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Horse Boots & Leg Wraps",
+          "count": 1
+        },
+        {
+          "productType": "Apparel & Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Polo Shirt",
+          "count": 1
+        },
+        {
+          "productType": "long sleeve",
+          "count": 1
+        },
+        {
+          "productType": "Fetlock boots",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "premier-equine",
+      "title": "Premier Equine",
+      "description": "",
+      "productCount": 4,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "(No Product Type)",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "handle": "ponyjet",
+      "title": "Ponyjet",
+      "description": "Below you can see the full range of Ponyjet products.",
+      "productCount": 4,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Horse Grooming",
+          "count": 1
+        },
+        {
+          "productType": "Accessories",
+          "count": 1
+        },
+        {
+          "productType": "Shampoo",
+          "count": 1
+        },
+        {
+          "productType": "Dog Grooming & Coat Care",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "helmet-brims",
+      "title": "Helmet Brims",
+      "description": "",
+      "productCount": 3,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Helmet Brim",
+          "count": 1
+        },
+        {
+          "productType": "Bicycle Helmet Brim Visor",
+          "count": 1
+        },
+        {
+          "productType": "Girth Loop Adjustable",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "lemieux",
+      "title": "Shop Lemieux Horse Gear & Apparel",
+      "description": "Lemieux Australia is on of the most popular brands in the world right now. In particular, their saddle pads are extremely popular. Visit Lemieux saddle pads for the dedicated page. Our most popular Lemieux product is the Lemieux Fleece Vogue Headcollar / Halter. See all Lemieux halters here.",
+      "productCount": 2,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Wither relief saddlepad",
+          "count": 1
+        },
+        {
+          "productType": "saddle pad",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "penelope-leprovost",
+      "title": "Shop Penelope Leprovost Equestrian Gear & Apparel",
+      "description": "Shop the great range of Penelop Leprevost horse gear and clothing.",
+      "productCount": 2,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Breeches",
+          "count": 1
+        },
+        {
+          "productType": "Saddle Pads & Blankets",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "precision-microbes",
+      "title": "Precision Microbes",
+      "description": "",
+      "productCount": 2,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Horse Supplements",
+          "count": 1
+        },
+        {
+          "productType": "Animals & Pet Supplies",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "can-animal-care",
+      "title": "CAN Animal Care",
+      "description": "",
+      "productCount": 1,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "probiotics",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "westerns-saddles-usa",
+      "title": "Buy Western Saddles",
+      "description": "Below you can see our range of western saddles, Also see our range of Big Horn saddles and full saddle range.",
+      "productCount": 1,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "SADDLES: Stock & Western Saddles",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "run-away-equestrian-co",
+      "title": "Runaway Equestrian Co.",
+      "description": "",
+      "productCount": 1,
+      "parentCollection": null,
+      "productTypes": [
+        {
+          "productType": "Breeches",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "handle": "horse-riding-accessories",
+      "title": "Horse Accessories",
+      "description": "Browse our selection of accessories for yourself and your horse or pony",
+      "productCount": 0,
+      "parentCollection": null,
+      "productTypes": []
+    },
+    {
+      "handle": "feed",
+      "title": "Shop Feed - Horses, Dogs, Pigs, Chickens & More",
+      "description": "Below you can browse our great selection of feed for all animals.",
+      "productCount": 0,
+      "parentCollection": null,
+      "productTypes": []
+    },
+    {
+      "handle": "clippers",
+      "title": "Shop Horse Clippers",
+      "description": "Below you can see our great range of horse clippers from quality brands and sellers around Australia. You may also be interested in our range of horse grooming kits, and horse brushes.",
+      "productCount": 0,
+      "parentCollection": null,
+      "productTypes": []
+    },
+    {
+      "handle": "southern-sport-horses",
+      "title": "Southern Sport Horses",
+      "description": "Brands include KEP riding helmets, Acavallo, Lemieux equestrian, the BARE Equestrian range, Premier Equine, PS Of Sweden brand, Veredus boots, Zilco range and more. Categories include Saddle blanket & pads, helmets, summer rugs, jumping and eventing boots, and more.",
+      "productCount": 0,
+      "parentCollection": null,
+      "productTypes": []
+    },
+    {
+      "handle": "bucas-australia",
+      "title": "Bucas Australia",
+      "description": "",
+      "productCount": 0,
+      "parentCollection": null,
+      "productTypes": []
+    },
+    {
+      "handle": "equiline",
+      "title": "Shop Equiline Equestrian Gear",
+      "description": "Below you can see our range of Equiline products. Specifically you can also view Equiline jackets, Equiline kids shirts, Equiline women's breeches, and Equiline men's breeches.",
+      "productCount": 0,
+      "parentCollection": null,
+      "productTypes": []
+    },
+    {
+      "handle": "southern-sport-horses-1",
+      "title": "Southern Sport Horses",
+      "description": "Southern sport horses",
+      "productCount": 0,
+      "parentCollection": null,
+      "productTypes": []
+    },
+    {
+      "handle": "emcee-apparel",
+      "title": "Shop & Buy Emcee Apparel",
+      "description": "Below you can see the range of quality Emcee Apparel including qualify mens breeches, competition shirts, and equestrian belts. Purchase online with super fast shipping with either Afterpay or Zippay, or your preferred payment method.",
+      "productCount": 0,
+      "parentCollection": null,
+      "productTypes": []
+    },
+    {
+      "handle": "aza-equestrian",
+      "title": "AZA Equestrian",
+      "description": "",
+      "productCount": 0,
+      "parentCollection": null,
+      "productTypes": []
+    },
+    {
+      "handle": "black-friday-deals-for-equestrians",
+      "title": "BLACK FRIDAY DEALS 2022",
+      "description": "Below you can check out all the Black Friday Deals available 2020. If product are available here, they're still on sale.",
+      "productCount": 0,
+      "parentCollection": null,
+      "productTypes": []
+    },
+    {
+      "handle": "hygieia-san",
+      "title": "Shop Hygieia-San",
+      "description": "Below you can see our range of products.",
+      "productCount": 0,
+      "parentCollection": null,
+      "productTypes": []
+    },
+    {
+      "handle": "multidomain-chek",
+      "title": "Multidomain Chek",
+      "description": "",
+      "productCount": 0,
+      "parentCollection": null,
+      "productTypes": []
+    },
+    {
+      "handle": "mochara",
+      "title": "Shop Mochara Equestrian Apparel",
+      "description": "Below you can see the new range to Australia, Mochara. Exceptional quality withs style, at a great price.",
+      "productCount": 0,
+      "parentCollection": null,
+      "productTypes": []
+    },
+    {
+      "handle": "toklat",
+      "title": "Shop Toklat Equestrian Gear & Products",
+      "description": "Below you can see the range from Toklat Original. Quality horse and equestrian products at great prices. Also see the Toklat saddle pad range.",
+      "productCount": 0,
+      "parentCollection": null,
+      "productTypes": []
+    },
+    {
+      "handle": "martin-saddlery",
+      "title": "Shop Martin Saddlery",
+      "description": "Below you can see the range of product we have available from the very popular Martin Saddlery. Also make sure you check out our entire saddle range, all western saddles, and Big Horn saddle range.",
+      "productCount": 0,
+      "parentCollection": null,
+      "productTypes": []
+    },
+    {
+      "handle": "weaver-leather",
+      "title": "Shop Weaver Leather - Quality Leather Products, Care & Tools",
+      "description": "",
+      "productCount": 0,
+      "parentCollection": null,
+      "productTypes": []
+    },
+    {
+      "handle": "leather-brothers",
+      "title": "Shop Leather Brothers - Collars, Leather Goods & More",
+      "description": "",
+      "productCount": 0,
+      "parentCollection": null,
+      "productTypes": []
+    },
+    {
+      "handle": "test-imports",
+      "title": "Test Imports",
+      "description": "Test",
+      "productCount": 0,
+      "parentCollection": null,
+      "productTypes": []
+    },
+    {
+      "handle": "exclusively-equine",
+      "title": "Exclusively Equine",
+      "description": "",
+      "productCount": 0,
+      "parentCollection": null,
+      "productTypes": []
+    },
+    {
+      "handle": "homeware",
+      "title": "Shop Homeware - Equine Themed",
+      "description": "Below you can see our range of home ware including glassware, furniture, bedware, kitchen ware and more.",
+      "productCount": 0,
+      "parentCollection": null,
+      "productTypes": []
+    }
+  ]
+}
