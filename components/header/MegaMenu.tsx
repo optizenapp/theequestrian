@@ -1,14 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
-import type { CollectionWithParent } from '@/types/shopify';
-import type { SubcategoryOption } from '@/lib/filters/category-filter';
+
+interface SubcategoryItem {
+  handle: string;
+  label: string;
+  count: number;
+}
 
 interface MegaMenuProps {
-  collection: CollectionWithParent;
-  childCollections: CollectionWithParent[];
-  productTypeSubcategories: SubcategoryOption[];
+  categoryLabel: string;
+  subcategories: SubcategoryItem[];
 }
 
 /**
@@ -17,35 +19,20 @@ interface MegaMenuProps {
  * Modern ecommerce mega menu inspired by Back Market
  * Features:
  * - Full-width dropdown
- * - Grid layout with images
- * - Product type subcategories and child collections
+ * - Grid layout with subcategories from mapping
  * - Clean, professional design
  * - Smooth animations
  */
 export function MegaMenu({
-  collection,
-  childCollections,
-  productTypeSubcategories,
+  categoryLabel,
+  subcategories,
 }: MegaMenuProps) {
-  // Combine product types and child collections
-  const allSubcategories = [
-    ...productTypeSubcategories.map((sub) => ({
-      title: sub.label,
-      handle: sub.value,
-      count: sub.count,
-      type: 'product-type' as const,
-    })),
-    ...childCollections.map((col) => ({
-      title: col.title,
-      handle: col.handle,
-      count: 0,
-      type: 'collection' as const,
-      image: col.image,
-    })),
-  ];
+  
+  // Convert category label to handle
+  const categoryHandle = categoryLabel.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and');
 
   // Limit to 6 items for display
-  const displaySubcategories = allSubcategories.slice(0, 6);
+  const displaySubcategories = subcategories.slice(0, 6);
 
   if (displaySubcategories.length === 0) {
     return null;
@@ -59,16 +46,14 @@ export function MegaMenu({
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-xl font-semibold text-gray-900">
-                {collection.title}
+                {categoryLabel}
               </h3>
-              {collection.description && (
-                <p className="text-sm text-gray-600 mt-1">
-                  {collection.description}
-                </p>
-              )}
+              <p className="text-sm text-gray-600 mt-1">
+                Shop by category
+              </p>
             </div>
             <Link
-              href={`/${collection.handle}`}
+              href={`/${categoryHandle}`}
               className="text-sm font-medium text-primary hover:text-primary-dark transition-colors"
             >
               View all →
@@ -79,32 +64,17 @@ export function MegaMenu({
         {/* Subcategories Grid */}
         <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {displaySubcategories.map((subcategory) => {
-            const href =
-              subcategory.type === 'product-type'
-                ? `/${collection.handle}/${subcategory.handle}`
-                : `/${subcategory.handle}`;
+            const href = `/${categoryHandle}/${subcategory.handle}`;
 
             return (
-              <li key={`${subcategory.type}-${subcategory.handle}`}>
+              <li key={subcategory.handle}>
                 <Link
                   href={href}
                   className="block group rounded-lg p-4 border border-gray-200 hover:border-primary hover:shadow-md transition-all duration-200"
                 >
-                  {/* Image if available */}
-                  {subcategory.type === 'collection' && subcategory.image && (
-                    <div className="aspect-video relative mb-3 rounded-md overflow-hidden bg-gray-100">
-                      <Image
-                        src={subcategory.image.url}
-                        alt={subcategory.image.altText || subcategory.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-200"
-                      />
-                    </div>
-                  )}
-
                   {/* Title */}
                   <h4 className="font-medium text-gray-900 group-hover:text-primary transition-colors">
-                    {subcategory.title}
+                    {subcategory.label}
                   </h4>
 
                   {/* Count and arrow */}
