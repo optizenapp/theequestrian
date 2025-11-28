@@ -106,19 +106,36 @@ export function getProductTypesForCollection(
   
   const rows = mapping.get(collectionPath);
   
-  if (!rows || rows.length === 0) {
-    return [];
-  }
-
-  const productTypes: string[] = [];
-  
-  for (const row of rows) {
-    if (row.product_type && row.product_type.trim()) {
-      productTypes.push(row.product_type.trim());
+  // If exact match found, use it
+  if (rows && rows.length > 0) {
+    const productTypes: string[] = [];
+    for (const row of rows) {
+      if (row.product_type && row.product_type.trim()) {
+        productTypes.push(row.product_type.trim());
+      }
     }
+    return productTypes;
   }
 
-  return productTypes;
+  // For top-level categories without exact match, aggregate from all children
+  if (!subcategory && !subsubcategory) {
+    const productTypes = new Set<string>();
+    const prefix = `${category}/`;
+    
+    for (const [path, pathRows] of mapping.entries()) {
+      if (path.startsWith(prefix)) {
+        for (const row of pathRows) {
+          if (row.product_type && row.product_type.trim()) {
+            productTypes.add(row.product_type.trim());
+          }
+        }
+      }
+    }
+    
+    return Array.from(productTypes);
+  }
+
+  return [];
 }
 
 /**
