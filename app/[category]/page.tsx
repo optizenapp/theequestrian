@@ -1,10 +1,16 @@
 import { notFound, redirect } from 'next/navigation';
-import { getCollectionByHandle, getChildCollections } from '@/lib/shopify/collections';
+import { getAllProducts } from '@/lib/shopify/products';
 import { getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
 import { getCollectionContent } from '@/lib/content/collections';
-import { getSubcategoriesForCollection } from '@/lib/filters/category-filter';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { generateCollectionStructuredData } from '@/lib/structured-data/collection';
+import { 
+  getProductTypesForCollection, 
+  filterProductsByCollection,
+  getSubcategoriesForCollection as getMappingSubcategories,
+  getCollectionTitle,
+  getCollectionHierarchy
+} from '@/lib/mapping/collection-mapping';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
@@ -17,18 +23,17 @@ interface CategoryPageProps {
 /**
  * Category Collection Page: /{category}
  * 
- * Handles both:
- * - Top-level category collections
- * - Fallback product pages (products without primary_collection)
+ * Uses the mapping CSV to determine which products to show
+ * based on their productType field
  */
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { category } = await params;
 
-  // Try to fetch as a collection first
-  const collection = await getCollectionByHandle(category);
-
-  if (!collection) {
-    // If not a collection, try as a product (fallback)
+  // Check if this category exists in our mapping
+  const allowedProductTypes = getProductTypesForCollection(category);
+  
+  if (allowedProductTypes.length === 0) {
+    // Try as a product (fallback)
     const product = await getProductByHandle(category);
     
     if (!product) {
@@ -123,15 +128,21 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     );
   }
 
-  // Get child collections (subcategories)
-  const subcollections = await getChildCollections(category);
+  // Fetch ALL products from Shopify
+  const allProducts = await getAllProducts();
+  
+  // Filter products by productType using our mapping
+  const filteredProducts = filterProductsByCollection(
+    allProducts,
+    category
+  );
 
-  // Get product type subcategories
-  const productTypeSubcategories = await getSubcategoriesForCollection(category);
+  // Get subcategories from our mapping
+  const subcategories = getMappingSubcategories(category);
 
-  // Get rich content for the collection
-  const content = getCollectionContent(collection);
-
+  // Get collection title from mapping
+  const collectionTitle = getCollectionTitle(category);
+  
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
 
   // Build BreadcrumbList structured data
@@ -148,7 +159,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       {
         "@type": "ListItem",
         "position": 2,
-        "name": collection.title,
+        "name": collectionTitle,
         "item": `${siteUrl}/${category}`
       }
     ]
@@ -156,12 +167,12 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
   // Build CollectionPage structured data with hasOfferCatalog
   const collectionSchema = generateCollectionStructuredData(
-    collection.title,
+    collectionTitle,
     `${siteUrl}/${category}`,
-    collection.description,
-    collection.image?.url,
-    collection.products.edges.map(({ node }) => node), // Include products for hasOfferCatalog
-    undefined // No parent collection
+    `Shop ${collectionTitle} products at The Equestrian`,
+    undefined,
+    filteredProducts,
+    undefined
   );
 
   return (
@@ -182,59 +193,25 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       <div className="max-w-7xl mx-auto">
         {/* Collection Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-4">{collection.title}</h1>
-            
-            {/* Rich Content */}
-            {content.html && (
-              <div 
-                className="prose prose-lg max-w-none mb-8"
-                dangerouslySetInnerHTML={{ __html: content.html }}
-              />
-            )}
-
-            {/* Featured Links */}
-            {content.featuredLinks.length > 0 && (
-              <div className="mt-8 mb-8">
-                <h2 className="text-2xl font-semibold mb-4">Featured</h2>
-                <div className="flex flex-wrap gap-4">
-                  {content.featuredLinks.map((link, index) => (
-                    <Link
-                      key={index}
-                      href={link.type === 'product' 
-                        ? `/products/${link.handle}`
-                        : `/${link.handle}`
-                      }
-                      className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                    >
-                      {link.text}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-          )}
+          <h1 className="text-4xl font-bold mb-4">{collectionTitle}</h1>
+          <p className="text-lg text-gray-600">
+            Showing {filteredProducts.length} products
+          </p>
         </div>
 
-        {/* Subcollections */}
-        {subcollections.length > 0 && (
+        {/* Subcategories */}
+        {subcategories.length > 0 && (
           <div className="mb-12">
             <h2 className="text-2xl font-semibold mb-6">Shop by Category</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {subcollections.map((subcollection) => (
+              {subcategories.map((subcategory) => (
                 <Link
-                  key={subcollection.id}
-                  href={`/${category}/${subcollection.handle}`}
+                  key={subcategory.handle}
+                  href={`/${category}/${subcategory.handle}`}
                   className="group border rounded-lg p-6 hover:shadow-lg transition-shadow text-center"
                 >
-                  {subcollection.image && (
-                    <div className="aspect-square overflow-hidden rounded-lg mb-4 bg-gray-100">
-                      <img
-                        src={subcollection.image.url}
-                        alt={subcollection.image.altText || subcollection.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                      />
-                    </div>
-                  )}
-                  <h3 className="font-semibold text-lg">{subcollection.title}</h3>
+                  <h3 className="font-semibold text-lg">{subcategory.label}</h3>
+                  <p className="text-sm text-gray-500 mt-2">{subcategory.count} items</p>
                 </Link>
               ))}
             </div>
@@ -243,10 +220,16 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
         {/* Products Grid with Filters */}
         <ProductGridWithFilters
-          products={collection.products.edges.map(({ node }) => node)}
-          subcategories={productTypeSubcategories}
+          products={filteredProducts}
+          subcategories={subcategories.map(s => ({
+            handle: s.handle,
+            label: s.label,
+            value: s.handle,
+            count: s.count,
+            productType: s.label
+          }))}
           currentCategory={category}
-          parentCollectionTitle={collection.title}
+          parentCollectionTitle={collectionTitle}
         />
       </div>
     </div>

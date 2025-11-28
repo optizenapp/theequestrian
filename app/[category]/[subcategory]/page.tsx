@@ -1,13 +1,16 @@
 import { notFound } from 'next/navigation';
-import { getCollectionByHandle } from '@/lib/shopify/collections';
-import { getCollectionContent } from '@/lib/content/collections';
-import { getProductsByCollectionAndType } from '@/lib/shopify/products-by-type';
-import { getSubcategoriesForCollection } from '@/lib/filters/category-filter';
+import { getAllProducts } from '@/lib/shopify/products';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { generateCollectionStructuredData } from '@/lib/structured-data/collection';
+import { 
+  getProductTypesForCollection, 
+  filterProductsByCollection,
+  getSubcategoriesForCollection as getMappingSubcategories,
+  getCollectionTitle,
+  getCollectionHierarchy
+} from '@/lib/mapping/collection-mapping';
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import type { ShopifyProduct } from '@/types/shopify';
 
 interface SubcategoryPageProps {
   params: Promise<{
@@ -19,122 +22,65 @@ interface SubcategoryPageProps {
 /**
  * Subcategory Collection Page: /{category}/{subcategory}
  * 
- * Handles two cases:
- * 1. Subcategory is a Shopify collection (backward compatible)
- * 2. Subcategory is a productType (product type-based URLs)
+ * Uses the mapping CSV to filter products by productType
  */
 export default async function SubcategoryPage({ params }: SubcategoryPageProps) {
   const { category, subcategory } = await params;
 
-  // First, try to fetch as a Shopify collection (backward compatible)
-  let collection = await getCollectionByHandle(subcategory);
-  let products: ShopifyProduct[] = [];
-  let subcategoryTitle = subcategory.replace(/-/g, ' ');
-  let isProductTypeBased = false;
-
-  if (!collection) {
-    // Not a collection - treat as productType subcategory
-    // Fetch parent collection
-    const parentCollection = await getCollectionByHandle(category);
-    
-    if (!parentCollection) {
-      notFound();
-    }
-
-    // Get products filtered by productType
-    // Try to match productType by normalizing the subcategory handle
-    // e.g., "riding-boots" should match "Riding Boots" productType
-    
-    // Try multiple formats to match productType
-    const alternatives = [
-      subcategory.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '), // "Riding Boots" (preferred)
-      subcategoryTitle.charAt(0).toUpperCase() + subcategoryTitle.slice(1), // "Riding boots"
-      subcategoryTitle, // "riding boots"
-      subcategoryTitle.toUpperCase(), // "RIDING BOOTS"
-      subcategory, // "riding-boots" (original)
-    ];
-    
-    for (const alt of alternatives) {
-      products = await getProductsByCollectionAndType(category, alt);
-      if (products.length > 0) {
-        // Find the actual productType from the matched products
-        const actualProductType = products[0].productType;
-        if (actualProductType) {
-          subcategoryTitle = actualProductType;
-        } else {
-          subcategoryTitle = alt;
-        }
-        break;
-      }
-    }
-
-    if (products.length === 0) {
+  // Check if this path exists in our mapping
+  const allowedProductTypes = getProductTypesForCollection(category, subcategory);
+  
+  if (allowedProductTypes.length === 0) {
     notFound();
   }
 
-    // Create a mock collection object for rendering
-    collection = {
-      ...parentCollection,
-      title: subcategoryTitle,
-      description: `Shop ${subcategoryTitle} in ${parentCollection.title}`,
-    };
-    isProductTypeBased = true;
-  } else {
-    // It's a real collection - use its products
-    products = collection.products.edges.map(({ node }) => node);
-    subcategoryTitle = collection.title;
-  }
+  // Fetch ALL products from Shopify
+  const allProducts = await getAllProducts();
+  
+  // Filter products by productType using our mapping
+  const filteredProducts = filterProductsByCollection(
+    allProducts,
+    category,
+    subcategory
+  );
 
-  // Get product type subcategories for filters
-  const productTypeSubcategories = await getSubcategoriesForCollection(category);
+  // Get sub-subcategories from our mapping (third level)
+  const subSubcategories = getMappingSubcategories(category, subcategory);
 
-  // Verify this is a child of the category (optional validation)
-  // if (collection.parentCollection !== category) {
-  //   notFound();
-  // }
-
-  // Get rich content for the collection
-  const content = getCollectionContent(collection);
-
+  // Get collection titles from mapping
+  const collectionTitle = getCollectionTitle(category, subcategory);
+  const breadcrumbs = getCollectionHierarchy(category, subcategory);
+  
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
 
   // Build BreadcrumbList structured data
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    "itemListElement": [
-      {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Home",
-        "item": siteUrl || "/"
-      },
-      {
-        "@type": "ListItem",
-        "position": 2,
-        "name": category.replace(/-/g, ' '),
-        "item": `${siteUrl}/${category}`
-      },
-      {
-        "@type": "ListItem",
-        "position": 3,
-        "name": subcategoryTitle,
-        "item": `${siteUrl}/${category}/${subcategory}`
-      }
-    ]
+    "itemListElement": breadcrumbs.map((crumb, index) => ({
+      "@type": "ListItem",
+      "position": index + 2, // +2 because Home is position 1
+      "name": crumb.label,
+      "item": `${siteUrl}${crumb.href}`
+    }))
   };
 
-  // Build CollectionPage structured data with hasOfferCatalog
+  // Insert Home at position 1
+  breadcrumbSchema.itemListElement.unshift({
+    "@type": "ListItem",
+    "position": 1,
+    "name": "Home",
+    "item": siteUrl || "/"
+  });
+
+  // Build CollectionPage structured data
   const collectionSchema = generateCollectionStructuredData(
-    subcategoryTitle,
+    collectionTitle,
     `${siteUrl}/${category}/${subcategory}`,
-    collection.description || `Shop ${subcategoryTitle} in ${category.replace(/-/g, ' ')}`,
-    collection.image?.url,
-    products, // Include products for hasOfferCatalog
-    {
-      name: category.replace(/-/g, ' '),
-      url: `${siteUrl}/${category}`,
-    }
+    `Shop ${collectionTitle} products at The Equestrian`,
+    undefined,
+    filteredProducts,
+    category
   );
 
   return (
@@ -155,54 +101,60 @@ export default async function SubcategoryPage({ params }: SubcategoryPageProps) 
       <div className="max-w-7xl mx-auto">
         {/* Breadcrumb */}
         <nav className="text-sm text-gray-600 mb-6">
-          <Link href={`/${category}`} className="hover:underline">
-            {category.replace(/-/g, ' ')}
-          </Link>
-          {' / '}
-            <span className="text-gray-900">{subcategoryTitle}</span>
+          {breadcrumbs.map((crumb, index) => (
+            <span key={crumb.href}>
+              {index > 0 && ' / '}
+              {index === breadcrumbs.length - 1 ? (
+                <span className="text-gray-900">{crumb.label}</span>
+              ) : (
+                <Link href={crumb.href} className="hover:underline">
+                  {crumb.label}
+                </Link>
+              )}
+            </span>
+          ))}
         </nav>
 
         {/* Collection Header */}
         <div className="mb-8">
-            <h1 className="text-4xl font-bold mb-4">{subcategoryTitle}</h1>
-            
-            {/* Rich Content */}
-            {content.html && (
-              <div 
-                className="prose prose-lg max-w-none mb-8"
-                dangerouslySetInnerHTML={{ __html: content.html }}
-              />
-            )}
-
-            {/* Featured Links */}
-            {content.featuredLinks.length > 0 && (
-              <div className="mt-8 mb-8">
-                <h2 className="text-2xl font-semibold mb-4">Featured</h2>
-                <div className="flex flex-wrap gap-4">
-                  {content.featuredLinks.map((link, index) => (
-                    <Link
-                      key={index}
-                      href={link.type === 'product' 
-                        ? `/products/${link.handle}`
-                        : `/${link.handle}`
-                      }
-                      className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                    >
-                      {link.text}
-                    </Link>
-                  ))}
-                </div>
+          <h1 className="text-4xl font-bold mb-4">{collectionTitle}</h1>
+          <p className="text-lg text-gray-600">
+            Showing {filteredProducts.length} products
+          </p>
         </div>
-            )}
+
+        {/* Sub-subcategories (3rd level) */}
+        {subSubcategories.length > 0 && (
+          <div className="mb-12">
+            <h2 className="text-2xl font-semibold mb-6">Refine by</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {subSubcategories.map((subSub) => (
+                <Link
+                  key={subSub.handle}
+                  href={`/${category}/${subcategory}/${subSub.handle}`}
+                  className="group border rounded-lg p-6 hover:shadow-lg transition-shadow text-center"
+                >
+                  <h3 className="font-semibold text-lg">{subSub.label}</h3>
+                  <p className="text-sm text-gray-500 mt-2">{subSub.count} items</p>
+                </Link>
+              ))}
+            </div>
           </div>
+        )}
 
         {/* Products Grid with Filters */}
         <ProductGridWithFilters
-          products={products}
-          subcategories={productTypeSubcategories}
+          products={filteredProducts}
+          subcategories={subSubcategories.map(s => ({
+            handle: s.handle,
+            label: s.label,
+            value: s.handle,
+            count: s.count,
+            productType: s.label
+          }))}
           currentCategory={category}
           currentSubcategory={subcategory}
-          parentCollectionTitle={collection.title}
+          parentCollectionTitle={collectionTitle}
         />
       </div>
     </div>
@@ -213,3 +165,12 @@ export default async function SubcategoryPage({ params }: SubcategoryPageProps) 
 /**
  * Generate metadata for SEO
  */
+export async function generateMetadata({ params }: SubcategoryPageProps): Promise<Metadata> {
+  const { category, subcategory } = await params;
+  const collectionTitle = getCollectionTitle(category, subcategory);
+
+  return {
+    title: `${collectionTitle} | The Equestrian`,
+    description: `Shop ${collectionTitle} products at The Equestrian. Quality equestrian supplies and equipment.`,
+  };
+}
