@@ -126,7 +126,7 @@ export function BestDealsSlider() {
                 <div className="relative">
                   <div 
                     ref={scrollContainerRef}
-                    className="flex gap-4 overflow-x-auto pb-4 scrollbar-none scroll-smooth"
+                    className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide scroll-smooth"
                   >
                     {categories.map((category, idx) => (
                       <button
@@ -136,10 +136,10 @@ export function BestDealsSlider() {
                         type="button"
                       >
                         <div
-                          className={`relative h-20 w-28 overflow-hidden rounded-lg border-2 bg-gray-50 transition-all ${
+                          className={`relative h-20 w-28 overflow-hidden rounded-lg bg-gray-50 transition-all ${
                             idx === activeIndex
-                              ? 'border-gray-900 ring-2 ring-gray-900/10'
-                              : 'border-transparent group-hover:border-gray-300'
+                              ? 'opacity-100'
+                              : 'opacity-60 group-hover:opacity-80'
                           }`}
                         >
                           <img
