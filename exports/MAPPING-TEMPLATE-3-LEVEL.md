@@ -714,3 +714,5 @@ Then fill in your product types!
 Open your `exports/product-types.csv` and start mapping to this 3-level structure! 🚀
 
 
+
+

@@ -8,18 +8,14 @@
  */
 
 import { useState, useEffect } from 'react';
-import { CategoryFilter } from './CategoryFilter';
+import { TopCategoryFilter } from './TopCategoryFilter';
 import { PriceFilter } from './PriceFilter';
 import { AttributeFilter } from './AttributeFilter';
-import type { SubcategoryOption } from '@/lib/filters/category-filter';
 import type { FilterOption } from '@/lib/filters/product-filters';
 
 interface FilterSidebarProps {
-  // Category filter props
-  subcategories: SubcategoryOption[];
-  currentCategory: string;
-  currentSubcategory?: string;
-  parentCollectionTitle: string;
+  // Current category for highlighting
+  currentCategory?: string;
 
   // Attribute filter options
   sizeOptions: FilterOption[];
@@ -27,8 +23,7 @@ interface FilterSidebarProps {
   brandOptions: FilterOption[];
 
   // Price range
-  priceMin?: number;
-  priceMax?: number;
+  priceRange?: { min: number; max: number };
   currencyCode?: string;
 
   // Mobile drawer state
@@ -37,15 +32,11 @@ interface FilterSidebarProps {
 }
 
 export function FilterSidebar({
-  subcategories,
   currentCategory,
-  currentSubcategory,
-  parentCollectionTitle,
   sizeOptions,
   colorOptions,
   brandOptions,
-  priceMin,
-  priceMax,
+  priceRange,
   currencyCode = 'USD',
   isOpen = false,
   onClose,
@@ -76,20 +67,13 @@ export function FilterSidebar({
 
   const content = (
     <div className="space-y-6">
-      {/* Category Filter */}
-      {subcategories.length > 0 && (
-        <CategoryFilter
-          subcategories={subcategories}
-          currentCategory={currentCategory}
-          currentSubcategory={currentSubcategory}
-          parentCollectionTitle={parentCollectionTitle}
-        />
-      )}
+      {/* Top Category Links */}
+      <TopCategoryFilter currentCategory={currentCategory} />
 
       {/* Price Filter */}
       <PriceFilter
-        min={priceMin || 0}
-        max={priceMax || 500}
+        min={priceRange?.min || 0}
+        max={priceRange?.max || 500}
         currencyCode={currencyCode}
       />
 
@@ -99,15 +83,6 @@ export function FilterSidebar({
           title="Size"
           options={sizeOptions}
           paramName="size"
-        />
-      )}
-
-      {/* Color Filter */}
-      {colorOptions.length > 0 && (
-        <AttributeFilter
-          title="Color"
-          options={colorOptions}
-          paramName="color"
         />
       )}
 

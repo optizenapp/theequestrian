@@ -157,7 +157,6 @@ export interface CollectionWithParent extends ShopifyCollection {
 
 
 
- */
 
 export interface ShopifyProduct {
   id: string;

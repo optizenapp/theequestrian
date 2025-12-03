@@ -6,6 +6,7 @@ import { MegaMenuLoader } from './MegaMenuLoader';
 
 interface MegaMenuWrapperProps {
   categoryLabel: string;
+  onClose?: () => void;
 }
 
 interface SubcategoryItem {
@@ -17,7 +18,7 @@ interface SubcategoryItem {
 /**
  * Client wrapper that fetches mega menu subcategories from mapping
  */
-export function MegaMenuWrapper({ categoryLabel }: MegaMenuWrapperProps) {
+export function MegaMenuWrapper({ categoryLabel, onClose }: MegaMenuWrapperProps) {
   const [subcategories, setSubcategories] = useState<SubcategoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,6 +64,7 @@ export function MegaMenuWrapper({ categoryLabel }: MegaMenuWrapperProps) {
     <MegaMenu
       categoryLabel={categoryLabel}
       subcategories={subcategories}
+      onClose={onClose}
     />
   );
 }

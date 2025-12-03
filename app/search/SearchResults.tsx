@@ -1,5 +1,5 @@
 import { shopifyFetch } from '@/lib/shopify/client';
-import Link from 'next/link';
+import { ProductCard } from '@/components/ProductCard';
 import type { ShopifyProduct } from '@/types/shopify';
 
 const SEARCH_PRODUCTS_QUERY = `
@@ -17,6 +17,12 @@ const SEARCH_PRODUCTS_QUERY = `
               currencyCode
             }
           }
+          compareAtPriceRange {
+            minVariantPrice {
+              amount
+              currencyCode
+            }
+          }
           images(first: 1) {
             edges {
               node {
@@ -26,6 +32,9 @@ const SEARCH_PRODUCTS_QUERY = `
                 height
               }
             }
+          }
+          metafield(namespace: "custom", key: "primary_collection") {
+            value
           }
         }
       }
@@ -55,44 +64,32 @@ export async function SearchResults({ query }: SearchResultsProps) {
 
     if (products.length === 0) {
       return (
-        <div className="text-center py-12">
-          <p className="text-gray-600">No products found matching "{query}".</p>
+        <div className="text-center py-20">
+          <div className="bg-surface rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-sm">
+            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">No results found</h2>
+          <p className="text-gray-500">We couldn't find any matches for "{query}".</p>
         </div>
       );
     }
 
     return (
       <div>
-        <p className="text-gray-600 mb-6">
-          Found {products.length} product{products.length !== 1 ? 's' : ''}
-        </p>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">
+            Search results for "{query}"
+          </h1>
+          <span className="text-gray-500 text-sm bg-surface px-3 py-1 rounded-full shadow-sm">
+            {products.length} items
+          </span>
+        </div>
+        
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {products.map((product) => (
-            <Link
-              key={product.id}
-              href={`/products/${product.handle}`}
-              className="group border rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
-            >
-              {product.images.edges.length > 0 && (
-                <div className="aspect-square overflow-hidden bg-gray-100">
-                  <img
-                    src={product.images.edges[0].node.url}
-                    alt={product.images.edges[0].node.altText || product.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                  />
-                </div>
-              )}
-              <div className="p-4">
-                <h3 className="font-semibold mb-2 line-clamp-2">{product.title}</h3>
-                <div className="text-lg font-bold">
-                  {product.priceRange.minVariantPrice.currencyCode}{' '}
-                  {product.priceRange.minVariantPrice.amount}
-                </div>
-                {!product.availableForSale && (
-                  <span className="text-sm text-red-500 mt-1 block">Out of Stock</span>
-                )}
-              </div>
-            </Link>
+            <ProductCard key={product.id} product={product} />
           ))}
         </div>
       </div>

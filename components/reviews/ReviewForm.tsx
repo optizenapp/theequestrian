@@ -81,3 +81,76 @@ export function ReviewForm({ productId, productName, onSubmit }: ReviewFormProps
         />
       </div>
 
+      {/* Title */}
+      <div className="mb-4">
+        <label htmlFor="title" className="block font-semibold mb-2">
+          Review Title
+        </label>
+        <input
+          type="text"
+          id="title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="w-full border rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50"
+          placeholder="Summarize your experience"
+          required
+        />
+      </div>
+
+      {/* Content */}
+      <div className="mb-4">
+        <label htmlFor="content" className="block font-semibold mb-2">
+          Review
+        </label>
+        <textarea
+          id="content"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          rows={4}
+          className="w-full border rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50"
+          placeholder="What did you like or dislike?"
+          required
+        />
+      </div>
+
+      {/* Author Info */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div>
+          <label htmlFor="name" className="block font-semibold mb-2">
+            Name
+          </label>
+          <input
+            type="text"
+            id="name"
+            value={authorName}
+            onChange={(e) => setAuthorName(e.target.value)}
+            className="w-full border rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50"
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="email" className="block font-semibold mb-2">
+            Email
+          </label>
+          <input
+            type="email"
+            id="email"
+            value={authorEmail}
+            onChange={(e) => setAuthorEmail(e.target.value)}
+            className="w-full border rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50"
+            required
+          />
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        disabled={isSubmitting || rating === 0}
+        className="w-full bg-black text-white font-bold py-3 px-6 rounded-lg hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+      >
+        {isSubmitting ? 'Submitting...' : 'Submit Review'}
+      </button>
+    </form>
+  );
+}
+

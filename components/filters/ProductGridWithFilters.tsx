@@ -27,23 +27,20 @@ import { FilterChips } from './FilterChips';
 import { FilterButton } from './FilterButton';
 import { FilterSidebar } from './FilterSidebar';
 import type { ShopifyProduct } from '@/types/shopify';
-import type { SubcategoryOption } from '@/lib/filters/category-filter';
 import type { FilterOption } from '@/lib/filters/product-filters';
+
+import type { FilterPreferences } from '@/lib/filters/localStorage';
 
 interface ProductGridWithFiltersProps {
   products: ShopifyProduct[];
-  subcategories: SubcategoryOption[];
   currentCategory: string;
   currentSubcategory?: string;
-  parentCollectionTitle: string;
 }
 
 export function ProductGridWithFilters({
   products,
-  subcategories,
   currentCategory,
   currentSubcategory,
-  parentCollectionTitle,
 }: ProductGridWithFiltersProps) {
   const searchParams = useSearchParams();
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -80,20 +77,18 @@ export function ProductGridWithFilters({
 
       {/* Mobile Filter Button */}
       <div className="lg:hidden mb-4">
-        <FilterButton onClick={() => setIsMobileFilterOpen(true)} count={Object.keys(filters).length} />
+        <FilterButton onClick={() => setIsMobileFilterOpen(true)} activeFilterCount={Object.keys(filters).length} />
       </div>
 
       <div className="flex gap-8">
         {/* Sidebar Filters - Desktop */}
         <aside className="hidden lg:block w-64 flex-shrink-0">
           <FilterSidebar
-            subcategories={subcategories}
+            currentCategory={currentCategory}
             sizeOptions={sizeOptions}
             colorOptions={colorOptions}
             brandOptions={brandOptions}
             priceRange={priceRange}
-            currentCategory={currentCategory}
-            currentSubcategory={currentSubcategory}
             isOpen={false}
             onClose={() => {}}
           />
@@ -103,13 +98,11 @@ export function ProductGridWithFilters({
         {isMobileFilterOpen && (
           <div className="lg:hidden">
             <FilterSidebar
-              subcategories={subcategories}
+              currentCategory={currentCategory}
               sizeOptions={sizeOptions}
               colorOptions={colorOptions}
               brandOptions={brandOptions}
               priceRange={priceRange}
-              currentCategory={currentCategory}
-              currentSubcategory={currentSubcategory}
               isOpen={isMobileFilterOpen}
               onClose={() => setIsMobileFilterOpen(false)}
             />
@@ -169,12 +162,12 @@ export function ProductGridWithFilters({
                       {product.priceRange.minVariantPrice.currencyCode}{' '}
                       {parseFloat(product.priceRange.minVariantPrice.amount).toFixed(2)}
                     </span>
-                    {product.compareAtPriceRange && 
-                     parseFloat(product.compareAtPriceRange.minVariantPrice.amount) > 
+                    {(product as any).compareAtPriceRange && 
+                     parseFloat((product as any).compareAtPriceRange.minVariantPrice.amount) > 
                      parseFloat(product.priceRange.minVariantPrice.amount) && (
                       <span className="text-sm text-gray-500 line-through">
-                        {product.compareAtPriceRange.minVariantPrice.currencyCode}{' '}
-                        {parseFloat(product.compareAtPriceRange.minVariantPrice.amount).toFixed(2)}
+                        {(product as any).compareAtPriceRange.minVariantPrice.currencyCode}{' '}
+                        {parseFloat((product as any).compareAtPriceRange.minVariantPrice.amount).toFixed(2)}
                       </span>
                     )}
                   </div>

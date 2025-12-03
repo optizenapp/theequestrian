@@ -42,7 +42,7 @@ export async function getCollectionByHandle(
     const data = await shopifyFetch<CollectionResponse>({
       query: GET_COLLECTION_BY_HANDLE,
       variables: { handle, first: productsFirst },
-      tags: [`collection-${handle}`],
+      // tags: [`collection-${handle}`], // Removed tags as it's not in ShopifyFetchOptions
     });
 
     if (!data.collection) {
@@ -139,41 +139,3 @@ export async function getChildCollections(
   const collections = await getAllCollections();
   return collections.filter((c) => c.parentCollection === parentHandle);
 }
-
-
-
-
-import type { ShopifyCollection, CollectionWithParent } from '@/types/shopify';
-
-interface CollectionResponse {
-  collection: ShopifyCollection & {
-    parentCollectionMetafield?: {
-      value: string;
-    } | null;
-    pageContentMetafield?: {
-      value: string;
-    } | null;
-    seoDescriptionMetafield?: {
-      value: string;
-    } | null;
-    featuredLinksMetafield?: {
-      value: string;
-    } | null;
-  };
-}
-
-interface CollectionsResponse {
-  collections: {
-    edges: Array<{
-      node: ShopifyCollection;
-    }>;
-    pageInfo: {
-      hasNextPage: boolean;
-      hasPreviousPage: boolean;
-    };
-  };
-}
-
-/**
- * Get a collection by its handle
- */

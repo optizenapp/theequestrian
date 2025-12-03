@@ -201,7 +201,26 @@ async function applyMapping(dryRun: boolean = true, filePath?: string) {
   console.log('📦 Fetching products from Shopify...\n');
   
   while (hasNextPage) {
-    const data = await shopifyFetch<{
+    const data: {
+      products: {
+        edges: Array<{
+          node: {
+            id: string;
+            handle: string;
+            title: string;
+            productType: string;
+            metafield: {
+              id: string;
+              value: string;
+            } | null;
+          };
+        }>;
+        pageInfo: {
+          hasNextPage: boolean;
+          endCursor: string | null;
+        };
+      };
+    } = await shopifyFetch<{
       products: {
         edges: Array<{
           node: {

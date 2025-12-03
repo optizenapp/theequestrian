@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
 import { getAllProducts } from '@/lib/shopify/products';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { generateCollectionStructuredData } from '@/lib/structured-data/collection';
@@ -9,6 +10,9 @@ import {
   getCollectionTitle,
   getCollectionHierarchy
 } from '@/lib/mapping/collection-mapping';
+import { TrustSignals } from '@/components/TrustSignals';
+import { CategoryPills } from '@/components/CategoryPills';
+import { CollectionDescription } from '@/components/CollectionDescription';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
@@ -83,7 +87,7 @@ export default async function SubcategoryPage({ params }: SubcategoryPageProps) 
     `Shop ${collectionTitle} products at The Equestrian`,
     undefined,
     filteredProducts,
-    category
+    { name: category, url: `${siteUrl}/${category}` }
   );
 
   return (
@@ -104,6 +108,8 @@ export default async function SubcategoryPage({ params }: SubcategoryPageProps) 
       <div className="max-w-7xl mx-auto">
         {/* Breadcrumb */}
         <nav className="text-sm text-gray-600 mb-6">
+          <Link href="/" className="hover:underline">Home</Link>
+          {' / '}
           {breadcrumbs.map((crumb, index) => (
             <span key={crumb.href}>
               {index > 0 && ' / '}
@@ -118,47 +124,39 @@ export default async function SubcategoryPage({ params }: SubcategoryPageProps) 
           ))}
         </nav>
 
+        {/* Trust Signals */}
+        <div className="mb-8 -mx-4">
+          <TrustSignals />
+        </div>
+
         {/* Collection Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-4">{collectionTitle}</h1>
-          <p className="text-lg text-gray-600">
-            Showing {filteredProducts.length} products
+          <h1 className="text-4xl font-bold mb-6">{collectionTitle}</h1>
+          
+          {/* Collection Description */}
+          <CollectionDescription 
+            description="<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p><p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.</p>"
+          />
+          
+          {/* Sub-subcategories as Pills (3rd level) */}
+          <CategoryPills 
+            categories={subSubcategories.map(s => ({ handle: s.handle, label: s.label }))}
+            basePath={`/${category}/${subcategory}`}
+          />
+          
+          <p className="text-base text-gray-600">
+            {filteredProducts.length} products
           </p>
         </div>
 
-        {/* Sub-subcategories (3rd level) */}
-        {subSubcategories.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-2xl font-semibold mb-6">Refine by</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {subSubcategories.map((subSub) => (
-                <Link
-                  key={subSub.handle}
-                  href={`/${category}/${subcategory}/${subSub.handle}`}
-                  className="group border rounded-lg p-6 hover:shadow-lg transition-shadow text-center"
-                >
-                  <h3 className="font-semibold text-lg">{subSub.label}</h3>
-                  <p className="text-sm text-gray-500 mt-2">{subSub.count} items</p>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Products Grid with Filters */}
-        <ProductGridWithFilters
-          products={filteredProducts}
-          subcategories={subSubcategories.map(s => ({
-            handle: s.handle,
-            label: s.label,
-            value: s.handle,
-            count: s.count,
-            productType: s.label
-          }))}
-          currentCategory={category}
-          currentSubcategory={subcategory}
-          parentCollectionTitle={collectionTitle}
-        />
+        <Suspense fallback={<div className="text-center py-12">Loading products...</div>}>
+          <ProductGridWithFilters
+            products={filteredProducts}
+            currentCategory={category}
+            currentSubcategory={subcategory}
+          />
+        </Suspense>
       </div>
     </div>
     </>

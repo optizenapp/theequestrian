@@ -4,11 +4,19 @@
  */
 
 export interface FilterPreferences {
+  subcategory?: string | string[];
   sizes?: string[];
   colors?: string[];
   brands?: string[];
   priceRange?: { min: number; max: number };
   inStockOnly?: boolean;
+  
+  // Alias for compatibility
+  size?: string[];
+  color?: string[];
+  brand?: string[];
+  price?: { min: number; max: number };
+  inStock?: boolean;
 }
 
 const STORAGE_PREFIX = 'collection-filters-';

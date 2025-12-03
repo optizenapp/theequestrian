@@ -18,6 +18,15 @@ export interface PriceRange {
   max: number;
 }
 
+export interface FilterPreferences {
+  subcategory?: string | string[];
+  size?: string[];
+  color?: string[];
+  brand?: string[];
+  price?: { min: number; max: number };
+  inStock?: boolean;
+}
+
 /**
  * Extract unique sizes from products
  */

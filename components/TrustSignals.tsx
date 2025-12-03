@@ -64,18 +64,18 @@ const trustSignals = [
 
 export function TrustSignals() {
   return (
-    <section className="py-12 md:py-16 bg-gray-50">
+    <section className="py-4 md:py-6 bg-gray-50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
           {trustSignals.map((signal) => (
             <div
               key={signal.id}
               className="flex flex-col items-center text-center"
             >
-              <div className="mb-3 text-primary">
+              <div className="mb-2 text-primary">
                 {signal.icon}
               </div>
-              <h3 className="text-sm font-semibold text-gray-900 mb-1">
+              <h3 className="text-sm font-semibold text-gray-900 mb-0.5">
                 {signal.title}
               </h3>
               <p className="text-xs text-gray-600">

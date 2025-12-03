@@ -9,9 +9,10 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useMemo } from 'react';
 import type { SubcategoryOption } from '@/lib/filters/category-filter';
+import type { FilterPreferences } from '@/lib/filters/localStorage';
 
 interface FilterChipsProps {
-  currentSubcategory?: SubcategoryOption;
+  filters: FilterPreferences;
   onClearAll: () => void;
 }
 
@@ -22,7 +23,7 @@ interface FilterChip {
   param: string;
 }
 
-export function FilterChips({ currentSubcategory, onClearAll }: FilterChipsProps) {
+export function FilterChips({ filters, onClearAll }: FilterChipsProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -30,19 +31,27 @@ export function FilterChips({ currentSubcategory, onClearAll }: FilterChipsProps
     const chips: FilterChip[] = [];
 
     // Subcategory chip
-    if (currentSubcategory) {
+    if (filters.subcategory) {
       chips.push({
         key: 'subcategory',
-        label: currentSubcategory.label,
-        value: currentSubcategory.value,
+        label: Array.isArray(filters.subcategory) ? filters.subcategory[0] : filters.subcategory,
+        value: Array.isArray(filters.subcategory) ? filters.subcategory[0] : filters.subcategory,
         param: 'subcategory',
       });
     }
 
     // Size chips
-    const sizes = searchParams.get('size');
-    if (sizes) {
-      sizes.split(',').forEach((size) => {
+    if (filters.sizes) {
+      filters.sizes.forEach((size) => {
+        chips.push({
+          key: `size-${size}`,
+          label: `Size: ${size}`,
+          value: size,
+          param: 'size',
+        });
+      });
+    } else if (filters.size) { // Alias fallback
+      filters.size.forEach((size) => {
         chips.push({
           key: `size-${size}`,
           label: `Size: ${size}`,
@@ -53,9 +62,17 @@ export function FilterChips({ currentSubcategory, onClearAll }: FilterChipsProps
     }
 
     // Color chips
-    const colors = searchParams.get('color');
-    if (colors) {
-      colors.split(',').forEach((color) => {
+    if (filters.colors) {
+      filters.colors.forEach((color) => {
+        chips.push({
+          key: `color-${color}`,
+          label: `Color: ${color}`,
+          value: color,
+          param: 'color',
+        });
+      });
+    } else if (filters.color) { // Alias fallback
+      filters.color.forEach((color) => {
         chips.push({
           key: `color-${color}`,
           label: `Color: ${color}`,
@@ -66,9 +83,17 @@ export function FilterChips({ currentSubcategory, onClearAll }: FilterChipsProps
     }
 
     // Brand chips
-    const brands = searchParams.get('brand');
-    if (brands) {
-      brands.split(',').forEach((brand) => {
+    if (filters.brands) {
+      filters.brands.forEach((brand) => {
+        chips.push({
+          key: `brand-${brand}`,
+          label: `Brand: ${brand}`,
+          value: brand,
+          param: 'brand',
+        });
+      });
+    } else if (filters.brand) { // Alias fallback
+      filters.brand.forEach((brand) => {
         chips.push({
           key: `brand-${brand}`,
           label: `Brand: ${brand}`,
@@ -79,20 +104,37 @@ export function FilterChips({ currentSubcategory, onClearAll }: FilterChipsProps
     }
 
     // Price range chip
-    const price = searchParams.get('price');
-    if (price) {
-      const [min, max] = price.split('-');
-      chips.push({
-        key: 'price',
-        label: `$${min} - $${max}`,
-        value: price,
-        param: 'price',
-      });
+    if (filters.priceRange) {
+      const { min, max } = filters.priceRange;
+      if (min !== undefined && max !== undefined) {
+        chips.push({
+          key: 'price',
+          label: `$${min} - $${max}`,
+          value: `${min}-${max}`,
+          param: 'price',
+        });
+      }
+    } else if (filters.price) { // Alias fallback
+      const { min, max } = filters.price;
+      if (min !== undefined && max !== undefined) {
+        chips.push({
+          key: 'price',
+          label: `$${min} - $${max}`,
+          value: `${min}-${max}`,
+          param: 'price',
+        });
+      }
     }
 
     // In stock chip
-    const inStock = searchParams.get('inStock');
-    if (inStock === 'true') {
+    if (filters.inStockOnly) {
+      chips.push({
+        key: 'inStock',
+        label: 'In Stock Only',
+        value: 'true',
+        param: 'inStock',
+      });
+    } else if (filters.inStock) { // Alias fallback
       chips.push({
         key: 'inStock',
         label: 'In Stock Only',
@@ -102,7 +144,7 @@ export function FilterChips({ currentSubcategory, onClearAll }: FilterChipsProps
     }
 
     return chips;
-  }, [searchParams, currentSubcategory]);
+  }, [filters]);
 
   const removeChip = (chip: FilterChip) => {
     const params = new URLSearchParams(searchParams);

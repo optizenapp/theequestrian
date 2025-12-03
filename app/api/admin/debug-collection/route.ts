@@ -63,3 +63,32 @@ export async function GET(request: NextRequest) {
         count: 0,
         normalized,
         samples: [],
+      };
+
+      existing.count++;
+      if (existing.samples.length < 3) {
+        existing.samples.push(node.title);
+      }
+      productTypes.set(node.productType, existing);
+    });
+
+    // Filter by subcategory if provided
+    let filteredTypes = Array.from(productTypes.entries());
+    if (subcategory) {
+      const normalizedSub = normalizeProductType(subcategory);
+      filteredTypes = filteredTypes.filter(([, info]) => info.normalized === normalizedSub);
+    }
+
+    return NextResponse.json({
+      collection: data.collection.title,
+      totalProducts: data.collection.products.edges.length,
+      productTypes: filteredTypes.map(([type, info]) => ({
+        original: type,
+        ...info
+      }))
+    });
+
+  } catch (error) {
+    return NextResponse.json({ error: String(error) }, { status: 500 });
+  }
+}

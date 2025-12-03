@@ -2,67 +2,72 @@
 
 :root {
   /* Brand Colors - The Equestrian */
-  --primary: #BD7AB3;           /* Mauve - main CTAs, links, active states */
-  --primary-dark: #9D5A93;      /* Darker shade for hover states */
-  --primary-light: #D9A5D0;     /* Light shade for backgrounds */
-  --primary-pale: #F3E8F1;      /* Very light for subtle backgrounds */
+  --primary: #BD7AB3;           /* Mauve - main brand color */
+  --primary-dark: #9D5A93;      
+  --primary-light: #D9A5D0;     
+  --primary-pale: #F3E8F1;      
   
-  --secondary: #5DBEBD;         /* Teal - secondary CTAs, accents */
-  --secondary-dark: #4A9E9D;    /* Darker teal for hover */
-  --secondary-light: #A8E0DF;   /* Light teal for backgrounds */
-  --secondary-pale: #E8F7F7;    /* Very light teal */
+  --secondary: #5DBEBD;         /* Teal - secondary brand color */
+  --secondary-dark: #4A9E9D;    
+  --secondary-light: #A8E0DF;   
+  --secondary-pale: #E8F7F7;    
   
-  /* Neutral Colors (Back Market inspired) */
-  --gray-900: #1A1A1A;          /* Headings, primary text */
-  --gray-800: #2D2D2D;          /* Body text */
-  --gray-700: #4A4A4A;          /* Secondary text (matches logo frame) */
-  --gray-600: #6B6B6B;          /* Muted text */
-  --gray-500: #9B9B9B;          /* Borders, dividers */
-  --gray-400: #C4C4C4;          /* Light borders */
-  --gray-300: #E0E0E0;          /* Subtle borders */
-  --gray-200: #EFEFEF;          /* Light backgrounds */
-  --gray-100: #F7F7F7;          /* Section backgrounds */
-  --white: #FFFFFF;             /* Card backgrounds */
+  /* Back Market Style System */
+  --background: #F8F9FC;        /* Light Gray/Blue Background */
+  --foreground: #2F3137;        /* Soft Black Text */
+  --surface: #FFFFFF;           /* White Cards/Sections */
+  
+  --action: #0E1016;            /* Deep Black for Primary Actions */
+  --action-hover: #2F3137;      /* Soft Black for Hover */
+  
+  /* Neutral Colors */
+  --gray-900: #1A1A1A;
+  --gray-800: #2D2D2D;
+  --gray-700: #4A4A4A;
+  --gray-600: #6B6B6B;
+  --gray-500: #9B9B9B;
+  --gray-400: #C4C4C4;
+  --gray-300: #E0E0E0;
+  --gray-200: #EFEFEF;
+  --gray-100: #F7F7F7;
   
   /* Semantic Colors */
-  --success: #00B894;           /* In stock, success messages */
-  --warning: #FDCB6E;           /* Low stock warnings */
-  --error: #D63031;             /* Out of stock, errors */
-  --info: #5DBEBD;              /* Info messages (teal) */
+  --success: #00B894;
+  --warning: #FDCB6E;
+  --error: #D63031;
+  --info: #5DBEBD;
   
-  /* Shadows (Back Market style - subtle) */
+  /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.16);
   
   /* Border Radius */
-  --radius-sm: 6px;
-  --radius: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-full: 9999px;
+  --radius-sm: 8px;
+  --radius: 12px;               /* Standard Card Radius */
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;        /* Buttons */
   
   /* Spacing Scale */
-  --space-xs: 0.25rem;    /* 4px */
-  --space-sm: 0.5rem;     /* 8px */
-  --space-md: 1rem;       /* 16px */
-  --space-lg: 1.5rem;     /* 24px */
-  --space-xl: 2rem;       /* 32px */
-  --space-2xl: 3rem;      /* 48px */
-  --space-3xl: 4rem;      /* 64px */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
   
-  /* Typography - Manrope */
+  /* Typography */
   --font-primary: var(--font-manrope), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  
-  /* Legacy variables for compatibility */
-  --background: #ffffff;
-  --foreground: #1A1A1A;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-action: var(--action);
   
   /* Brand colors for Tailwind */
   --color-primary: var(--primary);
@@ -91,6 +96,12 @@
   --color-warning: var(--warning);
   --color-error: var(--error);
   --color-info: var(--info);
+  
+  /* Radii */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
 }
 
 body {
@@ -151,18 +162,18 @@ body {
 
 /* Back Market inspired button styles */
 .btn-primary {
-  background-color: var(--primary);
+  background-color: var(--action);
   color: white;
   font-weight: 600;
   padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
+  border-radius: 9999px;
   transition: all 0.2s;
 }
 
 .btn-primary:hover {
-  background-color: var(--primary-dark);
+  background-color: var(--action-hover);
+  transform: translateY(-1px);
   box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
 }
 
 .btn-primary:active {
@@ -170,57 +181,67 @@ body {
 }
 
 .btn-secondary {
-  background-color: var(--secondary);
-  color: white;
+  background-color: transparent;
+  color: var(--action);
+  border: 1px solid var(--gray-300);
   font-weight: 600;
   padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
+  border-radius: 9999px;
   transition: all 0.2s;
 }
 
 .btn-secondary:hover {
-  background-color: var(--secondary-dark);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
+  border-color: var(--action);
+  background-color: transparent;
+  transform: translateY(-1px);
 }
 
 .btn-secondary:active {
   transform: translateY(0);
 }
 
-.btn-outline {
-  border: 2px solid var(--primary);
-  color: var(--primary);
+.btn-ghost {
+  background-color: transparent;
+  color: var(--action);
   font-weight: 600;
   padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
+  border-radius: 9999px;
   transition: all 0.2s;
-  background-color: transparent;
 }
 
-.btn-outline:hover {
-  background-color: var(--primary);
-  color: white;
-  box-shadow: var(--shadow-md);
+.btn-ghost:hover {
+  background-color: var(--gray-100);
 }
 
 .card {
-  background-color: white;
-  border-radius: 0.75rem;
+  background-color: var(--surface);
+  border-radius: var(--radius);
   padding: 1.5rem;
   transition: all 0.2s;
-  box-shadow: var(--shadow);
+  /* Back Market uses subtle borders often instead of heavy shadows */
+  border: 1px solid transparent; 
 }
 
 .card:hover {
-  box-shadow: var(--shadow-md);
   transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 /* Utility classes for brand colors */
 .text-primary { color: var(--primary); }
-.text-secondary { color: var(--secondary); }
+.text-action { color: var(--action); }
 .bg-primary { background-color: var(--primary); }
-.bg-secondary { background-color: var(--secondary); }
+.bg-action { background-color: var(--action); }
+.bg-surface { background-color: var(--surface); }
 .border-primary { border-color: var(--primary); }
-.border-secondary { border-color: var(--secondary); }
+.border-action { border-color: var(--action); }
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}

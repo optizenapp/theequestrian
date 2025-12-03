@@ -1,4 +1,5 @@
 import { notFound, redirect } from 'next/navigation';
+import { Suspense } from 'react';
 import { getAllProducts } from '@/lib/shopify/products';
 import { getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
 import { getCollectionContent } from '@/lib/content/collections';
@@ -11,6 +12,9 @@ import {
   getCollectionTitle,
   getCollectionHierarchy
 } from '@/lib/mapping/collection-mapping';
+import { TrustSignals } from '@/components/TrustSignals';
+import { CategoryPills } from '@/components/CategoryPills';
+import { CollectionDescription } from '@/components/CollectionDescription';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
@@ -44,8 +48,8 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     }
 
     // If product has a primary collection, redirect to canonical URL
-    if (product.primaryCollection) {
-      const canonicalUrl = getProductCanonicalUrl(product, '');
+    if ((product as any).primaryCollection) {
+      const canonicalUrl = getProductCanonicalUrl(product);
       redirect(canonicalUrl);
     }
 
@@ -153,6 +157,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
   // Get collection title from mapping
   const collectionTitle = getCollectionTitle(category);
+  const breadcrumbs = getCollectionHierarchy(category);
   
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
 
@@ -202,46 +207,49 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-7xl mx-auto">
+        {/* Breadcrumb */}
+        <nav className="text-sm text-gray-600 mb-6">
+          <Link href="/" className="hover:underline">Home</Link>
+          {breadcrumbs.map((crumb) => (
+            <span key={crumb.href}>
+              {' / '}
+              <span className="text-gray-900">{crumb.label}</span>
+            </span>
+          ))}
+        </nav>
+
+        {/* Trust Signals */}
+        <div className="mb-8 -mx-4">
+          <TrustSignals />
+        </div>
+
         {/* Collection Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-4">{collectionTitle}</h1>
-          <p className="text-lg text-gray-600">
-            Showing {filteredProducts.length} products
+          <h1 className="text-4xl font-bold mb-6">{collectionTitle}</h1>
+          
+          {/* Collection Description */}
+          <CollectionDescription 
+            description="<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p><p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.</p>"
+          />
+          
+          {/* Subcategories as Pills */}
+          <CategoryPills 
+            categories={subcategories.map(s => ({ handle: s.handle, label: s.label }))}
+            basePath={`/${category}`}
+          />
+          
+          <p className="text-base text-gray-600">
+            {filteredProducts.length} products
           </p>
         </div>
 
-        {/* Subcategories */}
-        {subcategories.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-2xl font-semibold mb-6">Shop by Category</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {subcategories.map((subcategory) => (
-                <Link
-                  key={subcategory.handle}
-                  href={`/${category}/${subcategory.handle}`}
-                  className="group border rounded-lg p-6 hover:shadow-lg transition-shadow text-center"
-                >
-                  <h3 className="font-semibold text-lg">{subcategory.label}</h3>
-                  <p className="text-sm text-gray-500 mt-2">{subcategory.count} items</p>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Products Grid with Filters */}
-        <ProductGridWithFilters
-          products={filteredProducts}
-          subcategories={subcategories.map(s => ({
-            handle: s.handle,
-            label: s.label,
-            value: s.handle,
-            count: s.count,
-            productType: s.label
-          }))}
-          currentCategory={category}
-          parentCollectionTitle={collectionTitle}
-        />
+        <Suspense fallback={<div className="text-center py-12">Loading products...</div>}>
+          <ProductGridWithFilters
+            products={filteredProducts}
+            currentCategory={category}
+          />
+        </Suspense>
       </div>
     </div>
     </>

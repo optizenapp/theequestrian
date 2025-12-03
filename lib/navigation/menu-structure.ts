@@ -10,9 +10,16 @@ export interface TopLevelMenuItem {
   handle: string;
   href: string;
   shopifyCollectionHandle?: string; // Optional: if different from handle
+  isHighlight?: boolean;
 }
 
 export const TOP_LEVEL_MENU: TopLevelMenuItem[] = [
+  {
+    label: 'Good deals',
+    handle: 'good-deals',
+    href: '/good-deals',
+    isHighlight: true,
+  },
   {
     label: 'Home',
     handle: 'home',
@@ -22,26 +29,19 @@ export const TOP_LEVEL_MENU: TopLevelMenuItem[] = [
     label: 'Horse',
     handle: 'horse',
     href: '/horse',
-    // Map to your actual Shopify collection handle
-    // Examples: 'horse-equipment', 'horse-boots', 'horse-rugs', etc.
-    // You'll need to update this to match your actual collection
-    shopifyCollectionHandle: 'horse-equipment', // TODO: Update to actual collection handle
+    shopifyCollectionHandle: 'horse-equipment',
   },
   {
     label: 'Rider',
     handle: 'rider',
     href: '/rider',
-    // Map to your actual Shopify collection handle
-    // Examples: 'womens-clothing', 'mens-clothing', 'footwear', etc.
-    shopifyCollectionHandle: 'womens-clothing', // TODO: Update to actual collection handle
+    shopifyCollectionHandle: 'womens-clothing',
   },
   {
     label: 'Farm & Stable',
     handle: 'farm-stable',
     href: '/farm-stable',
-    // Map to your actual Shopify collection handle
-    // Examples: 'stable-equipment', 'stable-gear', etc.
-    shopifyCollectionHandle: 'stable-equipment', // TODO: Update to actual collection handle
+    shopifyCollectionHandle: 'stable-equipment',
   },
   {
     label: 'Contact',
