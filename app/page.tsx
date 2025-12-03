@@ -136,7 +136,7 @@ export default function Home() {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {mostWanted.map((item) => (
               <div key={item.title} className="rounded-2xl bg-white p-6 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-                <div className="relative h-48 w-full rounded-xl overflow-hidden bg-gray-100">
+                <div className="relative h-48 w-full rounded-2xl overflow-hidden bg-gray-100">
                   <img
                     src={item.image}
                     alt={item.title}
