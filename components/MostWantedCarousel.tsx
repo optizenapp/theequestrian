@@ -48,7 +48,7 @@ export function MostWantedCarousel({ products }: MostWantedCarouselProps) {
           {/* Carousel Container */}
           <div 
             ref={scrollContainerRef}
-            className="flex gap-6 overflow-x-auto scroll-smooth scrollbar-none pb-4"
+            className="flex gap-6 overflow-x-auto scroll-smooth scrollbar-hide pb-4"
             style={{
               scrollSnapType: 'x mandatory',
               WebkitOverflowScrolling: 'touch',
