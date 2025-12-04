@@ -300,7 +300,7 @@ export function CartPageContent() {
                   href={cart.checkoutUrl}
                   className="block w-full bg-action text-white text-center py-4 rounded-full font-bold text-lg hover:bg-action-hover hover:shadow-lg transition-all mb-4 transform active:scale-[0.99]"
                 >
-                  Go to shipping
+                  Go to checkout
                 </a>
 
                 {/* Legal / Trust */}
