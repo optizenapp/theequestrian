@@ -165,3 +165,45 @@ export interface CollectionWithParent extends ShopifyCollection {
     text: string;
   }>;
 }
+
+export interface ShopifyImage {
+  url: string;
+  altText: string | null;
+  width: number;
+  height: number;
+}
+
+export interface ShopifyAuthor {
+  name: string;
+  // Note: Shopify Storefront API doesn't support bio or image
+}
+
+export interface ShopifyArticle {
+  id: string;
+  handle: string;
+  title: string;
+  contentHtml: string;
+  excerpt?: string;
+  excerptHtml?: string;
+  publishedAt: string;
+  image?: ShopifyImage | null;
+  seo?: {
+    title?: string;
+    description?: string;
+  };
+  tags: string[];
+  author: ShopifyAuthor;
+  blog: {
+    handle: string;
+  };
+}
+
+export interface ShopifyBlog {
+  handle: string;
+  title: string;
+  articles: {
+    edges: Array<{
+      node: ShopifyArticle;
+    }>;
+  };
+}
