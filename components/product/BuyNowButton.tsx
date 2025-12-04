@@ -31,10 +31,10 @@ export function BuyNowButton({ variantId, disabled }: BuyNowButtonProps) {
     <button
       onClick={handleBuyNow}
       disabled={disabled || isProcessing}
-      className={`w-full py-4 px-6 rounded-lg font-semibold text-lg transition-all border-2 ${
+      className={`w-full py-4 px-6 rounded-full font-semibold text-lg transition-all border ${
         disabled
           ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed'
-          : 'bg-white text-[#E91E8C] border-[#E91E8C] hover:bg-[#E91E8C] hover:text-white'
+          : 'bg-transparent text-action border-gray-300 hover:border-action hover:-translate-y-0.5'
       }`}
     >
       {isProcessing ? 'Processing...' : 'Buy Now'}
