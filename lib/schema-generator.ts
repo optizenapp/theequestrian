@@ -16,21 +16,24 @@ export function generateArticleSchema(article: ShopifyArticle) {
   const siteUrl = 'https://theequestrian.com.au';
   const articleUrl = `${siteUrl}/news/${article.handle}`;
 
-  // Parse contentHtml to extract structured data
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(article.contentHtml, 'text/html');
+  // Parse contentHtml using regex (server-side compatible)
+  const contentHtml = article.contentHtml;
 
   // Extract H2 tags for articleSection
-  const h2Elements = doc.querySelectorAll('h2');
-  const articleSections = Array.from(h2Elements).map((h2) => h2.textContent?.trim()).filter(Boolean);
+  const h2Regex = /<h2[^>]*>(.*?)<\/h2>/gi;
+  const h2Matches = [...contentHtml.matchAll(h2Regex)];
+  const articleSections = h2Matches
+    .map((match) => match[1].replace(/<[^>]*>/g, '').trim())
+    .filter(Boolean);
 
-  // Extract external links for citation
-  const links = doc.querySelectorAll('a[href]');
+  // Extract links for citation and mentions
+  const linkRegex = /<a[^>]*href=["']([^"']*)["'][^>]*>/gi;
+  const linkMatches = [...contentHtml.matchAll(linkRegex)];
   const externalLinks: string[] = [];
   const internalLinks: string[] = [];
 
-  links.forEach((link) => {
-    const href = link.getAttribute('href');
+  linkMatches.forEach((match) => {
+    const href = match[1];
     if (href) {
       if (href.startsWith('http') && !href.includes('theequestrian.com.au')) {
         externalLinks.push(href);
