@@ -299,6 +299,18 @@ export const CREATE_CART = `
                     amount
                     currencyCode
                   }
+                  product {
+                    handle
+                    title
+                    images(first: 1) {
+                      edges {
+                        node {
+                          url
+                          altText
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -338,6 +350,18 @@ export const ADD_TO_CART = `
                   price {
                     amount
                     currencyCode
+                  }
+                  product {
+                    handle
+                    title
+                    images(first: 1) {
+                      edges {
+                        node {
+                          url
+                          altText
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -379,6 +403,18 @@ export const UPDATE_CART = `
                     amount
                     currencyCode
                   }
+                  product {
+                    handle
+                    title
+                    images(first: 1) {
+                      edges {
+                        node {
+                          url
+                          altText
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -419,6 +455,18 @@ export const REMOVE_FROM_CART = `
                     amount
                     currencyCode
                   }
+                  product {
+                    handle
+                    title
+                    images(first: 1) {
+                      edges {
+                        node {
+                          url
+                          altText
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -426,6 +474,56 @@ export const REMOVE_FROM_CART = `
         }
         totalQuantity
       }
+    }
+  }
+`;
+
+export const GET_CART = `
+  query GetCart($cartId: ID!) {
+    cart(id: $cartId) {
+      id
+      checkoutUrl
+      cost {
+        subtotalAmount {
+          amount
+          currencyCode
+        }
+        totalAmount {
+          amount
+          currencyCode
+        }
+      }
+      lines(first: 100) {
+        edges {
+          node {
+            id
+            quantity
+            merchandise {
+              ... on ProductVariant {
+                id
+                title
+                price {
+                  amount
+                  currencyCode
+                }
+                product {
+                  handle
+                  title
+                  images(first: 1) {
+                    edges {
+                      node {
+                        url
+                        altText
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      totalQuantity
     }
   }
 `;
