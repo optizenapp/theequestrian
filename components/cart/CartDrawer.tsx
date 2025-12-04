@@ -42,7 +42,7 @@ export function CartDrawer() {
               <p className="text-gray-500 text-lg mb-4">Your cart is empty</p>
               <button
                 onClick={closeCart}
-                className="text-[#E91E8C] hover:underline"
+                className="text-action hover:underline transition-colors"
               >
                 Continue shopping
               </button>
@@ -75,7 +75,7 @@ export function CartDrawer() {
                         <Link
                           href={`/products/${product.handle}`}
                           onClick={closeCart}
-                          className="font-semibold hover:text-[#E91E8C] line-clamp-2"
+                          className="font-semibold hover:text-action transition-colors line-clamp-2"
                         >
                           {product.title}
                         </Link>
@@ -89,14 +89,14 @@ export function CartDrawer() {
 
                       {/* Quantity Controls */}
                       <div className="flex items-center gap-3 mt-3">
-                        <div className="flex items-center border rounded-lg">
+                        <div className="flex items-center border rounded-full overflow-hidden">
                           <button
                             onClick={() => {
                               if (line.quantity > 1) {
                                 updateCartItem(line.id, line.quantity - 1);
                               }
                             }}
-                            className="px-3 py-1 hover:bg-gray-100"
+                            className="px-3 py-1 hover:bg-gray-100 transition-colors"
                             disabled={line.quantity <= 1}
                           >
                             −
@@ -104,7 +104,7 @@ export function CartDrawer() {
                           <span className="px-4 py-1 border-x">{line.quantity}</span>
                           <button
                             onClick={() => updateCartItem(line.id, line.quantity + 1)}
-                            className="px-3 py-1 hover:bg-gray-100"
+                            className="px-3 py-1 hover:bg-gray-100 transition-colors"
                           >
                             +
                           </button>
@@ -112,7 +112,7 @@ export function CartDrawer() {
 
                         <button
                           onClick={() => removeCartItem(line.id)}
-                          className="text-sm text-gray-500 hover:text-red-600"
+                          className="text-sm text-gray-500 hover:text-red-600 transition-colors"
                         >
                           Remove
                         </button>
@@ -137,14 +137,14 @@ export function CartDrawer() {
             </p>
             <a
               href={cart.checkoutUrl}
-              className="block w-full bg-[#E91E8C] text-white text-center py-3 rounded-lg font-semibold hover:bg-[#d01a7d] transition-colors"
+              className="block w-full bg-action text-white text-center py-3 rounded-full font-semibold hover:bg-action-hover hover:-translate-y-0.5 hover:shadow-md transition-all"
             >
               Checkout
             </a>
             <Link
               href="/cart"
               onClick={closeCart}
-              className="block w-full text-center py-3 text-[#E91E8C] hover:underline"
+              className="block w-full text-center py-3 text-action hover:underline transition-colors"
             >
               View Cart
             </Link>

@@ -20,7 +20,7 @@ export function CartPageContent() {
           <p className="text-xl text-gray-600 mb-6">Your cart is empty</p>
           <Link
             href="/"
-            className="inline-block bg-[#E91E8C] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#d01a7d] transition-colors"
+            className="inline-block bg-action text-white px-8 py-3 rounded-full font-semibold hover:bg-action-hover hover:-translate-y-0.5 hover:shadow-md transition-all"
           >
             Continue Shopping
           </Link>
@@ -54,7 +54,7 @@ export function CartPageContent() {
                     {product && (
                       <Link
                         href={`/products/${product.handle}`}
-                        className="text-xl font-semibold hover:text-[#E91E8C] line-clamp-2"
+                        className="text-xl font-semibold hover:text-action transition-colors line-clamp-2"
                       >
                         {product.title}
                       </Link>
@@ -68,14 +68,14 @@ export function CartPageContent() {
 
                     {/* Quantity Controls */}
                     <div className="flex items-center gap-4 mt-6">
-                      <div className="flex items-center border rounded-lg">
+                      <div className="flex items-center border rounded-full overflow-hidden">
                         <button
                           onClick={() => {
                             if (line.quantity > 1) {
                               updateCartItem(line.id, line.quantity - 1);
                             }
                           }}
-                          className="px-4 py-2 hover:bg-gray-100"
+                          className="px-4 py-2 hover:bg-gray-100 transition-colors"
                           disabled={line.quantity <= 1}
                         >
                           −
@@ -83,7 +83,7 @@ export function CartPageContent() {
                         <span className="px-6 py-2 border-x font-semibold">{line.quantity}</span>
                         <button
                           onClick={() => updateCartItem(line.id, line.quantity + 1)}
-                          className="px-4 py-2 hover:bg-gray-100"
+                          className="px-4 py-2 hover:bg-gray-100 transition-colors"
                         >
                           +
                         </button>
@@ -91,7 +91,7 @@ export function CartPageContent() {
 
                       <button
                         onClick={() => removeCartItem(line.id)}
-                        className="text-gray-600 hover:text-red-600 font-medium"
+                        className="text-gray-600 hover:text-red-600 font-medium transition-colors"
                       >
                         Remove
                       </button>
@@ -133,14 +133,14 @@ export function CartPageContent() {
 
               <a
                 href={cart.checkoutUrl}
-                className="block w-full bg-[#E91E8C] text-white text-center py-4 rounded-lg font-semibold text-lg hover:bg-[#d01a7d] transition-colors mb-4"
+                className="block w-full bg-action text-white text-center py-4 rounded-full font-semibold text-lg hover:bg-action-hover hover:-translate-y-0.5 hover:shadow-md transition-all mb-4"
               >
                 Proceed to Checkout
               </a>
 
               <Link
                 href="/"
-                className="block w-full text-center py-3 text-[#E91E8C] hover:underline"
+                className="block w-full text-center py-3 text-action hover:underline transition-colors"
               >
                 Continue Shopping
               </Link>
