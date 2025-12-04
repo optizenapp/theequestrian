@@ -92,6 +92,17 @@ export default async function ProductPage({ params }: ProductPageProps) {
           additionalPaths={additionalPaths}
         />
 
+        {/* Mobile title & rating (between breadcrumbs & image) */}
+        <div className="lg:hidden mt-4 mb-8 space-y-2">
+          <h1 className="text-3xl font-bold text-gray-900">{product.title}</h1>
+          <div className="flex items-center gap-2 text-sm">
+            <div className="flex text-yellow-400">★★★★☆</div>
+            <span className="text-gray-500 hover:underline cursor-pointer">
+              4.5 (128 reviews)
+            </span>
+          </div>
+        </div>
+
         <div className="lg:grid lg:grid-cols-12 lg:gap-12">
           {/* Left Column: Image Gallery & Description */}
           <div className="lg:col-span-7 space-y-8">
@@ -112,10 +123,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
           {/* Right Column: Product Info & Buy Box (Sticky) */}
           <div className="lg:col-span-5">
-            <div className="lg:sticky lg:top-24 space-y-6 mb-8 lg:mb-0">
-              
+          <div className="lg:sticky lg:top-24 space-y-6 mb-8 lg:mb-0">
+            
               {/* Title & Rating */}
-              <div>
+              <div className="hidden lg:block">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.title}</h1>
                 <div className="flex items-center gap-2 text-sm mb-4">
                   <div className="flex text-yellow-400">★★★★☆</div>
