@@ -5,6 +5,9 @@ import { ShopifyProduct } from '@/types/shopify';
 import { ProductVariantSelector } from '@/components/ProductVariantSelector';
 import { AddToCartButton } from './AddToCartButton';
 import { BuyNowButton } from './BuyNowButton';
+import { FaCcVisa, FaCcAmex, FaCcPaypal } from 'react-icons/fa';
+import { SiAfterpay, SiShopify } from 'react-icons/si';
+import Image from 'next/image';
 
 interface ProductBuyBoxProps {
   product: ShopifyProduct;
@@ -89,6 +92,39 @@ export function ProductBuyBox({ product }: ProductBuyBoxProps) {
           variantId={selectedVariant?.id || ''}
           disabled={!isAvailable || !selectedVariant}
         />
+      </div>
+
+      {/* Payment Methods */}
+      <div className="border border-gray-200 rounded-lg p-3 bg-gray-50 flex justify-center items-center gap-2">
+        {/* Visa */}
+        <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center" title="Visa">
+          <FaCcVisa className="text-[#1A1F71] text-2xl" />
+        </div>
+        
+        {/* Shop Pay */}
+        <div className="h-6 w-10 bg-[#5A31F4] border border-gray-200 rounded flex items-center justify-center" title="Shop Pay">
+          <SiShopify className="text-white text-xl" />
+        </div>
+        
+        {/* Amex */}
+        <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center" title="Amex">
+          <FaCcAmex className="text-[#2E77BB] text-2xl" />
+        </div>
+        
+        {/* PayPal */}
+        <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center" title="PayPal">
+          <FaCcPaypal className="text-[#003087] text-2xl" />
+        </div>
+        
+        {/* Afterpay */}
+        <div className="h-6 w-10 bg-[#b2fce4] border border-gray-200 rounded flex items-center justify-center" title="Afterpay">
+          <SiAfterpay className="text-black text-lg" />
+        </div>
+        
+        {/* Zip */}
+        <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center p-0.5 overflow-hidden" title="Zip">
+          <Image src="/zip.png" alt="Zip Pay" width={40} height={24} className="h-full w-auto object-contain" />
+        </div>
       </div>
 
       {/* Trust Signals */}

@@ -5,6 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { TrustSignals } from '@/components/TrustSignals';
 import { useState } from 'react';
+import { FaCcVisa, FaCcAmex, FaCcPaypal } from 'react-icons/fa';
+import { SiAfterpay, SiShopify } from 'react-icons/si';
 
 // Placeholder products for "Complete your cart"
 const recommendedProducts = [
@@ -58,7 +60,7 @@ export function CartPageContent() {
         <h1 className="text-2xl font-bold mb-8 text-gray-900">Your cart</h1>
 
         {!cart || cart.lines.edges.length === 0 ? (
-          <div className="text-center py-24 bg-white rounded-lg shadow-sm">
+          <div className="text-center py-24 bg-white rounded-2xl shadow-sm">
             <p className="text-xl text-gray-600 mb-6">Your cart is empty</p>
             <Link
               href="/"
@@ -83,12 +85,12 @@ export function CartPageContent() {
                   const savings = compareAtPrice - price;
 
                   return (
-                    <div key={line.id} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                    <div key={line.id} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                       <div className="flex flex-col sm:flex-row gap-6">
                         {/* Image Section */}
                         <div className="relative w-full sm:w-32 h-32 flex-shrink-0">
                           {image && (
-                            <div className="relative w-full h-full bg-gray-50 rounded-lg overflow-hidden border border-gray-100">
+                            <div className="relative w-full h-full bg-gray-50 rounded-xl overflow-hidden border border-gray-100">
                               <Image
                                 src={image.url}
                                 alt={image.altText || product.title}
@@ -205,8 +207,8 @@ export function CartPageContent() {
                 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {recommendedProducts.slice(0, 3).map((product) => (
-                    <div key={product.id} className="bg-white border border-gray-100 rounded-xl p-4 hover:shadow-md transition-shadow group cursor-pointer">
-                      <div className="relative aspect-square mb-4 bg-gray-50 rounded-lg overflow-hidden">
+                    <div key={product.id} className="bg-white border border-gray-100 rounded-2xl p-4 hover:shadow-md transition-shadow group cursor-pointer">
+                      <div className="relative aspect-square mb-4 bg-gray-50 rounded-xl overflow-hidden">
                          <Image
                             src={product.image}
                             alt={product.title}
@@ -229,7 +231,7 @@ export function CartPageContent() {
               {/* Perks Section */}
               <div className="pt-8">
                 <h2 className="text-xl font-bold text-gray-900 mb-6">Your perks with every purchase:</h2>
-                <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+                <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
                   <TrustSignals />
                 </div>
               </div>
@@ -237,7 +239,7 @@ export function CartPageContent() {
 
             {/* Right Column: Summary Sidebar */}
             <div className="lg:col-span-4 mt-8 lg:mt-0">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sticky top-8">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-8">
                 <h2 className="text-xl font-bold mb-6">Summary</h2>
                 
                 {/* Mini Cart Items */}
@@ -245,7 +247,7 @@ export function CartPageContent() {
                   {cart.lines.edges.slice(0, 4).map(({ node: line }) => {
                     const image = line.merchandise.product?.images.edges[0]?.node;
                     return (
-                      <div key={line.id} className="relative w-12 h-12 rounded-lg border-2 border-white shadow-sm bg-gray-50 flex-shrink-0 overflow-hidden">
+                      <div key={line.id} className="relative w-12 h-12 rounded-xl border-2 border-white shadow-sm bg-gray-50 flex-shrink-0 overflow-hidden">
                           {image && (
                             <Image
                               src={image.url}
@@ -263,7 +265,7 @@ export function CartPageContent() {
                     );
                   })}
                   {cart.lines.edges.length > 4 && (
-                    <div className="relative w-12 h-12 rounded-lg border-2 border-white shadow-sm bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">
+                    <div className="relative w-12 h-12 rounded-xl border-2 border-white shadow-sm bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">
                       +{cart.lines.edges.length - 4}
                     </div>
                   )}
@@ -307,15 +309,38 @@ export function CartPageContent() {
                 </div>
 
                 {/* Payment Methods */}
-                <div className="border border-gray-200 rounded-lg p-3 bg-gray-50 flex justify-center gap-2 opacity-75 grayscale hover:grayscale-0 transition-all">
-                   {/* Simple placeholders for payment icons using text or basic svgs if images aren't available */}
-                   <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center text-[8px] font-bold text-blue-800 italic">VISA</div>
-                   <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center text-[8px] font-bold text-red-600">MC</div>
-                   <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center text-[8px] font-bold text-blue-500">AMEX</div>
-                   <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center text-[8px] font-bold text-blue-600">PayPal</div>
-                   <div className="h-6 w-10 bg-[#b2fce4] border border-gray-200 rounded flex items-center justify-center text-[6px] font-bold text-black uppercase tracking-tighter">Afterpay</div>
-                   <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center text-[8px] font-bold text-[#003168]">Zip</div>
-                   <div className="text-[10px] flex items-center gap-1 ml-2 text-gray-500 font-medium">
+                <div className="border border-gray-200 rounded-lg p-3 bg-gray-50 flex justify-center items-center gap-2 transition-all">
+                   {/* Visa */}
+                   <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center" title="Visa">
+                     <FaCcVisa className="text-[#1A1F71] text-2xl" />
+                   </div>
+                   
+                   {/* Shop Pay */}
+                   <div className="h-6 w-10 bg-[#5A31F4] border border-gray-200 rounded flex items-center justify-center" title="Shop Pay">
+                     <SiShopify className="text-white text-xl" />
+                   </div>
+                   
+                   {/* Amex */}
+                   <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center" title="Amex">
+                     <FaCcAmex className="text-[#2E77BB] text-2xl" />
+                   </div>
+                   
+                   {/* PayPal */}
+                   <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center" title="PayPal">
+                     <FaCcPaypal className="text-[#003087] text-2xl" />
+                   </div>
+                   
+                   {/* Afterpay - Adjusted size */}
+                   <div className="h-6 w-10 bg-[#b2fce4] border border-gray-200 rounded flex items-center justify-center" title="Afterpay">
+                     <SiAfterpay className="text-black text-lg" />
+                   </div>
+                   
+                   {/* Zip - Image from public/zip.png */}
+                   <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center p-0.5 overflow-hidden" title="Zip">
+                     <Image src="/zip.png" alt="Zip Pay" width={40} height={24} className="h-full w-auto object-contain" />
+                   </div>
+                   
+                   <div className="text-[10px] flex items-center gap-1 ml-1 text-gray-500 font-medium border-l pl-3 border-gray-300 h-6">
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>
                       Secure payment
                    </div>
