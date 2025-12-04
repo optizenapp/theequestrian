@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { getArticle, getBlog } from '@/lib/shopify/blogs';
 import { AuthorBox } from '@/components/blog/AuthorBox';
 import { BlogCard } from '@/components/blog/BlogCard';
+import { generateArticleSchema } from '@/lib/schema-generator';
 
 interface ArticlePageProps {
   params: Promise<{
@@ -51,8 +52,16 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     day: 'numeric',
   });
 
+  // Generate JSON-LD schema
+  const schema = generateArticleSchema(article);
+
   return (
     <div className="bg-gray-50 min-h-screen py-12">
+      {/* JSON-LD Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-3 gap-12">
           {/* Main Content */}
