@@ -3,6 +3,8 @@ import { Manrope } from 'next/font/google';
 import './globals.css';
 import { Header } from '@/components/header/Header';
 import { Footer } from '@/components/footer/Footer';
+import { CartProvider } from '@/components/cart/cart-context';
+import { CartDrawer } from '@/components/cart/CartDrawer';
 
 const manrope = Manrope({
   subsets: ['latin'],
@@ -23,11 +25,14 @@ export default function RootLayout({
   return (
     <html lang="en" className={manrope.variable}>
       <body className={manrope.className}>
-        <Header />
-        <main className="min-h-screen">
-          {children}
-        </main>
-        <Footer />
+        <CartProvider>
+          <Header />
+          <main className="min-h-screen">
+            {children}
+          </main>
+          <Footer />
+          <CartDrawer />
+        </CartProvider>
       </body>
     </html>
   );
