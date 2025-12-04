@@ -280,7 +280,7 @@ body {
 .article-content a strong,
 .article-content b a,
 .article-content a b {
-  @apply text-[#E91E8C] !important;
+  color: #E91E8C !important;
 }
 
 .article-content img,
