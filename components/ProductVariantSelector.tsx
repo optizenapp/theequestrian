@@ -7,29 +7,15 @@
  * - Separates variants by option type (Size, Color, etc.)
  * - Color swatches for color options
  * - Inline layout that wraps to multiple lines if needed
- * - Shows price for each variant
+ * - Controlled component (receives selectedOptions and onOptionSelect)
  */
 
-import { useState } from 'react';
-
-interface VariantOption {
-  name: string;
-  value: string;
-}
-
-interface Variant {
-  id: string;
-  title: string;
-  availableForSale: boolean;
-  price: {
-    amount: string;
-    currencyCode: string;
-  };
-  selectedOptions: VariantOption[];
-}
+import { ShopifyProduct } from '@/types/shopify';
 
 interface ProductVariantSelectorProps {
-  variants: Array<{ node: Variant }>;
+  product: ShopifyProduct;
+  selectedOptions: Record<string, string>;
+  onOptionSelect: (optionName: string, value: string) => void;
 }
 
 // Color mapping for common color names
@@ -71,8 +57,8 @@ function getColorHex(colorName: string): string | null {
   return COLOR_MAP[normalized] || null;
 }
 
-export function ProductVariantSelector({ variants }: ProductVariantSelectorProps) {
-  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
+export function ProductVariantSelector({ product, selectedOptions, onOptionSelect }: ProductVariantSelectorProps) {
+  const variants = product.variants.edges;
 
   if (variants.length <= 1) {
     return null; // Don't show selector if only one variant
@@ -89,13 +75,6 @@ export function ProductVariantSelector({ variants }: ProductVariantSelectorProps
       optionTypes.get(option.name)?.add(option.value);
     });
   });
-
-  const handleOptionSelect = (optionName: string, optionValue: string) => {
-    setSelectedOptions(prev => ({
-      ...prev,
-      [optionName]: optionValue
-    }));
-  };
 
   return (
     <div className="space-y-4">
@@ -119,9 +98,9 @@ export function ProductVariantSelector({ variants }: ProductVariantSelectorProps
                   return (
                     <button
                       key={value}
-                      onClick={() => handleOptionSelect(optionName, value)}
+                      onClick={() => onOptionSelect(optionName, value)}
                       className={`relative group ${
-                        isSelected ? 'ring-2 ring-action ring-offset-2' : ''
+                        isSelected ? 'ring-2 ring-[#E91E8C] ring-offset-2' : ''
                       }`}
                       title={value}
                     >
@@ -166,11 +145,11 @@ export function ProductVariantSelector({ variants }: ProductVariantSelectorProps
                   return (
                     <button
                       key={value}
-                      onClick={() => handleOptionSelect(optionName, value)}
+                      onClick={() => onOptionSelect(optionName, value)}
                       disabled={!isAvailable}
                       className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
                         isSelected
-                          ? 'border-action bg-action text-white'
+                          ? 'border-[#E91E8C] bg-[#E91E8C] text-white'
                           : isAvailable
                             ? 'border-gray-300 hover:border-gray-400 text-gray-900'
                             : 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
