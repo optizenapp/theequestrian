@@ -527,3 +527,88 @@ export const GET_CART = `
     }
   }
 `;
+
+export const ARTICLE_FRAGMENT = `
+  fragment ArticleFragment on Article {
+    id
+    handle
+    title
+    contentHtml
+    excerpt
+    excerptHtml
+    publishedAt
+    image {
+      url
+      altText
+      width
+      height
+    }
+    seo {
+      title
+      description
+    }
+    tags
+    author {
+      name
+    }
+    blog {
+      handle
+    }
+  }
+`;
+
+export const GET_BLOG_BY_HANDLE = `
+  ${ARTICLE_FRAGMENT}
+  query GetBlogByHandle($handle: String!, $first: Int = 50) {
+    blog(handle: $handle) {
+      handle
+      title
+      articles(first: $first, sortKey: PUBLISHED_AT, reverse: true) {
+        edges {
+          node {
+            ...ArticleFragment
+          }
+        }
+      }
+    }
+  }
+`;
+
+export const GET_ARTICLE_BY_HANDLE = `
+  ${ARTICLE_FRAGMENT}
+  query GetArticleByHandle($blogHandle: String!, $articleHandle: String!) {
+    blog(handle: $blogHandle) {
+      articleByHandle(handle: $articleHandle) {
+        ...ArticleFragment
+      }
+    }
+  }
+`;
+
+export const GET_RECENT_ARTICLES = `
+  ${ARTICLE_FRAGMENT}
+  query GetRecentArticles($blogHandle: String!, $first: Int = 6) {
+    blog(handle: $blogHandle) {
+      articles(first: $first, sortKey: PUBLISHED_AT, reverse: true) {
+        edges {
+          node {
+            ...ArticleFragment
+          }
+        }
+      }
+    }
+  }
+`;
+
+export const GET_ALL_BLOGS = `
+  query GetAllBlogs {
+    blogs(first: 10) {
+      edges {
+        node {
+          handle
+          title
+        }
+      }
+    }
+  }
+`;
