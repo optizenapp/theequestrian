@@ -103,15 +103,14 @@ export function CartPageContent() {
                         <div className="flex-1 flex flex-col justify-between">
                           <div className="flex justify-between items-start gap-4">
                             <div className="space-y-2">
-                              {/* Condition Badge - Mocked to match design */}
-                              <span className="inline-block px-2 py-0.5 rounded text-xs font-medium border border-gray-300 text-gray-600">
-                                Excellent
-                              </span>
                               
                               <h3 className="text-base font-bold text-gray-900 leading-tight">
-                                <Link href={`/products/${product.handle}`} className="hover:underline">
-                                  {product.title}
-                                </Link>
+                                {product && (
+                                  <Link href={`/products/${product.handle}`} className="hover:underline">
+                                    {product.title}
+                                  </Link>
+                                )}
+                                {!product && <span className="text-gray-900">{line.merchandise.title}</span>}
                               </h3>
                               
                               <div className="text-sm text-gray-500">
@@ -138,7 +137,7 @@ export function CartPageContent() {
                                     <span>Save ${savings.toFixed(2)}</span>
                                   </div>
                                   <p className="text-xs text-gray-400 line-through">
-                                    ${compareAtPrice.toFixed(2)} new
+                                    ${compareAtPrice.toFixed(2)}
                                   </p>
                                 </>
                               )}
@@ -247,10 +246,10 @@ export function CartPageContent() {
                     const image = line.merchandise.product?.images.edges[0]?.node;
                     return (
                       <div key={line.id} className="relative w-12 h-12 rounded-lg border-2 border-white shadow-sm bg-gray-50 flex-shrink-0 overflow-hidden">
-                         {image && (
+                          {image && (
                             <Image
                               src={image.url}
-                              alt={line.merchandise.product.title}
+                              alt={line.merchandise.product?.title || line.merchandise.title}
                               fill
                               className="object-cover"
                             />
@@ -314,6 +313,8 @@ export function CartPageContent() {
                    <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center text-[8px] font-bold text-red-600">MC</div>
                    <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center text-[8px] font-bold text-blue-500">AMEX</div>
                    <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center text-[8px] font-bold text-blue-600">PayPal</div>
+                   <div className="h-6 w-10 bg-[#b2fce4] border border-gray-200 rounded flex items-center justify-center text-[6px] font-bold text-black uppercase tracking-tighter">Afterpay</div>
+                   <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center text-[8px] font-bold text-[#003168]">Zip</div>
                    <div className="text-[10px] flex items-center gap-1 ml-2 text-gray-500 font-medium">
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>
                       Secure payment
