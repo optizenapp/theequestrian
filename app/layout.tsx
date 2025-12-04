@@ -15,6 +15,10 @@ const manrope = Manrope({
 export const metadata: Metadata = {
   title: 'The Equestrian - Premium Equestrian Equipment',
   description: 'Everything you need for horse and rider. World-leading brands at competitive prices.',
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function RootLayout({
