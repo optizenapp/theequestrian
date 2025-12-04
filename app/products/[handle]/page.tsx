@@ -1,10 +1,8 @@
 import { notFound } from 'next/navigation';
 import { getProductByHandle } from '@/lib/shopify/products';
-import Link from 'next/link';
-import { ProductPrice } from '@/components/ProductPrice';
 import { ProductImageGallery } from '@/components/ProductImageGallery';
 import { ProductBreadcrumbs } from '@/components/ProductBreadcrumbs';
-import { ProductVariantSelector } from '@/components/ProductVariantSelector';
+import { ProductBuyBox } from '@/components/product/ProductBuyBox';
 import { generateBreadcrumbSchema } from '@/lib/utils/breadcrumb-schema';
 
 export const revalidate = 300;
@@ -149,53 +147,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 </div>
               </div>
 
-              {/* Variant Selector */}
-              <ProductVariantSelector variants={product.variants.edges} />
-
-              {/* Price & Action */}
+              {/* Buy Box */}
               <div className="bg-surface rounded-2xl p-6 shadow-sm border border-gray-100">
-                <div className="mb-6">
-                  <div className="flex items-baseline gap-3 mb-2">
-                    <span className="text-4xl font-bold text-gray-900">
-                      ${parseFloat(price.amount).toFixed(2)}
-                    </span>
-                    {compareAtPrice && parseFloat(compareAtPrice.amount) > parseFloat(price.amount) && (
-                      <span className="text-lg text-gray-400 line-through font-medium">
-                        ${parseFloat(compareAtPrice.amount).toFixed(2)}
-                      </span>
-                    )}
-                  </div>
-                  {compareAtPrice && parseFloat(compareAtPrice.amount) > parseFloat(price.amount) && (
-                    <div className="inline-block">
-                      <span className="px-3 py-1 rounded-md text-sm font-semibold text-gray-900" style={{ backgroundColor: '#94F5BD' }}>
-                        Save ${(parseFloat(compareAtPrice.amount) - parseFloat(price.amount)).toFixed(2)}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                <button 
-                  disabled={!product.availableForSale}
-                  className="w-full btn-primary text-lg py-4 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {product.availableForSale ? 'Add to Cart' : 'Out of Stock'}
-                </button>
-
-                {/* Trust Signals */}
-                <div className="mt-6 space-y-3">
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                    <span>Free standard shipping</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    <span>12-month warranty included</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                    <span>30-day money-back guarantee</span>
-                  </div>
-                </div>
+                <ProductBuyBox product={product} />
               </div>
             </div>
           </div>
