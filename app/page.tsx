@@ -2,6 +2,7 @@ import { Hero } from '@/components/Hero';
 import { TrustSignals } from '@/components/TrustSignals';
 import { BestDealsSlider } from '@/components/BestDealsSlider';
 import { MostWantedCarousel } from '@/components/MostWantedCarousel';
+import { HomeRecentArticles } from '@/components/home/HomeRecentArticles';
 
 const mostWanted = [
   {
@@ -179,23 +180,7 @@ export default function Home() {
       </section>
 
       {/* News */}
-      <section className="bg-white py-16">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <p className="text-sm uppercase tracking-[0.4em] text-gray-400">News</p>
-            <h3 className="text-3xl font-bold text-gray-900">What we’re talking about</h3>
-          </div>
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {newsItems.map((item) => (
-              <div key={item.title} className="rounded-2xl border border-gray-100 p-6 shadow-sm">
-                <p className="text-sm font-semibold text-gray-400 uppercase tracking-[0.4em]">News</p>
-                <h4 className="mt-3 text-xl font-semibold text-gray-900">{item.title}</h4>
-                <p className="mt-2 text-sm text-gray-600">{item.body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <HomeRecentArticles />
 
       {/* FAQs */}
       <section className="bg-gray-50 py-16">
