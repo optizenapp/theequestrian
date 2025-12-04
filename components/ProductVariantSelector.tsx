@@ -100,7 +100,7 @@ export function ProductVariantSelector({ product, selectedOptions, onOptionSelec
                       key={value}
                       onClick={() => onOptionSelect(optionName, value)}
                       className={`relative group ${
-                        isSelected ? 'ring-2 ring-[#E91E8C] ring-offset-2' : ''
+                        isSelected ? 'ring-2 ring-action ring-offset-2' : ''
                       }`}
                       title={value}
                     >
@@ -149,7 +149,7 @@ export function ProductVariantSelector({ product, selectedOptions, onOptionSelec
                       disabled={!isAvailable}
                       className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
                         isSelected
-                          ? 'border-[#E91E8C] bg-[#E91E8C] text-white'
+                          ? 'border-action bg-action text-white'
                           : isAvailable
                             ? 'border-gray-300 hover:border-gray-400 text-gray-900'
                             : 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
