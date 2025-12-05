@@ -37,16 +37,25 @@ export function ProductImageGallery({ images, productTitle }: ProductImageGaller
   }
 
   return (
-    <div className="flex gap-4">
-      {/* Thumbnail Column */}
+    <div className="flex flex-col lg:flex-row gap-4">
+      {/* Main Image */}
+      <div className="flex-1 bg-surface rounded-2xl p-8 flex items-center justify-center aspect-square border border-gray-100 hover:shadow-sm transition-shadow order-1 lg:order-2">
+        <img
+          src={imageList[selectedImageIndex].url}
+          alt={imageList[selectedImageIndex].altText || productTitle}
+          className="max-w-full max-h-full object-contain"
+        />
+      </div>
+
+      {/* Thumbnail Column/Row */}
       {imageList.length > 1 && (
-        <div className="flex flex-col gap-3 w-20">
+        <div className="flex flex-row lg:flex-col gap-3 w-full lg:w-20 order-2 lg:order-1 overflow-x-auto scrollbar-hide">
           {imageList.map((image, index) => (
             <button
               key={index}
               onMouseEnter={() => setSelectedImageIndex(index)}
               onClick={() => setSelectedImageIndex(index)}
-              className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+              className={`relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${
                 selectedImageIndex === index
                   ? 'border-gray-200 shadow-md opacity-100'
                   : 'border-gray-200 hover:border-gray-400 opacity-60 hover:opacity-100'
@@ -61,15 +70,6 @@ export function ProductImageGallery({ images, productTitle }: ProductImageGaller
           ))}
         </div>
       )}
-
-      {/* Main Image */}
-      <div className="flex-1 bg-surface rounded-2xl p-8 flex items-center justify-center aspect-square border border-gray-100 hover:shadow-sm transition-shadow">
-        <img
-          src={imageList[selectedImageIndex].url}
-          alt={imageList[selectedImageIndex].altText || productTitle}
-          className="max-w-full max-h-full object-contain"
-        />
-      </div>
     </div>
   );
 }
