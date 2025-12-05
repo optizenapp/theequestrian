@@ -5,7 +5,7 @@ import { ShopifyProduct } from '@/types/shopify';
 import { ProductVariantSelector } from '@/components/ProductVariantSelector';
 import { AddToCartButton } from './AddToCartButton';
 import { BuyNowButton } from './BuyNowButton';
-import { FaCcVisa, FaCcAmex, FaCcPaypal } from 'react-icons/fa';
+import { FaCcVisa, FaCcMastercard, FaCcPaypal } from 'react-icons/fa';
 import { SiAfterpay, SiShopify } from 'react-icons/si';
 import Image from 'next/image';
 
@@ -14,7 +14,17 @@ interface ProductBuyBoxProps {
 }
 
 export function ProductBuyBox({ product }: ProductBuyBoxProps) {
-  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() => {
+    // Pre-select the first variant's options
+    const firstVariant = product.variants.edges[0]?.node;
+    if (!firstVariant) return {};
+
+    const initialOptions: Record<string, string> = {};
+    firstVariant.selectedOptions.forEach((option) => {
+      initialOptions[option.name] = option.value;
+    });
+    return initialOptions;
+  });
 
   // Find the selected variant based on selected options
   const selectedVariant = useMemo(() => {
@@ -106,9 +116,9 @@ export function ProductBuyBox({ product }: ProductBuyBoxProps) {
           <SiShopify className="text-white text-xl" />
         </div>
         
-        {/* Amex */}
-        <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center" title="Amex">
-          <FaCcAmex className="text-[#2E77BB] text-2xl" />
+        {/* Mastercard */}
+        <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center" title="Mastercard">
+          <FaCcMastercard className="text-[#EB001B] text-2xl" />
         </div>
         
         {/* PayPal */}
