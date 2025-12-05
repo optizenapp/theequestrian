@@ -100,7 +100,8 @@ export function ProductVariantSelector({ product, selectedOptions, onOptionSelec
                       key={value}
                       onClick={() => onOptionSelect(optionName, value)}
                       className={`relative group ${
-                        isSelected ? 'ring-2 ring-action ring-offset-2' : ''
+                        // Only add ring if it's a color swatch (has colorHex), otherwise no ring for text pills
+                        isSelected && colorHex ? 'ring-2 ring-action ring-offset-2' : ''
                       }`}
                       title={value}
                     >
@@ -123,6 +124,9 @@ export function ProductVariantSelector({ product, selectedOptions, onOptionSelec
                               ? 'bg-action text-white'
                               : 'bg-white text-gray-900 hover:bg-gray-100'
                           }`}
+                          style={{
+                            border: isSelected ? 'none' : undefined,
+                          }}
                         >
                           {value}
                         </div>
