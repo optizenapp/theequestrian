@@ -1,94 +1,131 @@
 /**
- * Content Management for Collections and Subcollections
+ * Content Management for Collections
  * 
- * Handles rich content from Shopify metafields with fallback to basic descriptions
+ * Reads content from the master CSV file (exports/collection-content.csv)
+ * Handles H1s, SEO metadata, descriptions, and advanced features.
  */
 
-import type { CollectionWithParent } from '@/types/shopify';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as csv from 'csv-parse/sync';
 
 export interface CollectionContent {
-  html: string | null;
-  seoDescription: string | null;
-  featuredLinks: Array<{
-    type: 'product' | 'collection';
-    handle: string;
-    text: string;
-  }>;
+  url_path: string;
+  h1_title: string;
+  meta_title: string;
+  meta_description: string;
+  short_description: string;
+  breadcrumb_label: string;
+  parent_url: string;
+  category_level: number;
+  status: string;
+  default_sort: string;
+  faq_json: Array<{ q: string; a: string }>;
+  related_categories_json: Array<{ label: string; url: string; image?: string }>;
 }
 
+// Interface for raw CSV row
+interface CsvRow {
+  url_path: string;
+  h1_title: string;
+  meta_title: string;
+  meta_description: string;
+  short_description: string;
+  breadcrumb_label: string;
+  parent_url: string;
+  category_level: string; // CSV reads as string
+  status: string;
+  default_sort: string;
+  faq_json: string;
+  related_categories_json: string;
+}
+
+// Cache for content
+let contentCache: Map<string, CollectionContent> | null = null;
+
 /**
- * Extract content from collection metafields
- * Priority: page_content metafield > description > null
+ * Load and parse the content CSV
  */
-export function getCollectionContent(
-  collection: CollectionWithParent
-): CollectionContent {
-  // Get page content (rich HTML)
-  const pageContent = collection.pageContent || 
-    (collection.metafields?.find(
-      m => m.namespace === 'custom' && m.key === 'page_content'
-    )?.value) ||
-    null;
-
-  // Get SEO description
-  const seoDescription = collection.seoDescription ||
-    (collection.metafields?.find(
-      m => m.namespace === 'custom' && m.key === 'seo_description'
-    )?.value) ||
-    collection.description ||
-    null;
-
-  // Get featured links
-  const featuredLinksJson = collection.featuredLinks ||
-    (collection.metafields?.find(
-      m => m.namespace === 'custom' && m.key === 'featured_links'
-    )?.value);
-
-  let featuredLinks: CollectionContent['featuredLinks'] = [];
-  
-  if (Array.isArray(featuredLinksJson)) {
-    // Already parsed
-    featuredLinks = featuredLinksJson;
-  } else if (typeof featuredLinksJson === 'string') {
-    // Parse JSON string
-    try {
-      featuredLinks = JSON.parse(featuredLinksJson);
-    } catch (e) {
-      console.error('Error parsing featured links:', e);
-      featuredLinks = [];
-    }
+function loadContent(): Map<string, CollectionContent> {
+  if (contentCache) {
+    return contentCache;
   }
 
-  // Fallback: use description as HTML if no page content
-  const html = pageContent || (collection.description ? `<p>${collection.description}</p>` : null);
-
-  return {
-    html,
-    seoDescription,
-    featuredLinks,
-  };
-}
-
-/**
- * Sanitize HTML content (basic XSS protection)
- * In production, consider using DOMPurify or similar
- */
-export function sanitizeHtml(html: string): string {
-  // Basic sanitization - remove script tags
-  return html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-}
-
-/**
- * Process internal links in HTML content
- * Converts relative URLs to proper Next.js links
- */
-export function processInternalLinks(html: string): string {
-  // This is a placeholder - in a real implementation, you might want to:
-  // 1. Parse HTML
-  // 2. Find all <a> tags with relative URLs
-  // 3. Ensure they're properly formatted
-  // For now, we'll just return the HTML as-is
-  // The Next.js Link component will handle relative URLs correctly
+  const csvPath = path.join(process.cwd(), 'exports', 'collection-content.csv');
   
-  return html;
+  if (!fs.existsSync(csvPath)) {
+    console.warn(`Content CSV not found at: ${csvPath}`);
+    return new Map();
+  }
+
+  try {
+    const fileContent = fs.readFileSync(csvPath, 'utf-8');
+    const records = csv.parse(fileContent, {
+      columns: true,
+      skip_empty_lines: true,
+      trim: true,
+    }) as CsvRow[];
+
+    const contentMap = new Map<string, CollectionContent>();
+
+    for (const row of records) {
+      // Parse JSON fields safely
+      let faq = [];
+      let related = [];
+
+      try {
+        if (row.faq_json) faq = JSON.parse(row.faq_json);
+        if (row.related_categories_json) related = JSON.parse(row.related_categories_json);
+      } catch (e) {
+        console.warn(`Failed to parse JSON for ${row.url_path}:`, e);
+      }
+
+      contentMap.set(row.url_path, {
+        url_path: row.url_path,
+        h1_title: row.h1_title,
+        meta_title: row.meta_title,
+        meta_description: row.meta_description,
+        short_description: row.short_description,
+        breadcrumb_label: row.breadcrumb_label,
+        parent_url: row.parent_url,
+        category_level: parseInt(row.category_level, 10) || 1,
+        status: row.status,
+        default_sort: row.default_sort,
+        faq_json: faq,
+        related_categories_json: related,
+      });
+    }
+
+    contentCache = contentMap;
+    return contentMap;
+  } catch (error) {
+    console.error('Error loading content CSV:', error);
+    return new Map();
+  }
+}
+
+/**
+ * Get content for a specific collection path
+ */
+export function getCollectionContent(urlPath: string): CollectionContent | null {
+  const content = loadContent();
+  // Ensure path starts with /
+  const normalizedPath = urlPath.startsWith('/') ? urlPath : `/${urlPath}`;
+  return content.get(normalizedPath) || null;
+}
+
+/**
+ * Get content for a category/subcategory combination
+ */
+export function getCategoryContent(
+  category: string, 
+  subcategory?: string, 
+  subsubcategory?: string
+): CollectionContent | null {
+  const parts = [category];
+  if (subcategory) parts.push(subcategory);
+  if (subsubcategory) parts.push(subsubcategory);
+  
+  const path = '/' + parts.join('/');
+  return getCollectionContent(path);
 }

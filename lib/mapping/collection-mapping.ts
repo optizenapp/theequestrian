@@ -10,6 +10,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as csv from 'csv-parse/sync';
+import { getCategoryContent } from '@/lib/content/collections';
 
 interface MappingRow {
   top_level: string;
@@ -263,6 +264,20 @@ export function getCollectionTitle(
   subcategory?: string,
   subsubcategory?: string
 ): string {
+  // 1. Try Content CSV first (Master Source for labels)
+  try {
+    const content = getCategoryContent(category, subcategory, subsubcategory);
+    if (content) {
+      // Prefer breadcrumb label, then h1_title
+      if (content.breadcrumb_label) return content.breadcrumb_label;
+      if (content.h1_title) return content.h1_title;
+    }
+  } catch (e) {
+    // Ignore errors and fall back to mapping
+    console.warn('Error fetching content for title:', e);
+  }
+
+  // 2. Fallback to Mapping CSV
   const mapping = loadMapping();
   
   const pathParts = [category];

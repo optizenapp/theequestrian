@@ -2,7 +2,7 @@ import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { getProductsByTypes } from '@/lib/shopify/products';
 import { getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
-// import { getCollectionContent } from '@/lib/content/collections'; // Removed for now as we transition to CSV content
+import { getCategoryContent } from '@/lib/content/collections';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { generateCollectionStructuredData } from '@/lib/structured-data/collection';
 import { 
@@ -144,11 +144,16 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   // Get subcategories from our mapping
   const subcategories = getMappingSubcategories(category);
 
-  // Get collection title from mapping
-  const collectionTitle = getCollectionTitle(category);
+  // Get collection title from mapping (Fallback)
+  const mappingTitle = getCollectionTitle(category);
   const breadcrumbs = getCollectionHierarchy(category);
-  // Placeholder content until CSV implementation
-  const content = { description: '' }; 
+  
+  // Get rich content from CSV
+  const content = getCategoryContent(category);
+  
+  // Use CSV content if available, otherwise fallback to mapping
+  const pageTitle = content?.h1_title || mappingTitle;
+  const description = content?.short_description || '';
   
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
 
@@ -166,7 +171,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
       {
         "@type": "ListItem",
         "position": 2,
-        "name": collectionTitle,
+        "name": pageTitle,
         "item": `${siteUrl}/${category}`
       }
     ]
@@ -174,9 +179,9 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
   // Build CollectionPage structured data with hasOfferCatalog
   const collectionSchema = generateCollectionStructuredData(
-    collectionTitle,
+    pageTitle,
     `${siteUrl}/${category}`,
-    `Shop ${collectionTitle} products at The Equestrian`,
+    content?.meta_description || `Shop ${pageTitle} products at The Equestrian`,
     undefined,
     filteredProducts,
     undefined
@@ -208,11 +213,11 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
         {/* Collection Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-6">{collectionTitle}</h1>
+          <h1 className="text-4xl font-bold mb-6">{pageTitle}</h1>
           
           {/* Collection Description */}
           <CollectionDescription 
-            description={content.description}
+            description={description}
           />
           
           {/* Subcategories as Pills */}
@@ -245,11 +250,19 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
  */
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
   const { category } = await params;
-  const collectionTitle = getCollectionTitle(category);
+  const content = getCategoryContent(category);
+  const mappingTitle = getCollectionTitle(category);
+
+  if (content) {
+    return {
+      title: content.meta_title,
+      description: content.meta_description,
+    };
+  }
 
   return {
-    title: `${collectionTitle} | The Equestrian`,
-    description: `Shop ${collectionTitle} products at The Equestrian. Quality equestrian supplies and equipment.`,
+    title: `${mappingTitle} | The Equestrian`,
+    description: `Shop ${mappingTitle} products at The Equestrian. Quality equestrian supplies and equipment.`,
   };
 }
 

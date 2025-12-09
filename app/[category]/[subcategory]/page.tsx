@@ -13,6 +13,7 @@ import { TrustSignals } from '@/components/TrustSignals';
 import { CategoryPills } from '@/components/CategoryPills';
 import { CollectionDescription } from '@/components/CollectionDescription';
 import { CollectionBreadcrumbs } from '@/components/CollectionBreadcrumbs';
+import { getCategoryContent } from '@/lib/content/collections';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
@@ -49,8 +50,15 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
   const subSubcategories = getMappingSubcategories(category, subcategory);
   
   // Get collection data
-  const collectionTitle = getCollectionTitle(category, subcategory);
+  const mappingTitle = getCollectionTitle(category, subcategory);
   const breadcrumbs = getCollectionHierarchy(category, subcategory);
+  
+  // Get rich content from CSV
+  const content = getCategoryContent(category, subcategory);
+  
+  // Use CSV content if available, otherwise fallback to mapping
+  const pageTitle = content?.h1_title || mappingTitle;
+  const description = content?.short_description || '';
   
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
 
@@ -76,9 +84,9 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
 
   // Build CollectionPage structured data
   const collectionSchema = generateCollectionStructuredData(
-    collectionTitle,
+    pageTitle,
     `${siteUrl}/${category}/${subcategory}`,
-    `Shop ${collectionTitle} products at The Equestrian`,
+    content?.meta_description || `Shop ${pageTitle} products at The Equestrian`,
     undefined,
     filteredProducts
   );
@@ -109,10 +117,10 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
 
         {/* Collection Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-6">{collectionTitle}</h1>
+          <h1 className="text-4xl font-bold mb-6">{pageTitle}</h1>
           
           <CollectionDescription 
-            description="<p>Browse our selection of products...</p>"
+            description={description}
           />
           
           {/* Sub-subcategories as Pills (3rd level) */}
@@ -146,11 +154,19 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
  */
 export async function generateMetadata({ params }: SubcategoryPageProps): Promise<Metadata> {
   const { category, subcategory } = await params;
-  const collectionTitle = getCollectionTitle(category, subcategory);
+  const content = getCategoryContent(category, subcategory);
+  const mappingTitle = getCollectionTitle(category, subcategory);
+
+  if (content) {
+    return {
+      title: content.meta_title,
+      description: content.meta_description,
+    };
+  }
 
   return {
-    title: `${collectionTitle} | The Equestrian`,
-    description: `Shop ${collectionTitle} products at The Equestrian. Quality equestrian supplies and equipment.`,
+    title: `${mappingTitle} | The Equestrian`,
+    description: `Shop ${mappingTitle} products at The Equestrian. Quality equestrian supplies and equipment.`,
   };
 }
 

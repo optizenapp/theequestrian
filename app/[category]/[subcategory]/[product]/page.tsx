@@ -11,6 +11,7 @@ import {
 import { TrustSignals } from '@/components/TrustSignals';
 import { CollectionDescription } from '@/components/CollectionDescription';
 import { CollectionBreadcrumbs } from '@/components/CollectionBreadcrumbs';
+import { getCategoryContent } from '@/lib/content/collections';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
@@ -68,9 +69,16 @@ async function renderSubSubcategoryPage(category: string, subcategory: string, s
   // Fetch products with pagination (36 per page)
   const { products: filteredProducts, pageInfo } = await getProductsByTypes(allowedProductTypes, 36, afterCursor);
 
-  // Get collection titles from mapping
-  const collectionTitle = getCollectionTitle(category, subcategory, subsubcategory);
+  // Get collection titles and content
+  const mappingTitle = getCollectionTitle(category, subcategory, subsubcategory);
   const breadcrumbs = getCollectionHierarchy(category, subcategory, subsubcategory);
+  
+  // Get rich content from CSV
+  const content = getCategoryContent(category, subcategory, subsubcategory);
+  
+  // Use CSV content if available, otherwise fallback to mapping
+  const pageTitle = content?.h1_title || mappingTitle;
+  const description = content?.short_description || '';
   
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
 
@@ -96,9 +104,9 @@ async function renderSubSubcategoryPage(category: string, subcategory: string, s
 
   // Build CollectionPage structured data
   const collectionSchema = generateCollectionStructuredData(
-    collectionTitle,
+    pageTitle,
     `${siteUrl}/${category}/${subcategory}/${subsubcategory}`,
-    `Shop ${collectionTitle} products at The Equestrian`,
+    content?.meta_description || `Shop ${pageTitle} products at The Equestrian`,
     undefined,
     filteredProducts,
     { name: subcategory, url: `${siteUrl}/${category}/${subcategory}` }
@@ -130,11 +138,11 @@ async function renderSubSubcategoryPage(category: string, subcategory: string, s
 
         {/* Collection Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-6">{collectionTitle}</h1>
+          <h1 className="text-4xl font-bold mb-6">{pageTitle}</h1>
           
           {/* Collection Description */}
           <CollectionDescription 
-            description="<p>Browse our extensive range of products in this category. Quality and performance guaranteed.</p>"
+            description={description}
           />
           
           <p className="text-base text-gray-600">
@@ -168,6 +176,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   
   if (allowedProductTypes.length > 0) {
     const collectionTitle = getCollectionTitle(category, subcategory, thirdSegment);
+    const content = getCategoryContent(category, subcategory, thirdSegment);
+
+    if (content) {
+      return {
+        title: content.meta_title,
+        description: content.meta_description,
+      };
+    }
+
     return {
       title: `${collectionTitle} | The Equestrian`,
       description: `Shop ${collectionTitle} products at The Equestrian. Quality equestrian supplies and equipment.`,
