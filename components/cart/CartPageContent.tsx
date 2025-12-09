@@ -204,9 +204,9 @@ export function CartPageContent({ recommendedProducts = [] }: CartPageContentPro
                   
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {recommendedProducts.slice(0, 3).map((product) => {
-                      // Skip if already in cart
-                      const isInCart = cart.lines.edges.some(line => line.node.merchandise.product?.id === product.id);
-                      if (isInCart) return null;
+// Skip if already in cart
+const isInCart = cart.lines.edges.some(line => line.node.merchandise.product?.handle === product.handle);
+if (isInCart) return null;
 
                       const image = product.images.edges[0]?.node;
                       const price = parseFloat(product.priceRange.minVariantPrice.amount);

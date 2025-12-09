@@ -2,7 +2,7 @@ import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { getProductsByTypes } from '@/lib/shopify/products';
 import { getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
-import { getCollectionContent } from '@/lib/content/collections';
+// import { getCollectionContent } from '@/lib/content/collections'; // Removed for now as we transition to CSV content
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { generateCollectionStructuredData } from '@/lib/structured-data/collection';
 import { 
@@ -147,7 +147,8 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   // Get collection title from mapping
   const collectionTitle = getCollectionTitle(category);
   const breadcrumbs = getCollectionHierarchy(category);
-  const content = getCollectionContent(category);
+  // Placeholder content until CSV implementation
+  const content = { description: '' }; 
   
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
 

@@ -63,7 +63,7 @@ export async function getAllProducts(): Promise<ProductWithPrimaryCollection[]> 
     let pageCount = 0;
 
     while (hasNextPage) {
-      const data = await shopifyFetch<ProductsResponse>({
+      const data: ProductsResponse = await shopifyFetch<ProductsResponse>({
         query: GET_ALL_PRODUCTS,
         variables: { first: 250, after: cursor },
       });
