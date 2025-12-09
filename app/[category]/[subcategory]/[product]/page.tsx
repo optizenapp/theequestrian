@@ -6,9 +6,11 @@ import { generateCollectionStructuredData } from '@/lib/structured-data/collecti
 import { 
   getProductTypesForCollection, 
   getCollectionTitle,
-  getCollectionHierarchy
+  getCollectionHierarchy,
+  getSubcategoriesForCollection as getMappingSubcategories
 } from '@/lib/mapping/collection-mapping';
 import { TrustSignals } from '@/components/TrustSignals';
+import { CategoryPills } from '@/components/CategoryPills';
 import { CollectionDescription } from '@/components/CollectionDescription';
 import { CollectionBreadcrumbs } from '@/components/CollectionBreadcrumbs';
 import { getCategoryContent } from '@/lib/content/collections';
@@ -68,6 +70,10 @@ async function renderSubSubcategoryPage(category: string, subcategory: string, s
   
   // Fetch products with pagination (36 per page)
   const { products: filteredProducts, pageInfo } = await getProductsByTypes(allowedProductTypes, 36, afterCursor);
+
+  // Get sibling sub-subcategories (for pills)
+  const allSubSubcategories = getMappingSubcategories(category, subcategory);
+  const siblingSubSubcategories = allSubSubcategories.filter(s => s.handle !== subsubcategory);
 
   // Get collection titles and content
   const mappingTitle = getCollectionTitle(category, subcategory, subsubcategory);
@@ -144,6 +150,14 @@ async function renderSubSubcategoryPage(category: string, subcategory: string, s
           <CollectionDescription 
             description={description}
           />
+          
+          {/* Sibling Sub-subcategories Pills */}
+          {siblingSubSubcategories.length > 0 && (
+            <CategoryPills 
+              categories={siblingSubSubcategories.map(s => ({ handle: s.handle, label: s.label }))}
+              basePath={`/${category}/${subcategory}`}
+            />
+          )}
           
           <p className="text-base text-gray-600">
             {filteredProducts.length} products
