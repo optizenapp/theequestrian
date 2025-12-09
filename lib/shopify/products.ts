@@ -1,4 +1,5 @@
 import { shopifyFetch } from './client';
+import { shopifyAdminFetch } from './admin-client';
 import { GET_PRODUCT_BY_HANDLE, GET_ALL_PRODUCTS, GET_PRODUCTS_BY_QUERY } from './queries';
 import type { ShopifyProduct, ProductWithPrimaryCollection } from '@/types/shopify';
 
@@ -14,6 +15,20 @@ interface ProductsResponse {
     pageInfo: {
       hasNextPage: boolean;
       hasPreviousPage: boolean;
+      endCursor: string | null;
+    };
+  };
+}
+
+interface ProductCountResponse {
+  products: {
+    edges: Array<{
+      node: {
+        id: string;
+      };
+    }>;
+    pageInfo: {
+      hasNextPage: boolean;
       endCursor: string | null;
     };
   };
@@ -189,5 +204,76 @@ export function verifyProductCollectionPath(
   } else {
     // Verify just category matches
     return pathParts[0] === categoryHandle;
+  }
+}
+
+/**
+ * Get total count of products matching the given product types
+ * Uses Admin API for accurate counts
+ */
+export async function getProductCountByTypes(productTypes: string[]): Promise<number> {
+  if (productTypes.length === 0) {
+    return 0;
+  }
+
+  try {
+    // Build query string for Admin API
+    const queryParts = productTypes.map(type => `product_type:"${type}"`);
+    const query = queryParts.join(' OR ');
+
+    console.log(`[getProductCountByTypes] Counting products for types:`, productTypes.slice(0, 5));
+
+    // Use Admin API to count (it's more efficient for counts)
+    const ADMIN_COUNT_QUERY = `
+      query CountProducts($query: String!) {
+        products(first: 1, query: $query) {
+          edges {
+            node {
+              id
+            }
+          }
+        }
+      }
+    `;
+
+    // Unfortunately, Shopify doesn't provide a direct count field
+    // We need to paginate through all results to get accurate count
+    let totalCount = 0;
+    let hasNextPage = true;
+    let cursor: string | null = null;
+    let pageCount = 0;
+    const maxPages = 100; // Safety limit
+
+    while (hasNextPage && pageCount < maxPages) {
+      const data: ProductCountResponse = await shopifyAdminFetch<ProductCountResponse>({
+        query: `
+          query CountProducts($query: String!, $first: Int!, $after: String) {
+            products(first: $first, after: $after, query: $query) {
+              edges {
+                node {
+                  id
+                }
+              }
+              pageInfo {
+                hasNextPage
+                endCursor
+              }
+            }
+          }
+        `,
+        variables: { query, first: 250, after: cursor },
+      });
+
+      totalCount += data.products.edges.length;
+      hasNextPage = data.products.pageInfo.hasNextPage;
+      cursor = data.products.pageInfo.endCursor;
+      pageCount++;
+    }
+
+    console.log(`[getProductCountByTypes] ✅ Total count: ${totalCount}`);
+    return totalCount;
+  } catch (error) {
+    console.error('[getProductCountByTypes] Error:', error);
+    return 0;
   }
 }

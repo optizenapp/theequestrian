@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
-import { getProductsByTypes, getProductByHandle } from '@/lib/shopify/products';
+import { getProductsByTypes, getProductByHandle, getProductCountByTypes } from '@/lib/shopify/products';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { generateCollectionStructuredData } from '@/lib/structured-data/collection';
 import { 
@@ -13,6 +13,9 @@ import { TrustSignals } from '@/components/TrustSignals';
 import { CategoryPills } from '@/components/CategoryPills';
 import { CollectionDescription } from '@/components/CollectionDescription';
 import { CollectionBreadcrumbs } from '@/components/CollectionBreadcrumbs';
+import { FAQSection } from '@/components/collection/FAQSection';
+import { RelatedCategories } from '@/components/collection/RelatedCategories';
+import { RichContent } from '@/components/collection/RichContent';
 import { getCategoryContent } from '@/lib/content/collections';
 import Link from 'next/link';
 import type { Metadata } from 'next';
@@ -70,6 +73,9 @@ async function renderSubSubcategoryPage(category: string, subcategory: string, s
   
   // Fetch products with pagination (36 per page)
   const { products: filteredProducts, pageInfo } = await getProductsByTypes(allowedProductTypes, 36, afterCursor);
+
+  // Get total product count
+  const totalProductCount = await getProductCountByTypes(allowedProductTypes);
 
   // Get sibling sub-subcategories (for pills)
   const allSubSubcategories = getMappingSubcategories(category, subcategory);
@@ -158,10 +164,6 @@ async function renderSubSubcategoryPage(category: string, subcategory: string, s
               basePath={`/${category}/${subcategory}`}
             />
           )}
-          
-          <p className="text-base text-gray-600">
-            {filteredProducts.length} products
-          </p>
         </div>
 
         {/* Products Grid with Filters */}
@@ -171,8 +173,29 @@ async function renderSubSubcategoryPage(category: string, subcategory: string, s
             currentCategory={category}
             currentSubcategory={subcategory}
             pageInfo={pageInfo}
+            totalCount={totalProductCount}
           />
         </Suspense>
+
+        {/* Long Description (Rich Content) */}
+        {content?.long_description && (
+          <RichContent html={content.long_description} />
+        )}
+
+        {/* FAQ Section */}
+        {content?.faq_items && content.faq_items.length > 0 && (
+          <FAQSection 
+            faqs={content.faq_items}
+            categoryTitle={pageTitle}
+          />
+        )}
+
+        {/* Related Categories */}
+        {content?.related_categories && content.related_categories.length > 0 && (
+          <RelatedCategories 
+            categories={content.related_categories}
+          />
+        )}
       </div>
     </div>
     </>
@@ -184,6 +207,7 @@ async function renderSubSubcategoryPage(category: string, subcategory: string, s
  */
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { category, subcategory, product: thirdSegment } = await params;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
   
   // Check if it's a collection
   const allowedProductTypes = getProductTypesForCollection(category, subcategory, thirdSegment);
@@ -191,17 +215,38 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (allowedProductTypes.length > 0) {
     const collectionTitle = getCollectionTitle(category, subcategory, thirdSegment);
     const content = getCategoryContent(category, subcategory, thirdSegment);
+    const canonicalUrl = `${siteUrl}/${category}/${subcategory}/${thirdSegment}`;
 
-    if (content) {
-      return {
-        title: content.meta_title,
-        description: content.meta_description,
-      };
-    }
+    const title = content?.meta_title || `${collectionTitle} | The Equestrian`;
+    const description = content?.meta_description || `Shop ${collectionTitle} products at The Equestrian. Quality equestrian supplies and equipment.`;
 
     return {
-      title: `${collectionTitle} | The Equestrian`,
-      description: `Shop ${collectionTitle} products at The Equestrian. Quality equestrian supplies and equipment.`,
+      title,
+      description,
+      alternates: {
+        canonical: canonicalUrl,
+      },
+      openGraph: {
+        title,
+        description,
+        url: canonicalUrl,
+        siteName: 'The Equestrian',
+        type: 'website',
+        images: [
+          {
+            url: `${siteUrl}/og-image.jpg`,
+            width: 1200,
+            height: 630,
+            alt: title,
+          },
+        ],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: [`${siteUrl}/og-image.jpg`],
+      },
     };
   }
 

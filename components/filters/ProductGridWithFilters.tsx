@@ -39,6 +39,7 @@ interface ProductGridWithFiltersProps {
     hasNextPage: boolean;
     endCursor: string | null;
   };
+  totalCount?: number;
 }
 
 export function ProductGridWithFilters({
@@ -46,6 +47,7 @@ export function ProductGridWithFilters({
   currentCategory,
   currentSubcategory,
   pageInfo,
+  totalCount,
 }: ProductGridWithFiltersProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -110,6 +112,15 @@ export function ProductGridWithFilters({
       <div className="flex gap-8">
         {/* Sidebar Filters - Desktop */}
         <aside className="hidden lg:block w-64 flex-shrink-0">
+          {/* Total Products Count */}
+          {totalCount !== undefined && (
+            <div className="mb-4 pb-4 border-b border-gray-200">
+              <p className="text-sm font-medium text-gray-900">
+                Total Products: <span className="text-lg font-bold">{totalCount}</span>
+              </p>
+            </div>
+          )}
+          
           <FilterSidebar
             currentCategory={currentCategory}
             sizeOptions={sizeOptions}
@@ -141,7 +152,8 @@ export function ProductGridWithFilters({
           {/* Results count */}
           <div className="mb-6">
             <p className="text-gray-600">
-              Showing {filteredProducts.length} products
+              Showing {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'} on this page
+              {pageInfo?.hasNextPage && <span className="text-gray-500"> (more available)</span>}
             </p>
           </div>
 

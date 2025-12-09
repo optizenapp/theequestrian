@@ -166,8 +166,10 @@ export function getSubcategoriesForCollection(
         if (existing) {
           existing.count += rows.length;
         } else {
-          // Use the first row's product_type as label
-          const label = rows[0]?.product_type || nextLevel;
+          // Use getCollectionTitle to get the proper H1 from collection-content.csv
+          const label = subcategory 
+            ? getCollectionTitle(category, subcategory, nextLevel)
+            : getCollectionTitle(category, nextLevel);
           subcategories.set(nextLevel, { label, count: rows.length });
         }
       }

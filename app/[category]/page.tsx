@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
-import { getProductsByTypes } from '@/lib/shopify/products';
+import { getProductsByTypes, getProductCountByTypes } from '@/lib/shopify/products';
 import { getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
 import { getCategoryContent } from '@/lib/content/collections';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
@@ -15,6 +15,9 @@ import { TrustSignals } from '@/components/TrustSignals';
 import { CategoryPills } from '@/components/CategoryPills';
 import { CollectionDescription } from '@/components/CollectionDescription';
 import { CollectionBreadcrumbs } from '@/components/CollectionBreadcrumbs';
+import { FAQSection } from '@/components/collection/FAQSection';
+import { RelatedCategories } from '@/components/collection/RelatedCategories';
+import { RichContent } from '@/components/collection/RichContent';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
@@ -141,6 +144,9 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   // Fetch products with pagination (36 per page)
   const { products: filteredProducts, pageInfo } = await getProductsByTypes(allowedProductTypes, 36, afterCursor);
 
+  // Get total product count
+  const totalProductCount = await getProductCountByTypes(allowedProductTypes);
+
   // Get subcategories from our mapping
   const subcategories = getMappingSubcategories(category);
 
@@ -215,7 +221,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-6">{pageTitle}</h1>
           
-          {/* Collection Description */}
+          {/* Short Description */}
           <CollectionDescription 
             description={description}
           />
@@ -225,10 +231,6 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             categories={subcategories.map(s => ({ handle: s.handle, label: s.label }))}
             basePath={`/${category}`}
           />
-          
-          <p className="text-base text-gray-600">
-            {filteredProducts.length} products
-          </p>
         </div>
 
         {/* Products Grid with Filters */}
@@ -237,8 +239,29 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             products={filteredProducts}
             currentCategory={category}
             pageInfo={pageInfo}
+            totalCount={totalProductCount}
           />
         </Suspense>
+
+        {/* Long Description (Rich Content) */}
+        {content?.long_description && (
+          <RichContent html={content.long_description} />
+        )}
+
+        {/* FAQ Section */}
+        {content?.faq_items && content.faq_items.length > 0 && (
+          <FAQSection 
+            faqs={content.faq_items}
+            categoryTitle={pageTitle}
+          />
+        )}
+
+        {/* Related Categories */}
+        {content?.related_categories && content.related_categories.length > 0 && (
+          <RelatedCategories 
+            categories={content.related_categories}
+          />
+        )}
       </div>
     </div>
     </>
@@ -252,17 +275,39 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   const { category } = await params;
   const content = getCategoryContent(category);
   const mappingTitle = getCollectionTitle(category);
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
+  const canonicalUrl = `${siteUrl}/${category}`;
 
-  if (content) {
-    return {
-      title: content.meta_title,
-      description: content.meta_description,
-    };
-  }
+  const title = content?.meta_title || `${mappingTitle} | The Equestrian`;
+  const description = content?.meta_description || `Shop ${mappingTitle} products at The Equestrian. Quality equestrian supplies and equipment.`;
 
   return {
-    title: `${mappingTitle} | The Equestrian`,
-    description: `Shop ${mappingTitle} products at The Equestrian. Quality equestrian supplies and equipment.`,
+    title,
+    description,
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      title,
+      description,
+      url: canonicalUrl,
+      siteName: 'The Equestrian',
+      type: 'website',
+      images: [
+        {
+          url: `${siteUrl}/og-image.jpg`,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [`${siteUrl}/og-image.jpg`],
+    },
   };
 }
 

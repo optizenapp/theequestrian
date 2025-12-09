@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
-import { getProductsByTypes } from '@/lib/shopify/products';
+import { getProductsByTypes, getProductCountByTypes } from '@/lib/shopify/products';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { generateCollectionStructuredData } from '@/lib/structured-data/collection';
 import { 
@@ -13,6 +13,9 @@ import { TrustSignals } from '@/components/TrustSignals';
 import { CategoryPills } from '@/components/CategoryPills';
 import { CollectionDescription } from '@/components/CollectionDescription';
 import { CollectionBreadcrumbs } from '@/components/CollectionBreadcrumbs';
+import { FAQSection } from '@/components/collection/FAQSection';
+import { RelatedCategories } from '@/components/collection/RelatedCategories';
+import { RichContent } from '@/components/collection/RichContent';
 import { getCategoryContent } from '@/lib/content/collections';
 import Link from 'next/link';
 import type { Metadata } from 'next';
@@ -45,6 +48,9 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
 
   // Fetch products with pagination (36 per page)
   const { products: filteredProducts, pageInfo } = await getProductsByTypes(allowedProductTypes, 36, afterCursor);
+
+  // Get total product count
+  const totalProductCount = await getProductCountByTypes(allowedProductTypes);
 
   // Get sub-subcategories from our mapping (third level)
   const subSubcategories = getMappingSubcategories(category, subcategory);
@@ -128,10 +134,6 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
             categories={subSubcategories.map(s => ({ handle: s.handle, label: s.label }))}
             basePath={`/${category}/${subcategory}`}
           />
-          
-          <p className="text-base text-gray-600">
-            {filteredProducts.length} products
-          </p>
         </div>
 
         {/* Products Grid with Filters */}
@@ -141,8 +143,29 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
             currentCategory={category}
             currentSubcategory={subcategory}
             pageInfo={pageInfo}
+            totalCount={totalProductCount}
           />
         </Suspense>
+
+        {/* Long Description (Rich Content) */}
+        {content?.long_description && (
+          <RichContent html={content.long_description} />
+        )}
+
+        {/* FAQ Section */}
+        {content?.faq_items && content.faq_items.length > 0 && (
+          <FAQSection 
+            faqs={content.faq_items}
+            categoryTitle={pageTitle}
+          />
+        )}
+
+        {/* Related Categories */}
+        {content?.related_categories && content.related_categories.length > 0 && (
+          <RelatedCategories 
+            categories={content.related_categories}
+          />
+        )}
       </div>
     </div>
     </>
@@ -156,17 +179,39 @@ export async function generateMetadata({ params }: SubcategoryPageProps): Promis
   const { category, subcategory } = await params;
   const content = getCategoryContent(category, subcategory);
   const mappingTitle = getCollectionTitle(category, subcategory);
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
+  const canonicalUrl = `${siteUrl}/${category}/${subcategory}`;
 
-  if (content) {
-    return {
-      title: content.meta_title,
-      description: content.meta_description,
-    };
-  }
+  const title = content?.meta_title || `${mappingTitle} | The Equestrian`;
+  const description = content?.meta_description || `Shop ${mappingTitle} products at The Equestrian. Quality equestrian supplies and equipment.`;
 
   return {
-    title: `${mappingTitle} | The Equestrian`,
-    description: `Shop ${mappingTitle} products at The Equestrian. Quality equestrian supplies and equipment.`,
+    title,
+    description,
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      title,
+      description,
+      url: canonicalUrl,
+      siteName: 'The Equestrian',
+      type: 'website',
+      images: [
+        {
+          url: `${siteUrl}/og-image.jpg`,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [`${siteUrl}/og-image.jpg`],
+    },
   };
 }
 

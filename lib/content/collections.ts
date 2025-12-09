@@ -9,19 +9,31 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as csv from 'csv-parse/sync';
 
+export interface FAQItem {
+  question: string;
+  answer: string;
+}
+
+export interface RelatedCategory {
+  url: string;
+  title: string;
+  description?: string;
+}
+
 export interface CollectionContent {
   url_path: string;
   h1_title: string;
   meta_title: string;
   meta_description: string;
   short_description: string;
+  long_description: string;
   breadcrumb_label: string;
   parent_url: string;
   category_level: number;
   status: string;
   default_sort: string;
-  faq_json: Array<{ q: string; a: string }>;
-  related_categories_json: Array<{ label: string; url: string; image?: string }>;
+  faq_items: FAQItem[];
+  related_categories: RelatedCategory[];
 }
 
 // Interface for raw CSV row
@@ -31,6 +43,7 @@ interface CsvRow {
   meta_title: string;
   meta_description: string;
   short_description: string;
+  long_description: string;
   breadcrumb_label: string;
   parent_url: string;
   category_level: string; // CSV reads as string
@@ -86,13 +99,14 @@ function loadContent(): Map<string, CollectionContent> {
         meta_title: row.meta_title,
         meta_description: row.meta_description,
         short_description: row.short_description,
+        long_description: row.long_description || '',
         breadcrumb_label: row.breadcrumb_label,
         parent_url: row.parent_url,
         category_level: parseInt(row.category_level, 10) || 1,
         status: row.status,
         default_sort: row.default_sort,
-        faq_json: faq,
-        related_categories_json: related,
+        faq_items: faq,
+        related_categories: related,
       });
     }
 
