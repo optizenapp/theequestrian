@@ -7,7 +7,7 @@
  * and displays filtered products
  */
 
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { applyFilters } from '@/lib/filters/product-filters';
@@ -35,20 +35,28 @@ interface ProductGridWithFiltersProps {
   products: ShopifyProduct[];
   currentCategory: string;
   currentSubcategory?: string;
+  pageInfo?: {
+    hasNextPage: boolean;
+    endCursor: string | null;
+  };
 }
 
 export function ProductGridWithFilters({
   products,
   currentCategory,
   currentSubcategory,
+  pageInfo,
 }: ProductGridWithFiltersProps) {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   // Get filters from URL params
   const filters = useMemo(() => getFiltersFromSearchParams(searchParams), [searchParams]);
 
   // Apply filters to products
+  // Note: Client-side filtering is applied to the CURRENT page of products fetched from server
+  // Ideally, filtering should also move to server-side for full efficiency
   const filteredProducts = useMemo(() => applyFilters(products, filters), [products, filters]);
 
   // Extract filter options from products
@@ -63,6 +71,25 @@ export function ProductGridWithFilters({
       saveFilterPreferences(filters);
     }
   }, [filters]);
+
+  const handleNextPage = () => {
+    if (pageInfo?.endCursor) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('cursor', pageInfo.endCursor);
+      router.push(`?${params.toString()}`);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    // Remove cursor to go back to first page
+    // In a more sophisticated implementation, you'd track cursor history
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('cursor');
+    const queryString = params.toString();
+    router.push(queryString ? `?${queryString}` : window.location.pathname);
+  };
+
+  const currentCursor = searchParams.get('cursor');
 
   return (
     <div>
@@ -114,7 +141,7 @@ export function ProductGridWithFilters({
           {/* Results count */}
           <div className="mb-6">
             <p className="text-gray-600">
-              Showing {filteredProducts.length} of {products.length} products
+              Showing {filteredProducts.length} products
             </p>
           </div>
 
@@ -133,52 +160,76 @@ export function ProductGridWithFilters({
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredProducts.map((product) => (
-                <Link
-                  key={product.id}
-                  href={`/products/${product.handle}`}
-                  className="group border rounded-lg p-4 hover:shadow-lg transition-shadow"
-                >
-                  {/* Product Image */}
-                  {product.images.edges.length > 0 && (
-                    <div className="aspect-square overflow-hidden rounded-md mb-4 bg-gray-100">
-                      <img
-                        src={product.images.edges[0].node.url}
-                        alt={product.images.edges[0].node.altText || product.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                      />
-                    </div>
-                  )}
-
-                  {/* Product Info */}
-                  <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
-                    {product.title}
-                  </h3>
-
-                  {/* Price */}
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-lg font-bold text-gray-900">
-                      {product.priceRange.minVariantPrice.currencyCode}{' '}
-                      {parseFloat(product.priceRange.minVariantPrice.amount).toFixed(2)}
-                    </span>
-                    {(product as any).compareAtPriceRange && 
-                     parseFloat((product as any).compareAtPriceRange.minVariantPrice.amount) > 
-                     parseFloat(product.priceRange.minVariantPrice.amount) && (
-                      <span className="text-sm text-gray-500 line-through">
-                        {(product as any).compareAtPriceRange.minVariantPrice.currencyCode}{' '}
-                        {parseFloat((product as any).compareAtPriceRange.minVariantPrice.amount).toFixed(2)}
-                      </span>
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredProducts.map((product) => (
+                  <Link
+                    key={product.id}
+                    href={`/products/${product.handle}`}
+                    className="group border rounded-lg p-4 hover:shadow-lg transition-shadow"
+                  >
+                    {/* Product Image */}
+                    {product.images.edges.length > 0 && (
+                      <div className="aspect-square overflow-hidden rounded-md mb-4 bg-gray-100">
+                        <img
+                          src={product.images.edges[0].node.url}
+                          alt={product.images.edges[0].node.altText || product.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                      </div>
                     )}
-                  </div>
 
-                  {/* Availability */}
-                  {!product.availableForSale && (
-                    <span className="text-sm text-red-600 mt-2 block">Out of Stock</span>
+                    {/* Product Info */}
+                    <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
+                      {product.title}
+                    </h3>
+
+                    {/* Price */}
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-lg font-bold text-gray-900">
+                        {product.priceRange.minVariantPrice.currencyCode}{' '}
+                        {parseFloat(product.priceRange.minVariantPrice.amount).toFixed(2)}
+                      </span>
+                      {(product as any).compareAtPriceRange && 
+                       parseFloat((product as any).compareAtPriceRange.minVariantPrice.amount) > 
+                       parseFloat(product.priceRange.minVariantPrice.amount) && (
+                        <span className="text-sm text-gray-500 line-through">
+                          {(product as any).compareAtPriceRange.minVariantPrice.currencyCode}{' '}
+                          {parseFloat((product as any).compareAtPriceRange.minVariantPrice.amount).toFixed(2)}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Availability */}
+                    {!product.availableForSale && (
+                      <span className="text-sm text-red-600 mt-2 block">Out of Stock</span>
+                    )}
+                  </Link>
+                ))}
+              </div>
+
+              {/* Pagination Controls */}
+              {(currentCursor || pageInfo?.hasNextPage) && (
+                <div className="mt-8 flex justify-center gap-4">
+                  {currentCursor && (
+                    <button
+                      onClick={handlePreviousPage}
+                      className="px-6 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 font-medium hover:bg-gray-50 transition-colors"
+                    >
+                      &larr; Previous Page
+                    </button>
                   )}
-                </Link>
-              ))}
-            </div>
+                  {pageInfo?.hasNextPage && (
+                    <button
+                      onClick={handleNextPage}
+                      className="px-6 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 font-medium hover:bg-gray-50 transition-colors"
+                    >
+                      Next Page &rarr;
+                    </button>
+                  )}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

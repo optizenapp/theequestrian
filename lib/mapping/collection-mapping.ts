@@ -221,7 +221,7 @@ export function filterProductsByCollection<T extends { productType?: string | nu
 }
 
 /**
- * Get the collection hierarchy for breadcrumbs
+ * Get the collection hierarchy for breadcrumbs with proper labels from mapping
  */
 export function getCollectionHierarchy(
   category: string,
@@ -230,24 +230,24 @@ export function getCollectionHierarchy(
 ): Array<{ label: string; href: string }> {
   const breadcrumbs: Array<{ label: string; href: string }> = [];
 
-  // Add category
+  // Add category with proper label
   breadcrumbs.push({
-    label: category.charAt(0).toUpperCase() + category.slice(1),
+    label: getCollectionTitle(category),
     href: `/${category}`,
   });
 
-  // Add subcategory
+  // Add subcategory with proper label
   if (subcategory) {
     breadcrumbs.push({
-      label: subcategory.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+      label: getCollectionTitle(category, subcategory),
       href: `/${category}/${subcategory}`,
     });
   }
 
-  // Add sub-subcategory
+  // Add sub-subcategory with proper label
   if (subsubcategory) {
     breadcrumbs.push({
-      label: subsubcategory.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+      label: getCollectionTitle(category, subcategory, subsubcategory),
       href: `/${category}/${subcategory}/${subsubcategory}`,
     });
   }
@@ -280,5 +280,63 @@ export function getCollectionTitle(
   // Fallback: generate from path
   const lastPart = subsubcategory || subcategory || category;
   return lastPart.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+
+/**
+ * Get all breadcrumb paths for a product based on its product type
+ * Returns all collection paths where this product type appears
+ * 
+ * @param productType - The Shopify product type
+ * @returns Array of breadcrumb paths (primary first, then additional paths)
+ */
+export function getBreadcrumbsForProduct(
+  productType: string
+): Array<Array<{ label: string; href: string }>> {
+  if (!productType || !productType.trim()) {
+    return [];
+  }
+
+  const mapping = loadMapping();
+  const normalizedProductType = productType.toLowerCase().trim();
+  const breadcrumbPaths: Array<Array<{ label: string; href: string }>> = [];
+
+  // Find all collection paths that include this product type
+  for (const [collectionPath, rows] of mapping.entries()) {
+    for (const row of rows) {
+      if (row.product_type && row.product_type.toLowerCase().trim() === normalizedProductType) {
+        // Build breadcrumb path for this collection
+        const pathParts = collectionPath.split('/');
+        const breadcrumbs: Array<{ label: string; href: string }> = [];
+
+        // Build breadcrumb for each level
+        for (let i = 0; i < pathParts.length; i++) {
+          const partialPath = pathParts.slice(0, i + 1);
+          const href = `/${partialPath.join('/')}`;
+          const label = getCollectionTitle(...partialPath as [string, string?, string?]);
+          
+          breadcrumbs.push({ label, href });
+        }
+
+        breadcrumbPaths.push(breadcrumbs);
+        break; // Only add this path once
+      }
+    }
+  }
+
+  // Sort by path length (most specific first, which becomes primary)
+  breadcrumbPaths.sort((a, b) => b.length - a.length);
+
+  return breadcrumbPaths;
+}
+
+/**
+ * Helper function to format URL slug to display name
+ * Fallback for when mapping doesn't have a proper name
+ */
+export function formatSlugToLabel(slug: string): string {
+  return slug
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 }
 

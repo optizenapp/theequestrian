@@ -169,8 +169,8 @@ export const GET_COLLECTION_BY_HANDLE = `
 `;
 
 export const GET_ALL_PRODUCTS = `
-  query GetAllProducts($first: Int = 100) {
-    products(first: $first) {
+  query GetAllProducts($first: Int = 100, $after: String) {
+    products(first: $first, after: $after) {
       edges {
         node {
           id
@@ -237,6 +237,82 @@ export const GET_ALL_PRODUCTS = `
       pageInfo {
         hasNextPage
         hasPreviousPage
+        endCursor
+      }
+    }
+  }
+`;
+
+export const GET_PRODUCTS_BY_QUERY = `
+  query GetProductsByQuery($query: String!, $first: Int = 250, $after: String) {
+    products(first: $first, after: $after, query: $query) {
+      edges {
+        node {
+          id
+          handle
+          title
+          availableForSale
+          productType
+          tags
+          priceRange {
+            minVariantPrice {
+              amount
+              currencyCode
+            }
+            maxVariantPrice {
+              amount
+              currencyCode
+            }
+          }
+          images(first: 1) {
+            edges {
+              node {
+                url
+                altText
+                width
+                height
+              }
+            }
+          }
+          variants(first: 50) {
+            edges {
+              node {
+                id
+                title
+                availableForSale
+                price {
+                  amount
+                  currencyCode
+                }
+                compareAtPrice {
+                  amount
+                  currencyCode
+                }
+                selectedOptions {
+                  name
+                  value
+                }
+              }
+            }
+          }
+          collections(first: 20) {
+            edges {
+              node {
+                id
+                handle
+                title
+              }
+            }
+          }
+          metafield(namespace: "custom", key: "primary_collection") {
+            value
+          }
+        }
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        endCursor
       }
     }
   }

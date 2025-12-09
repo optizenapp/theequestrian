@@ -5,37 +5,18 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { TrustSignals } from '@/components/TrustSignals';
 import { useState } from 'react';
-import { FaCcVisa, FaCcAmex, FaCcPaypal } from 'react-icons/fa';
+import { FaCcVisa, FaCcMastercard, FaCcPaypal } from 'react-icons/fa';
 import { SiAfterpay, SiShopify } from 'react-icons/si';
+import { ShopifyProduct } from '@/types/shopify';
 
-// Placeholder products for "Complete your cart"
-const recommendedProducts = [
-  {
-    id: 'rec1',
-    title: 'Premium Leather Care Kit',
-    price: 49.95,
-    image: 'https://images.unsplash.com/photo-1544082593-2b9845302954?auto=format&fit=crop&w=300&q=80',
-    rating: 4.8
-  },
-  {
-    id: 'rec2',
-    title: 'Equestrian Riding Socks',
-    price: 19.95,
-    image: 'https://images.unsplash.com/photo-1586363104862-3a5e2ab60d99?auto=format&fit=crop&w=300&q=80',
-    rating: 4.7
-  },
-  {
-    id: 'rec3',
-    title: 'Horse Treats - Apple Flavor',
-    price: 14.95,
-    image: 'https://images.unsplash.com/photo-1534361960057-19889db9621e?auto=format&fit=crop&w=300&q=80',
-    rating: 4.9
-  }
-];
+interface CartPageContentProps {
+  recommendedProducts?: ShopifyProduct[];
+}
 
-export function CartPageContent() {
-  const { cart, updateCartItem, removeCartItem } = useCart();
+export function CartPageContent({ recommendedProducts = [] }: CartPageContentProps) {
+  const { cart, addCartItem, updateCartItem, removeCartItem } = useCart();
   const [showAllRecommendations, setShowAllRecommendations] = useState(false);
+  const [addingToCartId, setAddingToCartId] = useState<string | null>(null);
 
   const itemCount = cart?.totalQuantity || 0;
   const subtotal = parseFloat(cart?.cost.subtotalAmount.amount || '0');
@@ -53,6 +34,21 @@ export function CartPageContent() {
   deliveryDateEnd.setDate(deliveryDateEnd.getDate() + 5);
   const deliveryOptions = { month: 'short', day: 'numeric' } as const;
   const deliveryString = `${deliveryDateStart.toLocaleDateString('en-US', deliveryOptions)} - ${deliveryDateEnd.toLocaleDateString('en-US', deliveryOptions)}`;
+
+  const handleAddRecommendation = async (product: ShopifyProduct) => {
+    // Get the first variant ID
+    const firstVariantId = product.variants.edges[0]?.node.id;
+    if (!firstVariantId) return;
+
+    setAddingToCartId(product.id);
+    try {
+      await addCartItem(firstVariantId, 1);
+    } catch (error) {
+      console.error('Failed to add recommendation to cart', error);
+    } finally {
+      setAddingToCartId(null);
+    }
+  };
 
   return (
     <div className="bg-gray-50 min-h-screen pb-12">
@@ -184,49 +180,70 @@ export function CartPageContent() {
               </div>
 
               {/* Complete Your Cart Section */}
-              <div className="pt-8 border-t border-gray-200">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-bold text-gray-900">Complete your cart:</h2>
-                  <div className="flex gap-2">
-                    <button 
-                      className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
-                      onClick={() => setShowAllRecommendations(false)}
-                      disabled={!showAllRecommendations}
-                    >
-                      <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-                    </button>
-                    <button 
-                      className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center hover:bg-gray-800 transition-colors"
-                      onClick={() => setShowAllRecommendations(true)}
-                      disabled={showAllRecommendations}
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {recommendedProducts.slice(0, 3).map((product) => (
-                    <div key={product.id} className="bg-white border border-gray-100 rounded-2xl p-4 hover:shadow-md transition-shadow group cursor-pointer">
-                      <div className="relative aspect-square mb-4 bg-gray-50 rounded-xl overflow-hidden">
-                         <Image
-                            src={product.image}
-                            alt={product.title}
-                            fill
-                            className="object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                      </div>
-                      <h3 className="font-semibold text-gray-900 text-sm mb-1 line-clamp-2">{product.title}</h3>
-                      <div className="flex justify-between items-center">
-                        <span className="font-bold text-sm">${product.price.toFixed(2)}</span>
-                      </div>
-                      <button className="w-full mt-3 bg-white border border-gray-300 text-gray-900 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition-colors">
-                        Add to cart
+              {recommendedProducts.length > 0 && (
+                <div className="pt-8 border-t border-gray-200">
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-xl font-bold text-gray-900">Complete your cart:</h2>
+                    <div className="flex gap-2">
+                      <button 
+                        className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+                        onClick={() => setShowAllRecommendations(false)}
+                        disabled={!showAllRecommendations}
+                      >
+                        <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                      </button>
+                      <button 
+                        className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center hover:bg-gray-800 transition-colors"
+                        onClick={() => setShowAllRecommendations(true)}
+                        disabled={showAllRecommendations}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                       </button>
                     </div>
-                  ))}
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {recommendedProducts.slice(0, 3).map((product) => {
+                      // Skip if already in cart
+                      const isInCart = cart.lines.edges.some(line => line.node.merchandise.product?.id === product.id);
+                      if (isInCart) return null;
+
+                      const image = product.images.edges[0]?.node;
+                      const price = parseFloat(product.priceRange.minVariantPrice.amount);
+                      
+                      return (
+                        <div key={product.id} className="bg-white border border-gray-100 rounded-2xl p-4 hover:shadow-md transition-shadow group cursor-pointer h-full flex flex-col">
+                          <div className="relative aspect-square mb-4 bg-gray-50 rounded-xl overflow-hidden">
+                             {image && (
+                               <Image
+                                  src={image.url}
+                                  alt={image.altText || product.title}
+                                  fill
+                                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                />
+                             )}
+                          </div>
+                          <h3 className="font-semibold text-gray-900 text-sm mb-1 line-clamp-2 flex-grow">
+                            <Link href={`/products/${product.handle}`} className="hover:underline">
+                              {product.title}
+                            </Link>
+                          </h3>
+                          <div className="flex justify-between items-center mt-2">
+                            <span className="font-bold text-sm">${price.toFixed(2)}</span>
+                          </div>
+                          <button 
+                            className="w-full mt-3 bg-white border border-gray-300 text-gray-900 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+                            onClick={() => handleAddRecommendation(product)}
+                            disabled={addingToCartId === product.id}
+                          >
+                            {addingToCartId === product.id ? 'Adding...' : 'Add to cart'}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Perks Section */}
               <div className="pt-8">
@@ -320,9 +337,9 @@ export function CartPageContent() {
                      <SiShopify className="text-white text-xl" />
                    </div>
                    
-                   {/* Amex */}
-                   <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center" title="Amex">
-                     <FaCcAmex className="text-[#2E77BB] text-2xl" />
+                   {/* Mastercard */}
+                   <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center" title="Mastercard">
+                     <FaCcMastercard className="text-[#EB001B] text-2xl" />
                    </div>
                    
                    {/* PayPal */}

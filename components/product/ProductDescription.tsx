@@ -4,10 +4,11 @@ import { useEffect, useRef, useState } from 'react';
 
 interface ProductDescriptionProps {
   html: string;
+  productTitle: string;
   collapsedHeight?: number;
 }
 
-export function ProductDescription({ html, collapsedHeight = 220 }: ProductDescriptionProps) {
+export function ProductDescription({ html, productTitle, collapsedHeight = 220 }: ProductDescriptionProps) {
   const [expanded, setExpanded] = useState(false);
   const [overflowing, setOverflowing] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -20,12 +21,12 @@ export function ProductDescription({ html, collapsedHeight = 220 }: ProductDescr
 
   return (
     <div className="bg-surface rounded-2xl p-8 shadow-sm border border-gray-100 space-y-4">
-      <h2 className="text-2xl font-bold text-gray-900 mb-0">Product Description</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">{productTitle} Description</h2>
 
       <div className="relative">
         <div
           ref={contentRef}
-          className="prose prose-gray max-w-none transition-[max-height] duration-300 ease-in-out"
+          className="product-description transition-[max-height] duration-300 ease-in-out"
           style={{
             maxHeight: expanded ? 'none' : `${collapsedHeight}px`,
             overflow: expanded ? 'visible' : 'hidden',

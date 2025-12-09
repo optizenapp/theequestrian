@@ -1,5 +1,5 @@
 import { shopifyFetch } from './client';
-import { GET_PRODUCT_BY_HANDLE, GET_ALL_PRODUCTS } from './queries';
+import { GET_PRODUCT_BY_HANDLE, GET_ALL_PRODUCTS, GET_PRODUCTS_BY_QUERY } from './queries';
 import type { ShopifyProduct, ProductWithPrimaryCollection } from '@/types/shopify';
 
 interface ProductResponse {
@@ -14,9 +14,18 @@ interface ProductsResponse {
     pageInfo: {
       hasNextPage: boolean;
       hasPreviousPage: boolean;
+      endCursor: string | null;
     };
   };
 }
+
+// Simple in-memory cache for all products
+let productsCache: {
+  data: ProductWithPrimaryCollection[];
+  timestamp: number;
+} | null = null;
+
+const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 
 /**
  * Get a product by its handle
@@ -36,18 +45,113 @@ export async function getProductByHandle(handle: string): Promise<ShopifyProduct
 }
 
 /**
- * Get all products (with pagination support)
+ * Get all products (with pagination support and caching)
  */
 export async function getAllProducts(): Promise<ProductWithPrimaryCollection[]> {
+  // Check cache first
+  const now = Date.now();
+  if (productsCache && (now - productsCache.timestamp) < CACHE_TTL) {
+    console.log(`[getAllProducts] Returning ${productsCache.data.length} cached products`);
+    return productsCache.data;
+  }
+
+  try {
+    console.log('[getAllProducts] Fetching all products from Shopify...');
+    const allProducts: ProductWithPrimaryCollection[] = [];
+    let hasNextPage = true;
+    let cursor: string | null = null;
+    let pageCount = 0;
+
+    while (hasNextPage) {
+      const data = await shopifyFetch<ProductsResponse>({
+        query: GET_ALL_PRODUCTS,
+        variables: { first: 250, after: cursor },
+      });
+
+      allProducts.push(...data.products.edges.map(({ node }) => node as ProductWithPrimaryCollection));
+      
+      hasNextPage = data.products.pageInfo.hasNextPage;
+      cursor = data.products.pageInfo.endCursor || null;
+      pageCount++;
+      
+      if (pageCount % 10 === 0) {
+        console.log(`[getAllProducts] Fetched ${allProducts.length} products so far...`);
+      }
+    }
+
+    console.log(`[getAllProducts] ✅ Fetched ${allProducts.length} total products`);
+    
+    // Cache the results
+    productsCache = {
+      data: allProducts,
+      timestamp: now,
+    };
+    
+    return allProducts;
+  } catch (error) {
+    console.error('Error fetching all products:', error);
+    return [];
+  }
+}
+
+/**
+ * Get products by product types (optimized for collection pages)
+ * Uses Shopify's query parameter to filter on the server side
+ */
+export async function getProductsByTypes(
+  productTypes: string[], 
+  limit: number = 36, 
+  after: string | null = null
+): Promise<{ products: ProductWithPrimaryCollection[]; pageInfo: { hasNextPage: boolean; endCursor: string | null } }> {
+  if (productTypes.length === 0) {
+    return { products: [], pageInfo: { hasNextPage: false, endCursor: null } };
+  }
+
+  try {
+    console.log(`[getProductsByTypes] Fetching ${limit} products for types:`, productTypes.slice(0, 5));
+    
+    // Build Shopify search query: "product_type:Type1 OR product_type:Type2"
+    const queryString = productTypes
+      .map(type => `product_type:"${type.replace(/"/g, '\\"')}"`)
+      .join(' OR ');
+
+    const data = await shopifyFetch<ProductsResponse>({
+      query: GET_PRODUCTS_BY_QUERY,
+      variables: { 
+        query: queryString,
+        first: limit,
+        after: after 
+      },
+      cache: 'force-cache',
+    });
+
+    const products = data.products.edges.map(({ node }) => node as ProductWithPrimaryCollection);
+    const pageInfo = {
+      hasNextPage: data.products.pageInfo.hasNextPage,
+      endCursor: data.products.pageInfo.endCursor
+    };
+
+    console.log(`[getProductsByTypes] ✅ Found ${products.length} products`);
+    return { products, pageInfo };
+  } catch (error) {
+    console.error('Error fetching products by types:', error);
+    return { products: [], pageInfo: { hasNextPage: false, endCursor: null } };
+  }
+}
+
+/**
+ * Get recommended products (limit to specified number)
+ */
+export async function getRecommendedProducts(limit: number = 4): Promise<ShopifyProduct[]> {
   try {
     const data = await shopifyFetch<ProductsResponse>({
       query: GET_ALL_PRODUCTS,
-      variables: { first: 250 },
+      variables: { first: limit },
     });
 
-    return data.products.edges.map(({ node }) => node as ProductWithPrimaryCollection);
+    return data.products.edges.map(({ node }) => node);
   } catch (error) {
-    console.error('Error fetching all products:', error);
+    console.error('Error fetching recommended products:', error);
     return [];
   }
 }

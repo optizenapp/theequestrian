@@ -1,11 +1,10 @@
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
-import { getAllProducts } from '@/lib/shopify/products';
+import { getProductsByTypes } from '@/lib/shopify/products';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { generateCollectionStructuredData } from '@/lib/structured-data/collection';
 import { 
   getProductTypesForCollection, 
-  filterProductsByCollection,
   getSubcategoriesForCollection as getMappingSubcategories,
   getCollectionTitle,
   getCollectionHierarchy
@@ -13,6 +12,7 @@ import {
 import { TrustSignals } from '@/components/TrustSignals';
 import { CategoryPills } from '@/components/CategoryPills';
 import { CollectionDescription } from '@/components/CollectionDescription';
+import { CollectionBreadcrumbs } from '@/components/CollectionBreadcrumbs';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
@@ -24,15 +24,16 @@ interface SubcategoryPageProps {
     category: string;
     subcategory: string;
   }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 /**
  * Subcategory Collection Page: /{category}/{subcategory}
- * 
- * Uses the mapping CSV to filter products by productType
  */
-export default async function SubcategoryPage({ params }: SubcategoryPageProps) {
+export default async function SubcategoryPage({ params, searchParams }: SubcategoryPageProps) {
   const { category, subcategory } = await params;
+  const { cursor } = await searchParams;
+  const afterCursor = typeof cursor === 'string' ? cursor : null;
 
   // Check if this path exists in our mapping
   const allowedProductTypes = getProductTypesForCollection(category, subcategory);
@@ -41,20 +42,13 @@ export default async function SubcategoryPage({ params }: SubcategoryPageProps) 
     notFound();
   }
 
-  // Fetch ALL products from Shopify
-  const allProducts = await getAllProducts();
-  
-  // Filter products by productType using our mapping
-  const filteredProducts = filterProductsByCollection(
-    allProducts,
-    category,
-    subcategory
-  );
+  // Fetch products with pagination (36 per page)
+  const { products: filteredProducts, pageInfo } = await getProductsByTypes(allowedProductTypes, 36, afterCursor);
 
   // Get sub-subcategories from our mapping (third level)
   const subSubcategories = getMappingSubcategories(category, subcategory);
-
-  // Get collection titles from mapping
+  
+  // Get collection data
   const collectionTitle = getCollectionTitle(category, subcategory);
   const breadcrumbs = getCollectionHierarchy(category, subcategory);
   
@@ -64,21 +58,21 @@ export default async function SubcategoryPage({ params }: SubcategoryPageProps) 
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    "itemListElement": breadcrumbs.map((crumb, index) => ({
-      "@type": "ListItem",
-      "position": index + 2, // +2 because Home is position 1
-      "name": crumb.label,
-      "item": `${siteUrl}${crumb.href}`
-    }))
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": siteUrl || "/"
+      },
+      ...breadcrumbs.map((crumb, index) => ({
+        "@type": "ListItem",
+        "position": index + 2,
+        "name": crumb.label,
+        "item": `${siteUrl}${crumb.href}`
+      }))
+    ]
   };
-
-  // Insert Home at position 1
-  breadcrumbSchema.itemListElement.unshift({
-    "@type": "ListItem",
-    "position": 1,
-    "name": "Home",
-    "item": siteUrl || "/"
-  });
 
   // Build CollectionPage structured data
   const collectionSchema = generateCollectionStructuredData(
@@ -86,8 +80,7 @@ export default async function SubcategoryPage({ params }: SubcategoryPageProps) 
     `${siteUrl}/${category}/${subcategory}`,
     `Shop ${collectionTitle} products at The Equestrian`,
     undefined,
-    filteredProducts,
-    { name: category, url: `${siteUrl}/${category}` }
+    filteredProducts
   );
 
   return (
@@ -107,22 +100,7 @@ export default async function SubcategoryPage({ params }: SubcategoryPageProps) 
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-7xl mx-auto">
         {/* Breadcrumb */}
-        <nav className="text-sm text-gray-600 mb-6">
-          <Link href="/" className="hover:underline">Home</Link>
-          {' / '}
-          {breadcrumbs.map((crumb, index) => (
-            <span key={crumb.href}>
-              {index > 0 && ' / '}
-              {index === breadcrumbs.length - 1 ? (
-                <span className="text-gray-900">{crumb.label}</span>
-              ) : (
-                <Link href={crumb.href} className="hover:underline">
-                  {crumb.label}
-                </Link>
-              )}
-            </span>
-          ))}
-        </nav>
+        <CollectionBreadcrumbs breadcrumbs={breadcrumbs} />
 
         {/* Trust Signals */}
         <div className="mb-8 -mx-4">
@@ -133,9 +111,8 @@ export default async function SubcategoryPage({ params }: SubcategoryPageProps) 
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-6">{collectionTitle}</h1>
           
-          {/* Collection Description */}
           <CollectionDescription 
-            description="<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p><p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.</p>"
+            description="<p>Browse our selection of products...</p>"
           />
           
           {/* Sub-subcategories as Pills (3rd level) */}
@@ -155,6 +132,7 @@ export default async function SubcategoryPage({ params }: SubcategoryPageProps) 
             products={filteredProducts}
             currentCategory={category}
             currentSubcategory={subcategory}
+            pageInfo={pageInfo}
           />
         </Suspense>
       </div>

@@ -1,24 +1,32 @@
 import Link from 'next/link';
 import { getProductCanonicalUrl } from '@/lib/shopify/products';
 import { ProductPrice } from './ProductPrice';
+import { ProductCardBreadcrumbs } from './ProductCardBreadcrumbs';
+import { getBreadcrumbsForProduct } from '@/lib/mapping/collection-mapping';
 import type { ShopifyProduct } from '@/types/shopify';
 
 interface ProductCardProps {
   product: ShopifyProduct;
   priority?: boolean;
+  showBreadcrumbs?: boolean;
 }
 
 /**
  * Product Card Component
  * Modeled after Back Market's clean card style
  */
-export function ProductCard({ product, priority = false }: ProductCardProps) {
+export function ProductCard({ product, priority = false, showBreadcrumbs = false }: ProductCardProps) {
   const href = getProductCanonicalUrl(product);
   const image = product.images.edges[0]?.node;
   
   // Ensure we have a valid price object
   const price = product.priceRange?.minVariantPrice || { amount: '0', currencyCode: 'USD' };
   const compareAtPrice = (product as any).compareAtPriceRange?.minVariantPrice;
+
+  // Get breadcrumb paths if enabled
+  const breadcrumbPaths = showBreadcrumbs && product.productType 
+    ? getBreadcrumbsForProduct(product.productType)
+    : [];
 
   return (
     <Link 
@@ -55,6 +63,14 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
       {/* Content */}
       <div className="flex flex-1 flex-col justify-between">
         <div>
+          {/* Breadcrumbs (if enabled) */}
+          {showBreadcrumbs && breadcrumbPaths.length > 0 && (
+            <ProductCardBreadcrumbs 
+              paths={breadcrumbPaths}
+              className="mb-2"
+            />
+          )}
+
           <h3 className="text-sm font-medium text-gray-900 line-clamp-2 mb-2 group-hover:text-primary transition-colors">
             {product.title}
           </h3>

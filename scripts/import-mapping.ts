@@ -17,6 +17,7 @@ import { resolve } from 'path';
 config({ path: resolve(process.cwd(), '.env.local') });
 
 import { shopifyFetch } from '../lib/shopify/client';
+import { shopifyAdminFetch } from '../lib/shopify/admin-client';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as csv from 'csv-parse/sync';
@@ -59,6 +60,23 @@ const GET_ALL_PRODUCTS = `
       pageInfo {
         hasNextPage
         endCursor
+      }
+    }
+  }
+`;
+
+const SET_PRODUCT_METAFIELDS = `
+  mutation SetProductMetafields($metafields: [MetafieldsSetInput!]!) {
+    metafieldsSet(metafields: $metafields) {
+      metafields {
+        id
+        namespace
+        key
+        value
+      }
+      userErrors {
+        field
+        message
       }
     }
   }
@@ -185,8 +203,11 @@ function buildCollectionPath(row: MappingRow): string {
   return parts.join('/');
 }
 
-async function applyMapping(dryRun: boolean = true, filePath?: string) {
+async function applyMapping(dryRun: boolean = true, filePath?: string, testLimit?: number) {
   console.log(`\n🔄 ${dryRun ? 'DRY RUN: ' : ''}Applying 3-level collection mapping...\n`);
+  if (testLimit) {
+    console.log(`⚠️  TEST MODE: Limited to ${testLimit} products\n`);
+  }
 
   const mapping = await loadMapping(filePath);
   const updates: ProductUpdate[] = [];
@@ -362,10 +383,12 @@ async function applyMapping(dryRun: boolean = true, filePath?: string) {
 
   // Apply updates if not dry run
   if (!dryRun) {
-    console.log(`\n⚠️  APPLY MODE NOT YET IMPLEMENTED`);
-    console.log(`   This requires Shopify Admin API to set metafields.`);
-    console.log(`   Updates are saved in JSON format above.`);
-    console.log(`   You can import these via Shopify Admin API or bulk operations.`);
+    console.log(`\n🚀 Applying updates to Shopify...`);
+    const updatesToApply = testLimit ? updates.slice(0, testLimit) : updates;
+    if (testLimit && updates.length > testLimit) {
+      console.log(`   (Testing with first ${testLimit} of ${updates.length} products)\n`);
+    }
+    await applyUpdatesToShopify(updatesToApply);
   } else {
     console.log(`\n✅ Dry run complete! Review the updates above.`);
     console.log(`   To apply changes, run: npm run import:mapping -- --apply --file=${filePath || 'exports/mapping-template-draft2.csv'}`);
@@ -374,15 +397,109 @@ async function applyMapping(dryRun: boolean = true, filePath?: string) {
   return { updates, noProductType, noMapping };
 }
 
+async function applyUpdatesToShopify(updates: ProductUpdate[]) {
+  let successCount = 0;
+  let errorCount = 0;
+  const errors: Array<{ handle: string; error: string }> = [];
+
+  console.log(`\n   Processing ${updates.length} updates...`);
+
+  for (let i = 0; i < updates.length; i++) {
+    const update = updates[i];
+
+    try {
+      // Build metafield input for Admin API
+      const metafieldsInput = update.newPrimaryCollection
+        ? [
+            {
+              ownerId: update.productId,
+              namespace: 'custom',
+              key: 'primary_collection',
+              value: update.newPrimaryCollection,
+              type: 'single_line_text_field',
+            },
+          ]
+        : [];
+
+      const result = await shopifyAdminFetch<{
+        metafieldsSet: {
+          metafields: Array<{
+            id: string;
+            namespace: string;
+            key: string;
+            value: string;
+          }> | null;
+          userErrors: Array<{
+            field: string[];
+            message: string;
+          }>;
+        };
+      }>({
+        query: SET_PRODUCT_METAFIELDS,
+        variables: {
+          metafields: metafieldsInput,
+        },
+      });
+
+      if (result.metafieldsSet.userErrors.length > 0) {
+        const errorMessages = result.metafieldsSet.userErrors
+          .map((e) => e.message)
+          .join(', ');
+        errors.push({ handle: update.handle, error: errorMessages });
+        errorCount++;
+      } else {
+        successCount++;
+      }
+
+      // Progress indicator
+      if ((i + 1) % 10 === 0 || i === updates.length - 1) {
+        console.log(`   ✓ ${i + 1}/${updates.length} updates processed...`);
+      }
+
+      // Rate limiting: Shopify Admin API allows 2 requests/second
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      errors.push({ handle: update.handle, error: errorMessage });
+      errorCount++;
+    }
+  }
+
+  console.log(`\n📊 Update Results:`);
+  console.log(`   ✅ Successfully updated: ${successCount}`);
+  console.log(`   ❌ Failed: ${errorCount}`);
+
+  if (errors.length > 0) {
+    console.log(`\n⚠️  Errors (first 10):`);
+    errors.slice(0, 10).forEach(({ handle, error }) => {
+      console.log(`   - ${handle}: ${error}`);
+    });
+    if (errors.length > 10) {
+      console.log(`   ... and ${errors.length - 10} more`);
+    }
+
+    // Save errors to file
+    const outputDir = path.join(process.cwd(), 'exports');
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+    const errorsPath = path.join(outputDir, `update-errors-${timestamp}.json`);
+    fs.writeFileSync(errorsPath, JSON.stringify(errors, null, 2));
+    console.log(`\n   Full error log saved to: ${errorsPath}`);
+  }
+
+  console.log(`\n✅ Updates applied to Shopify!`);
+}
+
 // Parse command line arguments
 const args = process.argv.slice(2);
 const dryRun = !args.includes('--apply');
 const fileIndex = args.findIndex(arg => arg === '--file');
 const filePath = fileIndex !== -1 && args[fileIndex + 1] ? args[fileIndex + 1] : undefined;
+const testIndex = args.findIndex(arg => arg === '--test');
+const testLimit = testIndex !== -1 && args[testIndex + 1] ? parseInt(args[testIndex + 1], 10) : undefined;
 
 // Run if called directly
 if (require.main === module) {
-  applyMapping(dryRun, filePath)
+  applyMapping(dryRun, filePath, testLimit)
     .then(() => {
       console.log('\n✅ Complete!');
       process.exit(0);

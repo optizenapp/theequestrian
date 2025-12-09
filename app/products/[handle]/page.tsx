@@ -5,6 +5,7 @@ import { ProductBreadcrumbs } from '@/components/ProductBreadcrumbs';
 import { ProductBuyBox } from '@/components/product/ProductBuyBox';
 import { ProductDescription } from '@/components/product/ProductDescription';
 import { generateBreadcrumbSchema } from '@/lib/utils/breadcrumb-schema';
+import { getBreadcrumbsForProduct } from '@/lib/mapping/collection-mapping';
 
 export const revalidate = 300;
 
@@ -36,33 +37,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
     .filter((cp): cp is { amount: string; currencyCode: string } => cp !== null && cp !== undefined)
     .sort((a, b) => parseFloat(a.amount) - parseFloat(b.amount))[0];
   
-  // Build breadcrumb paths from collections
-  const primaryCollection = (product as any).primaryCollection;
-  const allCollections = product.collections.edges.map(({ node }) => node);
-  
-  // Primary breadcrumb path
-  const primaryPath = primaryCollection 
-    ? primaryCollection.split('/').map((segment: string, index: number, arr: string[]) => ({
-        label: segment.replace(/-/g, ' '),
-        href: `/${arr.slice(0, index + 1).join('/')}`
-      }))
+  // Build breadcrumb paths from product type using mapping
+  const breadcrumbPaths = product.productType 
+    ? getBreadcrumbsForProduct(product.productType)
     : [];
   
-  // Additional paths from other collections (excluding primary)
-  const additionalPaths = allCollections
-    .filter(collection => {
-      // Exclude the primary collection
-      if (primaryCollection) {
-        const primaryHandle = primaryCollection.split('/').pop();
-        return collection.handle !== primaryHandle;
-      }
-      return true;
-    })
-    .slice(0, 3) // Limit to 3 additional paths
-    .map(collection => [{
-      label: collection.title,
-      href: `/${collection.handle}`
-    }]);
+  // Primary breadcrumb path (most specific/longest path first)
+  const primaryPath = breadcrumbPaths[0] || [];
+  
+  // Additional paths (other categories this product appears in)
+  const additionalPaths = breadcrumbPaths.slice(1, 4); // Limit to 3 additional paths
   
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
   const breadcrumbSchemas = generateBreadcrumbSchema(
@@ -120,7 +104,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </div>
         </div>
 
-        <div className="lg:grid lg:grid-cols-12 lg:gap-12">
+        <div className="lg:grid lg:grid-cols-12 lg:gap-12 items-start">
           {/* Left Column: Image Gallery & Description */}
           <div className="lg:col-span-7 space-y-8">
             {/* Image Gallery */}
@@ -130,16 +114,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
             />
 
             {/* Full Width Description Section */}
-            <ProductDescription html={product.descriptionHtml} />
+            <ProductDescription html={product.descriptionHtml} productTitle={product.title} />
           </div>
 
           {/* Right Column: Product Info & Buy Box (Sticky) */}
-          <div className="lg:col-span-5">
-          <div className="lg:sticky lg:top-24 space-y-6 mb-8 lg:mb-0">
+          <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-6 lg:mb-0">
             
               {/* Title & Rating */}
               <div className="hidden lg:block">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.title}</h1>
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">{product.title}</h2>
                 <div className="flex items-center gap-2 text-sm mb-4">
                   <div className="flex text-yellow-400">★★★★☆</div>
                   <span className="text-gray-500 hover:underline cursor-pointer">
@@ -166,7 +149,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
               </div>
             </div>
           </div>
-        </div>
       </div>
     </div>
   );

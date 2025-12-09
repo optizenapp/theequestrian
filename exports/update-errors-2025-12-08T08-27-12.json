@@ -1,0 +1,82 @@
+[
+  {
+    "handle": "shanga-mesh-combo",
+    "error": "SHOPIFY_ADMIN_ACCESS_TOKEN environment variable is not set. Please add it to .env.local"
+  },
+  {
+    "handle": "shanga-towel-rug",
+    "error": "SHOPIFY_ADMIN_ACCESS_TOKEN environment variable is not set. Please add it to .env.local"
+  },
+  {
+    "handle": "007-mineral-salt-blocks",
+    "error": "SHOPIFY_ADMIN_ACCESS_TOKEN environment variable is not set. Please add it to .env.local"
+  },
+  {
+    "handle": "ca-coolite-rug",
+    "error": "SHOPIFY_ADMIN_ACCESS_TOKEN environment variable is not set. Please add it to .env.local"
+  },
+  {
+    "handle": "eureka-mini-canvas-rug",
+    "error": "SHOPIFY_ADMIN_ACCESS_TOKEN environment variable is not set. Please add it to .env.local"
+  },
+  {
+    "handle": "eureka-mini-synthetic-combo",
+    "error": "SHOPIFY_ADMIN_ACCESS_TOKEN environment variable is not set. Please add it to .env.local"
+  },
+  {
+    "handle": "hamilton-canvas-rugs",
+    "error": "SHOPIFY_ADMIN_ACCESS_TOKEN environment variable is not set. Please add it to .env.local"
+  },
+  {
+    "handle": "collar-check-rug-hood-and-tail-bag-set",
+    "error": "SHOPIFY_ADMIN_ACCESS_TOKEN environment variable is not set. Please add it to .env.local"
+  },
+  {
+    "handle": "kentucky-horsewear-heavy-fleece-rug",
+    "error": "SHOPIFY_ADMIN_ACCESS_TOKEN environment variable is not set. Please add it to .env.local"
+  },
+  {
+    "handle": "kentucky-horsewear-magnetic-rug-recuptex",
+    "error": "SHOPIFY_ADMIN_ACCESS_TOKEN environment variable is not set. Please add it to .env.local"
+  },
+  {
+    "handle": "kentucky-horsewear-mesh-cooler-combo",
+    "error": "SHOPIFY_ADMIN_ACCESS_TOKEN environment variable is not set. Please add it to .env.local"
+  },
+  {
+    "handle": "kentucky-horsewear-mesh-fly-combo",
+    "error": "SHOPIFY_ADMIN_ACCESS_TOKEN environment variable is not set. Please add it to .env.local"
+  },
+  {
+    "handle": "kentucky-rug-tail-cord",
+    "error": "SHOPIFY_ADMIN_ACCESS_TOKEN environment variable is not set. Please add it to .env.local"
+  },
+  {
+    "handle": "kentucky-horsewear-velvet-show-rug",
+    "error": "SHOPIFY_ADMIN_ACCESS_TOKEN environment variable is not set. Please add it to .env.local"
+  },
+  {
+    "handle": "kentucky-sheepskin-rug-bib-chest-protection",
+    "error": "SHOPIFY_ADMIN_ACCESS_TOKEN environment variable is not set. Please add it to .env.local"
+  },
+  {
+    "handle": "kentucky-stable-rug-0g",
+    "error": "SHOPIFY_ADMIN_ACCESS_TOKEN environment variable is not set. Please add it to .env.local"
+  },
+  {
+    "handle": "shanga-airflow-combo",
+    "error": "SHOPIFY_ADMIN_ACCESS_TOKEN environment variable is not set. Please add it to .env.local"
+  },
+  {
+    "handle": "kentucky-show-rug-160g",
+    "error": "SHOPIFY_ADMIN_ACCESS_TOKEN environment variable is not set. Please add it to .env.local"
+  },
+  {
+    "handle": "shanga-bug-rug-recovery-head-piece",
+    "error": "SHOPIFY_ADMIN_ACCESS_TOKEN environment variable is not set. Please add it to .env.local"
+  },
+  {
+    "handle": "shanga-bug-rug-recovery-combo",
+    "error": "SHOPIFY_ADMIN_ACCESS_TOKEN environment variable is not set. Please add it to .env.local"
+  }
+]

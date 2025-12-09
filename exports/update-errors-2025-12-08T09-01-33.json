@@ -1,0 +1,82 @@
+[
+  {
+    "handle": "shanga-mesh-combo",
+    "error": "GraphQL Error (Code: 401): {\"response\":{\"status\":401,\"headers\":{}},\"request\":{\"query\":\"\\n  mutation SetProductMetafields($metafields: [MetafieldsSetInput!]!) {\\n    metafieldsSet(metafields: $metafields) {\\n      metafields {\\n        id\\n        namespace\\n        key\\n        value\\n      }\\n      userErrors {\\n        field\\n        message\\n      }\\n    }\\n  }\\n\",\"variables\":{\"metafields\":[{\"ownerId\":\"gid://shopify/Product/6930798870609\",\"namespace\":\"custom\",\"key\":\"primary_collection\",\"value\":\"horse/rugs\",\"type\":\"single_line_text_field\"}]}}}"
+  },
+  {
+    "handle": "shanga-towel-rug",
+    "error": "GraphQL Error (Code: 401): {\"response\":{\"status\":401,\"headers\":{}},\"request\":{\"query\":\"\\n  mutation SetProductMetafields($metafields: [MetafieldsSetInput!]!) {\\n    metafieldsSet(metafields: $metafields) {\\n      metafields {\\n        id\\n        namespace\\n        key\\n        value\\n      }\\n      userErrors {\\n        field\\n        message\\n      }\\n    }\\n  }\\n\",\"variables\":{\"metafields\":[{\"ownerId\":\"gid://shopify/Product/6930798936145\",\"namespace\":\"custom\",\"key\":\"primary_collection\",\"value\":\"horse/rugs\",\"type\":\"single_line_text_field\"}]}}}"
+  },
+  {
+    "handle": "007-mineral-salt-blocks",
+    "error": "GraphQL Error (Code: 401): {\"response\":{\"status\":401,\"headers\":{}},\"request\":{\"query\":\"\\n  mutation SetProductMetafields($metafields: [MetafieldsSetInput!]!) {\\n    metafieldsSet(metafields: $metafields) {\\n      metafields {\\n        id\\n        namespace\\n        key\\n        value\\n      }\\n      userErrors {\\n        field\\n        message\\n      }\\n    }\\n  }\\n\",\"variables\":{\"metafields\":[{\"ownerId\":\"gid://shopify/Product/6931726008401\",\"namespace\":\"custom\",\"key\":\"primary_collection\",\"value\":\"horse/stable\",\"type\":\"single_line_text_field\"}]}}}"
+  },
+  {
+    "handle": "ca-coolite-rug",
+    "error": "GraphQL Error (Code: 401): {\"response\":{\"status\":401,\"headers\":{}},\"request\":{\"query\":\"\\n  mutation SetProductMetafields($metafields: [MetafieldsSetInput!]!) {\\n    metafieldsSet(metafields: $metafields) {\\n      metafields {\\n        id\\n        namespace\\n        key\\n        value\\n      }\\n      userErrors {\\n        field\\n        message\\n      }\\n    }\\n  }\\n\",\"variables\":{\"metafields\":[{\"ownerId\":\"gid://shopify/Product/6935106814033\",\"namespace\":\"custom\",\"key\":\"primary_collection\",\"value\":\"horse/rugs\",\"type\":\"single_line_text_field\"}]}}}"
+  },
+  {
+    "handle": "eureka-mini-canvas-rug",
+    "error": "GraphQL Error (Code: 401): {\"response\":{\"status\":401,\"headers\":{}},\"request\":{\"query\":\"\\n  mutation SetProductMetafields($metafields: [MetafieldsSetInput!]!) {\\n    metafieldsSet(metafields: $metafields) {\\n      metafields {\\n        id\\n        namespace\\n        key\\n        value\\n      }\\n      userErrors {\\n        field\\n        message\\n      }\\n    }\\n  }\\n\",\"variables\":{\"metafields\":[{\"ownerId\":\"gid://shopify/Product/6935126278225\",\"namespace\":\"custom\",\"key\":\"primary_collection\",\"value\":\"horse/rugs\",\"type\":\"single_line_text_field\"}]}}}"
+  },
+  {
+    "handle": "eureka-mini-synthetic-combo",
+    "error": "GraphQL Error (Code: 401): {\"response\":{\"status\":401,\"headers\":{}},\"request\":{\"query\":\"\\n  mutation SetProductMetafields($metafields: [MetafieldsSetInput!]!) {\\n    metafieldsSet(metafields: $metafields) {\\n      metafields {\\n        id\\n        namespace\\n        key\\n        value\\n      }\\n      userErrors {\\n        field\\n        message\\n      }\\n    }\\n  }\\n\",\"variables\":{\"metafields\":[{\"ownerId\":\"gid://shopify/Product/6935126310993\",\"namespace\":\"custom\",\"key\":\"primary_collection\",\"value\":\"horse/rugs\",\"type\":\"single_line_text_field\"}]}}}"
+  },
+  {
+    "handle": "hamilton-canvas-rugs",
+    "error": "GraphQL Error (Code: 401): {\"response\":{\"status\":401,\"headers\":{}},\"request\":{\"query\":\"\\n  mutation SetProductMetafields($metafields: [MetafieldsSetInput!]!) {\\n    metafieldsSet(metafields: $metafields) {\\n      metafields {\\n        id\\n        namespace\\n        key\\n        value\\n      }\\n      userErrors {\\n        field\\n        message\\n      }\\n    }\\n  }\\n\",\"variables\":{\"metafields\":[{\"ownerId\":\"gid://shopify/Product/6935126343761\",\"namespace\":\"custom\",\"key\":\"primary_collection\",\"value\":\"horse/rugs\",\"type\":\"single_line_text_field\"}]}}}"
+  },
+  {
+    "handle": "collar-check-rug-hood-and-tail-bag-set",
+    "error": "GraphQL Error (Code: 401): {\"response\":{\"status\":401,\"headers\":{}},\"request\":{\"query\":\"\\n  mutation SetProductMetafields($metafields: [MetafieldsSetInput!]!) {\\n    metafieldsSet(metafields: $metafields) {\\n      metafields {\\n        id\\n        namespace\\n        key\\n        value\\n      }\\n      userErrors {\\n        field\\n        message\\n      }\\n    }\\n  }\\n\",\"variables\":{\"metafields\":[{\"ownerId\":\"gid://shopify/Product/6935126376529\",\"namespace\":\"custom\",\"key\":\"primary_collection\",\"value\":\"horse/rugs\",\"type\":\"single_line_text_field\"}]}}}"
+  },
+  {
+    "handle": "kentucky-horsewear-heavy-fleece-rug",
+    "error": "GraphQL Error (Code: 401): {\"response\":{\"status\":401,\"headers\":{}},\"request\":{\"query\":\"\\n  mutation SetProductMetafields($metafields: [MetafieldsSetInput!]!) {\\n    metafieldsSet(metafields: $metafields) {\\n      metafields {\\n        id\\n        namespace\\n        key\\n        value\\n      }\\n      userErrors {\\n        field\\n        message\\n      }\\n    }\\n  }\\n\",\"variables\":{\"metafields\":[{\"ownerId\":\"gid://shopify/Product/6935126409297\",\"namespace\":\"custom\",\"key\":\"primary_collection\",\"value\":\"horse/rugs\",\"type\":\"single_line_text_field\"}]}}}"
+  },
+  {
+    "handle": "kentucky-horsewear-magnetic-rug-recuptex",
+    "error": "GraphQL Error (Code: 401): {\"response\":{\"status\":401,\"headers\":{}},\"request\":{\"query\":\"\\n  mutation SetProductMetafields($metafields: [MetafieldsSetInput!]!) {\\n    metafieldsSet(metafields: $metafields) {\\n      metafields {\\n        id\\n        namespace\\n        key\\n        value\\n      }\\n      userErrors {\\n        field\\n        message\\n      }\\n    }\\n  }\\n\",\"variables\":{\"metafields\":[{\"ownerId\":\"gid://shopify/Product/6935126442065\",\"namespace\":\"custom\",\"key\":\"primary_collection\",\"value\":\"horse/rugs\",\"type\":\"single_line_text_field\"}]}}}"
+  },
+  {
+    "handle": "kentucky-horsewear-mesh-cooler-combo",
+    "error": "GraphQL Error (Code: 401): {\"response\":{\"status\":401,\"headers\":{}},\"request\":{\"query\":\"\\n  mutation SetProductMetafields($metafields: [MetafieldsSetInput!]!) {\\n    metafieldsSet(metafields: $metafields) {\\n      metafields {\\n        id\\n        namespace\\n        key\\n        value\\n      }\\n      userErrors {\\n        field\\n        message\\n      }\\n    }\\n  }\\n\",\"variables\":{\"metafields\":[{\"ownerId\":\"gid://shopify/Product/6935126474833\",\"namespace\":\"custom\",\"key\":\"primary_collection\",\"value\":\"horse/rugs\",\"type\":\"single_line_text_field\"}]}}}"
+  },
+  {
+    "handle": "kentucky-horsewear-mesh-fly-combo",
+    "error": "GraphQL Error (Code: 401): {\"response\":{\"status\":401,\"headers\":{}},\"request\":{\"query\":\"\\n  mutation SetProductMetafields($metafields: [MetafieldsSetInput!]!) {\\n    metafieldsSet(metafields: $metafields) {\\n      metafields {\\n        id\\n        namespace\\n        key\\n        value\\n      }\\n      userErrors {\\n        field\\n        message\\n      }\\n    }\\n  }\\n\",\"variables\":{\"metafields\":[{\"ownerId\":\"gid://shopify/Product/6935126540369\",\"namespace\":\"custom\",\"key\":\"primary_collection\",\"value\":\"horse/rugs\",\"type\":\"single_line_text_field\"}]}}}"
+  },
+  {
+    "handle": "kentucky-rug-tail-cord",
+    "error": "GraphQL Error (Code: 401): {\"response\":{\"status\":401,\"headers\":{}},\"request\":{\"query\":\"\\n  mutation SetProductMetafields($metafields: [MetafieldsSetInput!]!) {\\n    metafieldsSet(metafields: $metafields) {\\n      metafields {\\n        id\\n        namespace\\n        key\\n        value\\n      }\\n      userErrors {\\n        field\\n        message\\n      }\\n    }\\n  }\\n\",\"variables\":{\"metafields\":[{\"ownerId\":\"gid://shopify/Product/6935126573137\",\"namespace\":\"custom\",\"key\":\"primary_collection\",\"value\":\"horse/rugs/accessories\",\"type\":\"single_line_text_field\"}]}}}"
+  },
+  {
+    "handle": "kentucky-horsewear-velvet-show-rug",
+    "error": "GraphQL Error (Code: 401): {\"response\":{\"status\":401,\"headers\":{}},\"request\":{\"query\":\"\\n  mutation SetProductMetafields($metafields: [MetafieldsSetInput!]!) {\\n    metafieldsSet(metafields: $metafields) {\\n      metafields {\\n        id\\n        namespace\\n        key\\n        value\\n      }\\n      userErrors {\\n        field\\n        message\\n      }\\n    }\\n  }\\n\",\"variables\":{\"metafields\":[{\"ownerId\":\"gid://shopify/Product/6935126605905\",\"namespace\":\"custom\",\"key\":\"primary_collection\",\"value\":\"horse/rugs\",\"type\":\"single_line_text_field\"}]}}}"
+  },
+  {
+    "handle": "kentucky-sheepskin-rug-bib-chest-protection",
+    "error": "GraphQL Error (Code: 401): {\"response\":{\"status\":401,\"headers\":{}},\"request\":{\"query\":\"\\n  mutation SetProductMetafields($metafields: [MetafieldsSetInput!]!) {\\n    metafieldsSet(metafields: $metafields) {\\n      metafields {\\n        id\\n        namespace\\n        key\\n        value\\n      }\\n      userErrors {\\n        field\\n        message\\n      }\\n    }\\n  }\\n\",\"variables\":{\"metafields\":[{\"ownerId\":\"gid://shopify/Product/6935126638673\",\"namespace\":\"custom\",\"key\":\"primary_collection\",\"value\":\"horse/rugs/accessories\",\"type\":\"single_line_text_field\"}]}}}"
+  },
+  {
+    "handle": "kentucky-stable-rug-0g",
+    "error": "GraphQL Error (Code: 401): {\"response\":{\"status\":401,\"headers\":{}},\"request\":{\"query\":\"\\n  mutation SetProductMetafields($metafields: [MetafieldsSetInput!]!) {\\n    metafieldsSet(metafields: $metafields) {\\n      metafields {\\n        id\\n        namespace\\n        key\\n        value\\n      }\\n      userErrors {\\n        field\\n        message\\n      }\\n    }\\n  }\\n\",\"variables\":{\"metafields\":[{\"ownerId\":\"gid://shopify/Product/6935126736977\",\"namespace\":\"custom\",\"key\":\"primary_collection\",\"value\":\"horse/rugs\",\"type\":\"single_line_text_field\"}]}}}"
+  },
+  {
+    "handle": "shanga-airflow-combo",
+    "error": "GraphQL Error (Code: 401): {\"response\":{\"status\":401,\"headers\":{}},\"request\":{\"query\":\"\\n  mutation SetProductMetafields($metafields: [MetafieldsSetInput!]!) {\\n    metafieldsSet(metafields: $metafields) {\\n      metafields {\\n        id\\n        namespace\\n        key\\n        value\\n      }\\n      userErrors {\\n        field\\n        message\\n      }\\n    }\\n  }\\n\",\"variables\":{\"metafields\":[{\"ownerId\":\"gid://shopify/Product/6935126769745\",\"namespace\":\"custom\",\"key\":\"primary_collection\",\"value\":\"horse/rugs\",\"type\":\"single_line_text_field\"}]}}}"
+  },
+  {
+    "handle": "kentucky-show-rug-160g",
+    "error": "GraphQL Error (Code: 401): {\"response\":{\"status\":401,\"headers\":{}},\"request\":{\"query\":\"\\n  mutation SetProductMetafields($metafields: [MetafieldsSetInput!]!) {\\n    metafieldsSet(metafields: $metafields) {\\n      metafields {\\n        id\\n        namespace\\n        key\\n        value\\n      }\\n      userErrors {\\n        field\\n        message\\n      }\\n    }\\n  }\\n\",\"variables\":{\"metafields\":[{\"ownerId\":\"gid://shopify/Product/6935127064657\",\"namespace\":\"custom\",\"key\":\"primary_collection\",\"value\":\"horse/rugs\",\"type\":\"single_line_text_field\"}]}}}"
+  },
+  {
+    "handle": "shanga-bug-rug-recovery-head-piece",
+    "error": "GraphQL Error (Code: 401): {\"response\":{\"status\":401,\"headers\":{}},\"request\":{\"query\":\"\\n  mutation SetProductMetafields($metafields: [MetafieldsSetInput!]!) {\\n    metafieldsSet(metafields: $metafields) {\\n      metafields {\\n        id\\n        namespace\\n        key\\n        value\\n      }\\n      userErrors {\\n        field\\n        message\\n      }\\n    }\\n  }\\n\",\"variables\":{\"metafields\":[{\"ownerId\":\"gid://shopify/Product/6935127097425\",\"namespace\":\"custom\",\"key\":\"primary_collection\",\"value\":\"horse/rugs\",\"type\":\"single_line_text_field\"}]}}}"
+  },
+  {
+    "handle": "shanga-bug-rug-recovery-combo",
+    "error": "GraphQL Error (Code: 401): {\"response\":{\"status\":401,\"headers\":{}},\"request\":{\"query\":\"\\n  mutation SetProductMetafields($metafields: [MetafieldsSetInput!]!) {\\n    metafieldsSet(metafields: $metafields) {\\n      metafields {\\n        id\\n        namespace\\n        key\\n        value\\n      }\\n      userErrors {\\n        field\\n        message\\n      }\\n    }\\n  }\\n\",\"variables\":{\"metafields\":[{\"ownerId\":\"gid://shopify/Product/6935127130193\",\"namespace\":\"custom\",\"key\":\"primary_collection\",\"value\":\"horse/rugs\",\"type\":\"single_line_text_field\"}]}}}"
+  }
+]

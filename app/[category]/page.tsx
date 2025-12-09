@@ -1,13 +1,12 @@
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
-import { getAllProducts } from '@/lib/shopify/products';
+import { getProductsByTypes } from '@/lib/shopify/products';
 import { getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
 import { getCollectionContent } from '@/lib/content/collections';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { generateCollectionStructuredData } from '@/lib/structured-data/collection';
 import { 
   getProductTypesForCollection, 
-  filterProductsByCollection,
   getSubcategoriesForCollection as getMappingSubcategories,
   getCollectionTitle,
   getCollectionHierarchy
@@ -15,6 +14,7 @@ import {
 import { TrustSignals } from '@/components/TrustSignals';
 import { CategoryPills } from '@/components/CategoryPills';
 import { CollectionDescription } from '@/components/CollectionDescription';
+import { CollectionBreadcrumbs } from '@/components/CollectionBreadcrumbs';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
@@ -25,6 +25,7 @@ interface CategoryPageProps {
   params: Promise<{
     category: string;
   }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 /**
@@ -33,8 +34,10 @@ interface CategoryPageProps {
  * Uses the mapping CSV to determine which products to show
  * based on their productType field
  */
-export default async function CategoryPage({ params }: CategoryPageProps) {
+export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
   const { category } = await params;
+  const { cursor } = await searchParams;
+  const afterCursor = typeof cursor === 'string' ? cursor : null;
 
   // Check if this category exists in our mapping
   const allowedProductTypes = getProductTypesForCollection(category);
@@ -135,22 +138,8 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     );
   }
 
-  // Fetch ALL products from Shopify
-  const allProducts = await getAllProducts();
-  
-  console.log(`[${category}] Total products from Shopify:`, allProducts.length);
-  console.log(`[${category}] Allowed product types:`, allowedProductTypes);
-  console.log(`[${category}] Sample product types from Shopify:`, 
-    allProducts.slice(0, 5).map(p => ({ title: p.title, productType: p.productType }))
-  );
-  
-  // Filter products by productType using our mapping
-  const filteredProducts = filterProductsByCollection(
-    allProducts,
-    category
-  );
-  
-  console.log(`[${category}] Filtered products:`, filteredProducts.length);
+  // Fetch products with pagination (36 per page)
+  const { products: filteredProducts, pageInfo } = await getProductsByTypes(allowedProductTypes, 36, afterCursor);
 
   // Get subcategories from our mapping
   const subcategories = getMappingSubcategories(category);
@@ -158,6 +147,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   // Get collection title from mapping
   const collectionTitle = getCollectionTitle(category);
   const breadcrumbs = getCollectionHierarchy(category);
+  const content = getCollectionContent(category);
   
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
 
@@ -208,15 +198,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-7xl mx-auto">
         {/* Breadcrumb */}
-        <nav className="text-sm text-gray-600 mb-6">
-          <Link href="/" className="hover:underline">Home</Link>
-          {breadcrumbs.map((crumb) => (
-            <span key={crumb.href}>
-              {' / '}
-              <span className="text-gray-900">{crumb.label}</span>
-            </span>
-          ))}
-        </nav>
+        <CollectionBreadcrumbs breadcrumbs={breadcrumbs} />
 
         {/* Trust Signals */}
         <div className="mb-8 -mx-4">
@@ -229,7 +211,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
           
           {/* Collection Description */}
           <CollectionDescription 
-            description="<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p><p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.</p>"
+            description={content.description}
           />
           
           {/* Subcategories as Pills */}
@@ -248,6 +230,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
           <ProductGridWithFilters
             products={filteredProducts}
             currentCategory={category}
+            pageInfo={pageInfo}
           />
         </Suspense>
       </div>
