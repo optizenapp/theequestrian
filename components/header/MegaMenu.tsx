@@ -6,6 +6,12 @@ interface SubcategoryItem {
   handle: string;
   label: string;
   count: number;
+  image?: {
+    url: string;
+    altText: string;
+    width: number;
+    height: number;
+  } | null;
 }
 
 interface MegaMenuProps {
@@ -37,7 +43,7 @@ export function MegaMenu({
   }
 
   return (
-    <div className="w-screen max-w-7xl bg-surface border border-gray-100 rounded-3xl shadow-2xl mt-2 overflow-hidden relative">
+    <div className="w-full bg-surface border border-gray-100 rounded-3xl shadow-2xl overflow-hidden relative">
       {/* Close Button */}
       <button 
         onClick={onClose}
@@ -49,7 +55,7 @@ export function MegaMenu({
         </svg>
       </button>
 
-      <div className="px-6 py-8">
+      <div className="px-4 py-6 sm:px-6 sm:py-8">
         <div className="flex items-center justify-between mb-6 border-b border-gray-100 pb-4">
           <div>
             <p className="text-sm uppercase tracking-[0.3em] text-gray-400 mb-1">Featured</p>
@@ -65,9 +71,9 @@ export function MegaMenu({
           </Link>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[1.25fr_1fr]">
-          {/* Placeholder hero tile */}
-          <div className="space-y-4">
+        <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1.25fr_1fr]">
+          {/* Placeholder hero tile - Hidden on small screens */}
+          <div className="hidden lg:block space-y-4">
             <div className="rounded-3xl bg-gradient-to-br from-pink-100 via-white to-purple-100 h-[220px] overflow-hidden">
               <div className="h-full w-full bg-[radial-gradient(circle_at_top,_rgba(29,196,198,0.4),_transparent_60%)] flex flex-col justify-end p-6">
                 <p className="text-white font-semibold text-lg">Our Spotlight Collection</p>
@@ -90,7 +96,7 @@ export function MegaMenu({
           </div>
 
           {/* Subcategory list */}
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:col-span-1">
             {displaySubcategories.map((subcategory) => {
               const href = `/${categoryHandle}/${subcategory.handle}`;
 
@@ -98,17 +104,36 @@ export function MegaMenu({
                 <Link
                   key={subcategory.handle}
                   href={href}
-                  className="group rounded-2xl border border-gray-100 bg-white p-4 text-left shadow-sm transition-all hover:shadow-md"
+                  className="group rounded-xl sm:rounded-2xl border border-gray-100 bg-white overflow-hidden text-left shadow-sm transition-all hover:shadow-md"
                 >
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-semibold text-gray-900">{subcategory.label}</h4>
-                    <span className="opacity-60 transition-opacity group-hover:opacity-100">→</span>
+                  {/* Product Image */}
+                  {subcategory.image ? (
+                    <div className="aspect-square w-full bg-gray-50 overflow-hidden">
+                      <img
+                        src={subcategory.image.url}
+                        alt={subcategory.image.altText}
+                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                        loading="lazy"
+                      />
+                    </div>
+                  ) : (
+                    <div className="aspect-square w-full bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center">
+                      <span className="text-gray-300 text-2xl">📦</span>
+                    </div>
+                  )}
+                  
+                  {/* Content */}
+                  <div className="p-3 sm:p-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <h4 className="text-xs sm:text-sm font-semibold text-gray-900 line-clamp-2">{subcategory.label}</h4>
+                      <span className="opacity-60 transition-opacity group-hover:opacity-100 flex-shrink-0">→</span>
+                    </div>
+                    <p className="text-[10px] sm:text-[11px] text-gray-500 mt-1 sm:mt-2">
+                      {subcategory.count > 0
+                        ? `${subcategory.count} ${subcategory.count === 1 ? 'item' : 'items'}`
+                        : 'Discover more'}
+                    </p>
                   </div>
-                  <p className="text-[11px] text-gray-500 mt-2">
-                    {subcategory.count > 0
-                      ? `${subcategory.count} ${subcategory.count === 1 ? 'item' : 'items'}`
-                      : 'Discover more'}
-                  </p>
                 </Link>
               );
             })}

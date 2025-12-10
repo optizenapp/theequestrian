@@ -13,6 +13,12 @@ interface SubcategoryItem {
   handle: string;
   label: string;
   count: number;
+  image?: {
+    url: string;
+    altText: string;
+    width: number;
+    height: number;
+  } | null;
 }
 
 /**
@@ -32,8 +38,13 @@ export function MegaMenuWrapper({ categoryLabel, onClose }: MegaMenuWrapperProps
         // Convert menu label to URL-safe handle
         const categoryHandle = categoryLabel.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and');
 
+        // Use the images endpoint for Horse category, regular endpoint for others
+        const endpoint = categoryHandle === 'horse' 
+          ? `/api/mapping/subcategories-with-images?category=${categoryHandle}`
+          : `/api/mapping/subcategories?category=${categoryHandle}`;
+
         // Fetch subcategories from our mapping API
-        const response = await fetch(`/api/mapping/subcategories?category=${categoryHandle}`);
+        const response = await fetch(endpoint);
         
         if (!response.ok) {
           throw new Error('Failed to fetch subcategories');

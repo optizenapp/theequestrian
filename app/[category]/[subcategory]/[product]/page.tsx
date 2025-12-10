@@ -23,6 +23,7 @@ import { ProductBreadcrumbs } from '@/components/ProductBreadcrumbs';
 import { ProductBuyBox } from '@/components/product/ProductBuyBox';
 import { ProductDescription } from '@/components/product/ProductDescription';
 import { generateBreadcrumbSchema } from '@/lib/utils/breadcrumb-schema';
+import { generateProductSchemaGraph } from '@/lib/utils/product-schema';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import type { ShopifyProduct } from '@/types/shopify';
@@ -117,23 +118,27 @@ function renderProductPage(product: ShopifyProduct) {
     siteUrl
   );
 
+  // Generate unified @graph with BreadcrumbList + Product
+  const canonicalUrl = getProductCanonicalUrl(product);
+  const primaryBreadcrumb = Array.isArray(breadcrumbSchemas) ? breadcrumbSchemas[0] : breadcrumbSchemas;
+  const schemaGraph = generateProductSchemaGraph(product, canonicalUrl, primaryBreadcrumb, siteUrl);
+
   return (
     <div className="bg-background min-h-screen pb-20">
-      {/* Breadcrumb Schema */}
-      {Array.isArray(breadcrumbSchemas) ? (
-        breadcrumbSchemas.map((schema, index) => (
-          <script
-            key={index}
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-          />
-        ))
-      ) : (
+      {/* Unified Schema Graph (BreadcrumbList + Product) */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaGraph) }}
+      />
+
+      {/* Additional breadcrumb paths (if product appears in multiple categories) */}
+      {Array.isArray(breadcrumbSchemas) && breadcrumbSchemas.slice(1).map((schema, index) => (
         <script
+          key={`breadcrumb-alt-${index}`}
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchemas) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
         />
-      )}
+      ))}
 
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 pt-4">
         

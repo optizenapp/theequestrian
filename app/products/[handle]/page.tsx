@@ -5,6 +5,7 @@ import { ProductBreadcrumbs } from '@/components/ProductBreadcrumbs';
 import { ProductBuyBox } from '@/components/product/ProductBuyBox';
 import { ProductDescription } from '@/components/product/ProductDescription';
 import { generateBreadcrumbSchema } from '@/lib/utils/breadcrumb-schema';
+import { generateProductSchemaGraph } from '@/lib/utils/product-schema';
 import { getBreadcrumbsForProduct } from '@/lib/mapping/collection-mapping';
 
 export const revalidate = 300;
@@ -75,23 +76,27 @@ export default async function ProductPage({ params }: ProductPageProps) {
     siteUrl
   );
 
+  // Generate unified @graph with BreadcrumbList + Product
+  // This creates a single knowledge graph entity for better entity resolution
+  const primaryBreadcrumb = Array.isArray(breadcrumbSchemas) ? breadcrumbSchemas[0] : breadcrumbSchemas;
+  const schemaGraph = generateProductSchemaGraph(product, currentUrl, primaryBreadcrumb, siteUrl);
+
   return (
     <div className="bg-background min-h-screen pb-20">
-      {/* Breadcrumb Schema */}
-      {Array.isArray(breadcrumbSchemas) ? (
-        breadcrumbSchemas.map((schema, index) => (
-          <script
-            key={index}
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-          />
-        ))
-      ) : (
+      {/* Unified Schema Graph (BreadcrumbList + Product) */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaGraph) }}
+      />
+
+      {/* Additional breadcrumb paths (if product appears in multiple categories) */}
+      {Array.isArray(breadcrumbSchemas) && breadcrumbSchemas.slice(1).map((schema, index) => (
         <script
+          key={`breadcrumb-alt-${index}`}
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchemas) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
         />
-      )}
+      ))}
 
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 pt-4">
         
