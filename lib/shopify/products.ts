@@ -159,34 +159,36 @@ export async function getProductsByTypes(
     
     console.log(`[getProductsByTypes] Base Query (for facets): ${baseQueryString}`);
 
-    // Fetch ALL products WITHOUT filters (to calculate accurate facets)
-    const allProductsUnfiltered: ProductWithPrimaryCollection[] = [];
-    let hasNextPage = true;
-    let cursor: string | null = null;
-    const maxPages = 50; // Safety limit
-
-    let pageCount = 0;
-    while (hasNextPage && pageCount < maxPages) {
-      const paginationCursor = cursor; // Avoid circular type inference
-      const data: ProductsResponse = await shopifyFetch<ProductsResponse>({
-        query: GET_PRODUCTS_BY_QUERY,
-        variables: { 
-          query: baseQueryString,
-          first: 250, // Fetch max per page
-          after: paginationCursor 
-        },
-        cache: 'force-cache',
-      });
-
-      allProductsUnfiltered.push(...data.products.edges.map(({ node }) => node as ProductWithPrimaryCollection));
-      hasNextPage = data.products.pageInfo.hasNextPage;
-      cursor = data.products.pageInfo.endCursor;
-      pageCount++;
+    // PERFORMANCE OPTIMIZATION: Use server-side brand filtering when possible
+    // Build query with brand filter if provided
+    let finalQuery = baseQueryString;
+    if (filters?.brands && filters.brands.length > 0) {
+      const brandQuery = filters.brands
+        .map(brand => `(vendor:"${brand.replace(/"/g, '\\"')}" OR tag:"${brand.replace(/"/g, '\\"')}")`)
+        .join(' OR ');
+      finalQuery = `(${baseQueryString}) AND (${brandQuery})`;
+      console.log(`[getProductsByTypes] 🔍 Applied server-side brand filter`);
     }
 
-    console.log(`[getProductsByTypes] ✅ Fetched ${allProductsUnfiltered.length} total products (unfiltered)`);
+    // Fetch products with server-side filtering and sorting
+    // Shopify will handle availability sorting if we use sortKey
+    const data: ProductsResponse = await shopifyFetch<ProductsResponse>({
+      query: GET_PRODUCTS_BY_QUERY,
+      variables: { 
+        query: finalQuery,
+        first: limit,
+        after: after 
+      },
+      cache: 'force-cache',
+    });
 
-    // --- AGGREGATE FACETS FROM ALL UNFILTERED PRODUCTS ---
+    const pageProducts = data.products.edges.map(({ node }) => node as ProductWithPrimaryCollection);
+    
+    console.log(`[getProductsByTypes] ✅ Fetched ${pageProducts.length} products for page`);
+
+    // --- AGGREGATE FACETS FROM CURRENT PAGE PRODUCTS ---
+    // Note: Facets are calculated from current page only for performance
+    // This is a trade-off: fast page loads vs. complete facet accuracy
     
     // 1. Brands (Vendors & Tags) - Store both normalized key and display name
     const brandCounts = new Map<string, { count: number; displayName: string }>();
@@ -201,7 +203,7 @@ export async function getProductsByTypes(
     let minPrice = Infinity;
     let maxPrice = 0;
 
-    allProductsUnfiltered.forEach(p => {
+    pageProducts.forEach(p => {
       // Brands: Track which brand identifiers this product has been counted for
       // to avoid double-counting if a product has both vendor and matching tag
       const countedBrands = new Set<string>();
@@ -316,47 +318,19 @@ export async function getProductsByTypes(
 
     console.log(`[getProductsByTypes] 📊 Facets calculated: ${brandFacets.length} brands, ${sizeFacets.length} sizes, ${colorFacets.length} colors`);
 
-    // --- NOW APPLY FILTERS FOR DISPLAY ---
-    let filteredProducts = [...allProductsUnfiltered];
-    
-    // Apply brand filter (client-side, since we fetched all products)
-    if (filters?.brands && filters.brands.length > 0) {
-      const lowerCaseBrands = new Set(filters.brands.map(b => b.toLowerCase()));
-      filteredProducts = filteredProducts.filter(p => {
-        const vendorMatch = p.vendor && lowerCaseBrands.has(p.vendor.toLowerCase());
-        const tagMatch = p.tags.some(tag => lowerCaseBrands.has(tag.toLowerCase()));
-        return vendorMatch || tagMatch;
-      });
-      console.log(`[getProductsByTypes] 🔍 Filtered to ${filteredProducts.length} products by brand`);
-    }
-
     // Sort products: In-stock first, out-of-stock last
-    filteredProducts.sort((a, b) => {
+    pageProducts.sort((a, b) => {
       if (a.availableForSale === b.availableForSale) return 0;
       return a.availableForSale ? -1 : 1;
     });
 
-    // Handle pagination manually
-    let page = 0;
-    if (after) {
-      const match = after.match(/^page:(\d+)$/);
-      if (match) {
-        page = parseInt(match[1]);
-      }
-    }
-    
-    const startIndex = page * limit;
-    const endIndex = startIndex + limit;
-    const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
-    const hasMore = endIndex < filteredProducts.length;
-
-    console.log(`[getProductsByTypes] 📄 Page ${page}: Returning ${paginatedProducts.length} products (${startIndex}-${endIndex} of ${filteredProducts.length})`);
+    console.log(`[getProductsByTypes] 📄 Returning ${pageProducts.length} products`);
 
     return {
-      products: paginatedProducts,
+      products: pageProducts,
       pageInfo: {
-        hasNextPage: hasMore,
-        endCursor: hasMore ? `page:${page + 1}` : null
+        hasNextPage: data.products.pageInfo.hasNextPage,
+        endCursor: data.products.pageInfo.endCursor
       },
       facets: {
         brands: brandFacets,
