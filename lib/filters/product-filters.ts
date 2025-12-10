@@ -105,6 +105,28 @@ export function getColorOptions(products: ShopifyProduct[]): FilterOption[] {
  * Instead, we need to pass the allowed brands from the server.
  * For now, we'll extract all vendors and let the server filter them.
  */
+// Vendors to exclude from brand filters (store name, not customer-facing brands)
+const EXCLUDED_VENDORS = new Set([
+  'ascot saddlery',
+  'the equestrian',
+]);
+
+// Tags to exclude from brand filters (colors, sizes, product types, etc.)
+const NON_BRAND_TAGS = new Set([
+  // Colors
+  'black', 'white', 'blue', 'red', 'green', 'yellow', 'orange', 'purple', 'pink', 'brown', 'grey', 'gray',
+  'navy', 'beige', 'tan', 'cream', 'silver', 'gold', 'bronze',
+  // Sizes
+  'small', 'medium', 'large', 'xl', 'xxl', 'xs', 'one size',
+  // Product types/categories
+  'birds', 'dog treats', 'cat food', 'dog flea treatment', 'all wormer', 'shampoo', 'litter',
+  'air & freeze dried', 'rogz harness', 'zeez dog coats',
+  // Generic tags
+  'australia only', 'new', 'sale', 'clearance', 'featured', 'best seller',
+  // Store name
+  'ascot saddlery', 'ascotheavy', '#heavy',
+]);
+
 export function getBrandOptions(
   products: ShopifyProduct[],
   allowedBrands?: { vendors: string[]; tags: string[] }
@@ -119,17 +141,38 @@ export function getBrandOptions(
     // Check if product matches by vendor
     if (product.vendor && product.vendor.trim()) {
       const vendor = product.vendor.trim();
+      const normalizedVendor = vendor.toLowerCase();
+      
+      // Skip excluded vendors (store name, etc.)
+      if (EXCLUDED_VENDORS.has(normalizedVendor)) {
+        return;
+      }
+      
       // Case-insensitive check for vendor
-      if (!allowedBrands || allowedBrands.vendors.some(v => v.toLowerCase() === vendor.toLowerCase())) {
+      if (!allowedBrands || allowedBrands.vendors.some(v => v.toLowerCase() === normalizedVendor)) {
         brandName = vendor;
       }
     }
     
     // Check if product matches by tag (if not already matched by vendor)
-    if (!brandName && allowedBrands?.tags) {
-      const matchingTag = product.tags.find(tag => 
-        allowedBrands.tags.includes(tag.toLowerCase())
-      );
+    if (!brandName) {
+      const matchingTag = product.tags.find(tag => {
+        const normalizedTag = tag.toLowerCase();
+        
+        // Skip non-brand tags
+        if (NON_BRAND_TAGS.has(normalizedTag)) {
+          return false;
+        }
+        
+        // If allowedBrands is specified, check against it
+        if (allowedBrands?.tags) {
+          return allowedBrands.tags.includes(normalizedTag);
+        }
+        
+        // If no allowedBrands, include all non-excluded tags
+        return true;
+      });
+      
       if (matchingTag) {
         // Use a capitalized version of the tag as the brand name
         brandName = matchingTag.charAt(0).toUpperCase() + matchingTag.slice(1);
