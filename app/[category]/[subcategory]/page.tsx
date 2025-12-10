@@ -59,8 +59,11 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
   // Get total product count
   const totalProductCount = await getProductCountByTypes(allowedProductTypes);
   
-  // Get allowed brand vendors from brand-mapping.csv
-  const allowedBrands = getAllowedBrandVendors();
+  // Get allowed brand vendors from brand-mapping.csv (only for equestrian categories)
+  // For pet/accessories categories, show all brands
+  const allowedBrands = (category === 'pet' || category === 'accessories') 
+    ? undefined 
+    : getAllowedBrandVendors();
   
   // Calculate canonical URLs for all products (server-side only) - batch operation
   const productUrls = getProductCanonicalUrls(filteredProducts);

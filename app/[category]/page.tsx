@@ -157,8 +157,11 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   // Calculate canonical URLs for all products (server-side only) - batch operation
   const productUrls = getProductCanonicalUrls(filteredProducts);
   
-  // Get allowed brand vendors from brand-mapping.csv
-  const allowedBrands = getAllowedBrandVendors();
+  // Get allowed brand vendors from brand-mapping.csv (only for equestrian categories)
+  // For pet/accessories categories, show all brands
+  const allowedBrands = (category === 'pet' || category === 'accessories') 
+    ? undefined 
+    : getAllowedBrandVendors();
 
   // Get subcategories from our mapping
   const subcategories = getMappingSubcategories(category);
