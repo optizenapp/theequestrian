@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSubcategoriesForCollection } from '@/lib/mapping/collection-mapping';
 import { getProductTypesForCollection } from '@/lib/mapping/collection-mapping';
 import { getProductsByTypes } from '@/lib/shopify/products';
+import { getMegaMenuContent } from '@/lib/content/mega-menu-content';
 
 /**
- * API Route: Get subcategories with sample product images
+ * API Route: Get subcategories with sample product images + featured hero image
  * GET /api/mapping/subcategories-with-images?category=horse
  */
 export async function GET(request: NextRequest) {
@@ -21,6 +22,37 @@ export async function GET(request: NextRequest) {
 
     // Get subcategories from mapping
     const subcategories = getSubcategoriesForCollection(category);
+
+    // Check for custom content from CSV
+    const customContent = getMegaMenuContent(category);
+    
+    // Featured image (from CSV or fallback to auto-generated)
+    let featuredImage = null;
+    let customQuickLinks = null;
+    let customSubcategoryCards = null;
+    
+    if (customContent?.featuredImage) {
+      // Use custom featured image from CSV
+      featuredImage = {
+        url: customContent.featuredImage.url,
+        altText: customContent.featuredImage.title,
+        width: 1200,
+        height: 800,
+        productTitle: customContent.featuredImage.title,
+        subtitle: customContent.featuredImage.subtitle,
+        link: customContent.featuredImage.link,
+      };
+    }
+    
+    if (customContent?.quickLinks) {
+      // Use custom quick links from CSV
+      customQuickLinks = customContent.quickLinks;
+    }
+    
+    if (customContent?.subcategoryCards) {
+      // Use custom subcategory cards from CSV (overrides auto-generated)
+      customSubcategoryCards = customContent.subcategoryCards;
+    }
 
     // Fetch a sample product image for each subcategory
     const subcategoriesWithImages = await Promise.all(
@@ -64,6 +96,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       category,
       subcategories: subcategoriesWithImages,
+      featuredImage,
+      customQuickLinks,
+      customSubcategoryCards,
     });
   } catch (error) {
     console.error('Error in /api/mapping/subcategories-with-images:', error);

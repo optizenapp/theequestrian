@@ -21,11 +21,36 @@ interface SubcategoryItem {
   } | null;
 }
 
+interface FeaturedImage {
+  url: string;
+  altText: string;
+  width: number;
+  height: number;
+  productTitle: string;
+  subtitle?: string;
+  link?: string;
+}
+
+interface CustomQuickLink {
+  title: string;
+  imageUrl: string;
+  link: string;
+}
+
+interface CustomSubcategoryCard {
+  title: string;
+  imageUrl: string;
+  link: string;
+}
+
 /**
  * Client wrapper that fetches mega menu subcategories from mapping
  */
 export function MegaMenuWrapper({ categoryLabel, onClose }: MegaMenuWrapperProps) {
   const [subcategories, setSubcategories] = useState<SubcategoryItem[]>([]);
+  const [featuredImage, setFeaturedImage] = useState<FeaturedImage | null>(null);
+  const [customQuickLinks, setCustomQuickLinks] = useState<CustomQuickLink[] | null>(null);
+  const [customSubcategoryCards, setCustomSubcategoryCards] = useState<CustomSubcategoryCard[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,6 +77,9 @@ export function MegaMenuWrapper({ categoryLabel, onClose }: MegaMenuWrapperProps
         
         const data = await response.json();
         setSubcategories(data.subcategories || []);
+        setFeaturedImage(data.featuredImage || null);
+        setCustomQuickLinks(data.customQuickLinks || null);
+        setCustomSubcategoryCards(data.customSubcategoryCards || null);
       } catch (err) {
         console.error('Error fetching mega menu data:', err);
         setError(err instanceof Error ? err.message : 'Failed to load menu');
@@ -75,6 +103,9 @@ export function MegaMenuWrapper({ categoryLabel, onClose }: MegaMenuWrapperProps
     <MegaMenu
       categoryLabel={categoryLabel}
       subcategories={subcategories}
+      featuredImage={featuredImage}
+      customQuickLinks={customQuickLinks}
+      customSubcategoryCards={customSubcategoryCards}
       onClose={onClose}
     />
   );
