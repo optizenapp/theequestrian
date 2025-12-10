@@ -225,7 +225,7 @@ export async function getProductsByTypes(
         pageCount++;
       }
 
-      console.log(`[getProductsByTypes] ✅ Fetched ${allProductsUnfiltered.length} total products`);
+      console.log(`[getProductsByTypes] ✅ Fetched ${allProductsUnfiltered.length} total products in ${pageCount} pages`);
       
       // Cache the results
       productsByTypesCache.set(cacheKey, {

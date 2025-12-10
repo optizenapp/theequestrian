@@ -319,17 +319,12 @@ export const GET_PRODUCTS_BY_QUERY = `
               }
             }
           }
-          variants(first: 50) {
+          variants(first: 10) {
             edges {
               node {
                 id
-                title
                 availableForSale
                 price {
-                  amount
-                  currencyCode
-                }
-                compareAtPrice {
                   amount
                   currencyCode
                 }
@@ -337,15 +332,6 @@ export const GET_PRODUCTS_BY_QUERY = `
                   name
                   value
                 }
-              }
-            }
-          }
-          collections(first: 20) {
-            edges {
-              node {
-                id
-                handle
-                title
               }
             }
           }
