@@ -40,6 +40,12 @@ let productsCache: {
   timestamp: number;
 } | null = null;
 
+// Cache for product collections by productTypes query
+let productsByTypesCache: Map<string, {
+  products: ProductWithPrimaryCollection[];
+  timestamp: number;
+}> = new Map();
+
 const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 
 /**
@@ -157,38 +163,54 @@ export async function getProductsByTypes(
     // Base query WITHOUT filters (for facet calculation)
     const baseQueryString = `(${typeQuery})`;
     
-    console.log(`[getProductsByTypes] Base Query (for facets): ${baseQueryString}`);
+    // Check cache first
+    const cacheKey = baseQueryString;
+    const now = Date.now();
+    const cached = productsByTypesCache.get(cacheKey);
+    
+    let allProductsUnfiltered: ProductWithPrimaryCollection[];
+    
+    if (cached && (now - cached.timestamp) < CACHE_TTL) {
+      console.log(`[getProductsByTypes] ✅ Using cached products (${cached.products.length} products)`);
+      allProductsUnfiltered = cached.products;
+    } else {
+      console.log(`[getProductsByTypes] 📥 Fetching ALL products for facets (cache miss)`);
+      
+      // Fetch ALL products for accurate facets
+      allProductsUnfiltered = [];
+      let hasNextPage = true;
+      let cursor: string | null = null;
+      const maxPages = 50;
+      let pageCount = 0;
 
-    // PERFORMANCE OPTIMIZATION: Use server-side brand filtering when possible
-    // Build query with brand filter if provided
-    let finalQuery = baseQueryString;
-    if (filters?.brands && filters.brands.length > 0) {
-      const brandQuery = filters.brands
-        .map(brand => `(vendor:"${brand.replace(/"/g, '\\"')}" OR tag:"${brand.replace(/"/g, '\\"')}")`)
-        .join(' OR ');
-      finalQuery = `(${baseQueryString}) AND (${brandQuery})`;
-      console.log(`[getProductsByTypes] 🔍 Applied server-side brand filter`);
+      while (hasNextPage && pageCount < maxPages) {
+        const paginationCursor = cursor;
+        const data: ProductsResponse = await shopifyFetch<ProductsResponse>({
+          query: GET_PRODUCTS_BY_QUERY,
+          variables: { 
+            query: baseQueryString,
+            first: 250,
+            after: paginationCursor 
+          },
+          cache: 'force-cache',
+        });
+
+        allProductsUnfiltered.push(...data.products.edges.map(({ node }) => node as ProductWithPrimaryCollection));
+        hasNextPage = data.products.pageInfo.hasNextPage;
+        cursor = data.products.pageInfo.endCursor;
+        pageCount++;
+      }
+
+      console.log(`[getProductsByTypes] ✅ Fetched ${allProductsUnfiltered.length} total products`);
+      
+      // Cache the results
+      productsByTypesCache.set(cacheKey, {
+        products: allProductsUnfiltered,
+        timestamp: now
+      });
     }
 
-    // Fetch products with server-side filtering and sorting
-    // Shopify will handle availability sorting if we use sortKey
-    const data: ProductsResponse = await shopifyFetch<ProductsResponse>({
-      query: GET_PRODUCTS_BY_QUERY,
-      variables: { 
-        query: finalQuery,
-        first: limit,
-        after: after 
-      },
-      cache: 'force-cache',
-    });
-
-    const pageProducts = data.products.edges.map(({ node }) => node as ProductWithPrimaryCollection);
-    
-    console.log(`[getProductsByTypes] ✅ Fetched ${pageProducts.length} products for page`);
-
-    // --- AGGREGATE FACETS FROM CURRENT PAGE PRODUCTS ---
-    // Note: Facets are calculated from current page only for performance
-    // This is a trade-off: fast page loads vs. complete facet accuracy
+    // --- AGGREGATE FACETS FROM ALL PRODUCTS ---
     
     // 1. Brands (Vendors & Tags) - Store both normalized key and display name
     const brandCounts = new Map<string, { count: number; displayName: string }>();
@@ -203,7 +225,7 @@ export async function getProductsByTypes(
     let minPrice = Infinity;
     let maxPrice = 0;
 
-    pageProducts.forEach(p => {
+    allProductsUnfiltered.forEach(p => {
       // Brands: Track which brand identifiers this product has been counted for
       // to avoid double-counting if a product has both vendor and matching tag
       const countedBrands = new Set<string>();
@@ -318,19 +340,47 @@ export async function getProductsByTypes(
 
     console.log(`[getProductsByTypes] 📊 Facets calculated: ${brandFacets.length} brands, ${sizeFacets.length} sizes, ${colorFacets.length} colors`);
 
+    // --- NOW APPLY FILTERS FOR DISPLAY ---
+    let filteredProducts = [...allProductsUnfiltered];
+    
+    // Apply brand filter (client-side)
+    if (filters?.brands && filters.brands.length > 0) {
+      const lowerCaseBrands = new Set(filters.brands.map(b => b.toLowerCase()));
+      filteredProducts = filteredProducts.filter(p => {
+        const vendorMatch = p.vendor && lowerCaseBrands.has(p.vendor.toLowerCase());
+        const tagMatch = p.tags.some(tag => lowerCaseBrands.has(tag.toLowerCase()));
+        return vendorMatch || tagMatch;
+      });
+      console.log(`[getProductsByTypes] 🔍 Filtered to ${filteredProducts.length} products by brand`);
+    }
+
     // Sort products: In-stock first, out-of-stock last
-    pageProducts.sort((a, b) => {
+    filteredProducts.sort((a, b) => {
       if (a.availableForSale === b.availableForSale) return 0;
       return a.availableForSale ? -1 : 1;
     });
 
-    console.log(`[getProductsByTypes] 📄 Returning ${pageProducts.length} products`);
+    // Handle pagination manually
+    let page = 0;
+    if (after) {
+      const match = after.match(/^page:(\d+)$/);
+      if (match) {
+        page = parseInt(match[1]);
+      }
+    }
+    
+    const startIndex = page * limit;
+    const endIndex = startIndex + limit;
+    const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+    const hasMore = endIndex < filteredProducts.length;
+
+    console.log(`[getProductsByTypes] 📄 Page ${page}: Returning ${paginatedProducts.length} products (${startIndex}-${endIndex} of ${filteredProducts.length})`);
 
     return {
-      products: pageProducts,
+      products: paginatedProducts,
       pageInfo: {
-        hasNextPage: data.products.pageInfo.hasNextPage,
-        endCursor: data.products.pageInfo.endCursor
+        hasNextPage: hasMore,
+        endCursor: hasMore ? `page:${page + 1}` : null
       },
       facets: {
         brands: brandFacets,
