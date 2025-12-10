@@ -196,3 +196,4 @@ If they're still showing old data, try:
 2. Clear Next.js cache: `rm -rf .next`
 3. Restart dev server
 
+

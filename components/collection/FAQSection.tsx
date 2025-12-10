@@ -100,3 +100,4 @@ export function FAQSection({ faqs, categoryTitle }: FAQSectionProps) {
   );
 }
 
+

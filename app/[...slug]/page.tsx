@@ -49,9 +49,7 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
   
   // If the requested path doesn't match the canonical URL, redirect
   // BUT: Only if the canonical is NOT /products/{handle} (which would create a loop)
-  // AND: Only if we're not already at the canonical URL
   if (requestedPath !== canonicalUrl) {
-    // If canonical is /products/{handle}, don't redirect - just render here
     if (canonicalUrl.startsWith('/products/')) {
       // Product has no category mapping, render it here
       // (This prevents redirect loops for unmapped products)
