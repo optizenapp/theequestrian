@@ -118,9 +118,9 @@ export function MegaMenu({
           </Link>
         </div>
 
-        <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1.25fr_1fr]">
+        <div className="grid gap-4 sm:gap-6 lg:grid-cols-2 lg:items-end">
           {/* Featured hero image - Hidden on small screens */}
-          <div className="hidden lg:block space-y-4">
+          <div className="hidden lg:flex lg:flex-col space-y-4">
             {featuredImage ? (
               <Link
                 href={featuredImage.link || `/${categoryHandle}`}
@@ -178,38 +178,35 @@ export function MegaMenu({
             </div>
           </div>
 
-          {/* Subcategory list - 6 items in 2 columns (3 rows) */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:col-span-1">
+          {/* Subcategory list - 6 items in 2 columns (3 rows) - Rectangular cards like quick links */}
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
             {cardsToShow.map((card, index) => {
               return (
                 <Link
                   key={card.link || index}
                   href={card.link}
-                  className="group rounded-xl sm:rounded-2xl border border-gray-100 bg-white overflow-hidden text-left shadow-sm transition-all hover:shadow-md"
+                  className="group rounded-2xl border border-gray-100 bg-white shadow-sm p-4 flex items-center gap-3 hover:shadow-md transition-shadow"
                 >
                   {/* Product Image */}
                   {card.imageUrl ? (
-                    <div className="aspect-square w-full bg-gray-50 overflow-hidden">
+                    <div className="h-14 w-14 rounded-2xl overflow-hidden bg-gray-50 flex-shrink-0">
                       <img
                         src={card.imageUrl}
                         alt={card.title}
-                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                        className="w-full h-full object-cover"
                         loading="lazy"
                       />
                     </div>
                   ) : (
-                    <div className="aspect-square w-full bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center">
-                      <span className="text-gray-300 text-2xl">📦</span>
+                    <div className="h-14 w-14 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-400 text-xs uppercase tracking-widest flex-shrink-0">
+                      {card.title.substring(0, 2)}
                     </div>
                   )}
                   
                   {/* Content */}
-                  <div className="p-3 sm:p-4">
-                    <div className="flex items-center justify-between gap-2">
-                      <h4 className="text-xs sm:text-sm font-semibold text-gray-900 line-clamp-2">{card.title}</h4>
-                      <span className="opacity-60 transition-opacity group-hover:opacity-100 flex-shrink-0">→</span>
-                    </div>
-                    <p className="text-[10px] sm:text-[11px] text-gray-500 mt-1 sm:mt-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 truncate">{card.title}</p>
+                    <p className="text-xs text-gray-500">
                       {card.count && card.count > 0
                         ? `${card.count} ${card.count === 1 ? 'item' : 'items'}`
                         : 'Shop now'}
