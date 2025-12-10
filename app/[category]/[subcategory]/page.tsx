@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
-import { getProductsByTypes, getProductCountByTypes, getProductCanonicalUrls } from '@/lib/shopify/products';
+import { getProductsByTypes, getProductCanonicalUrls } from '@/lib/shopify/products';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { generateCollectionStructuredData } from '@/lib/structured-data/collection';
 import { 
@@ -49,15 +49,15 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
   }
 
   // Fetch products with pagination (36 per page)
-  const { products: filteredProducts, pageInfo, facets } = await getProductsByTypes(
+  const { products: filteredProducts, pageInfo, facets, totalCount } = await getProductsByTypes(
     allowedProductTypes, 
     36, 
     afterCursor,
     { brands: filterBrands }
   );
 
-  // Get total product count
-  const totalProductCount = await getProductCountByTypes(allowedProductTypes);
+  // Total count is now returned from getProductsByTypes (no separate API call needed)
+  const totalProductCount = totalCount;
   
   // Get allowed brand vendors from brand-mapping.csv (only for equestrian categories)
   // For pet/accessories categories, show all brands

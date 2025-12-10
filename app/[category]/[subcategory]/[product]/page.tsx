@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
-import { getProductsByTypes, getProductByHandle, getProductCountByTypes, getProductCanonicalUrl } from '@/lib/shopify/products';
+import { getProductsByTypes, getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { generateCollectionStructuredData } from '@/lib/structured-data/collection';
 import { 
@@ -220,10 +220,10 @@ async function renderSubSubcategoryPage(category: string, subcategory: string, s
   const allowedProductTypes = getProductTypesForCollection(category, subcategory, subsubcategory);
   
   // Fetch products with pagination (36 per page)
-  const { products: filteredProducts, pageInfo } = await getProductsByTypes(allowedProductTypes, 36, afterCursor);
+  const { products: filteredProducts, pageInfo, totalCount } = await getProductsByTypes(allowedProductTypes, 36, afterCursor);
 
-  // Get total product count
-  const totalProductCount = await getProductCountByTypes(allowedProductTypes);
+  // Total count is now returned from getProductsByTypes (no separate API call needed)
+  const totalProductCount = totalCount;
 
   // Get sibling sub-subcategories (for pills)
   const allSubSubcategories = getMappingSubcategories(category, subcategory);

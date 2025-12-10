@@ -152,6 +152,7 @@ export async function getProductsByTypes(
 ): Promise<{ 
   products: ProductWithPrimaryCollection[]; 
   pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  totalCount: number;
   facets: { 
     brands: { value: string; count: number; displayName: string }[];
     sizes: { value: string; count: number }[];
@@ -170,6 +171,7 @@ export async function getProductsByTypes(
     return { 
       products: [], 
       pageInfo: { hasNextPage: false, endCursor: null },
+      totalCount: 0,
       facets: emptyFacets
     };
   }
@@ -411,6 +413,7 @@ export async function getProductsByTypes(
         hasNextPage: hasMore,
         endCursor: hasMore ? `page:${page + 1}` : null
       },
+      totalCount: filteredProducts.length, // Return total count from cached data
       facets: {
         brands: brandFacets,
         sizes: sizeFacets,
@@ -423,6 +426,7 @@ export async function getProductsByTypes(
     return { 
       products: [], 
       pageInfo: { hasNextPage: false, endCursor: null },
+      totalCount: 0,
       facets: emptyFacets
     };
   }

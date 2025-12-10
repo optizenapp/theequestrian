@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
-import { getProductsByTypes, getProductCountByTypes } from '@/lib/shopify/products';
+import { getProductsByTypes } from '@/lib/shopify/products';
 import { getProductByHandle, getProductCanonicalUrl, getProductCanonicalUrls } from '@/lib/shopify/products';
 import { getCategoryContent } from '@/lib/content/collections';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
@@ -144,15 +144,15 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   }
 
   // Fetch products with pagination (36 per page)
-  const { products: filteredProducts, pageInfo, facets } = await getProductsByTypes(
+  const { products: filteredProducts, pageInfo, facets, totalCount } = await getProductsByTypes(
     allowedProductTypes, 
     36, 
     afterCursor,
     { brands: filterBrands }
   );
 
-  // Get total product count
-  const totalProductCount = await getProductCountByTypes(allowedProductTypes);
+  // Total count is now returned from getProductsByTypes (no separate API call needed)
+  const totalProductCount = totalCount;
   
   // Calculate canonical URLs for all products (server-side only) - batch operation
   const productUrls = getProductCanonicalUrls(filteredProducts);
