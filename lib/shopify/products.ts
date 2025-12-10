@@ -48,6 +48,28 @@ let productsByTypesCache: Map<string, {
 
 const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 
+// Tags to exclude from brand facets (these are not brands)
+const NON_BRAND_TAGS = new Set([
+  // Colors
+  'black', 'white', 'blue', 'red', 'green', 'yellow', 'orange', 'purple', 'pink', 'brown', 'grey', 'gray',
+  'navy', 'beige', 'tan', 'cream', 'silver', 'gold', 'bronze',
+  // Sizes
+  'small', 'medium', 'large', 'xl', 'xxl', 'xs', 'one size',
+  // Product types/categories
+  'birds', 'dog treats', 'cat food', 'dog flea treatment', 'all wormer', 'shampoo', 'litter',
+  'air & freeze dried', 'rogz harness', 'zeez dog coats',
+  // Generic tags
+  'australia only', 'new', 'sale', 'clearance', 'featured', 'best seller',
+  // Store name (not a brand to filter by)
+  'ascot saddlery', 'ascotheavy', '#heavy',
+]);
+
+// Vendors to exclude from brand facets (store name, not customer-facing brands)
+const EXCLUDED_VENDORS = new Set([
+  'ascot saddlery',
+  'the equestrian',
+]);
+
 /**
  * Get a product by its handle
  */
@@ -230,10 +252,11 @@ export async function getProductsByTypes(
       // to avoid double-counting if a product has both vendor and matching tag
       const countedBrands = new Set<string>();
       
-      // Count by vendor
+      // Count by vendor (skip excluded vendors like store name)
       if (p.vendor) {
         const normalizedVendor = p.vendor.trim().toLowerCase();
-        if (!countedBrands.has(normalizedVendor)) {
+        
+        if (!EXCLUDED_VENDORS.has(normalizedVendor) && !countedBrands.has(normalizedVendor)) {
           const existing = brandCounts.get(normalizedVendor);
           if (existing) {
             existing.count++;
@@ -250,6 +273,12 @@ export async function getProductsByTypes(
       // Count by tags (some brands like "Kentucky" use tags instead of vendor)
       p.tags.forEach(tag => {
         const normalizedTag = tag.toLowerCase().trim();
+        
+        // Skip non-brand tags (colors, sizes, product types, etc.)
+        if (NON_BRAND_TAGS.has(normalizedTag)) {
+          return;
+        }
+        
         // Only count if we haven't already counted this product for this brand
         // and if the tag looks like a brand name (length > 2)
         if (normalizedTag && normalizedTag.length > 2 && !countedBrands.has(normalizedTag)) {
