@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { getProductsByTypes, getProductCountByTypes } from '@/lib/shopify/products';
-import { getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
+import { getProductByHandle, getProductCanonicalUrl, getProductCanonicalUrls } from '@/lib/shopify/products';
 import { getCategoryContent } from '@/lib/content/collections';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { generateCollectionStructuredData } from '@/lib/structured-data/collection';
@@ -154,12 +154,8 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   // Get total product count
   const totalProductCount = await getProductCountByTypes(allowedProductTypes);
   
-  // Calculate canonical URLs for all products (server-side only)
-  const productUrls = new Map<string, string>();
-  filteredProducts.forEach(product => {
-    const canonicalUrl = getProductCanonicalUrl(product);
-    productUrls.set(product.id, canonicalUrl);
-  });
+  // Calculate canonical URLs for all products (server-side only) - batch operation
+  const productUrls = getProductCanonicalUrls(filteredProducts);
   
   // Get allowed brand vendors from brand-mapping.csv
   const allowedBrands = getAllowedBrandVendors();

@@ -439,6 +439,36 @@ export function getProductCanonicalUrl(product: ProductWithPrimaryCollection): s
 }
 
 /**
+ * Batch calculate canonical URLs for multiple products
+ * More efficient than calling getProductCanonicalUrl() in a loop
+ * Uses caching to avoid repeated productType lookups
+ */
+export function getProductCanonicalUrls(products: ProductWithPrimaryCollection[]): Map<string, string> {
+  const urlMap = new Map<string, string>();
+  
+  // Build a cache of productType -> categoryPath to avoid repeated lookups
+  const pathCache = new Map<string, string | null>();
+  
+  for (const product of products) {
+    const productType = product.productType;
+    
+    // Check cache first
+    if (!pathCache.has(productType)) {
+      pathCache.set(productType, getPrimaryCategoryPath(productType));
+    }
+    
+    const categoryPath = pathCache.get(productType);
+    const canonicalUrl = categoryPath 
+      ? `${categoryPath}/${product.handle}`
+      : `/products/${product.handle}`;
+    
+    urlMap.set(product.id, canonicalUrl);
+  }
+  
+  return urlMap;
+}
+
+/**
  * Verify a product belongs to a collection path
  */
 export function verifyProductCollectionPath(
