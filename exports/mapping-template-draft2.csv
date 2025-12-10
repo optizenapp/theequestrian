@@ -11,6 +11,7 @@ horse,bits,,HORSE: Bits,merge,bits,
 ,,,Veterinary,exclude,,TODO: Manually categorize as Horse/Pet Veterinary later
 ,,,Default,exclude,,Generic - manually allocate later
 ,,,Clothing,exclude,,Generic - manually allocate later
+pet,cat,,Cat Gyms & Toys,include,,Parent category for all cat products
 pet,cat,toys,Cat Gyms & Toys,include,,
 horse,grooming,show-prep,STABLE: Show Preparation,include,,
 rider,helmets,,Helmets,include,,add subs
@@ -30,9 +31,11 @@ clothing,womens,,Womens,include,,add subs
 horse,veterinary,first-aid,STABLE: First Aid & Dressings,include,,
 horse,halters,,HORSE: Headstalls,include,,add subs
 pet,dog,skin-care,Dog Potions & Lotions,include,,
+pet,cat,,Cat Accessories,include,,
 pet,cat,accessories,Cat Accessories,include,,
 horse,stable,,STABLE: Stable Equipment,include,,add subs
 clothing,mens,,Clothing - Men's Clothing,include,,add subs
+pet,cat,,Cat Food & Treats,include,,
 pet,cat,food,Cat Food & Treats,include,,
 rider,helmets,,Helmet,merge,helmets,
 clothing,accessories,hats,Hats & Accessories,include,,add subs
@@ -66,6 +69,7 @@ horse,tack,girths,Girths,merge,girths,
 horse,stable,treats,STABLE: Horse Treats & Toys,include,,
 pet,bird,toys,Bird Toys,include,,
 horse,supplements,,Feed Supplements,merge,supplements,
+pet,cat,,Cat Potions & Lotions,include,,
 pet,cat,skin-care,Cat Potions & Lotions,include,,
 rider,spurs,,Spurs & Straps,merge,spurs,
 horse,bonnets,,HORSE: Flyveils & Bonnets,include,,add subs
@@ -110,6 +114,7 @@ rider,spurs,,Spurs,merge,spurs,
 horse,veterinary,,Health Care,include,,add subs
 horse,bonnets,,Fly Veil,merge,bonnets,
 horse,saddles,dressage,SADDLES: Dressage Saddles,include,,
+pet,cat,,Cat Litter & Accessories,include,,
 pet,cat,litter,Cat Litter & Accessories,include,,
 horse,stock-western,,Stock & Western,merge,stock-western,
 rider,accessories,hair,Hair Accessories,merge,hair,
