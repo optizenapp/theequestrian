@@ -23,21 +23,39 @@ interface MappingRow {
 }
 
 let cachedMapping: Map<string, MappingRow[]> | null = null;
+let lastMappingMtime: number = 0;
 
 /**
  * Load the mapping CSV and cache it
+ * In development, checks file modification time to reload when CSV changes
  */
 function loadMapping(): Map<string, MappingRow[]> {
-  if (cachedMapping) {
+  const mappingPath = path.join(process.cwd(), 'exports', 'mapping-template-draft2.csv');
+  
+  // In development, check if file has been modified
+  if (cachedMapping && fs.existsSync(mappingPath)) {
+    const stats = fs.statSync(mappingPath);
+    const currentMtime = stats.mtimeMs;
+    
+    if (currentMtime > lastMappingMtime) {
+      console.log('[loadMapping] CSV file changed, reloading...');
+      cachedMapping = null;
+      lastMappingMtime = currentMtime;
+    } else if (cachedMapping) {
+      return cachedMapping;
+    }
+  } else if (cachedMapping) {
     return cachedMapping;
   }
 
-  const mappingPath = path.join(process.cwd(), 'exports', 'mapping-template-draft2.csv');
-  
   if (!fs.existsSync(mappingPath)) {
     console.warn(`Mapping file not found: ${mappingPath}`);
     return new Map();
   }
+
+  // Update last modified time
+  const stats = fs.statSync(mappingPath);
+  lastMappingMtime = stats.mtimeMs;
 
   const csvContent = fs.readFileSync(mappingPath, 'utf-8');
   const records = csv.parse(csvContent, {
