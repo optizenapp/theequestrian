@@ -86,6 +86,15 @@ export function FilterSidebar({
         />
       )}
 
+      {/* Color Filter */}
+      {colorOptions.length > 0 && (
+        <AttributeFilter
+          title="Color"
+          options={colorOptions}
+          paramName="color"
+        />
+      )}
+
       {/* Brand Filter */}
       {brandOptions.length > 0 && (
         <AttributeFilter

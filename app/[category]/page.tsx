@@ -11,6 +11,7 @@ import {
   getCollectionTitle,
   getCollectionHierarchy
 } from '@/lib/mapping/collection-mapping';
+import { getAllowedBrandVendors } from '@/lib/filters/brand-filter-helper';
 import { TrustSignals } from '@/components/TrustSignals';
 import { CategoryPills } from '@/components/CategoryPills';
 import { CollectionDescription } from '@/components/CollectionDescription';
@@ -39,8 +40,9 @@ interface CategoryPageProps {
  */
 export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
   const { category } = await params;
-  const { cursor } = await searchParams;
+  const { cursor, brand } = await searchParams;
   const afterCursor = typeof cursor === 'string' ? cursor : null;
+  const filterBrands = brand ? (Array.isArray(brand) ? brand : brand.split(',')) : undefined;
 
   // Check if this category exists in our mapping
   const allowedProductTypes = getProductTypesForCollection(category);
@@ -142,10 +144,21 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   }
 
   // Fetch products with pagination (36 per page)
-  const { products: filteredProducts, pageInfo } = await getProductsByTypes(allowedProductTypes, 36, afterCursor);
+  const { products: filteredProducts, pageInfo, facets } = await getProductsByTypes(
+    allowedProductTypes, 
+    36, 
+    afterCursor,
+    { brands: filterBrands }
+  );
 
   // Get total product count
+  // Note: We might want to get the filtered count here, but getProductCountByTypes likely fetches all count.
+  // For now, let's keep total count as "total in category" or update it if needed.
+  // Ideally, total count should reflect filters.
   const totalProductCount = await getProductCountByTypes(allowedProductTypes);
+  
+  // Get allowed brand vendors from brand-mapping.csv
+  const allowedBrands = getAllowedBrandVendors();
 
   // Get subcategories from our mapping
   const subcategories = getMappingSubcategories(category);
@@ -240,6 +253,8 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             currentCategory={category}
             pageInfo={pageInfo}
             totalCount={totalProductCount}
+            allowedBrands={allowedBrands}
+            serverFacets={facets}
           />
         </Suspense>
 

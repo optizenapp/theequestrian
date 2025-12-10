@@ -4,11 +4,9 @@ import type { NextRequest } from 'next/server';
 /**
  * Middleware for handling URL redirects
  * 
- * Redirects old Shopify collection URLs to new custom structure:
- * - /collections/handle → /handle
- * - /collections/handle/tag → /handle/tag
- * 
- * Products remain at /products/handle (canonical URL)
+ * Redirects:
+ * 1. Old Shopify collection URLs: /collections/handle → /handle
+ * 2. Old product URLs: /products/handle → /{category-path}/handle
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -25,6 +23,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(newUrl, 301);
   }
 
+  // Redirect old product URLs: /products/{handle} → /{category-path}/{handle}
+  if (pathname.startsWith('/products/')) {
+    const handle = pathname.replace('/products/', '');
+    
+    // We need to fetch the product to get its category path
+    // This will be handled by the /products/[handle]/page.tsx route
+    // which will do a server-side redirect to the canonical URL
+    // We don't do it in middleware to avoid API calls on every request
+    return NextResponse.next();
+  }
+
   return NextResponse.next();
 }
 
@@ -34,6 +43,7 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/collections/:path*',
+    '/products/:path*',
   ],
 };
 

@@ -9,39 +9,56 @@ export interface TopLevelMenuItem {
   label: string;
   handle: string;
   href: string;
-  shopifyCollectionHandle?: string; // Optional: if different from handle
+  shopifyCollectionHandle?: string; // Optional: if present, shows Mega Menu
   isHighlight?: boolean;
 }
 
 export const TOP_LEVEL_MENU: TopLevelMenuItem[] = [
-  {
-    label: 'Good deals',
-    handle: 'good-deals',
-    href: '/good-deals',
-    isHighlight: true,
-  },
   {
     label: 'Home',
     handle: 'home',
     href: '/',
   },
   {
+    label: 'Good deals',
+    handle: 'good-deals',
+    href: '/on-sale',
+    isHighlight: true,
+  },
+  {
     label: 'Horse',
     handle: 'horse',
     href: '/horse',
-    shopifyCollectionHandle: 'horse-equipment',
+    shopifyCollectionHandle: 'horse',
   },
   {
     label: 'Rider',
     handle: 'rider',
     href: '/rider',
-    shopifyCollectionHandle: 'womens-clothing',
+    shopifyCollectionHandle: 'rider',
   },
   {
-    label: 'Farm & Stable',
-    handle: 'farm-stable',
-    href: '/farm-stable',
-    shopifyCollectionHandle: 'stable-equipment',
+    label: 'Clothing',
+    handle: 'clothing',
+    href: '/clothing',
+    shopifyCollectionHandle: 'clothing',
+  },
+  {
+    label: 'Pet',
+    handle: 'pet',
+    href: '/pet',
+    shopifyCollectionHandle: 'pet',
+  },
+  {
+    label: 'Accessories',
+    handle: 'accessories',
+    href: '/accessories',
+    shopifyCollectionHandle: 'accessories',
+  },
+  {
+    label: 'Brands',
+    handle: 'brands',
+    href: '/brands',
   },
   {
     label: 'Contact',

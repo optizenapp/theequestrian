@@ -9,9 +9,9 @@ import { getBreadcrumbsForProduct } from '@/lib/mapping/collection-mapping';
 
 export const revalidate = 300;
 
-interface ProductPageProps {
+interface ProductCatchAllPageProps {
   params: Promise<{
-    handle: string;
+    slug: string[];
   }>;
 }
 
@@ -22,32 +22,49 @@ const featureHighlights = [
 ];
 
 /**
- * Legacy product route: /products/{handle}
+ * Catch-all route for product pages at any category depth
+ * Handles URLs like:
+ * - /clothing/footwear/boots/product-handle
+ * - /horse/boots/product-handle
+ * - /rider/helmets/product-handle
  * 
- * Behavior:
- * - If product has a category mapping: redirects (301) to category-based URL
- * - If no mapping: renders product page (fallback for unmapped products)
- * 
- * Example redirect: /products/ariat-boot → /clothing/footwear/boots/ariat-boot
+ * The last segment is always the product handle
  */
-export default async function ProductPage({ params }: ProductPageProps) {
-  const { handle } = await params;
+export default async function ProductCatchAllPage({ params }: ProductCatchAllPageProps) {
+  const { slug } = await params;
+  
+  // Last segment is the product handle
+  const handle = slug[slug.length - 1];
+  
+  // Fetch product
   const product = await getProductByHandle(handle);
 
   if (!product) {
     notFound();
   }
 
-  // Get the canonical URL
+  // Get the canonical URL for this product
   const canonicalUrl = getProductCanonicalUrl(product);
-  const currentUrl = `/products/${handle}`;
+  const requestedPath = `/${slug.join('/')}`;
   
-  // Only redirect if canonical URL is different (i.e., product has a category mapping)
-  if (canonicalUrl !== currentUrl) {
-    redirect(canonicalUrl);
+  // If the requested path doesn't match the canonical URL, redirect
+  // BUT: Only if the canonical is NOT /products/{handle} (which would create a loop)
+  // AND: Only if we're not already at the canonical URL
+  if (requestedPath !== canonicalUrl) {
+    // If canonical is /products/{handle}, don't redirect - just render here
+    if (canonicalUrl.startsWith('/products/')) {
+      // Product has no category mapping, render it here
+      // (This prevents redirect loops for unmapped products)
+    } else {
+      // Redirect to the correct category-based URL
+      redirect(canonicalUrl);
+    }
   }
+  
+  // If we reach here, either:
+  // 1. The requested path matches the canonical URL (correct URL)
+  // 2. OR the product has no category mapping (canonical is /products/{handle})
 
-  // If we reach here, product has no mapping - render fallback page
   const price = product.priceRange.minVariantPrice;
   
   // Calculate compareAtPrice from variants
@@ -176,8 +193,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
 /**
  * Generate metadata for SEO
  */
-export async function generateMetadata({ params }: ProductPageProps) {
-  const { handle } = await params;
+export async function generateMetadata({ params }: ProductCatchAllPageProps) {
+  const { slug } = await params;
+  const handle = slug[slug.length - 1];
   
   const product = await getProductByHandle(handle);
   
@@ -204,6 +222,7 @@ export async function generateMetadata({ params }: ProductPageProps) {
       description,
       url: canonicalUrl,
       siteName: 'The Equestrian',
+      type: 'website',
       images: product.images.edges[0]?.node ? [
         {
           url: product.images.edges[0].node.url,
@@ -221,3 +240,4 @@ export async function generateMetadata({ params }: ProductPageProps) {
     },
   };
 }
+

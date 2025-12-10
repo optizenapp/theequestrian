@@ -17,7 +17,9 @@ const footerLinks = {
     links: [
       { label: 'Horse', href: '/horse' },
       { label: 'Rider', href: '/rider' },
-      { label: 'Farm & Stable', href: '/farm-stable' },
+      { label: 'Clothing', href: '/clothing' },
+      { label: 'Pet', href: '/pet' },
+      { label: 'Accessories', href: '/accessories' },
       { label: 'All Products', href: '/products' },
     ],
   },

@@ -17,6 +17,7 @@ import { FAQSection } from '@/components/collection/FAQSection';
 import { RelatedCategories } from '@/components/collection/RelatedCategories';
 import { RichContent } from '@/components/collection/RichContent';
 import { getCategoryContent } from '@/lib/content/collections';
+import { getAllowedBrandVendors } from '@/lib/filters/brand-filter-helper';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
@@ -36,8 +37,9 @@ interface SubcategoryPageProps {
  */
 export default async function SubcategoryPage({ params, searchParams }: SubcategoryPageProps) {
   const { category, subcategory } = await params;
-  const { cursor } = await searchParams;
+  const { cursor, brand } = await searchParams;
   const afterCursor = typeof cursor === 'string' ? cursor : null;
+  const filterBrands = brand ? (Array.isArray(brand) ? brand : brand.split(',')) : undefined;
 
   // Check if this path exists in our mapping
   const allowedProductTypes = getProductTypesForCollection(category, subcategory);
@@ -47,10 +49,18 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
   }
 
   // Fetch products with pagination (36 per page)
-  const { products: filteredProducts, pageInfo } = await getProductsByTypes(allowedProductTypes, 36, afterCursor);
+  const { products: filteredProducts, pageInfo, facets } = await getProductsByTypes(
+    allowedProductTypes, 
+    36, 
+    afterCursor,
+    { brands: filterBrands }
+  );
 
   // Get total product count
   const totalProductCount = await getProductCountByTypes(allowedProductTypes);
+  
+  // Get allowed brand vendors from brand-mapping.csv
+  const allowedBrands = getAllowedBrandVendors();
 
   // Get sub-subcategories from our mapping (third level)
   const subSubcategories = getMappingSubcategories(category, subcategory);
@@ -144,6 +154,8 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
             currentSubcategory={subcategory}
             pageInfo={pageInfo}
             totalCount={totalProductCount}
+            allowedBrands={allowedBrands}
+            serverFacets={facets}
           />
         </Suspense>
 

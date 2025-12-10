@@ -1,0 +1,110 @@
+title,handle,url,products_count,rules
+Accessories,accessories,/collections/accessories,"{""count"":72}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""other accessories""},{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""accessories""}]"
+Ascot Saddlery,ascot-saddlery,/collections/ascot-saddlery,"{""count"":4658}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""Ascot Saddlery""}]"
+AZA Equestrian,aza-equestrian,/collections/aza-equestrian,"{""count"":0}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""AZA Equestrian""}]"
+BLACK FRIDAY DEALS 2022,black-friday-deals-for-equestrians,/collections/black-friday-deals-for-equestrians,"{""count"":0}",Manual Collection
+Books - Fiction & Non Fiction,horse-books,/collections/horse-books,"{""count"":15}",Manual Collection
+Bridles & Strapping - Top Brands For All Disciplines,strapping,/collections/strapping,"{""count"":430}",Manual Collection
+Bucas Australia,bucas-australia,/collections/bucas-australia,"{""count"":0}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""Bucas Australia""}]"
+Buy Horse Riding Helmets For Equestrians,horse-riding-helmets,/collections/horse-riding-helmets,"{""count"":149}",Manual Collection
+Buy Western Saddles,westerns-saddles-usa,/collections/westerns-saddles-usa,"{""count"":1}",Manual Collection
+CAN Animal Care,can-animal-care,/collections/can-animal-care,"{""count"":1}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""CAN Animal Care""}]"
+Cavalor Equicare,cavalor-equicare,/collections/cavalor-equicare,"{""count"":21}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""Cavalor Equicare""}]"
+"Competition, Training & Casual - Horse Riding Clothes",horse-riding-apparel,/collections/horse-riding-apparel,"{""count"":1428}",Manual Collection
+Dapple EQ,dapple-eq,/collections/dapple-eq,"{""count"":343}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""Dapple EQ""}]"
+Diamond Deluxe Horsewear,diamond-deluxe-horsewear,/collections/diamond-deluxe-horsewear,"{""count"":13}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""Diamond Deluxe Horsewear""}]"
+EAC Animal Care,eac-animal-care,/collections/eac-animal-care,"{""count"":17}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""EAC Animal Care""}]"
+Ego 7,ego-7,/collections/ego-7,"{""count"":24}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""ego 7""}]"
+ELT  Equestrian,elt,/collections/elt,"{""count"":28}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""elt""}]"
+Exclusively Equine,exclusively-equine,/collections/exclusively-equine,"{""count"":1816}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""Exclusively Equine""}]"
+Globo basis collection - Do not delete,globo_basis_collection,/collections/globo_basis_collection,"{""count"":16984}","[{""column"":""VARIANT_PRICE"",""relation"":""GREATER_THAN"",""condition"":""-9999""},{""column"":""TYPE"",""relation"":""NOT_EQUALS"",""condition"":""mw_product_option""}]"
+Helmet Brims,helmet-brims,/collections/helmet-brims,"{""count"":3}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""Helmet Brims""}]"
+Hitchley & Harrow,hitchley-harrow,/collections/hitchley-harrow,"{""count"":55}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""Hitchley & Harrow""}]"
+Horse & Equine Gifts,gifts,/collections/gifts,"{""count"":149}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""gift""},{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""gifts""}]"
+Horse Accessories,horse-riding-accessories,/collections/horse-riding-accessories,"{""count"":0}",Manual Collection
+Horse Boots - All Types,horse-boots,/collections/horse-boots,"{""count"":268}",Manual Collection
+Horse Grooming Gear & Accessories,horse-grooming-supplies,/collections/horse-grooming-supplies,"{""count"":286}",Manual Collection
+Horse Health & Nutrition,horse-health,/collections/horse-health,"{""count"":659}",Manual Collection
+Horse Jewellery - Equine & Equestrian Themed,horse-jewellery,/collections/horse-jewellery,"{""count"":417}",Manual Collection
+HORSE QUEENED,horse-queened,/collections/horse-queened,"{""count"":13}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""HORSE QUEENED""}]"
+"Horse Riding Boots & Footwear, Trainers, Workers",footwear,/collections/footwear,"{""count"":211}",Manual Collection
+Horse Riding Breeches - Quality International & National Brands,breeches,/collections/breeches,"{""count"":224}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""mens breeches""},{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""womens breeches""},{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""kids breeches""},{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""ariat breeches""},{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""denim breeches""},{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""breeches""}]"
+Horse Riding Safety Vests,body-protectors,/collections/body-protectors,"{""count"":8}",Manual Collection
+Horse Rugs - All Types,horse-rugs,/collections/horse-rugs,"{""count"":177}",Manual Collection
+Horseware Australia,horseware-australia,/collections/horseware-australia,"{""count"":5}",Manual Collection
+Ippico Equestrian,ippico-equestrian,/collections/ippico-equestrian,"{""count"":69}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""Ippico Equestrian""}]"
+JNK Collective,jnk-collective,/collections/jnk-collective,"{""count"":73}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""JNK Collective""}]"
+JP Equestrian Fashion,jp-equestrian-fashion,/collections/jp-equestrian-fashion,"{""count"":6}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""JP Equestrian Fashion""}]"
+Leg Wraps & Bandages For Your Horse Or Pony,horse-bandages,/collections/horse-bandages,"{""count"":98}",Manual Collection
+Little Equine Co,little-equine-co,/collections/little-equine-co,"{""count"":211}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""Little Equine Co""}]"
+Living Horse Tales Jewellery By Monika,living-horse-tales-jewellery-by-monika,/collections/living-horse-tales-jewellery-by-monika,"{""count"":105}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""Living Horse Tales Jewellery By Monika""}]"
+Luggage For The Horse Rider,luggage,/collections/luggage,"{""count"":75}",Manual Collection
+Mask & Fly Veils For Horses & Ponies,fly-veils-and-hoods,/collections/fly-veils-and-hoods,"{""count"":41}",Manual Collection
+Multidomain Chek,multidomain-chek,/collections/multidomain-chek,"{""count"":0}",Manual Collection
+On Sale - Discount On The Best Brands & Gear,on-sale,/collections/on-sale,"{""count"":1349}","[{""column"":""IS_PRICE_REDUCED"",""relation"":""IS_SET"",""condition"":""""}]"
+"Peter Williams Riding Apparel - Breeches, Jodphurs, Earlwwodd & More",peter-williams,/collections/peter-williams,"{""count"":11}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""peter williams""}]"
+"Pets - Products For Dogs, Cats, & Other Small Animals",pets,/collections/pets,"{""count"":1954}",Manual Collection
+Plum Tack - Quality Australia Riding Apparel & Clothing,plum-tack,/collections/plum-tack,"{""count"":42}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""Plum Tack""}]"
+Ponyjet,ponyjet,/collections/ponyjet,"{""count"":5}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""ponyjet""}]"
+Precision Microbes,precision-microbes,/collections/precision-microbes,"{""count"":2}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""Precision Microbes""}]"
+Premier Equine,premier-equine,/collections/premier-equine,"{""count"":114}",Manual Collection
+PS Of Sweden,ps-of-sweden,/collections/ps-of-sweden,"{""count"":29}",Manual Collection
+QJ Riding Wear,qj-riding-wear,/collections/qj-riding-wear,"{""count"":56}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""QJ Riding Wear""}]"
+Runaway Equestrian Co.,run-away-equestrian-co,/collections/run-away-equestrian-co,"{""count"":1}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""Runaway Equestrian Co.""}]"
+"Saddle Blankets, Pads & Squares",saddle-pads,/collections/saddle-pads,"{""count"":365}",Manual Collection
+Saddles For All Disciplines,saddles,/collections/saddles,"{""count"":64}",Manual Collection
+Shire Saddleworld,shire-saddleworld,/collections/shire-saddleworld,"{""count"":1630}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""Shire Saddleworld""}]"
+Shop & Buy Ariat Clothing & Footwear,ariat,/collections/ariat,"{""count"":208}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""ariat""}]"
+Shop & Buy Emcee Apparel,emcee-apparel,/collections/emcee-apparel,"{""count"":17}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""emcee apparel""}]"
+Shop & Buy Horse Bits - Quality Brands - All Types,horse-bits,/collections/horse-bits,"{""count"":246}",Manual Collection
+Shop Acavallo Horse Riding Essentials,acavallo,/collections/acavallo,"{""count"":50}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""acavallo""}]"
+Shop Animo Equestrian Gear,animo,/collections/animo,"{""count"":35}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""animo""}]"
+Shop ANKY,anky,/collections/anky,"{""count"":5}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""anky""}]"
+Shop Anna Scarpati,anna-scarpati,/collections/anna-scarpati,"{""count"":20}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""anna scarpati""}]"
+Shop BARE Equestrian Apparel & Gear,bare-equestrian,/collections/bare-equestrian,"{""count"":90}",Manual Collection
+"Shop Birds - Feed, Treats, Accessories, Supplies",birds,/collections/birds,"{""count"":190}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""birds""},{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""poultry""}]"
+Shop Cavalleria Toscana Equestrian Apparel & Horse Gear,cavalleria-toscana,/collections/cavalleria-toscana,"{""count"":361}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""cavalleria toscana""}]"
+Shop Cavallo Products,cavallo,/collections/cavallo,"{""count"":67}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""cavallo""}]"
+Shop Dy'On European Classic Equestrian Gear,dyon,/collections/dyon,"{""count"":34}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""dyon""}]"
+Shop Equiline Equestrian Gear,equiline,/collections/equiline,"{""count"":1}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""equiline""}]"
+Shop Equipe,equipe,/collections/equipe,"{""count"":69}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""equipe""}]"
+Shop Eurohunter Equestrian Gear & Accessories,eurohunter,/collections/eurohunter,"{""count"":166}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""eurohunter""}]"
+Shop Farrier Tools,farrier-tools,/collections/farrier-tools,"{""count"":42}",Manual Collection
+"Shop Feed - Horses, Dogs, Pigs, Chickens & More",feed,/collections/feed,"{""count"":146}",Manual Collection
+Shop FreeJump Stirrups & FreejumpSystem Range,freejump,/collections/freejump,"{""count"":9}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""freejump""}]"
+Shop Hairy Pony Grooming Products,hairy-pony,/collections/hairy-pony,"{""count"":48}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""hairy pony""}]"
+Shop Homeware - Equine Themed,homeware,/collections/homeware,"{""count"":179}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""homeware""}]"
+Shop Horse Clippers,clippers,/collections/clippers,"{""count"":0}",Manual Collection
+Shop Horse Halters,horse-halters,/collections/horse-halters,"{""count"":141}",Manual Collection
+Shop Horse Riding Base Layers,base-layers,/collections/base-layers,"{""count"":49}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""base layer""},{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""HLH base layer""},{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""base layers""}]"
+Shop Horse Riding Stirrups & Leathers,stirrups,/collections/stirrups,"{""count"":98}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""stirrups""},{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""leathers""}]"
+Shop Hygieia-San,hygieia-san,/collections/hygieia-san,"{""count"":0}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""Hygieia-San""}]"
+"Shop Kentucky Horsewear - Boots, Pads, Bonnets, Girths, Bandages & More",kentucky,/collections/kentucky,"{""count"":166}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""kentucky""}]"
+Shop Kids Horse Toys,horse-toys,/collections/horse-toys,"{""count"":54}",Manual Collection
+"Shop Leather Brothers - Collars, Leather Goods & More",leather-brothers,/collections/leather-brothers,"{""count"":0}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""leather brothers""}]"
+Shop Lemieux Horse Gear & Apparel,lemieux,/collections/lemieux,"{""count"":201}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""lemieux""},{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""halters""}]"
+Shop Martin Saddlery,martin-saddlery,/collections/martin-saddlery,"{""count"":0}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""martin saddlery""}]"
+Shop Mochara Equestrian Apparel,mochara,/collections/mochara,"{""count"":20}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""mochara""}]"
+Shop Noble Outfitters - Quality Equestrian Apparel & Accessories,noble-outfitters,/collections/noble-outfitters,"{""count"":8}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""noble""}]"
+Shop Paddock Blade,paddock-blade,/collections/paddock-blade,"{""count"":7}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""paddock blade""}]"
+Shop Penelope Leprovost Equestrian Gear & Apparel,penelope-leprovost,/collections/penelope-leprovost,"{""count"":13}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""penelope leprevost""}]"
+"Shop Prestige Saddles, Bridles & Equestrian Gear",prestige,/collections/prestige,"{""count"":11}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""prestige""}]"
+Shop Samshield Helmets & Equestrian Products,samshield,/collections/samshield,"{""count"":245}",Manual Collection
+Shop Thinline Global Australia,thinline-global-australia,/collections/thinline-global-australia,"{""count"":68}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""Thinline Global Australia""},{""column"":""TITLE"",""relation"":""CONTAINS"",""condition"":""Thinline""}]"
+Shop Toklat Equestrian Gear & Products,toklat,/collections/toklat,"{""count"":0}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""toklat""}]"
+"Shop Weaver Leather - Quality Leather Products, Care & Tools",weaver-leather,/collections/weaver-leather,"{""count"":0}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""weaver leather""}]"
+Shop Wintec - Saddles & Equestrian Gear,wintec,/collections/wintec,"{""count"":15}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""wintec""}]"
+"Shop Zilco Rugs, Horse Boots & Accessories",zilco,/collections/zilco,"{""count"":197}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""zilco""}]"
+Southern Sport Horses,southern-sport-horses,/collections/southern-sport-horses,"{""count"":918}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""Southern Sport Horses""}]"
+Southern Sport Horses,southern-sport-horses-1,/collections/southern-sport-horses-1,"{""count"":0}",Manual Collection
+Stable & Arena Gear,stable-and-yard,/collections/stable-and-yard,"{""count"":55}",Manual Collection
+Sterling Essentials,sterling-essentials,/collections/sterling-essentials,"{""count"":14}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""Sterling Essentials""}]"
+Tacklet,tacklet,/collections/tacklet,"{""count"":515}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""Tacklet""}]"
+Test Imports,test-imports,/collections/test-imports,"{""count"":0}",Manual Collection
+The Barbie Collection,the-barbie-collection,/collections/the-barbie-collection,"{""count"":8}","[{""column"":""TAG"",""relation"":""EQUALS"",""condition"":""barbie""}]"
+The Equestrian,the-equestrian,/collections/the-equestrian,"{""count"":37}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""The Equestrian""}]"
+Top Brands,top-brands,/collections/top-brands,"{""count"":223}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""Top Brands""}]"
+Trailrace Equestrian Outfitters,trailrace-equestrian-outfitters,/collections/trailrace-equestrian-outfitters,"{""count"":2204}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""Trailrace Equestrian Outfitters""}]"
+Vibrant Equestrian,vibrant-equestrian,/collections/vibrant-equestrian,"{""count"":7}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""Vibrant Equestrian""}]"
+Visentin Equestrian,visentin-equestrian,/collections/visentin-equestrian,"{""count"":23}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""Visentin Equestrian""}]"
+Vivarchie Equestrian,vivarchie-equestrian,/collections/vivarchie-equestrian,"{""count"":118}","[{""column"":""VENDOR"",""relation"":""EQUALS"",""condition"":""Vivarchie Equestrian""}]"

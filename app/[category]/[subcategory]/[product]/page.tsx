@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
-import { getProductsByTypes, getProductByHandle, getProductCountByTypes } from '@/lib/shopify/products';
+import { getProductsByTypes, getProductByHandle, getProductCountByTypes, getProductCanonicalUrl } from '@/lib/shopify/products';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { generateCollectionStructuredData } from '@/lib/structured-data/collection';
 import { 
@@ -61,7 +61,8 @@ export default async function Page({ params, searchParams }: PageProps) {
   }
 
   // Always redirect to canonical URL (301 permanent)
-  redirect(`/products/${thirdSegment}`);
+  const canonicalUrl = getProductCanonicalUrl(product);
+  redirect(canonicalUrl);
 }
 
 /**

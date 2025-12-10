@@ -9,7 +9,18 @@ export interface ShopifyProduct {
   description: string;
   descriptionHtml: string;
   availableForSale: boolean;
+  createdAt?: string; // ISO 8601 date string
   priceRange: {
+    minVariantPrice: {
+      amount: string;
+      currencyCode: string;
+    };
+    maxVariantPrice: {
+      amount: string;
+      currencyCode: string;
+    };
+  };
+  compareAtPriceRange?: {
     minVariantPrice: {
       amount: string;
       currencyCode: string;
@@ -35,6 +46,7 @@ export interface ShopifyProduct {
     }>;
   };
   tags: string[];
+  vendor: string;
   productType: string;
   collections: {
     edges: Array<{
@@ -104,6 +116,7 @@ export interface ShopifyCollection {
     pageInfo: {
       hasNextPage: boolean;
       hasPreviousPage: boolean;
+      endCursor: string | null;
     };
   };
   metafield?: {

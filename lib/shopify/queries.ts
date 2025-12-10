@@ -10,7 +10,18 @@ export const PRODUCT_FRAGMENT = `
     description
     descriptionHtml
     availableForSale
+    createdAt
     priceRange {
+      minVariantPrice {
+        amount
+        currencyCode
+      }
+      maxVariantPrice {
+        amount
+        currencyCode
+      }
+    }
+    compareAtPriceRange {
       minVariantPrice {
         amount
         currencyCode
@@ -58,6 +69,7 @@ export const PRODUCT_FRAGMENT = `
       }
     }
     tags
+    vendor
     productType
     collections(first: 20) {
       edges {
@@ -84,7 +96,7 @@ export const GET_PRODUCT_BY_HANDLE = `
 `;
 
 export const GET_COLLECTION_BY_HANDLE = `
-  query GetCollectionByHandle($handle: String!, $first: Int = 50) {
+  query GetCollectionByHandle($handle: String!, $first: Int = 50, $after: String) {
     collection(handle: $handle) {
       id
       handle
@@ -108,7 +120,7 @@ export const GET_COLLECTION_BY_HANDLE = `
       featuredLinksMetafield: metafield(namespace: "custom", key: "featured_links") {
         value
       }
-      products(first: $first) {
+      products(first: $first, after: $after) {
         edges {
           node {
             id
@@ -116,6 +128,16 @@ export const GET_COLLECTION_BY_HANDLE = `
             title
             availableForSale
             priceRange {
+              minVariantPrice {
+                amount
+                currencyCode
+              }
+              maxVariantPrice {
+                amount
+                currencyCode
+              }
+            }
+            compareAtPriceRange {
               minVariantPrice {
                 amount
                 currencyCode
@@ -162,6 +184,7 @@ export const GET_COLLECTION_BY_HANDLE = `
         pageInfo {
           hasNextPage
           hasPreviousPage
+          endCursor
         }
       }
     }
@@ -180,6 +203,16 @@ export const GET_ALL_PRODUCTS = `
           productType
           tags
           priceRange {
+            minVariantPrice {
+              amount
+              currencyCode
+            }
+            maxVariantPrice {
+              amount
+              currencyCode
+            }
+          }
+          compareAtPriceRange {
             minVariantPrice {
               amount
               currencyCode
@@ -252,9 +285,21 @@ export const GET_PRODUCTS_BY_QUERY = `
           handle
           title
           availableForSale
+          createdAt
           productType
+          vendor
           tags
           priceRange {
+            minVariantPrice {
+              amount
+              currencyCode
+            }
+            maxVariantPrice {
+              amount
+              currencyCode
+            }
+          }
+          compareAtPriceRange {
             minVariantPrice {
               amount
               currencyCode

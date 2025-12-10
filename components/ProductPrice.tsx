@@ -26,17 +26,26 @@ export function ProductPrice({
   const hasDiscount = compareAtPrice && parseFloat(compareAtPrice.amount) > parseFloat(price.amount);
 
   return (
-    <div className={`flex items-baseline gap-2 ${className}`}>
-      {/* Current Price */}
-      <span className="text-lg font-bold text-gray-900">
-        {price.currencyCode} {parseFloat(price.amount).toFixed(2)}
-      </span>
-
+    <div className={`flex flex-col ${className}`}>
       {/* Compare At Price (Strikethrough) */}
       {hasDiscount && (
-        <span className="text-sm text-gray-500 line-through decoration-gray-400">
-          {compareAtPrice.currencyCode} {parseFloat(compareAtPrice.amount).toFixed(2)}
+        <span className="text-sm text-gray-500 line-through decoration-gray-400 mb-0.5">
+          ${parseFloat(compareAtPrice.amount).toFixed(2)}
         </span>
+      )}
+
+      {/* Current Price - Always black */}
+      <span className="font-bold text-gray-900 text-lg">
+        ${parseFloat(price.amount).toFixed(2)}
+      </span>
+
+      {/* Save Amount - Green Badge */}
+      {hasDiscount && (
+        <div className="inline-block mt-1">
+          <span className="px-2 py-0.5 rounded text-xs font-semibold text-gray-900" style={{ backgroundColor: '#94F5BD' }}>
+            Save ${(parseFloat(compareAtPrice.amount) - parseFloat(price.amount)).toFixed(2)}
+          </span>
+        </div>
       )}
     </div>
   );

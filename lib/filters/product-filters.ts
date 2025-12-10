@@ -98,38 +98,61 @@ export function getColorOptions(products: ShopifyProduct[]): FilterOption[] {
 }
 
 /**
- * Extract unique brands from products (using tags)
- * Assumes brand tags follow a pattern like "brand:ariat" or just "ariat"
+ * Extract unique brands from products based on brand-mapping.csv
+ * This ensures we only show curated brands that have products in the current view
+ * 
+ * Note: This function runs client-side, so we can't directly import the CSV.
+ * Instead, we need to pass the allowed brands from the server.
+ * For now, we'll extract all vendors and let the server filter them.
  */
-export function getBrandOptions(products: ShopifyProduct[]): FilterOption[] {
+export function getBrandOptions(
+  products: ShopifyProduct[],
+  allowedBrands?: { vendors: string[]; tags: string[] }
+): FilterOption[] {
   const brandMap = new Map<string, number>();
 
+  console.log('[getBrandOptions] allowedBrands:', allowedBrands);
+
   products.forEach((product) => {
-    product.tags.forEach((tag) => {
-      // Check if tag is a brand (you may need to adjust this logic)
-      const brandTag = tag.toLowerCase();
-      // Skip common non-brand tags
-      if (
-        !brandTag.includes('collection:') &&
-        !brandTag.includes('type:') &&
-        brandTag.length > 2
-      ) {
-        // For now, we'll use a simple heuristic
-        // You may want to use a metafield or specific tag pattern
-        const count = brandMap.get(brandTag) || 0;
-        brandMap.set(brandTag, count + 1);
+    let brandName: string | null = null;
+    
+    // Check if product matches by vendor
+    if (product.vendor && product.vendor.trim()) {
+      const vendor = product.vendor.trim();
+      // Case-insensitive check for vendor
+      if (!allowedBrands || allowedBrands.vendors.some(v => v.toLowerCase() === vendor.toLowerCase())) {
+        brandName = vendor;
       }
-    });
+    }
+    
+    // Check if product matches by tag (if not already matched by vendor)
+    if (!brandName && allowedBrands?.tags) {
+      const matchingTag = product.tags.find(tag => 
+        allowedBrands.tags.includes(tag.toLowerCase())
+      );
+      if (matchingTag) {
+        // Use a capitalized version of the tag as the brand name
+        brandName = matchingTag.charAt(0).toUpperCase() + matchingTag.slice(1);
+      }
+    }
+    
+    if (brandName) {
+      const count = brandMap.get(brandName) || 0;
+      brandMap.set(brandName, count + 1);
+    }
   });
 
-  return Array.from(brandMap.entries())
+  const options = Array.from(brandMap.entries())
     .map(([value, count]) => ({
-      value,
-      label: value.charAt(0).toUpperCase() + value.slice(1),
+      value: value,
+      label: value,
       count,
     }))
-    .sort((a, b) => a.label.localeCompare(b.label))
-    .slice(0, 20); // Limit to top 20 brands
+    .sort((a, b) => a.label.localeCompare(b.label));
+  
+  console.log('[getBrandOptions] Final options:', options.length, options.slice(0, 5));
+  
+  return options;
 }
 
 /**
@@ -202,7 +225,7 @@ export function filterByColor(
 }
 
 /**
- * Filter products by brand
+ * Filter products by brand (using vendor field OR tags)
  */
 export function filterByBrand(
   products: ShopifyProduct[],
@@ -211,8 +234,15 @@ export function filterByBrand(
   if (brands.length === 0) return products;
 
   return products.filter((product) => {
-    return product.tags.some((tag) =>
-      brands.includes(tag.toLowerCase())
+    // Check vendor (case-insensitive)
+    if (product.vendor && brands.some(b => b.toLowerCase() === product.vendor.toLowerCase())) {
+      return true;
+    }
+    
+    // Check tags (if the brand name matches a tag)
+    // Note: Brand options from tags are usually capitalized, but tags in product are lowercase
+    return product.tags.some(tag => 
+      brands.some(brand => brand.toLowerCase() === tag.toLowerCase())
     );
   });
 }
