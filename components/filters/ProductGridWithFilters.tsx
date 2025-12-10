@@ -48,6 +48,7 @@ interface ProductGridWithFiltersProps {
     colors: { value: string; count: number; originalValue: string }[];
     price: { min: number; max: number };
   };
+  productUrls?: Map<string, string>; // Map of product.id -> canonical URL
 }
 
 export function ProductGridWithFilters({
@@ -58,6 +59,7 @@ export function ProductGridWithFilters({
   totalCount,
   allowedBrands,
   serverFacets,
+  productUrls,
 }: ProductGridWithFiltersProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -387,6 +389,7 @@ export function ProductGridWithFilters({
                   <ProductCard
                     key={product.id}
                     product={product}
+                    canonicalUrl={productUrls?.get(product.id)}
                   />
                 ))}
               </div>

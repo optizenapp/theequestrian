@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
-import { getProductsByTypes, getProductCountByTypes } from '@/lib/shopify/products';
+import { getProductsByTypes, getProductCountByTypes, getProductCanonicalUrl } from '@/lib/shopify/products';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { generateCollectionStructuredData } from '@/lib/structured-data/collection';
 import { 
@@ -61,6 +61,13 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
   
   // Get allowed brand vendors from brand-mapping.csv
   const allowedBrands = getAllowedBrandVendors();
+  
+  // Calculate canonical URLs for all products (server-side only)
+  const productUrls = new Map<string, string>();
+  filteredProducts.forEach(product => {
+    const canonicalUrl = getProductCanonicalUrl(product);
+    productUrls.set(product.id, canonicalUrl);
+  });
 
   // Get sub-subcategories from our mapping (third level)
   const subSubcategories = getMappingSubcategories(category, subcategory);
@@ -156,6 +163,7 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
             totalCount={totalProductCount}
             allowedBrands={allowedBrands}
             serverFacets={facets}
+            productUrls={productUrls}
           />
         </Suspense>
 

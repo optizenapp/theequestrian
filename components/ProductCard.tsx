@@ -6,17 +6,19 @@ interface ProductCardProps {
   product: ShopifyProduct;
   priority?: boolean;
   showBreadcrumbs?: boolean;
+  canonicalUrl?: string; // Optional: pass the canonical URL from server component
 }
 
 /**
  * Product Card Component
  * Modeled after Back Market's clean card style
  * 
- * Links to /products/{handle} which redirects to the canonical category-based URL
+ * Links directly to the canonical category-based URL (e.g., /horse/rugs/product-handle)
+ * If canonicalUrl is not provided, falls back to /products/{handle}
  */
-export function ProductCard({ product, priority = false, showBreadcrumbs = false }: ProductCardProps) {
-  // Link to /products/{handle} which will redirect to canonical URL
-  const productHref = `/products/${product.handle}`;
+export function ProductCard({ product, priority = false, showBreadcrumbs = false, canonicalUrl }: ProductCardProps) {
+  // Use provided canonical URL, or fallback to /products/{handle}
+  const productHref = canonicalUrl || `/products/${product.handle}`;
   const image = product.images.edges[0]?.node;
   
   // Ensure we have a valid price object

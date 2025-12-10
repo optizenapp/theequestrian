@@ -240,6 +240,13 @@ async function renderSubSubcategoryPage(category: string, subcategory: string, s
   const pageTitle = content?.h1_title || mappingTitle;
   const description = content?.short_description || '';
   
+  // Calculate canonical URLs for all products (server-side only)
+  const productUrls = new Map<string, string>();
+  filteredProducts.forEach(product => {
+    const canonicalUrl = getProductCanonicalUrl(product);
+    productUrls.set(product.id, canonicalUrl);
+  });
+  
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
 
   // Build BreadcrumbList structured data
@@ -322,6 +329,7 @@ async function renderSubSubcategoryPage(category: string, subcategory: string, s
             currentSubcategory={subcategory}
             pageInfo={pageInfo}
             totalCount={totalProductCount}
+            productUrls={productUrls}
           />
         </Suspense>
 

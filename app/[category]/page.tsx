@@ -152,10 +152,14 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   );
 
   // Get total product count
-  // Note: We might want to get the filtered count here, but getProductCountByTypes likely fetches all count.
-  // For now, let's keep total count as "total in category" or update it if needed.
-  // Ideally, total count should reflect filters.
   const totalProductCount = await getProductCountByTypes(allowedProductTypes);
+  
+  // Calculate canonical URLs for all products (server-side only)
+  const productUrls = new Map<string, string>();
+  filteredProducts.forEach(product => {
+    const canonicalUrl = getProductCanonicalUrl(product);
+    productUrls.set(product.id, canonicalUrl);
+  });
   
   // Get allowed brand vendors from brand-mapping.csv
   const allowedBrands = getAllowedBrandVendors();
@@ -255,6 +259,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             totalCount={totalProductCount}
             allowedBrands={allowedBrands}
             serverFacets={facets}
+            productUrls={productUrls}
           />
         </Suspense>
 
