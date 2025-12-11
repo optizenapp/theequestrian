@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
-import { getProduct } from '@/lib/shopify/products';
+import { getProductByHandle } from '@/lib/shopify/products';
 import { ReviewForm } from '@/components/reviews/ReviewForm';
 
 export const metadata = {
@@ -35,7 +35,7 @@ async function ReviewPageContent({
   }
 
   // Fetch product details
-  const product = await getProduct(productHandle);
+  const product = await getProductByHandle(productHandle);
 
   if (!product) {
     notFound();
@@ -88,7 +88,6 @@ async function ReviewPageContent({
               productId={product.id}
               productHandle={productHandle}
               productTitle={product.title}
-              verifiedPurchase={!!orderId}
               orderId={orderId}
             />
           </div>

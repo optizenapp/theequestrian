@@ -8,14 +8,20 @@ import { ReviewForm } from './ReviewForm';
 
 interface Review {
   id: string;
-  productId: string;
+  product_id: string;
+  product_handle: string;
+  product_title: string;
   rating: number;
   title: string;
   content: string;
-  authorName: string;
-  verifiedPurchase: boolean;
-  helpfulCount: number;
-  createdAt: string;
+  author_name: string;
+  author_email: string | null;
+  verified_purchase: boolean;
+  order_id: string | null;
+  helpful_count: number;
+  not_helpful_count: number;
+  status: string;
+  created_at: string;
 }
 
 interface ReviewStats {
@@ -71,9 +77,9 @@ export default function ProductReviewSection({
     .filter(review => !filterRating || review.rating === filterRating)
     .sort((a, b) => {
       if (sortBy === 'recent') {
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       } else if (sortBy === 'helpful') {
-        return b.helpfulCount - a.helpfulCount;
+        return b.helpful_count - a.helpful_count;
       } else {
         return b.rating - a.rating;
       }
@@ -136,11 +142,6 @@ export default function ProductReviewSection({
                 productId={productId}
                 productHandle={productHandle}
                 productTitle={productTitle}
-                onSuccess={() => {
-                  setShowForm(false);
-                  // Refresh reviews
-                  window.location.reload();
-                }}
               />
             </div>
           )}

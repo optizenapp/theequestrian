@@ -68,7 +68,7 @@ export function ProductCard({ product, priority = false, showBreadcrumbs = false
           
           {/* Review Badge */}
           <div className="mb-2">
-            <ProductReviewBadge productId={product.id} />
+            <ProductReviewBadge productId={product.id} productHandle={product.handle} />
           </div>
         </div>
 

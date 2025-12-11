@@ -9,42 +9,45 @@ import { ReviewStars } from '@/components/reviews/ReviewStars';
 const MOCK_REVIEWS = [
   {
     id: '1',
-    productId: 'gid://shopify/Product/1',
-    productHandle: 'charles-owen-4-star-helmet',
-    productTitle: 'Charles Owen 4 Star Helmet',
+    product_id: 'gid://shopify/Product/1',
+    product_handle: 'charles-owen-4-star-helmet',
+    product_title: 'Charles Owen 4 Star Helmet',
     rating: 5,
     title: 'Best helmet I\'ve ever owned',
     content: 'Incredibly comfortable and feels very secure. The ventilation is excellent and it looks great too. Worth every penny!',
-    authorName: 'Sarah M.',
-    verifiedPurchase: true,
-    helpfulCount: 12,
-    createdAt: '2024-01-15T10:30:00Z',
+    author_name: 'Sarah M.',
+    verified_purchase: true,
+    helpful_count: 12,
+    not_helpful_count: 0,
+    created_at: '2024-01-15T10:30:00Z',
   },
   {
     id: '2',
-    productId: 'gid://shopify/Product/2',
-    productHandle: 'weatherbeeta-comfitec-classic-combo',
-    productTitle: 'WeatherBeeta ComFiTec Classic Combo',
+    product_id: 'gid://shopify/Product/2',
+    product_handle: 'weatherbeeta-comfitec-classic-combo',
+    product_title: 'WeatherBeeta ComFiTec Classic Combo',
     rating: 4,
     title: 'Great quality rug',
     content: 'Really pleased with this rug. Fits my horse well and seems very durable. Only 4 stars because the leg straps could be a bit longer.',
-    authorName: 'Emma L.',
-    verifiedPurchase: true,
-    helpfulCount: 8,
-    createdAt: '2024-01-10T14:20:00Z',
+    author_name: 'Emma L.',
+    verified_purchase: true,
+    helpful_count: 8,
+    not_helpful_count: 0,
+    created_at: '2024-01-10T14:20:00Z',
   },
   {
     id: '3',
-    productId: 'gid://shopify/Product/3',
-    productHandle: 'kentucky-eventing-boots',
-    productTitle: 'Kentucky Eventing Boots',
+    product_id: 'gid://shopify/Product/3',
+    product_handle: 'kentucky-eventing-boots',
+    product_title: 'Kentucky Eventing Boots',
     rating: 5,
     title: 'Excellent protection',
     content: 'These boots are fantastic! Great protection for cross country and they wash up beautifully. My horse seems comfortable in them too.',
-    authorName: 'James P.',
-    verifiedPurchase: true,
-    helpfulCount: 15,
-    createdAt: '2024-01-08T09:15:00Z',
+    author_name: 'James P.',
+    verified_purchase: true,
+    helpful_count: 15,
+    not_helpful_count: 0,
+    created_at: '2024-01-08T09:15:00Z',
   },
 ];
 
@@ -69,17 +72,17 @@ export default function ReviewsPage() {
         return (
           review.title.toLowerCase().includes(query) ||
           review.content.toLowerCase().includes(query) ||
-          review.productTitle.toLowerCase().includes(query) ||
-          review.authorName.toLowerCase().includes(query)
+          review.product_title.toLowerCase().includes(query) ||
+          review.author_name.toLowerCase().includes(query)
         );
       }
       return true;
     })
     .sort((a, b) => {
       if (sortBy === 'recent') {
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       } else if (sortBy === 'helpful') {
-        return b.helpfulCount - a.helpfulCount;
+        return b.helpful_count - a.helpful_count;
       } else {
         return b.rating - a.rating;
       }
@@ -188,16 +191,16 @@ export default function ReviewsPage() {
                 {/* Product Info */}
                 <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
                   <Link
-                    href={`/products/${review.productHandle}`}
+                    href={`/products/${review.product_handle}`}
                     className="text-sm font-medium text-gray-900 hover:text-action transition-colors line-clamp-1"
                   >
-                    {review.productTitle}
+                    {review.product_title}
                   </Link>
                 </div>
                 
                 {/* Review Content */}
                 <div className="p-6">
-                  <ReviewCard review={review} compact />
+                  <ReviewCard review={review} />
                 </div>
               </div>
             ))}
