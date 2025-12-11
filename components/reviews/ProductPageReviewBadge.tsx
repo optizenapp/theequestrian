@@ -5,6 +5,7 @@ import { ReviewStars } from './ReviewStars';
 
 interface ProductPageReviewBadgeProps {
   productId: string;
+  productHandle?: string;
 }
 
 interface ReviewStats {
@@ -12,14 +13,16 @@ interface ReviewStats {
   average_rating: number;
 }
 
-export function ProductPageReviewBadge({ productId }: ProductPageReviewBadgeProps) {
+export function ProductPageReviewBadge({ productId, productHandle }: ProductPageReviewBadgeProps) {
   const [stats, setStats] = useState<ReviewStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchStats() {
       try {
-        const response = await fetch(`/api/reviews/stats/${encodeURIComponent(productId)}`);
+        // Use productHandle if available (for imported reviews), otherwise fall back to productId
+        const identifier = productHandle || productId;
+        const response = await fetch(`/api/reviews/stats/${encodeURIComponent(identifier)}`);
         if (response.ok) {
           const data = await response.json();
           setStats(data);
@@ -32,7 +35,7 @@ export function ProductPageReviewBadge({ productId }: ProductPageReviewBadgeProp
     }
 
     fetchStats();
-  }, [productId]);
+  }, [productId, productHandle]);
 
   if (isLoading) {
     return (

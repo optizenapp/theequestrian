@@ -29,8 +29,8 @@ export function ProductReviewBadge({
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
-    // Fetch review stats
-    fetch(`/api/reviews/stats/${encodeURIComponent(productId)}`)
+    // Fetch review stats using product handle (since imported reviews use handle as product_id)
+    fetch(`/api/reviews/stats/${encodeURIComponent(productHandle)}`)
       .then(res => res.json())
       .then(data => {
         setStats(data);
@@ -40,7 +40,7 @@ export function ProductReviewBadge({
         console.error('Error fetching review stats:', error);
         setIsLoading(false);
       });
-  }, [productId]);
+  }, [productHandle]);
   
   if (isLoading) {
     return (

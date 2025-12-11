@@ -145,7 +145,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <div className="hidden lg:block">
                 <h2 className="text-3xl font-bold text-gray-900 mb-2">{product.title}</h2>
                 <div className="mb-4">
-                  <ProductPageReviewBadge productId={product.id} />
+                  <ProductPageReviewBadge productId={product.id} productHandle={product.handle} />
                 </div>
 
                 {/* Key Features/Benefits */}

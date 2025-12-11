@@ -5,63 +5,56 @@ import Link from 'next/link';
 import { ReviewCard } from '@/components/reviews/ReviewCard';
 import { ReviewStars } from '@/components/reviews/ReviewStars';
 
-// Mock data - TODO: Replace with actual API call
-const MOCK_REVIEWS = [
-  {
-    id: '1',
-    product_id: 'gid://shopify/Product/1',
-    product_handle: 'charles-owen-4-star-helmet',
-    product_title: 'Charles Owen 4 Star Helmet',
-    rating: 5,
-    title: 'Best helmet I\'ve ever owned',
-    content: 'Incredibly comfortable and feels very secure. The ventilation is excellent and it looks great too. Worth every penny!',
-    author_name: 'Sarah M.',
-    verified_purchase: true,
-    helpful_count: 12,
-    not_helpful_count: 0,
-    created_at: '2024-01-15T10:30:00Z',
-  },
-  {
-    id: '2',
-    product_id: 'gid://shopify/Product/2',
-    product_handle: 'weatherbeeta-comfitec-classic-combo',
-    product_title: 'WeatherBeeta ComFiTec Classic Combo',
-    rating: 4,
-    title: 'Great quality rug',
-    content: 'Really pleased with this rug. Fits my horse well and seems very durable. Only 4 stars because the leg straps could be a bit longer.',
-    author_name: 'Emma L.',
-    verified_purchase: true,
-    helpful_count: 8,
-    not_helpful_count: 0,
-    created_at: '2024-01-10T14:20:00Z',
-  },
-  {
-    id: '3',
-    product_id: 'gid://shopify/Product/3',
-    product_handle: 'kentucky-eventing-boots',
-    product_title: 'Kentucky Eventing Boots',
-    rating: 5,
-    title: 'Excellent protection',
-    content: 'These boots are fantastic! Great protection for cross country and they wash up beautifully. My horse seems comfortable in them too.',
-    author_name: 'James P.',
-    verified_purchase: true,
-    helpful_count: 15,
-    not_helpful_count: 0,
-    created_at: '2024-01-08T09:15:00Z',
-  },
-];
+interface Review {
+  id: string;
+  product_id: string;
+  product_handle: string | null;
+  product_title: string;
+  rating: number;
+  title: string;
+  content: string;
+  author_name: string;
+  verified_purchase: boolean;
+  helpful_count: number;
+  not_helpful_count: number;
+  created_at: string;
+}
 
 export default function ReviewsPage() {
-  const [reviews, setReviews] = useState(MOCK_REVIEWS);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [filterRating, setFilterRating] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<'recent' | 'helpful' | 'rating'>('recent');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Fetch all reviews
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/admin/reviews');
+        if (response.ok) {
+          const data = await response.json();
+          setReviews(data.reviews || []);
+        }
+      } catch (error) {
+        console.error('Error fetching reviews:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchReviews();
+  }, []);
+
   // Calculate overall stats
   const totalReviews = reviews.length;
-  const averageRating = reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews;
+  const averageRating = totalReviews > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews : 0;
   const fiveStarCount = reviews.filter(r => r.rating === 5).length;
   const fourStarCount = reviews.filter(r => r.rating === 4).length;
+  const threeStarCount = reviews.filter(r => r.rating === 3).length;
+  const twoStarCount = reviews.filter(r => r.rating === 2).length;
+  const oneStarCount = reviews.filter(r => r.rating === 1).length;
 
   // Filter and sort reviews
   const filteredReviews = reviews
@@ -107,26 +100,24 @@ export default function ReviewsPage() {
                 <p className="text-gray-300 mt-2">{totalReviews} reviews</p>
               </div>
               <div className="text-left">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-sm w-12">5 stars</span>
-                  <div className="w-32 h-2 bg-gray-700 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-action"
-                      style={{ width: `${(fiveStarCount / totalReviews) * 100}%` }}
-                    />
+                {[
+                  { stars: 5, count: fiveStarCount },
+                  { stars: 4, count: fourStarCount },
+                  { stars: 3, count: threeStarCount },
+                  { stars: 2, count: twoStarCount },
+                  { stars: 1, count: oneStarCount },
+                ].map(({ stars, count }) => (
+                  <div key={stars} className="flex items-center gap-2 mb-1">
+                    <span className="text-sm w-12">{stars} {stars === 1 ? 'star' : 'stars'}</span>
+                    <div className="w-32 h-2 bg-gray-700 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-action"
+                        style={{ width: totalReviews > 0 ? `${(count / totalReviews) * 100}%` : '0%' }}
+                      />
+                    </div>
+                    <span className="text-sm w-8">{count}</span>
                   </div>
-                  <span className="text-sm w-8">{fiveStarCount}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm w-12">4 stars</span>
-                  <div className="w-32 h-2 bg-gray-700 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-action"
-                      style={{ width: `${(fourStarCount / totalReviews) * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-sm w-8">{fourStarCount}</span>
-                </div>
+                ))}
               </div>
             </div>
           </div>
@@ -180,23 +171,32 @@ export default function ReviewsPage() {
 
       {/* Reviews Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {filteredReviews.length === 0 ? (
+        {isLoading ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No reviews found matching your criteria.</p>
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-action"></div>
+            <p className="text-gray-500 text-lg mt-4">Loading reviews...</p>
+          </div>
+        ) : filteredReviews.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg">
+              {reviews.length === 0 ? 'No reviews yet. Be the first to write one!' : 'No reviews found matching your criteria.'}
+            </p>
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredReviews.map((review) => (
               <div key={review.id} className="bg-white rounded-xl shadow-sm overflow-hidden">
                 {/* Product Info */}
-                <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
-                  <Link
-                    href={`/products/${review.product_handle}`}
-                    className="text-sm font-medium text-gray-900 hover:text-action transition-colors line-clamp-1"
-                  >
-                    {review.product_title}
-                  </Link>
-                </div>
+                {review.product_handle && (
+                  <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
+                    <Link
+                      href={`/products/${review.product_handle}`}
+                      className="text-sm font-medium text-gray-900 hover:text-action transition-colors line-clamp-1"
+                    >
+                      {review.product_title}
+                    </Link>
+                  </div>
+                )}
                 
                 {/* Review Content */}
                 <div className="p-6">

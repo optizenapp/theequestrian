@@ -154,7 +154,7 @@ function renderProductPage(product: ShopifyProduct) {
         {/* Mobile title & rating */}
         <div className="lg:hidden mt-4 mb-8 space-y-2">
           <h1 className="text-3xl font-bold text-gray-900">{product.title}</h1>
-          <ProductPageReviewBadge productId={product.id} />
+          <ProductPageReviewBadge productId={product.id} productHandle={product.handle} />
           <div className="space-y-2 mt-4">
             {featureHighlights.map((feature) => (
               <div key={feature} className="flex items-start gap-2 text-sm text-gray-700">
@@ -184,7 +184,7 @@ function renderProductPage(product: ShopifyProduct) {
             <div className="hidden lg:block">
               <h2 className="text-3xl font-bold text-gray-900 mb-2">{product.title}</h2>
               <div className="mb-4">
-                <ProductPageReviewBadge productId={product.id} />
+                <ProductPageReviewBadge productId={product.id} productHandle={product.handle} />
               </div>
 
               {/* Key Features */}
