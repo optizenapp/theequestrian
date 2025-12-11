@@ -1,12 +1,14 @@
 import { notFound, redirect } from 'next/navigation';
-import { getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
+import { getProductByHandle, getProductCanonicalUrl, getRecommendedProducts } from '@/lib/shopify/products';
 import { ProductImageGallery } from '@/components/ProductImageGallery';
 import { ProductBreadcrumbs } from '@/components/ProductBreadcrumbs';
 import { ProductBuyBox } from '@/components/product/ProductBuyBox';
 import { ProductDescription } from '@/components/product/ProductDescription';
+import { RelatedProducts } from '@/components/product/RelatedProducts';
 import { generateBreadcrumbSchema } from '@/lib/utils/breadcrumb-schema';
 import { generateProductSchemaGraph } from '@/lib/utils/product-schema';
 import { getReviewStatsWithCache } from '@/lib/reviews/get-review-stats';
+import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { getBreadcrumbsForProduct } from '@/lib/mapping/collection-mapping';
 import ProductReviewSection from '@/components/reviews/ProductReviewSection';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
@@ -86,6 +88,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
   // This creates a single knowledge graph entity for better entity resolution
   const primaryBreadcrumb = Array.isArray(breadcrumbSchemas) ? breadcrumbSchemas[0] : breadcrumbSchemas;
   const schemaGraph = generateProductSchemaGraph(product, currentUrl, primaryBreadcrumb, siteUrl, reviewStats);
+
+  // Fetch related products (limit 4)
+  const relatedProducts = await getRecommendedProducts(4);
+  
+  // Fetch review stats for related products (server-side batch)
+  const relatedHandles = relatedProducts.map(p => p.handle);
+  const relatedReviewStatsMap = await getReviewStatsForProducts(relatedHandles);
 
   return (
     <div className="bg-background min-h-screen pb-20">
@@ -177,6 +186,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
           productId={product.id}
           productHandle={handle}
           productTitle={product.title}
+        />
+
+        {/* Related Products */}
+        <RelatedProducts 
+          products={relatedProducts} 
+          reviewStatsMap={relatedReviewStatsMap}
         />
       </div>
     </div>

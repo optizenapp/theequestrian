@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
-import { getProductsByTypes, getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
+import { getProductsByTypes, getProductByHandle, getProductCanonicalUrl, getRecommendedProducts } from '@/lib/shopify/products';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
 import { 
@@ -22,9 +22,11 @@ import { ProductImageGallery } from '@/components/ProductImageGallery';
 import { ProductBreadcrumbs } from '@/components/ProductBreadcrumbs';
 import { ProductBuyBox } from '@/components/product/ProductBuyBox';
 import { ProductDescription } from '@/components/product/ProductDescription';
+import { RelatedProducts } from '@/components/product/RelatedProducts';
 import { generateBreadcrumbSchema } from '@/lib/utils/breadcrumb-schema';
 import { generateProductSchemaGraph } from '@/lib/utils/product-schema';
 import { getReviewStatsWithCache } from '@/lib/reviews/get-review-stats';
+import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import ProductReviewSection from '@/components/reviews/ProductReviewSection';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
 import Link from 'next/link';
@@ -129,6 +131,13 @@ async function renderProductPage(product: ShopifyProduct) {
   const primaryBreadcrumb = Array.isArray(breadcrumbSchemas) ? breadcrumbSchemas[0] : breadcrumbSchemas;
   const schemaGraph = generateProductSchemaGraph(product, canonicalUrl, primaryBreadcrumb, siteUrl, reviewStats);
 
+  // Fetch related products (limit 4)
+  const relatedProducts = await getRecommendedProducts(4);
+  
+  // Fetch review stats for related products (server-side batch)
+  const relatedHandles = relatedProducts.map(p => p.handle);
+  const relatedReviewStatsMap = await getReviewStatsForProducts(relatedHandles);
+
   return (
     <div className="bg-background min-h-screen pb-20">
       {/* Unified Schema Graph (BreadcrumbList + Product) */}
@@ -216,6 +225,12 @@ async function renderProductPage(product: ShopifyProduct) {
           productId={product.id}
           productHandle={product.handle}
           productTitle={product.title}
+        />
+
+        {/* Related Products */}
+        <RelatedProducts 
+          products={relatedProducts} 
+          reviewStatsMap={relatedReviewStatsMap}
         />
       </div>
     </div>

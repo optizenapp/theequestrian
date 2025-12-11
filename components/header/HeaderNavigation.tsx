@@ -72,6 +72,7 @@ export function HeaderNavigation() {
             >
               <Link
                 href={item.href}
+                onClick={() => setActiveMenu(null)}
                 className={`px-4 py-2 text-sm font-medium transition-colors rounded-full flex items-center gap-2 ${
                   isActive
                     ? 'text-action bg-gray-100'
