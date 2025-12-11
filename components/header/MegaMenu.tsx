@@ -113,6 +113,7 @@ export function MegaMenu({
           <Link
             href={`/${categoryHandle}`}
             className="text-sm font-semibold text-action hover:underline transition"
+            onClick={onClose}
           >
             View all →
           </Link>
@@ -125,6 +126,7 @@ export function MegaMenu({
               <Link
                 href={featuredImage.link || `/${categoryHandle}`}
                 className="group block rounded-3xl overflow-hidden h-[220px] relative"
+                onClick={onClose}
               >
                 <img
                   src={featuredImage.url}
@@ -155,6 +157,7 @@ export function MegaMenu({
                   key={quickLink.link}
                   href={quickLink.link}
                   className="group rounded-2xl border border-gray-100 bg-white shadow-sm p-4 flex items-center gap-3 hover:shadow-md transition-shadow"
+                  onClick={onClose}
                 >
                   {quickLink.imageUrl ? (
                     <div className="h-14 w-14 rounded-2xl overflow-hidden bg-gray-50 flex-shrink-0">
@@ -186,6 +189,7 @@ export function MegaMenu({
                   key={card.link || index}
                   href={card.link}
                   className="group rounded-2xl border border-gray-100 bg-white shadow-sm p-4 flex items-center gap-3 hover:shadow-md transition-shadow"
+                  onClick={onClose}
                 >
                   {/* Product Image */}
                   {card.imageUrl ? (

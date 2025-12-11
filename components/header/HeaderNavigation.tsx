@@ -30,9 +30,13 @@ export function HeaderNavigation() {
       timeoutRef.current = null;
     }
     isHoveringRef.current = true;
-    if (shouldShowMegaMenu(label)) {
-      setActiveMenu(label);
-    }
+    
+    // Add delay before opening to prevent accidental triggers and allow immediate clicks
+    timeoutRef.current = setTimeout(() => {
+      if (isHoveringRef.current && shouldShowMegaMenu(label)) {
+        setActiveMenu(label);
+      }
+    }, 150);
   };
 
   const handleMouseLeave = () => {

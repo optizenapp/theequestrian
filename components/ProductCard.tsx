@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { ProductPrice } from './ProductPrice';
 import { ProductReviewBadge, type ReviewStats } from './reviews/ProductReviewBadge';
 import type { ShopifyProduct } from '@/types/shopify';
@@ -45,13 +46,13 @@ export function ProductCard({ product, priority = false, showBreadcrumbs = false
       {/* Image Container */}
       <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-white mb-4">
         {image ? (
-          <img
+          <Image
             src={image.url}
             alt={image.altText || product.title}
-            className="h-full w-full object-contain object-center transition-transform duration-300 group-hover:scale-105"
-            loading={priority ? 'eager' : 'lazy'}
-            width={image.width || 500}
-            height={image.height || 500}
+            fill
+            className="object-contain object-center transition-transform duration-300 group-hover:scale-105"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            priority={priority}
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-white text-gray-400">
