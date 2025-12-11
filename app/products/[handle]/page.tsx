@@ -6,6 +6,7 @@ import { ProductBuyBox } from '@/components/product/ProductBuyBox';
 import { ProductDescription } from '@/components/product/ProductDescription';
 import { generateBreadcrumbSchema } from '@/lib/utils/breadcrumb-schema';
 import { generateProductSchemaGraph } from '@/lib/utils/product-schema';
+import { getReviewStatsWithCache } from '@/lib/reviews/get-review-stats';
 import { getBreadcrumbsForProduct } from '@/lib/mapping/collection-mapping';
 import ProductReviewSection from '@/components/reviews/ProductReviewSection';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
@@ -78,10 +79,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
     siteUrl
   );
 
-  // Generate unified @graph with BreadcrumbList + Product
+  // Fetch review stats for schema (server-side)
+  const reviewStats = await getReviewStatsWithCache(product.handle);
+
+  // Generate unified @graph with BreadcrumbList + Product (including review stats)
   // This creates a single knowledge graph entity for better entity resolution
   const primaryBreadcrumb = Array.isArray(breadcrumbSchemas) ? breadcrumbSchemas[0] : breadcrumbSchemas;
-  const schemaGraph = generateProductSchemaGraph(product, currentUrl, primaryBreadcrumb, siteUrl);
+  const schemaGraph = generateProductSchemaGraph(product, currentUrl, primaryBreadcrumb, siteUrl, reviewStats);
 
   return (
     <div className="bg-background min-h-screen pb-20">

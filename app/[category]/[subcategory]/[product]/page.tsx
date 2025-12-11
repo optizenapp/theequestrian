@@ -24,6 +24,7 @@ import { ProductBuyBox } from '@/components/product/ProductBuyBox';
 import { ProductDescription } from '@/components/product/ProductDescription';
 import { generateBreadcrumbSchema } from '@/lib/utils/breadcrumb-schema';
 import { generateProductSchemaGraph } from '@/lib/utils/product-schema';
+import { getReviewStatsWithCache } from '@/lib/reviews/get-review-stats';
 import ProductReviewSection from '@/components/reviews/ProductReviewSection';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
 import Link from 'next/link';
@@ -120,10 +121,13 @@ function renderProductPage(product: ShopifyProduct) {
     siteUrl
   );
 
-  // Generate unified @graph with BreadcrumbList + Product
+  // Fetch review stats for schema (server-side)
+  const reviewStats = await getReviewStatsWithCache(product.handle);
+
+  // Generate unified @graph with BreadcrumbList + Product (including review stats)
   const canonicalUrl = getProductCanonicalUrl(product);
   const primaryBreadcrumb = Array.isArray(breadcrumbSchemas) ? breadcrumbSchemas[0] : breadcrumbSchemas;
-  const schemaGraph = generateProductSchemaGraph(product, canonicalUrl, primaryBreadcrumb, siteUrl);
+  const schemaGraph = generateProductSchemaGraph(product, canonicalUrl, primaryBreadcrumb, siteUrl, reviewStats);
 
   return (
     <div className="bg-background min-h-screen pb-20">
