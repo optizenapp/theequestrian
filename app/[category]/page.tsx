@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { getProductsByTypes } from '@/lib/shopify/products';
 import { getProductByHandle, getProductCanonicalUrl, getProductCanonicalUrls } from '@/lib/shopify/products';
+import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { getCategoryContent } from '@/lib/content/collections';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
@@ -158,6 +159,11 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   // This saves 300-500ms on page load. Product cards will use /products/{handle}
   // const productUrls = getProductCanonicalUrls(filteredProducts);
   const productUrls = new Map<string, string>();
+
+  // Fetch review stats for all products in one batch (server-side)
+  // This avoids 36+ client-side API calls
+  const productHandles = filteredProducts.map(p => p.handle);
+  const reviewStatsMap = await getReviewStatsForProducts(productHandles);
   
   // Get allowed brand vendors from brand-mapping.csv (only for equestrian categories)
   // For pet/accessories categories, show all brands
@@ -237,6 +243,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             allowedBrands={allowedBrands}
             serverFacets={facets}
             productUrls={productUrls}
+            reviewStatsMap={reviewStatsMap}
           />
         </Suspense>
 

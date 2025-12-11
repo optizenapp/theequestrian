@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { getProductsByTypes, getProductCanonicalUrls } from '@/lib/shopify/products';
+import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
 import { 
@@ -69,6 +70,10 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
   // This saves 300-500ms on page load. Product cards will use /products/{handle}
   // const productUrls = getProductCanonicalUrls(filteredProducts);
   const productUrls = new Map<string, string>();
+
+  // Fetch review stats for all products in one batch (server-side)
+  const productHandles = filteredProducts.map(p => p.handle);
+  const reviewStatsMap = await getReviewStatsForProducts(productHandles);
 
   // Get sub-subcategories from our mapping (third level)
   const subSubcategories = getMappingSubcategories(category, subcategory);
@@ -149,6 +154,7 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
             allowedBrands={allowedBrands}
             serverFacets={facets}
             productUrls={productUrls}
+            reviewStatsMap={reviewStatsMap}
           />
         </Suspense>
 

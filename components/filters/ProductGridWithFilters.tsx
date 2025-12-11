@@ -12,6 +12,7 @@ import { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ProductCard } from '@/components/ProductCard';
 import { applyFilters } from '@/lib/filters/product-filters';
+import type { ReviewStats } from '@/lib/reviews/stats';
 import {
   getSizeOptions,
   getColorOptions,
@@ -49,6 +50,7 @@ interface ProductGridWithFiltersProps {
     price: { min: number; max: number };
   };
   productUrls?: Map<string, string>; // Map of product.id -> canonical URL
+  reviewStatsMap?: Map<string, ReviewStats>; // Map of product.handle -> review stats
 }
 
 export function ProductGridWithFilters({
@@ -60,6 +62,7 @@ export function ProductGridWithFilters({
   allowedBrands,
   serverFacets,
   productUrls,
+  reviewStatsMap,
 }: ProductGridWithFiltersProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -390,6 +393,7 @@ export function ProductGridWithFilters({
                     key={product.id}
                     product={product}
                     canonicalUrl={productUrls?.get(product.id)}
+                    reviewStats={reviewStatsMap?.get(product.handle)}
                   />
                 ))}
               </div>

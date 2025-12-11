@@ -7,9 +7,10 @@ interface ProductReviewBadgeProps {
   productId: string;
   productHandle: string;
   compact?: boolean;
+  initialStats?: ReviewStats | null;
 }
 
-interface ReviewStats {
+export interface ReviewStats {
   total_reviews: number;
   average_rating: number;
   rating_1_count: number;
@@ -22,13 +23,21 @@ interface ReviewStats {
 export function ProductReviewBadge({ 
   productId, 
   productHandle,
-  compact = false 
+  compact = false,
+  initialStats
 }: ProductReviewBadgeProps) {
-  const [stats, setStats] = useState<ReviewStats | null>(null);
+  const [stats, setStats] = useState<ReviewStats | null>(initialStats || null);
   const [showBreakdown, setShowBreakdown] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!initialStats);
   
   useEffect(() => {
+    // If we already have stats (passed from server), don't fetch
+    if (initialStats) {
+      setStats(initialStats);
+      setIsLoading(false);
+      return;
+    }
+
     // Fetch review stats using product handle (since imported reviews use handle as product_id)
     fetch(`/api/reviews/stats/${encodeURIComponent(productHandle)}`)
       .then(res => res.json())

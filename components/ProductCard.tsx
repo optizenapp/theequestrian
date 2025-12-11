@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { ProductPrice } from './ProductPrice';
-import { ProductReviewBadge } from './reviews/ProductReviewBadge';
+import { ProductReviewBadge, type ReviewStats } from './reviews/ProductReviewBadge';
 import type { ShopifyProduct } from '@/types/shopify';
 
 interface ProductCardProps {
@@ -8,6 +8,7 @@ interface ProductCardProps {
   priority?: boolean;
   showBreadcrumbs?: boolean;
   canonicalUrl?: string; // Optional: pass the canonical URL from server component
+  reviewStats?: ReviewStats | null; // Optional: pass review stats from server
 }
 
 /**
@@ -17,7 +18,7 @@ interface ProductCardProps {
  * Links directly to the canonical category-based URL (e.g., /horse/rugs/product-handle)
  * If canonicalUrl is not provided, falls back to /products/{handle}
  */
-export function ProductCard({ product, priority = false, showBreadcrumbs = false, canonicalUrl }: ProductCardProps) {
+export function ProductCard({ product, priority = false, showBreadcrumbs = false, canonicalUrl, reviewStats }: ProductCardProps) {
   // Use provided canonical URL, or fallback to /products/{handle}
   const productHref = canonicalUrl || `/products/${product.handle}`;
   const image = product.images.edges[0]?.node;
@@ -68,7 +69,11 @@ export function ProductCard({ product, priority = false, showBreadcrumbs = false
           
           {/* Review Badge */}
           <div className="mb-2">
-            <ProductReviewBadge productId={product.id} productHandle={product.handle} />
+            <ProductReviewBadge 
+              productId={product.id} 
+              productHandle={product.handle} 
+              initialStats={reviewStats}
+            />
           </div>
         </div>
 

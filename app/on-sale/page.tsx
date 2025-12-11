@@ -2,6 +2,7 @@
 import { notFound } from 'next/navigation';
 import { getCollectionWithPagination, getCollectionProductCount } from '@/lib/shopify/collections';
 import { getProductCanonicalUrls } from '@/lib/shopify/products';
+import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { getSalePageByPath } from '@/lib/mapping/sale-mapping';
 import { RichContent } from '@/components/collection/RichContent';
@@ -64,6 +65,10 @@ export default async function OnSalePage({
   // This saves 300-500ms on page load. Product cards will use /products/{handle}
   // const productUrls = getProductCanonicalUrls(products);
   const productUrls = new Map<string, string>();
+
+  // Fetch review stats for all products in one batch (server-side)
+  const productHandles = products.map(p => p.handle);
+  const reviewStatsMap = await getReviewStatsForProducts(productHandles);
   
   // Parse content
   const pageTitle = pageData?.h1_title || 'Good Deals';
@@ -144,6 +149,7 @@ export default async function OnSalePage({
               endCursor: pageInfo.endCursor
             }}
             totalCount={totalProductCount}
+            reviewStatsMap={reviewStatsMap}
           />
 
           {/* Long Description (Rich Content) */}

@@ -2,6 +2,7 @@
 import { notFound } from 'next/navigation';
 import { getCollectionWithPagination, getCollectionProductCount } from '@/lib/shopify/collections';
 import { getProductCanonicalUrls } from '@/lib/shopify/products';
+import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { getBrandByHandle } from '@/lib/mapping/brand-mapping';
 import { RichContent } from '@/components/collection/RichContent';
@@ -76,6 +77,10 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
   // This saves 300-500ms on page load. Product cards will use /products/{handle}
   // const productUrls = getProductCanonicalUrls(products);
   const productUrls = new Map<string, string>();
+
+  // Fetch review stats for all products in one batch (server-side)
+  const productHandles = products.map(p => p.handle);
+  const reviewStatsMap = await getReviewStatsForProducts(productHandles);
   
   // Parse content
   const pageTitle = brand.h1_title || brand.title;
@@ -168,6 +173,7 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
               endCursor: pageInfo.endCursor
             }}
             totalCount={totalProductCount}
+            reviewStatsMap={reviewStatsMap}
           />
 
           {/* Long Description (Rich Content) */}
