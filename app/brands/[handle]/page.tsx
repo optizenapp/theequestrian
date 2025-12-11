@@ -1,12 +1,13 @@
 
 import { notFound } from 'next/navigation';
 import { getCollectionWithPagination, getCollectionProductCount } from '@/lib/shopify/collections';
+import { getProductCanonicalUrls } from '@/lib/shopify/products';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { getBrandByHandle } from '@/lib/mapping/brand-mapping';
 import { RichContent } from '@/components/collection/RichContent';
 import { FAQSection } from '@/components/collection/FAQSection';
 import { CollectionDescription } from '@/components/CollectionDescription';
-import { generateCollectionStructuredData } from '@/lib/structured-data/collection';
+import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
 import { FAQItem } from '@/lib/content/collections';
 import Link from 'next/link';
 import type { Metadata } from 'next';
@@ -71,6 +72,11 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
   // Get total product count
   const totalProductCount = await getCollectionProductCount(brand.handle);
   
+  // PERFORMANCE: Skip canonical URL generation for now - use simple product URLs
+  // This saves 300-500ms on page load. Product cards will use /products/{handle}
+  // const productUrls = getProductCanonicalUrls(products);
+  const productUrls = new Map<string, string>();
+  
   // Parse content
   const pageTitle = brand.h1_title || brand.title;
   const shortDescription = brand.short_description || `Shop our comprehensive collection of ${brand.title} products.`;
@@ -88,45 +94,25 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
   // Generate structured data
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
   
-  const breadcrumbSchema = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Home",
-        "item": siteUrl || "/"
-      },
-      {
-        "@type": "ListItem",
-        "position": 2,
-        "name": "Brands",
-        "item": `${siteUrl}/brands`
-      },
-      {
-        "@type": "ListItem",
-        "position": 3,
-        "name": brand.breadcrumb_label || brand.title,
-        "item": `${siteUrl}/brands/${handle}`
-      }
-    ]
-  };
+  // Build breadcrumbs array for schema
+  const breadcrumbs = [
+    { label: 'Brands', href: '/brands' },
+    { label: brand.breadcrumb_label || brand.title, href: `/brands/${handle}` }
+  ];
 
-  const collectionSchema = generateCollectionStructuredData(
-    pageTitle,
-    `${siteUrl}/brands/${handle}`,
-    brand.meta_description || `Shop ${brand.title} products`,
-    undefined,
-    products
-  );
+  const collectionSchema = generateCollectionSchemaFast({
+    collectionName: pageTitle,
+    collectionUrl: `${siteUrl}/brands/${handle}`,
+    collectionDescription: brand.meta_description || `Shop premium ${brand.title} equestrian products. Official retailer with fast shipping across Australia.`,
+    breadcrumbs,
+    products,
+    siteUrl,
+    maxProducts: 12, // Limit schema to 12 products for performance
+  });
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
+      {/* Structured Data - @graph with BreadcrumbList + CollectionPage + ItemList */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }}

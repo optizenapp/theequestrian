@@ -449,32 +449,45 @@ export async function getRecommendedProducts(limit: number = 4): Promise<Shopify
   }
 }
 
+// Module-level cache for productType -> categoryPath mappings
+// This persists across requests in the same Node.js process
+const categoryPathCache = new Map<string, string | null>();
+
 /**
  * Get the primary category path for a product based on its productType
  * Returns the deepest (most specific) category path from the mapping
+ * OPTIMIZED: Uses module-level cache to avoid repeated CSV parsing
  */
 export function getPrimaryCategoryPath(productType: string): string | null {
   if (!productType || !productType.trim()) {
     return null;
   }
 
+  // Check module-level cache first (persists across requests)
+  if (categoryPathCache.has(productType)) {
+    return categoryPathCache.get(productType) || null;
+  }
+
   // Use the same logic as getBreadcrumbsForProduct to find category paths
   const { getBreadcrumbsForProduct } = require('@/lib/mapping/collection-mapping');
   const breadcrumbPaths = getBreadcrumbsForProduct(productType);
   
-  if (breadcrumbPaths.length === 0) {
-    return null;
-  }
-
-  // First path is the primary (most specific/deepest)
-  const primaryPath = breadcrumbPaths[0];
+  let result: string | null = null;
   
-  // Extract the href from the last breadcrumb (full category path)
-  if (primaryPath && primaryPath.length > 0) {
-    return primaryPath[primaryPath.length - 1].href;
+  if (breadcrumbPaths.length > 0) {
+    // First path is the primary (most specific/deepest)
+    const primaryPath = breadcrumbPaths[0];
+    
+    // Extract the href from the last breadcrumb (full category path)
+    if (primaryPath && primaryPath.length > 0) {
+      result = primaryPath[primaryPath.length - 1].href;
+    }
   }
 
-  return null;
+  // Cache the result (even if null) to avoid repeated lookups
+  categoryPathCache.set(productType, result);
+  
+  return result;
 }
 
 /**

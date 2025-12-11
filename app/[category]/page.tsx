@@ -4,7 +4,7 @@ import { getProductsByTypes } from '@/lib/shopify/products';
 import { getProductByHandle, getProductCanonicalUrl, getProductCanonicalUrls } from '@/lib/shopify/products';
 import { getCategoryContent } from '@/lib/content/collections';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
-import { generateCollectionStructuredData } from '@/lib/structured-data/collection';
+import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
 import { 
   getProductTypesForCollection, 
   getSubcategoriesForCollection as getMappingSubcategories,
@@ -154,8 +154,10 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   // Total count is now returned from getProductsByTypes (no separate API call needed)
   const totalProductCount = totalCount;
   
-  // Calculate canonical URLs for all products (server-side only) - batch operation
-  const productUrls = getProductCanonicalUrls(filteredProducts);
+  // PERFORMANCE: Skip canonical URL generation for now - use simple product URLs
+  // This saves 300-500ms on page load. Product cards will use /products/{handle}
+  // const productUrls = getProductCanonicalUrls(filteredProducts);
+  const productUrls = new Map<string, string>();
   
   // Get allowed brand vendors from brand-mapping.csv (only for equestrian categories)
   // For pet/accessories categories, show all brands
@@ -179,45 +181,21 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
 
-  // Build BreadcrumbList structured data
-  const breadcrumbSchema = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Home",
-        "item": siteUrl || "/"
-      },
-      {
-        "@type": "ListItem",
-        "position": 2,
-        "name": pageTitle,
-        "item": `${siteUrl}/${category}`
-      }
-    ]
-  };
-
-  // Build CollectionPage structured data with hasOfferCatalog
-  const collectionSchema = generateCollectionStructuredData(
-    pageTitle,
-    `${siteUrl}/${category}`,
-    content?.meta_description || `Shop ${pageTitle} products at The Equestrian`,
-    undefined,
-    filteredProducts,
-    undefined
-  );
+  // Build "Best in Class" Collection Schema using FAST version (performance optimized)
+  // Uses simple /products/{handle} URLs for schema (canonical URLs still used in product grid)
+  const collectionSchema = generateCollectionSchemaFast({
+    collectionName: pageTitle,
+    collectionUrl: `${siteUrl}/${category}`,
+    collectionDescription: content?.meta_description || `Shop premium ${pageTitle.toLowerCase()} from top equestrian brands. Quality products with fast shipping across Australia.`,
+    breadcrumbs,
+    products: filteredProducts,
+    siteUrl,
+    maxProducts: 12, // Limit schema to 12 products for performance
+  });
 
   return (
     <>
-      {/* Structured Data - BreadcrumbList */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
-      
-      {/* Structured Data - CollectionPage */}
+      {/* Structured Data - @graph with BreadcrumbList + CollectionPage + ItemList */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }}

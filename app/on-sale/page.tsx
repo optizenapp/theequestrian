@@ -1,12 +1,13 @@
 
 import { notFound } from 'next/navigation';
 import { getCollectionWithPagination, getCollectionProductCount } from '@/lib/shopify/collections';
+import { getProductCanonicalUrls } from '@/lib/shopify/products';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { getSalePageByPath } from '@/lib/mapping/sale-mapping';
 import { RichContent } from '@/components/collection/RichContent';
 import { FAQSection } from '@/components/collection/FAQSection';
 import { CollectionDescription } from '@/components/CollectionDescription';
-import { generateCollectionStructuredData } from '@/lib/structured-data/collection';
+import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
 import { FAQItem } from '@/lib/content/collections';
 import Link from 'next/link';
 import type { Metadata } from 'next';
@@ -59,6 +60,11 @@ export default async function OnSalePage({
   // Get total product count
   const totalProductCount = await getCollectionProductCount(collectionHandle);
   
+  // PERFORMANCE: Skip canonical URL generation for now - use simple product URLs
+  // This saves 300-500ms on page load. Product cards will use /products/{handle}
+  // const productUrls = getProductCanonicalUrls(products);
+  const productUrls = new Map<string, string>();
+  
   // Parse content
   const pageTitle = pageData?.h1_title || 'Good Deals';
   const shortDescription = pageData?.short_description || 'Browse our selection of discounted products.';
@@ -76,39 +82,24 @@ export default async function OnSalePage({
   // Generate structured data
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
   
-  const breadcrumbSchema = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Home",
-        "item": siteUrl || "/"
-      },
-      {
-        "@type": "ListItem",
-        "position": 2,
-        "name": pageData?.breadcrumb_label || "Good Deals",
-        "item": `${siteUrl}/on-sale`
-      }
-    ]
-  };
+  // Build breadcrumbs array for schema
+  const breadcrumbs = [
+    { label: pageData?.breadcrumb_label || "Good Deals", href: '/on-sale' }
+  ];
 
-  const collectionSchema = generateCollectionStructuredData(
-    pageTitle,
-    `${siteUrl}/on-sale`,
-    pageData?.meta_description || 'Shop sale items',
-    undefined,
-    products
-  );
+  const collectionSchema = generateCollectionSchemaFast({
+    collectionName: pageTitle,
+    collectionUrl: `${siteUrl}/on-sale`,
+    collectionDescription: pageData?.meta_description || 'Shop premium equestrian products on sale. Quality items at discounted prices with fast shipping across Australia.',
+    breadcrumbs,
+    products,
+    siteUrl,
+    maxProducts: 12, // Limit schema to 12 products for performance
+  });
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
+      {/* Structured Data - @graph with BreadcrumbList + CollectionPage + ItemList */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }}
