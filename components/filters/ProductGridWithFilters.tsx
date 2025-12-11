@@ -12,6 +12,7 @@ import { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ProductCard } from '@/components/ProductCard';
 import { applyFilters } from '@/lib/filters/product-filters';
+import { useLiveProductStatusOptimized } from '@/hooks/useLiveProductStatus';
 import type { ReviewStats } from '@/lib/reviews/stats';
 import {
   getSizeOptions,
@@ -69,6 +70,9 @@ export function ProductGridWithFilters({
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
 
+  // Hydrate products with real-time price and inventory data
+  const { products: hydratedProducts, isLoading: isHydrating } = useLiveProductStatusOptimized(products);
+
   // Get filters from URL params
   const filters = useMemo(() => getFiltersFromSearchParams(searchParams), [searchParams]);
   
@@ -96,8 +100,8 @@ export function ProductGridWithFilters({
     delete clientFilters.brands;
     delete clientFilters.sizes;
     delete clientFilters.colors;
-    return applyFilters(products, clientFilters);
-  }, [products, filters]);
+    return applyFilters(hydratedProducts, clientFilters);
+  }, [hydratedProducts, filters]);
   
   // Apply sorting to filtered products
   const sortedProducts = useMemo(() => {
@@ -154,15 +158,15 @@ export function ProductGridWithFilters({
     if (serverFacets?.sizes) {
       return serverFacets.sizes.map(f => ({ value: f.value, label: f.value, count: f.count }));
     }
-    return getSizeOptions(products);
-  }, [products, serverFacets]);
+    return getSizeOptions(hydratedProducts);
+  }, [hydratedProducts, serverFacets]);
 
   const colorOptions = useMemo(() => {
     if (serverFacets?.colors) {
       return serverFacets.colors.map(f => ({ value: f.value, label: f.originalValue, count: f.count }));
     }
-    return getColorOptions(products);
-  }, [products, serverFacets]);
+    return getColorOptions(hydratedProducts);
+  }, [hydratedProducts, serverFacets]);
 
   const brandOptions = useMemo(() => {
     // If we have server facets (calculated from ALL products), use them
@@ -192,15 +196,15 @@ export function ProductGridWithFilters({
     }
     
     // Fallback to extracting from current page products (client-side)
-    return getBrandOptions(products, allowedBrands);
-  }, [products, allowedBrands, serverFacets]);
+    return getBrandOptions(hydratedProducts, allowedBrands);
+  }, [hydratedProducts, allowedBrands, serverFacets]);
   
   const priceRange = useMemo(() => {
     if (serverFacets?.price) {
       return serverFacets.price;
     }
-    return getPriceRange(products);
-  }, [products, serverFacets]);
+    return getPriceRange(hydratedProducts);
+  }, [hydratedProducts, serverFacets]);
 
   // Save filter preferences to localStorage
   useEffect(() => {
@@ -315,16 +319,27 @@ export function ProductGridWithFilters({
         <div className="flex-1">
           {/* Results count and Sort */}
           <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <p className="text-gray-600">
-              {totalCount !== undefined ? (
-                <>Showing {totalCount} {totalCount === 1 ? 'result' : 'results'}</>
-              ) : (
-                <>
-                  Showing {sortedProducts.length} {sortedProducts.length === 1 ? 'product' : 'products'} on this page
-                  {pageInfo?.hasNextPage && <span className="text-gray-500"> (more available)</span>}
-                </>
+            <div className="flex items-center gap-3">
+              <p className="text-gray-600">
+                {totalCount !== undefined ? (
+                  <>Showing {totalCount} {totalCount === 1 ? 'result' : 'results'}</>
+                ) : (
+                  <>
+                    Showing {sortedProducts.length} {sortedProducts.length === 1 ? 'product' : 'products'} on this page
+                    {pageInfo?.hasNextPage && <span className="text-gray-500"> (more available)</span>}
+                  </>
+                )}
+              </p>
+              {isHydrating && (
+                <span className="text-xs text-gray-500 flex items-center gap-1">
+                  <svg className="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Updating prices...
+                </span>
               )}
-            </p>
+            </div>
             
             {/* Custom Sort Dropdown */}
             <div className="flex items-center gap-3">

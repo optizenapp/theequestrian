@@ -48,6 +48,61 @@ let productsByTypesCache: Map<string, {
 
 const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 
+/**
+ * Build Shopify search query with filters
+ * Converts productTypes and filters into a Shopify search query string
+ * 
+ * @example
+ * buildShopifyQuery(['Horse Rugs'], { brands: ['Ariat'], sizes: ['6.0'] })
+ * // Returns: '(product_type:"Horse Rugs") AND (vendor:Ariat) AND (tag:6.0)'
+ */
+function buildShopifyQuery(
+  productTypes: string[],
+  filters?: {
+    brands?: string[];
+    sizes?: string[];
+    colors?: string[];
+  }
+): string {
+  // Base query: product types
+  const typeQuery = productTypes
+    .map(type => `product_type:"${type.replace(/"/g, '\\"')}"`)
+    .join(' OR ');
+  
+  let query = `(${typeQuery})`;
+  
+  // Add brand filter (vendor field)
+  // Note: Some brands use tags instead of vendor, but we'll handle that in facet calculation
+  if (filters?.brands && filters.brands.length > 0) {
+    const brandQuery = filters.brands
+      .map(brand => {
+        const escapedBrand = brand.replace(/"/g, '\\"');
+        // Search in both vendor field and tags for maximum coverage
+        return `(vendor:"${escapedBrand}" OR tag:"${escapedBrand}")`;
+      })
+      .join(' OR ');
+    query += ` AND (${brandQuery})`;
+  }
+  
+  // Add size filter (tag field)
+  if (filters?.sizes && filters.sizes.length > 0) {
+    const sizeQuery = filters.sizes
+      .map(size => `tag:"${size.replace(/"/g, '\\"')}"`)
+      .join(' OR ');
+    query += ` AND (${sizeQuery})`;
+  }
+  
+  // Add color filter (tag field)
+  if (filters?.colors && filters.colors.length > 0) {
+    const colorQuery = filters.colors
+      .map(color => `tag:"${color.replace(/"/g, '\\"')}"`)
+      .join(' OR ');
+    query += ` AND (${colorQuery})`;
+  }
+  
+  return query;
+}
+
 // Tags to exclude from brand facets (these are not brands)
 const NON_BRAND_TAGS = new Set([
   // Colors
@@ -180,17 +235,18 @@ export async function getProductsByTypes(
 
   try {
     console.log(`[getProductsByTypes] Fetching products for types:`, productTypes.slice(0, 5));
+    if (filters && Object.keys(filters).length > 0) {
+      console.log(`[getProductsByTypes] Filters applied:`, filters);
+    }
     
-    // Build Shopify search query: "product_type:Type1 OR product_type:Type2"
-    const typeQuery = productTypes
-      .map(type => `product_type:"${type.replace(/"/g, '\\"')}"`)
-      .join(' OR ');
-      
-    // Base query WITHOUT filters (for facet calculation)
-    const baseQueryString = `(${typeQuery})`;
+    // Build Shopify search query with filters included
+    // This lets Shopify do the filtering server-side, reducing data transfer
+    const baseQueryString = buildShopifyQuery(productTypes, filters);
     
-    // Check cache first
-    const cacheKey = baseQueryString;
+    console.log(`[getProductsByTypes] Query:`, baseQueryString);
+    
+    // Check cache first (cache key includes filters for accurate caching)
+    const cacheKey = `${baseQueryString}|${JSON.stringify(filters || {})}`;
     const now = Date.now();
     const cached = productsByTypesCache.get(cacheKey);
     
@@ -373,43 +429,12 @@ export async function getProductsByTypes(
 
     console.log(`[getProductsByTypes] 📊 Facets calculated: ${brandFacets.length} brands, ${sizeFacets.length} sizes, ${colorFacets.length} colors`);
 
-    // --- NOW APPLY FILTERS FOR DISPLAY ---
+    // --- FILTERING ALREADY DONE BY SHOPIFY ---
+    // No need for in-memory filtering - Shopify's query already filtered by brand/size/color
+    // The products we fetched are already the filtered results
     let filteredProducts = [...allProductsUnfiltered];
     
-    // Apply brand filter (server-side after cache)
-    if (filters?.brands && filters.brands.length > 0) {
-      const lowerCaseBrands = new Set(filters.brands.map(b => b.toLowerCase()));
-      filteredProducts = filteredProducts.filter(p => {
-        const vendorMatch = p.vendor && lowerCaseBrands.has(p.vendor.toLowerCase());
-        const tagMatch = p.tags.some(tag => lowerCaseBrands.has(tag.toLowerCase()));
-        return vendorMatch || tagMatch;
-      });
-      console.log(`[getProductsByTypes] 🔍 Filtered to ${filteredProducts.length} products by brand`);
-    }
-
-    // Apply size filter (server-side after cache)
-    if (filters?.sizes && filters.sizes.length > 0) {
-      const lowerCaseSizes = new Set(filters.sizes.map(s => s.toLowerCase()));
-      filteredProducts = filteredProducts.filter(p => {
-        return p.variants.edges.some(({ node: variant }) => {
-          const sizeOption = variant.selectedOptions.find(opt => opt.name.toLowerCase() === 'size');
-          return sizeOption && lowerCaseSizes.has(sizeOption.value.toLowerCase());
-        });
-      });
-      console.log(`[getProductsByTypes] 🔍 Filtered to ${filteredProducts.length} products by size`);
-    }
-
-    // Apply color filter (server-side after cache)
-    if (filters?.colors && filters.colors.length > 0) {
-      const lowerCaseColors = new Set(filters.colors.map(c => c.toLowerCase()));
-      filteredProducts = filteredProducts.filter(p => {
-        return p.variants.edges.some(({ node: variant }) => {
-          const colorOption = variant.selectedOptions.find(opt => opt.name.toLowerCase() === 'color');
-          return colorOption && lowerCaseColors.has(colorOption.value.toLowerCase());
-        });
-      });
-      console.log(`[getProductsByTypes] 🔍 Filtered to ${filteredProducts.length} products by color`);
-    }
+    console.log(`[getProductsByTypes] ✅ Using ${filteredProducts.length} products (pre-filtered by Shopify query)`);
 
     // Sort products: In-stock first, out-of-stock last
     filteredProducts.sort((a, b) => {
@@ -485,11 +510,11 @@ export async function getRecommendedProducts(limit: number = 4, productType?: st
     // 2. Fallback to "all products" (latest) if no type or no results found
     if (products.length === 0) {
       console.log(`[getRecommendedProducts] Fallback: Fetching latest products`);
-      const data = await shopifyFetch<ProductsResponse>({
-        query: GET_ALL_PRODUCTS,
+    const data = await shopifyFetch<ProductsResponse>({
+      query: GET_ALL_PRODUCTS,
         variables: { first: limit + 5 },
-      });
-      
+    });
+
       if (data.products?.edges) {
         products = data.products.edges.map(({ node }) => node);
       }
@@ -532,13 +557,13 @@ export function getPrimaryCategoryPath(productType: string): string | null {
   const breadcrumbPaths = getBreadcrumbsForProduct(productType);
   
   let result: string | null = null;
-  
+
   if (breadcrumbPaths.length > 0) {
-    // First path is the primary (most specific/deepest)
-    const primaryPath = breadcrumbPaths[0];
-    
-    // Extract the href from the last breadcrumb (full category path)
-    if (primaryPath && primaryPath.length > 0) {
+  // First path is the primary (most specific/deepest)
+  const primaryPath = breadcrumbPaths[0];
+  
+  // Extract the href from the last breadcrumb (full category path)
+  if (primaryPath && primaryPath.length > 0) {
       result = primaryPath[primaryPath.length - 1].href;
     }
   }
