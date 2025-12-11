@@ -17,6 +17,7 @@ interface ReviewSummaryProps {
 
 export function ReviewSummary({ stats, onWriteReview }: ReviewSummaryProps) {
   const total = stats.total_reviews;
+  const averageRating = Number(stats.average_rating) || 0;
   
   if (total === 0) {
     return (
@@ -48,10 +49,10 @@ export function ReviewSummary({ stats, onWriteReview }: ReviewSummaryProps) {
           </h3>
           <div className="flex items-center justify-center md:justify-start gap-3 mb-4">
             <span className="text-5xl font-bold text-gray-900">
-              {stats.average_rating.toFixed(1)}
+              {averageRating.toFixed(1)}
             </span>
             <div>
-              <ReviewStars rating={stats.average_rating} size="lg" />
+              <ReviewStars rating={averageRating} size="lg" />
               <p className="text-sm text-gray-600 mt-1">
                 Based on {total} {total === 1 ? 'review' : 'reviews'}
               </p>
