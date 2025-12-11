@@ -93,7 +93,7 @@ const featureHighlights = [
 /**
  * Render a product page
  */
-function renderProductPage(product: ShopifyProduct) {
+async function renderProductPage(product: ShopifyProduct) {
   const price = product.priceRange.minVariantPrice;
   
   // Calculate compareAtPrice from variants
