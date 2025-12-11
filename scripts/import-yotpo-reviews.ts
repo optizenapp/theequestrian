@@ -69,11 +69,13 @@ async function getYotpoAccessToken(): Promise<string> {
 }
 
 async function fetchYotpoReviews(page: number = 1): Promise<YotpoResponse> {
-  const url = `https://api.yotpo.com/v1/apps/${YOTPO_APP_KEY}/reviews?page=${page}&per_page=100`;
+  const url = `https://api.yotpo.com/v1/apps/${YOTPO_APP_KEY}/reviews?page=${page}&per_page=100&utoken=${YOTPO_API_SECRET}`;
   
   const response = await fetch(url);
   
   if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Yotpo API Error:', errorText);
     throw new Error(`Failed to fetch Yotpo reviews: ${response.statusText}`);
   }
 
