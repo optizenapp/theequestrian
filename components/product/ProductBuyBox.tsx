@@ -15,12 +15,19 @@ interface ProductBuyBoxProps {
 
 export function ProductBuyBox({ product }: ProductBuyBoxProps) {
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() => {
-    // Pre-select the first variant's options
-    const firstVariant = product.variants.edges[0]?.node;
-    if (!firstVariant) return {};
+    // Pre-select the first AVAILABLE variant's options
+    // This ensures we don't show "Out of Stock" on initial page load
+    const firstAvailableVariant = product.variants.edges.find(
+      ({ node }) => node.availableForSale
+    )?.node;
+    
+    // Fallback to first variant if none are available
+    const variantToSelect = firstAvailableVariant || product.variants.edges[0]?.node;
+    
+    if (!variantToSelect) return {};
 
     const initialOptions: Record<string, string> = {};
-    firstVariant.selectedOptions.forEach((option) => {
+    variantToSelect.selectedOptions.forEach((option) => {
       initialOptions[option.name] = option.value;
     });
     return initialOptions;
@@ -29,7 +36,11 @@ export function ProductBuyBox({ product }: ProductBuyBoxProps) {
   // Find the selected variant based on selected options
   const selectedVariant = useMemo(() => {
     if (Object.keys(selectedOptions).length === 0) {
-      return product.variants.edges[0]?.node;
+      // Return first available variant, or first variant if none available
+      const firstAvailable = product.variants.edges.find(
+        ({ node }) => node.availableForSale
+      )?.node;
+      return firstAvailable || product.variants.edges[0]?.node;
     }
 
     return product.variants.edges.find(({ node: variant }) => {
