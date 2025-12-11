@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-// TODO: Replace with actual database insert once Vercel Postgres is set up
-// This is a placeholder that simulates review submission
+import { sql } from '@vercel/postgres';
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,51 +20,46 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // TODO: Replace with actual database insert:
-    // const { rows } = await sql`
-    //   INSERT INTO reviews (
-    //     product_id,
-    //     product_handle,
-    //     product_title,
-    //     rating,
-    //     title,
-    //     content,
-    //     author_name,
-    //     author_email,
-    //     verified_purchase,
-    //     order_id,
-    //     status,
-    //     source
-    //   ) VALUES (
-    //     ${body.productId},
-    //     ${body.productHandle || ''},
-    //     ${body.productTitle || ''},
-    //     ${body.rating},
-    //     ${body.title},
-    //     ${body.content},
-    //     ${body.authorName},
-    //     ${body.authorEmail || null},
-    //     ${body.verifiedPurchase || false},
-    //     ${body.orderId || null},
-    //     'pending',
-    //     'custom'
-    //   )
-    //   RETURNING *
-    // `;
+    // Insert review into database
+    const { rows } = await sql`
+      INSERT INTO reviews (
+        product_id,
+        product_handle,
+        product_title,
+        rating,
+        title,
+        content,
+        author_name,
+        author_email,
+        verified_purchase,
+        order_id,
+        status,
+        source
+      ) VALUES (
+        ${body.productId},
+        ${body.productHandle || ''},
+        ${body.productTitle || ''},
+        ${body.rating},
+        ${body.title || ''},
+        ${body.content},
+        ${body.authorName},
+        ${body.authorEmail || null},
+        ${body.verifiedPurchase || false},
+        ${body.orderId || null},
+        'pending',
+        'custom'
+      )
+      RETURNING *
+    `;
     
-    // Mock response for development
-    const mockReview = {
-      id: 'mock-' + Date.now(),
-      ...body,
-      status: 'pending',
-      created_at: new Date().toISOString(),
-    };
+    console.log('✅ Review submitted successfully:', rows[0]);
     
-    console.log('📝 Review submitted (mock):', mockReview);
-    
-    return NextResponse.json({ review: mockReview }, { status: 201 });
+    return NextResponse.json({ 
+      review: rows[0],
+      message: 'Review submitted successfully. It will be published after moderation.'
+    }, { status: 201 });
   } catch (error) {
-    console.error('Error creating review:', error);
+    console.error('❌ Error creating review:', error);
     return NextResponse.json(
       { error: 'Failed to create review' },
       { status: 500 }
