@@ -6,6 +6,7 @@ import { ProductBuyBox } from '@/components/product/ProductBuyBox';
 import { ProductDescription } from '@/components/product/ProductDescription';
 import { generateBreadcrumbSchema } from '@/lib/utils/breadcrumb-schema';
 import { getBreadcrumbsForProduct } from '@/lib/mapping/collection-mapping';
+import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
 
 export const revalidate = 300;
 
@@ -120,12 +121,7 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
         {/* Mobile title & rating (between breadcrumbs & image) */}
         <div className="lg:hidden mt-4 mb-8 space-y-2">
           <h1 className="text-3xl font-bold text-gray-900">{product.title}</h1>
-          <div className="flex items-center gap-2 text-sm">
-            <div className="flex text-yellow-400">★★★★☆</div>
-            <span className="text-gray-500 hover:underline cursor-pointer">
-              4.5 (128 reviews)
-            </span>
-          </div>
+          <ProductPageReviewBadge productId={product.id} />
           <div className="space-y-2 mt-4">
             {featureHighlights.map((feature) => (
               <div key={feature} className="flex items-start gap-2 text-sm text-gray-700">
@@ -157,11 +153,8 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
               {/* Title & Rating */}
               <div className="hidden lg:block">
                 <h2 className="text-3xl font-bold text-gray-900 mb-2">{product.title}</h2>
-                <div className="flex items-center gap-2 text-sm mb-4">
-                  <div className="flex text-yellow-400">★★★★☆</div>
-                  <span className="text-gray-500 hover:underline cursor-pointer">
-                    4.5 (128 reviews)
-                  </span>
+                <div className="mb-4">
+                  <ProductPageReviewBadge productId={product.id} />
                 </div>
 
                 {/* Key Features/Benefits */}
