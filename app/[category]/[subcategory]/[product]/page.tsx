@@ -132,7 +132,7 @@ async function renderProductPage(product: ShopifyProduct) {
   const schemaGraph = generateProductSchemaGraph(product, canonicalUrl, primaryBreadcrumb, siteUrl, reviewStats);
 
   // Fetch related products (limit 4)
-  const relatedProducts = await getRecommendedProducts(4);
+  const relatedProducts = await getRecommendedProducts(4, product.productType, product.handle);
   
   // Fetch review stats for related products (server-side batch)
   const relatedHandles = relatedProducts.map(p => p.handle);

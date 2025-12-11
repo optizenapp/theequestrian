@@ -434,15 +434,48 @@ export async function getProductsByTypes(
 
 /**
  * Get recommended products (limit to specified number)
+ * improved to filter by productType if provided
  */
-export async function getRecommendedProducts(limit: number = 4): Promise<ShopifyProduct[]> {
+export async function getRecommendedProducts(limit: number = 4, productType?: string, excludeHandle?: string): Promise<ShopifyProduct[]> {
   try {
-    const data = await shopifyFetch<ProductsResponse>({
-      query: GET_ALL_PRODUCTS,
-      variables: { first: limit },
-    });
+    let products: ShopifyProduct[] = [];
 
-    return data.products.edges.map(({ node }) => node);
+    // 1. Try to fetch by product type for relevance
+    if (productType) {
+      console.log(`[getRecommendedProducts] Fetching related products for type: ${productType}`);
+      const data = await shopifyFetch<ProductsResponse>({
+        query: GET_PRODUCTS_BY_QUERY,
+        variables: { 
+          query: `product_type:"${productType}"`, 
+          first: limit + 5 // Fetch extra to allow for exclusion
+        },
+      });
+      
+      if (data.products?.edges) {
+        products = data.products.edges.map(({ node }) => node);
+      }
+    } 
+    
+    // 2. Fallback to "all products" (latest) if no type or no results found
+    if (products.length === 0) {
+      console.log(`[getRecommendedProducts] Fallback: Fetching latest products`);
+      const data = await shopifyFetch<ProductsResponse>({
+        query: GET_ALL_PRODUCTS,
+        variables: { first: limit + 5 },
+      });
+      
+      if (data.products?.edges) {
+        products = data.products.edges.map(({ node }) => node);
+      }
+    }
+
+    // Filter out the current product if handle provided
+    if (excludeHandle) {
+      products = products.filter(p => p.handle !== excludeHandle);
+    }
+
+    console.log(`[getRecommendedProducts] Found ${products.length} products (limit: ${limit})`);
+    return products.slice(0, limit);
   } catch (error) {
     console.error('Error fetching recommended products:', error);
     return [];

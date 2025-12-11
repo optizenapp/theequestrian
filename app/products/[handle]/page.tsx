@@ -90,7 +90,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const schemaGraph = generateProductSchemaGraph(product, currentUrl, primaryBreadcrumb, siteUrl, reviewStats);
 
   // Fetch related products (limit 4)
-  const relatedProducts = await getRecommendedProducts(4);
+  const relatedProducts = await getRecommendedProducts(4, product.productType, product.handle);
   
   // Fetch review stats for related products (server-side batch)
   const relatedHandles = relatedProducts.map(p => p.handle);
