@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { getProduct } from '@/lib/shopify/products';
-import ReviewForm from '@/components/reviews/ReviewForm';
+import { ReviewForm } from '@/components/reviews/ReviewForm';
 
 export const metadata = {
   title: 'Write a Review | The Equestrian',

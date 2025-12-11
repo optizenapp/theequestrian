@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { ProductPrice } from './ProductPrice';
-import ProductReviewBadge from './reviews/ProductReviewBadge';
+import { ProductReviewBadge } from './reviews/ProductReviewBadge';
 import type { ShopifyProduct } from '@/types/shopify';
 
 interface ProductCardProps {

@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import ReviewSummary from './ReviewSummary';
-import ReviewCard from './ReviewCard';
-import ReviewForm from './ReviewForm';
+import { ReviewSummary } from './ReviewSummary';
+import { ReviewCard } from './ReviewCard';
+import { ReviewForm } from './ReviewForm';
 
 interface Review {
   id: string;
@@ -106,17 +106,7 @@ export default function ProductReviewSection({
         {/* Review Summary */}
         {stats && stats.total_reviews > 0 && (
           <div className="mb-8">
-            <ReviewSummary
-              averageRating={stats.average_rating}
-              totalReviews={stats.total_reviews}
-              ratingBreakdown={{
-                5: stats.rating_5_count,
-                4: stats.rating_4_count,
-                3: stats.rating_3_count,
-                2: stats.rating_2_count,
-                1: stats.rating_1_count,
-              }}
-            />
+            <ReviewSummary stats={stats} />
           </div>
         )}
 

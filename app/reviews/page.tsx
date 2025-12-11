@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import ReviewCard from '@/components/reviews/ReviewCard';
-import ReviewStars from '@/components/reviews/ReviewStars';
+import { ReviewCard } from '@/components/reviews/ReviewCard';
+import { ReviewStars } from '@/components/reviews/ReviewStars';
 
 // Mock data - TODO: Replace with actual API call
 const MOCK_REVIEWS = [
