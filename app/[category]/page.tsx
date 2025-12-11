@@ -41,9 +41,11 @@ interface CategoryPageProps {
  */
 export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
   const { category } = await params;
-  const { cursor, brand } = await searchParams;
+  const { cursor, brand, size, color } = await searchParams;
   const afterCursor = typeof cursor === 'string' ? cursor : null;
   const filterBrands = brand ? (Array.isArray(brand) ? brand : brand.split(',')) : undefined;
+  const filterSizes = size ? (Array.isArray(size) ? size : size.split(',')) : undefined;
+  const filterColors = color ? (Array.isArray(color) ? color : color.split(',')) : undefined;
 
   // Check if this category exists in our mapping
   const allowedProductTypes = getProductTypesForCollection(category);
@@ -149,7 +151,11 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     allowedProductTypes, 
     36, 
     afterCursor,
-    { brands: filterBrands }
+    { 
+      brands: filterBrands,
+      sizes: filterSizes,
+      colors: filterColors
+    }
   );
 
   // Total count is now returned from getProductsByTypes (no separate API call needed)

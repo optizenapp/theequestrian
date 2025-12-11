@@ -80,7 +80,7 @@ export function AttributeFilter({
                   type="checkbox"
                   checked={isChecked}
                   onChange={() => toggleValue(option.value)}
-                  className="w-4 h-4 text-black border-gray-300 rounded focus:ring-black focus:ring-2"
+                  className="w-4 h-4 accent-black border-gray-300 rounded focus:ring-black focus:ring-2"
                 />
                 <span className="text-sm text-gray-700 group-hover:text-gray-900">
                   {option.label}

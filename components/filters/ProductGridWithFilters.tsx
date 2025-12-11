@@ -88,13 +88,14 @@ export function ProductGridWithFilters({
   const currentSortLabel = sortOptions.find(opt => opt.value === sortBy)?.label || 'Featured';
 
   // Apply filters to products
-  // Note: Client-side filtering is applied to the CURRENT page of products fetched from server
-  // Products are already sorted by availability at the server level
-  // We exclude 'brand' from client-side filtering because it's handled server-side for pagination
+  // Note: Brand, Size, and Color filters are handled SERVER-SIDE for proper pagination
+  // Only price filtering is done client-side (on the current page)
   const filteredProducts = useMemo(() => {
     const clientFilters = { ...filters };
-    // Remove brand from client-side filters as it's handled by the server
+    // Remove server-side filters (brand, size, color) from client-side filtering
     delete clientFilters.brands;
+    delete clientFilters.sizes;
+    delete clientFilters.colors;
     return applyFilters(products, clientFilters);
   }, [products, filters]);
   

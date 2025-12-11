@@ -20,7 +20,7 @@ export function HeaderTopBar() {
         <p className="flex items-center gap-1">
           Our daily deals - Global brands at amazing prices!
           <Link 
-            href="/trade-in" 
+            href="/on-sale" 
             className="underline font-bold hover:text-black/80 transition-colors"
           >
             Get Started

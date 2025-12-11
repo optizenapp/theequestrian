@@ -148,6 +148,8 @@ export async function getProductsByTypes(
   after: string | null = null,
   filters?: {
     brands?: string[];
+    sizes?: string[];
+    colors?: string[];
   }
 ): Promise<{ 
   products: ProductWithPrimaryCollection[]; 
@@ -374,7 +376,7 @@ export async function getProductsByTypes(
     // --- NOW APPLY FILTERS FOR DISPLAY ---
     let filteredProducts = [...allProductsUnfiltered];
     
-    // Apply brand filter (client-side)
+    // Apply brand filter (server-side after cache)
     if (filters?.brands && filters.brands.length > 0) {
       const lowerCaseBrands = new Set(filters.brands.map(b => b.toLowerCase()));
       filteredProducts = filteredProducts.filter(p => {
@@ -383,6 +385,30 @@ export async function getProductsByTypes(
         return vendorMatch || tagMatch;
       });
       console.log(`[getProductsByTypes] 🔍 Filtered to ${filteredProducts.length} products by brand`);
+    }
+
+    // Apply size filter (server-side after cache)
+    if (filters?.sizes && filters.sizes.length > 0) {
+      const lowerCaseSizes = new Set(filters.sizes.map(s => s.toLowerCase()));
+      filteredProducts = filteredProducts.filter(p => {
+        return p.variants.edges.some(({ node: variant }) => {
+          const sizeOption = variant.selectedOptions.find(opt => opt.name.toLowerCase() === 'size');
+          return sizeOption && lowerCaseSizes.has(sizeOption.value.toLowerCase());
+        });
+      });
+      console.log(`[getProductsByTypes] 🔍 Filtered to ${filteredProducts.length} products by size`);
+    }
+
+    // Apply color filter (server-side after cache)
+    if (filters?.colors && filters.colors.length > 0) {
+      const lowerCaseColors = new Set(filters.colors.map(c => c.toLowerCase()));
+      filteredProducts = filteredProducts.filter(p => {
+        return p.variants.edges.some(({ node: variant }) => {
+          const colorOption = variant.selectedOptions.find(opt => opt.name.toLowerCase() === 'color');
+          return colorOption && lowerCaseColors.has(colorOption.value.toLowerCase());
+        });
+      });
+      console.log(`[getProductsByTypes] 🔍 Filtered to ${filteredProducts.length} products by color`);
     }
 
     // Sort products: In-stock first, out-of-stock last

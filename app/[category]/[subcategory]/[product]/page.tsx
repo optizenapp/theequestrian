@@ -54,15 +54,18 @@ interface PageProps {
  */
 export default async function Page({ params, searchParams }: PageProps) {
   const { category, subcategory, product: thirdSegment } = await params;
-  const { cursor } = await searchParams;
+  const { cursor, brand, size, color } = await searchParams;
   const afterCursor = typeof cursor === 'string' ? cursor : null;
+  const filterBrands = brand ? (Array.isArray(brand) ? brand : brand.split(',')) : undefined;
+  const filterSizes = size ? (Array.isArray(size) ? size : size.split(',')) : undefined;
+  const filterColors = color ? (Array.isArray(color) ? color : color.split(',')) : undefined;
 
   // 1. Check if this is a valid sub-subcategory
   const allowedProductTypes = getProductTypesForCollection(category, subcategory, thirdSegment);
   
   // If it maps to a collection, render the collection page
   if (allowedProductTypes.length > 0) {
-    return renderSubSubcategoryPage(category, subcategory, thirdSegment, afterCursor);
+    return renderSubSubcategoryPage(category, subcategory, thirdSegment, afterCursor, filterBrands, filterSizes, filterColors);
   }
 
   // 2. If not a category, assume it's a product handle
@@ -240,12 +243,29 @@ async function renderProductPage(product: ShopifyProduct) {
 /**
  * Render the 3rd-level collection page
  */
-async function renderSubSubcategoryPage(category: string, subcategory: string, subsubcategory: string, afterCursor: string | null = null) {
+async function renderSubSubcategoryPage(
+  category: string, 
+  subcategory: string, 
+  subsubcategory: string, 
+  afterCursor: string | null = null,
+  filterBrands?: string[],
+  filterSizes?: string[],
+  filterColors?: string[]
+) {
   // Get allowed product types for this collection
   const allowedProductTypes = getProductTypesForCollection(category, subcategory, subsubcategory);
   
   // Fetch products with pagination (36 per page)
-  const { products: filteredProducts, pageInfo, totalCount } = await getProductsByTypes(allowedProductTypes, 36, afterCursor);
+  const { products: filteredProducts, pageInfo, totalCount } = await getProductsByTypes(
+    allowedProductTypes, 
+    36, 
+    afterCursor,
+    {
+      brands: filterBrands,
+      sizes: filterSizes,
+      colors: filterColors
+    }
+  );
 
   // Total count is now returned from getProductsByTypes (no separate API call needed)
   const totalProductCount = totalCount;

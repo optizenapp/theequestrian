@@ -38,9 +38,11 @@ interface SubcategoryPageProps {
  */
 export default async function SubcategoryPage({ params, searchParams }: SubcategoryPageProps) {
   const { category, subcategory } = await params;
-  const { cursor, brand } = await searchParams;
+  const { cursor, brand, size, color } = await searchParams;
   const afterCursor = typeof cursor === 'string' ? cursor : null;
   const filterBrands = brand ? (Array.isArray(brand) ? brand : brand.split(',')) : undefined;
+  const filterSizes = size ? (Array.isArray(size) ? size : size.split(',')) : undefined;
+  const filterColors = color ? (Array.isArray(color) ? color : color.split(',')) : undefined;
 
   // Check if this path exists in our mapping
   const allowedProductTypes = getProductTypesForCollection(category, subcategory);
@@ -54,7 +56,11 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
     allowedProductTypes, 
     36, 
     afterCursor,
-    { brands: filterBrands }
+    { 
+      brands: filterBrands,
+      sizes: filterSizes,
+      colors: filterColors
+    }
   );
 
   // Total count is now returned from getProductsByTypes (no separate API call needed)
