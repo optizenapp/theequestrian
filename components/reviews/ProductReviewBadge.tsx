@@ -55,11 +55,13 @@ export function ProductReviewBadge({
     );
   }
   
+  const averageRating = Number(stats.average_rating) || 0;
+  
   if (compact) {
     return (
       <div className="flex items-center gap-1 text-sm">
         <span className="text-yellow-400">★</span>
-        <span className="font-medium">{stats.average_rating.toFixed(1)}</span>
+        <span className="font-medium">{averageRating.toFixed(1)}</span>
         <span className="text-gray-500">({stats.total_reviews})</span>
       </div>
     );
@@ -72,9 +74,9 @@ export function ProductReviewBadge({
       onMouseLeave={() => setShowBreakdown(false)}
     >
       <div className="flex items-center gap-2">
-        <ReviewStars rating={stats.average_rating} size="sm" />
+        <ReviewStars rating={averageRating} size="sm" />
         <span className="text-sm text-gray-600">
-          {stats.average_rating.toFixed(1)} ({stats.total_reviews} {stats.total_reviews === 1 ? 'review' : 'reviews'})
+          {averageRating.toFixed(1)} ({stats.total_reviews} {stats.total_reviews === 1 ? 'review' : 'reviews'})
         </span>
       </div>
       
