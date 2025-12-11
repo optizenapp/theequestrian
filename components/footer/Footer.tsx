@@ -27,26 +27,26 @@ const footerLinks = {
     title: 'Help & Info',
     links: [
       { label: 'Contact Us', href: '/contact' },
-      { label: 'Shipping & Returns', href: '/shipping' },
+      { label: 'Shipping & Delivery', href: '/shipping-delivery' },
+      { label: 'Returns & Refunds', href: '/returns-refunds' },
       { label: 'FAQs', href: '/faq' },
-      { label: 'Size Guide', href: '/size-guide' },
     ],
   },
   company: {
     title: 'Company',
     links: [
       { label: 'About Us', href: '/about' },
-      { label: 'Our Story', href: '/story' },
-      { label: 'Sustainability', href: '/sustainability' },
-      { label: 'Careers', href: '/careers' },
+      { label: 'Become a Seller', href: '/contact' },
+      { label: 'News & Blog', href: '/news' },
+      { label: 'Brands', href: '/brands' },
     ],
   },
   legal: {
     title: 'Legal',
     links: [
-      { label: 'Privacy Policy', href: '/privacy' },
-      { label: 'Terms of Service', href: '/terms' },
-      { label: 'Cookie Policy', href: '/cookies' },
+      { label: 'Privacy Policy', href: '/privacy-policy' },
+      { label: 'Terms of Service', href: '/terms-of-service' },
+      { label: 'Returns & Refunds', href: '/returns-refunds' },
     ],
   },
 };
