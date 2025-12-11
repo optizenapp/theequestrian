@@ -30,13 +30,14 @@ export function ProductReviewBadge({
   
   useEffect(() => {
     // Fetch review stats
-    fetch(`/api/reviews/stats/${productId}`)
+    fetch(`/api/reviews/stats/${encodeURIComponent(productId)}`)
       .then(res => res.json())
       .then(data => {
         setStats(data);
         setIsLoading(false);
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error('Error fetching review stats:', error);
         setIsLoading(false);
       });
   }, [productId]);
