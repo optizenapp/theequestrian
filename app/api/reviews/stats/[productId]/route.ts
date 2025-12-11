@@ -27,8 +27,8 @@ export async function GET(
       GROUP BY product_handle
     `;
     
-    // Return stats or default empty stats
-    return NextResponse.json(rows[0] || {
+    // Return stats or default empty stats, ensuring numbers are parsed
+    const result = rows[0] || {
       product_handle: productHandle,
       total_reviews: 0,
       average_rating: 0,
@@ -37,6 +37,18 @@ export async function GET(
       rating_3_count: 0,
       rating_4_count: 0,
       rating_5_count: 0,
+    };
+    
+    // Ensure all numeric fields are actually numbers
+    return NextResponse.json({
+      product_handle: result.product_handle,
+      total_reviews: parseInt(result.total_reviews) || 0,
+      average_rating: parseFloat(result.average_rating) || 0,
+      rating_1_count: parseInt(result.rating_1_count) || 0,
+      rating_2_count: parseInt(result.rating_2_count) || 0,
+      rating_3_count: parseInt(result.rating_3_count) || 0,
+      rating_4_count: parseInt(result.rating_4_count) || 0,
+      rating_5_count: parseInt(result.rating_5_count) || 0,
     });
   } catch (error) {
     console.error('Error fetching review stats:', error);

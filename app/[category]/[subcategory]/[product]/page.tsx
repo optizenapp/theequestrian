@@ -128,10 +128,10 @@ function renderProductPage(product: ShopifyProduct) {
   return (
     <div className="bg-background min-h-screen pb-20">
       {/* Unified Schema Graph (BreadcrumbList + Product) */}
-      <script
-        type="application/ld+json"
+          <script
+            type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaGraph) }}
-      />
+          />
 
       {/* Additional breadcrumb paths (if product appears in multiple categories) */}
       {Array.isArray(breadcrumbSchemas) && breadcrumbSchemas.slice(1).map((schema, index) => (

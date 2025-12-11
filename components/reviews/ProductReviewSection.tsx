@@ -56,7 +56,8 @@ export default function ProductReviewSection({
   useEffect(() => {
     async function fetchReviews() {
       try {
-        const response = await fetch(`/api/reviews/${encodeURIComponent(productId)}`);
+        // Use productHandle to fetch reviews (since imported reviews use handle as key)
+        const response = await fetch(`/api/reviews/${encodeURIComponent(productHandle)}`);
         if (response.ok) {
           const data = await response.json();
           setReviews(data.reviews || []);
@@ -70,7 +71,7 @@ export default function ProductReviewSection({
     }
 
     fetchReviews();
-  }, [productId]);
+  }, [productHandle]);
 
   // Filter and sort reviews
   const filteredReviews = reviews
