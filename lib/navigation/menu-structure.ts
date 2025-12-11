@@ -61,6 +61,11 @@ export const TOP_LEVEL_MENU: TopLevelMenuItem[] = [
     href: '/brands',
   },
   {
+    label: 'Reviews',
+    handle: 'reviews',
+    href: '/reviews',
+  },
+  {
     label: 'Contact',
     handle: 'contact',
     href: '/contact',
