@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ProductPrice } from './ProductPrice';
+import ProductReviewBadge from './reviews/ProductReviewBadge';
 import type { ShopifyProduct } from '@/types/shopify';
 
 interface ProductCardProps {
@@ -65,12 +66,9 @@ export function ProductCard({ product, priority = false, showBreadcrumbs = false
             {product.title}
           </h3>
           
-          {/* Rating Stars (Placeholder) */}
-          <div className="flex items-center gap-1 mb-2">
-            <div className="flex text-yellow-400 text-xs">
-              {'★★★★☆'}
-            </div>
-            <span className="text-xs text-gray-500">(12)</span>
+          {/* Review Badge */}
+          <div className="mb-2">
+            <ProductReviewBadge productId={product.id} />
           </div>
         </div>
 

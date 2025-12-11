@@ -7,6 +7,7 @@ import { ProductDescription } from '@/components/product/ProductDescription';
 import { generateBreadcrumbSchema } from '@/lib/utils/breadcrumb-schema';
 import { generateProductSchemaGraph } from '@/lib/utils/product-schema';
 import { getBreadcrumbsForProduct } from '@/lib/mapping/collection-mapping';
+import ProductReviewSection from '@/components/reviews/ProductReviewSection';
 
 export const revalidate = 300;
 
@@ -173,6 +174,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
               </div>
             </div>
           </div>
+        
+        {/* Reviews Section - Full Width Below Product */}
+        <ProductReviewSection
+          productId={product.id}
+          productHandle={handle}
+          productTitle={product.title}
+        />
       </div>
     </div>
   );

@@ -24,6 +24,7 @@ import { ProductBuyBox } from '@/components/product/ProductBuyBox';
 import { ProductDescription } from '@/components/product/ProductDescription';
 import { generateBreadcrumbSchema } from '@/lib/utils/breadcrumb-schema';
 import { generateProductSchemaGraph } from '@/lib/utils/product-schema';
+import ProductReviewSection from '@/components/reviews/ProductReviewSection';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import type { ShopifyProduct } from '@/types/shopify';
@@ -212,6 +213,13 @@ function renderProductPage(product: ShopifyProduct) {
             </div>
           </div>
         </div>
+        
+        {/* Reviews Section - Full Width Below Product */}
+        <ProductReviewSection
+          productId={product.id}
+          productHandle={product.handle}
+          productTitle={product.title}
+        />
       </div>
     </div>
   );
