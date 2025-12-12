@@ -70,12 +70,9 @@ function loadContent(): Map<string, CollectionContent> {
     currentModifiedTime = stats.mtimeMs;
   }
   
-  // In development, always reload to pick up CSV changes
-  // In production, reload if file has been modified
-  const shouldUseCache = contentCache && 
-    (process.env.NODE_ENV === 'production' && lastModifiedTime === currentModifiedTime);
-  
-  if (shouldUseCache) {
+  // In development, always reload to pick up CSV changes.
+  // In production, use the in-memory cache only if the CSV hasn't changed.
+  if (process.env.NODE_ENV === 'production' && contentCache && lastModifiedTime === currentModifiedTime) {
     return contentCache;
   }
   

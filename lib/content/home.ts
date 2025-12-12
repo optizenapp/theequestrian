@@ -49,6 +49,11 @@ export interface HomeSection {
   secondary_cta_text?: string;
   secondary_cta_link?: string;
  
+  // Optional media (section-level image)
+  image_url?: string;
+  image_alt?: string;
+  image_link?: string;
+ 
   // Section-specific payloads
   most_wanted_items?: HomeMostWantedItem[];
   faqs?: HomeFaqItem[];
@@ -70,6 +75,10 @@ interface CsvRow {
   cta_link?: string;
   secondary_cta_text?: string;
   secondary_cta_link?: string;
+ 
+  image_url?: string;
+  image_alt?: string;
+  image_link?: string;
  
   most_wanted_items_json?: string;
   faqs_json?: string;
@@ -168,6 +177,9 @@ function loadHomeSections(): HomeSection[] {
       cta_link: row.cta_link?.trim() || undefined,
       secondary_cta_text: row.secondary_cta_text?.trim() || undefined,
       secondary_cta_link: row.secondary_cta_link?.trim() || undefined,
+      image_url: row.image_url?.trim() || undefined,
+      image_alt: row.image_alt?.trim() || undefined,
+      image_link: row.image_link?.trim() || undefined,
     };
  
     if (type === 'most_wanted_carousel' || type === 'most_wanted_grid') {

@@ -7,6 +7,8 @@ interface HeroProps {
   ctaLink?: string;
   secondaryCtaText?: string;
   secondaryCtaLink?: string;
+  backgroundImageSrc?: string;
+  backgroundImageAlt?: string;
 }
 
 /**
@@ -24,14 +26,16 @@ export function Hero({
   ctaLink = '/horse',
   secondaryCtaText = 'View Collections',
   secondaryCtaLink = '/collections',
+  backgroundImageSrc = '/hero-image-v2.jpg',
+  backgroundImageAlt = 'Equestrian Eventing',
 }: HeroProps) {
   return (
     <section className="relative h-[600px] w-full overflow-hidden bg-gray-900">
       {/* Background Image - Centered to balance rider position */}
       <div className="absolute inset-0 w-full h-full">
         <img 
-          src="/hero-image-v2.jpg" 
-          alt="Equestrian Eventing"
+          src={backgroundImageSrc}
+          alt={backgroundImageAlt}
           className="h-full w-full object-cover object-center"
         />
         {/* Gradient Overlay: Dark opacity on left for text, transparent on right for image clarity */}

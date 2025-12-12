@@ -39,6 +39,8 @@ export default function Home() {
                 ctaLink={section.cta_link}
                 secondaryCtaText={section.secondary_cta_text}
                 secondaryCtaLink={section.secondary_cta_link}
+                backgroundImageSrc={section.image_url}
+                backgroundImageAlt={section.image_alt}
               />
             );
 

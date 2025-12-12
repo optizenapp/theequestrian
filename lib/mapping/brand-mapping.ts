@@ -32,11 +32,10 @@ export function loadBrandMapping(): BrandMapping[] {
     currentModifiedTime = stats.mtimeMs;
   }
   
-  // In development, always reload. In production, reload if file changed
-  const shouldUseCache = brandCache && 
-    (process.env.NODE_ENV === 'production' && lastModifiedTime === currentModifiedTime);
-  
-  if (shouldUseCache) return brandCache;
+  // In development, always reload. In production, use cache only if CSV hasn't changed.
+  if (process.env.NODE_ENV === 'production' && brandCache && lastModifiedTime === currentModifiedTime) {
+    return brandCache;
+  }
 
   try {
     if (!fs.existsSync(csvPath)) {
