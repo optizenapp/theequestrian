@@ -10,7 +10,10 @@
     "export:product-types": "tsx scripts/export-product-types.ts",
     "export:collections": "tsx scripts/export-collections.ts",
     "export:sitemap": "tsx scripts/export-sitemap.ts",
-    "import:mapping": "tsx scripts/import-mapping.ts"
+    "import:mapping": "tsx scripts/import-mapping.ts",
+    "db:init": "tsx scripts/init-database.ts",
+    "db:sync": "tsx scripts/sync-products-to-db.ts",
+    "db:stats": "tsx scripts/db-stats.ts"
   },
   "dependencies": {
     "@vercel/kv": "^3.0.0",

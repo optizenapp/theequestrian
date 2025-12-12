@@ -34,8 +34,8 @@ export function HeaderNavigation() {
     // Add delay before opening to prevent accidental triggers and allow immediate clicks
     timeoutRef.current = setTimeout(() => {
       if (isHoveringRef.current && shouldShowMegaMenu(label)) {
-        setActiveMenu(label);
-      }
+      setActiveMenu(label);
+    }
     }, 150);
   };
 

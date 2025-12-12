@@ -300,3 +300,4 @@ horse,https://cdn.shopify.com/s/files/1/0562/0963/7457/files/winter-rug-hero.jpg
 
 The CSV is already created at `exports/mega-menu-content.csv` with empty rows for all 5 categories. Just fill it out and push! 🚀
 
+
