@@ -61,10 +61,9 @@ export default async function OnSalePage({
   // Get total product count
   const totalProductCount = await getCollectionProductCount(collectionHandle);
   
-  // PERFORMANCE: Skip canonical URL generation for now - use simple product URLs
-  // This saves 300-500ms on page load. Product cards will use /products/{handle}
-  // const productUrls = getProductCanonicalUrls(products);
-  const productUrls = new Map<string, string>();
+  // Generate canonical URLs for all products (fast with Neon DB)
+  // Product cards will link directly to category-based URLs
+  const productUrls = getProductCanonicalUrls(products);
 
   // Fetch review stats for all products in one batch (server-side)
   const productHandles = products.map(p => p.handle);

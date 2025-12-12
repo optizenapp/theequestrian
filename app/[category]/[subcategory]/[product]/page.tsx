@@ -285,11 +285,10 @@ async function renderSubSubcategoryPage(
   const pageTitle = content?.h1_title || mappingTitle;
   const description = content?.short_description || '';
   
-  // PERFORMANCE: Skip canonical URL generation for now - use simple product URLs
-  // This saves 300-500ms on page load. Product cards will use /products/{handle}
-  // const { getProductCanonicalUrls } = await import('@/lib/shopify/products');
-  // const productUrls = getProductCanonicalUrls(filteredProducts);
-  const productUrls = new Map<string, string>();
+  // Generate canonical URLs for all products (fast with Neon DB)
+  // Product cards will link directly to category-based URLs
+  const { getProductCanonicalUrls } = await import('@/lib/shopify/products');
+  const productUrls = getProductCanonicalUrls(filteredProducts);
   
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
 

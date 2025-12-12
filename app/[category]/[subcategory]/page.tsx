@@ -72,10 +72,9 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
     ? undefined 
     : getAllowedBrandVendors();
   
-  // PERFORMANCE: Skip canonical URL generation for now - use simple product URLs
-  // This saves 300-500ms on page load. Product cards will use /products/{handle}
-  // const productUrls = getProductCanonicalUrls(filteredProducts);
-  const productUrls = new Map<string, string>();
+  // Generate canonical URLs for all products (fast with Neon DB)
+  // Product cards will link directly to category-based URLs
+  const productUrls = getProductCanonicalUrls(filteredProducts);
 
   // Fetch review stats for all products in one batch (server-side)
   const productHandles = filteredProducts.map(p => p.handle);
