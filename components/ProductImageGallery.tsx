@@ -7,9 +7,11 @@
  * - Thumbnail navigation on the left
  * - Main image display
  * - Hover on thumbnails changes main image
+ * - Optimized LCP with fetchpriority="high" on main image
+ * - Responsive image sizes (thumbnails at 160x160)
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface ImageEdge {
   node: {
@@ -23,10 +25,49 @@ interface ProductImageGalleryProps {
   productTitle: string;
 }
 
+/**
+ * Resize Shopify CDN images using their image transformation API
+ * @param url - Original Shopify CDN URL
+ * @param size - Desired size (e.g., '160x160', '800x800')
+ * @returns Optimized image URL
+ */
+function getShopifyImageUrl(url: string, size: string): string {
+  if (!url) return url;
+  
+  // Shopify CDN URLs can be resized by adding _${size} before the file extension
+  // Example: image.jpg?v=123 -> image_160x160.jpg?v=123
+  
+  // Handle URLs with query parameters
+  const [baseUrl, queryString] = url.split('?');
+  const lastDotIndex = baseUrl.lastIndexOf('.');
+  
+  if (lastDotIndex === -1) return url; // No extension found
+  
+  const resizedUrl = `${baseUrl.substring(0, lastDotIndex)}_${size}${baseUrl.substring(lastDotIndex)}`;
+  
+  return queryString ? `${resizedUrl}?${queryString}` : resizedUrl;
+}
+
 export function ProductImageGallery({ images, productTitle }: ProductImageGalleryProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   
   const imageList = images.edges.map(edge => edge.node);
+  
+  // Preload the first image for faster LCP
+  useEffect(() => {
+    if (imageList.length > 0) {
+      const link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'image';
+      link.href = imageList[0].url;
+      link.fetchPriority = 'high';
+      document.head.appendChild(link);
+      
+      return () => {
+        document.head.removeChild(link);
+      };
+    }
+  }, [imageList]);
   
   if (imageList.length === 0) {
     return (
@@ -44,6 +85,8 @@ export function ProductImageGallery({ images, productTitle }: ProductImageGaller
           src={imageList[selectedImageIndex].url}
           alt={imageList[selectedImageIndex].altText || productTitle}
           className="max-w-full max-h-full object-contain"
+          loading="eager"
+          fetchPriority="high"
         />
       </div>
 
@@ -62,9 +105,12 @@ export function ProductImageGallery({ images, productTitle }: ProductImageGaller
               }`}
             >
               <img
-                src={image.url}
+                src={getShopifyImageUrl(image.url, '160x160')}
                 alt={image.altText || `${productTitle} - Image ${index + 1}`}
                 className="w-full h-full object-cover"
+                loading="lazy"
+                width="80"
+                height="80"
               />
             </button>
           ))}
@@ -73,4 +119,3 @@ export function ProductImageGallery({ images, productTitle }: ProductImageGaller
     </div>
   );
 }
-

@@ -53,6 +53,8 @@ export function ProductCard({ product, priority = false, showBreadcrumbs = false
             className="object-contain object-center transition-transform duration-300 group-hover:scale-105"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             priority={priority}
+            loading={priority ? 'eager' : 'lazy'}
+            fetchPriority={priority ? 'high' : 'auto'}
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-white text-gray-400">
