@@ -56,7 +56,7 @@ function loadMegaMenuContent(): Map<string, MegaMenuContent> {
   }
   
   if (isDevelopment) {
-    console.log('[MegaMenu] Development mode: Reloading CSV');
+    console.log('[MegaMenu] Development mode: Reloading CSV from:', csvPath);
   }
   
   try {
@@ -66,6 +66,8 @@ function loadMegaMenuContent(): Map<string, MegaMenuContent> {
       skip_empty_lines: true,
       trim: true,
     }) as Array<Record<string, string>>;
+    
+    console.log(`[MegaMenu] Parsed ${records.length} rows from CSV`);
     
     const contentMap = new Map<string, MegaMenuContent>();
     
@@ -131,13 +133,18 @@ function loadMegaMenuContent(): Map<string, MegaMenuContent> {
       }
       
       contentMap.set(row.category, content);
+      console.log(`[MegaMenu] Loaded category "${row.category}":`, {
+        hasFeaturedImage: !!content.featuredImage,
+        quickLinksCount: content.quickLinks?.length || 0,
+        cardsCount: content.subcategoryCards?.length || 0
+      });
     }
     
     // Update cache
     cachedContent = contentMap;
     lastModified = currentModified;
     
-    console.log(`[MegaMenu] Loaded content for ${contentMap.size} categories`);
+    console.log(`[MegaMenu] Loaded content for ${contentMap.size} categories:`, Array.from(contentMap.keys()));
     return contentMap;
     
   } catch (error) {

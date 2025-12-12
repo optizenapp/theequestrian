@@ -63,10 +63,8 @@ export function MegaMenuWrapper({ categoryLabel, onClose }: MegaMenuWrapperProps
         // Convert menu label to URL-safe handle
         const categoryHandle = categoryLabel.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and');
 
-        // Use the images endpoint for Horse category, regular endpoint for others
-        const endpoint = categoryHandle === 'horse' 
-          ? `/api/mapping/subcategories-with-images?category=${categoryHandle}`
-          : `/api/mapping/subcategories?category=${categoryHandle}`;
+        // Always use the images endpoint to get custom content from CSV
+        const endpoint = `/api/mapping/subcategories-with-images?category=${categoryHandle}`;
 
         // Fetch subcategories from our mapping API
         const response = await fetch(endpoint);
