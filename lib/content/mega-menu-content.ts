@@ -47,9 +47,16 @@ function loadMegaMenuContent(): Map<string, MegaMenuContent> {
   const stats = fs.statSync(csvPath);
   const currentModified = stats.mtimeMs;
   
-  // Return cached content if file hasn't changed
-  if (cachedContent && lastModified === currentModified) {
+  // In development, always reload to see changes immediately
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  
+  // Return cached content if file hasn't changed (skip cache in dev)
+  if (!isDevelopment && cachedContent && lastModified === currentModified) {
     return cachedContent;
+  }
+  
+  if (isDevelopment) {
+    console.log('[MegaMenu] Development mode: Reloading CSV');
   }
   
   try {
