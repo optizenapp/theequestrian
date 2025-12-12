@@ -4,24 +4,13 @@
  * Uses existing Neon database (same as reviews)
  */
 
-// Load environment variables if not already loaded
-if (!process.env.POSTGRES_URL && !process.env.DATABASE_URL) {
-  try {
-    const { config } = require('dotenv');
-    const { resolve } = require('path');
-    config({ path: resolve(process.cwd(), '.env.local') });
-    config({ path: resolve(process.cwd(), '.env') });
-  } catch (e) {
-    // dotenv might not be available in production
-  }
-}
-
 import { neon } from '@neondatabase/serverless';
 
 // Use POSTGRES_URL or DATABASE_URL (same connection as reviews)
+// In production, these are set as environment variables by Vercel
 const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
 if (!connectionString) {
-  throw new Error('Missing database connection string. Set POSTGRES_URL or DATABASE_URL in .env.local');
+  throw new Error('Missing database connection string. Set POSTGRES_URL or DATABASE_URL');
 }
 const sql = neon(connectionString);
 

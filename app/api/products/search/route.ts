@@ -9,7 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { searchProducts, calculateFacets, type ProductFilters } from '@/lib/db/queries';
 
-export const runtime = 'edge'; // Use edge runtime for faster response
+// Use Node.js runtime instead of edge for database compatibility
 export const dynamic = 'force-dynamic'; // Always fresh data
 
 export async function GET(request: NextRequest) {

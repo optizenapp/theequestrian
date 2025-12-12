@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     
     // Extract tags (Shopify sends as comma-separated string)
     const tags = typeof product.tags === 'string' 
-      ? product.tags.split(',').map(t => t.trim()).filter(t => t.length > 0)
+      ? product.tags.split(',').map((t: string) => t.trim()).filter((t: string) => t.length > 0)
       : (product.tags || []);
     
     // Construct Shopify GID
