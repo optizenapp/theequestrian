@@ -20,12 +20,25 @@ export interface BrandMapping {
 }
 
 let brandCache: BrandMapping[] | null = null;
+let lastModifiedTime: number | null = null;
 
 export function loadBrandMapping(): BrandMapping[] {
-  if (brandCache) return brandCache;
+  const csvPath = path.join(process.cwd(), 'exports', 'brand-mapping.csv');
+  
+  // Check if file has been modified
+  let currentModifiedTime: number | null = null;
+  if (fs.existsSync(csvPath)) {
+    const stats = fs.statSync(csvPath);
+    currentModifiedTime = stats.mtimeMs;
+  }
+  
+  // In development, always reload. In production, reload if file changed
+  const shouldUseCache = brandCache && 
+    (process.env.NODE_ENV === 'production' && lastModifiedTime === currentModifiedTime);
+  
+  if (shouldUseCache) return brandCache;
 
   try {
-    const csvPath = path.join(process.cwd(), 'exports', 'brand-mapping.csv');
     if (!fs.existsSync(csvPath)) {
       console.warn('Brand mapping CSV not found');
       return [];
@@ -68,6 +81,13 @@ export function loadBrandMapping(): BrandMapping[] {
     });
 
     brandCache = parsedRecords;
+    lastModifiedTime = currentModifiedTime;
+    
+    // Log cache refresh in production for monitoring
+    if (process.env.NODE_ENV === 'production') {
+      console.log(`[Brand Cache] Loaded ${parsedRecords.length} brand entries from CSV`);
+    }
+    
     return parsedRecords;
   } catch (error) {
     console.error('Error loading brand mapping:', error);

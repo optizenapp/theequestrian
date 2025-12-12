@@ -71,7 +71,10 @@ export function getColorOptions(products: ShopifyProduct[]): FilterOption[] {
   products.forEach((product) => {
     product.variants.edges.forEach(({ node: variant }) => {
       const colorOption = variant.selectedOptions.find(
-        (opt) => opt.name.toLowerCase() === 'color'
+        (opt) => {
+          const name = opt.name.toLowerCase();
+          return name === 'color' || name === 'colour'; // Support both US and UK spelling
+        }
       );
       if (colorOption) {
         const normalizedValue = colorOption.value.toLowerCase();
@@ -99,82 +102,82 @@ export function getColorOptions(products: ShopifyProduct[]): FilterOption[] {
 
 /**
  * Extract unique brands from products based on brand-mapping.csv
- * This ensures we only show curated brands that have products in the current view
+ * This ensures we ONLY show brands that exist in brand-mapping.csv
  * 
- * Note: This function runs client-side, so we can't directly import the CSV.
- * Instead, we need to pass the allowed brands from the server.
- * For now, we'll extract all vendors and let the server filter them.
+ * IMPORTANT: allowedBrands parameter is REQUIRED and must be passed from the server
+ * to ensure only curated brands from brand-mapping.csv appear in the filter.
+ * 
+ * Smart Exclusion: Automatically excludes any size/color values that exist as tags
+ * by extracting them from variant.selectedOptions first.
  */
-// Vendors to exclude from brand filters (store name, not customer-facing brands)
-const EXCLUDED_VENDORS = new Set([
-  'ascot saddlery',
-  'the equestrian',
-]);
-
-// Tags to exclude from brand filters (colors, sizes, product types, etc.)
-const NON_BRAND_TAGS = new Set([
-  // Colors
-  'black', 'white', 'blue', 'red', 'green', 'yellow', 'orange', 'purple', 'pink', 'brown', 'grey', 'gray',
-  'navy', 'beige', 'tan', 'cream', 'silver', 'gold', 'bronze',
-  // Sizes
-  'small', 'medium', 'large', 'xl', 'xxl', 'xs', 'one size',
-  // Product types/categories
-  'birds', 'dog treats', 'cat food', 'dog flea treatment', 'all wormer', 'shampoo', 'litter',
-  'air & freeze dried', 'rogz harness', 'zeez dog coats',
-  // Generic tags
-  'australia only', 'new', 'sale', 'clearance', 'featured', 'best seller',
-  // Store name
-  'ascot saddlery', 'ascotheavy', '#heavy',
-]);
-
 export function getBrandOptions(
   products: ShopifyProduct[],
   allowedBrands?: { vendors: string[]; tags: string[] }
 ): FilterOption[] {
   const brandMap = new Map<string, number>();
 
-  console.log('[getBrandOptions] allowedBrands:', allowedBrands);
+  // If no allowedBrands provided, return empty array (strict enforcement)
+  if (!allowedBrands || (!allowedBrands.vendors.length && !allowedBrands.tags.length)) {
+    console.warn('[getBrandOptions] No allowedBrands provided - returning empty brand filter');
+    return [];
+  }
 
+  console.log('[getBrandOptions] Filtering with', allowedBrands.vendors.length, 'vendors and', allowedBrands.tags.length, 'tags');
+
+  // STEP 1: Extract all size and color values from variant options
+  // These should NEVER appear as brands, even if they exist in tags
+  const sizeColorExclusions = new Set<string>();
+  
+  products.forEach((product) => {
+    product.variants.edges.forEach(({ node: variant }) => {
+      variant.selectedOptions.forEach((option) => {
+        const optionName = option.name.toLowerCase();
+        // Exclude size and color values (and any other variant option types)
+        if (optionName === 'size' || optionName === 'color' || optionName === 'colour') {
+          sizeColorExclusions.add(option.value.toLowerCase());
+        }
+      });
+    });
+  });
+
+  console.log('[getBrandOptions] Excluding', sizeColorExclusions.size, 'size/color values:', 
+    Array.from(sizeColorExclusions).slice(0, 10));
+
+  // STEP 2: Create normalized lookup sets for fast matching
+  const allowedVendorsSet = new Set(allowedBrands.vendors.map(v => v.toLowerCase()));
+  const allowedTagsSet = new Set(allowedBrands.tags.map(t => t.toLowerCase()));
+
+  // STEP 3: Extract brands from products
   products.forEach((product) => {
     let brandName: string | null = null;
     
-    // Check if product matches by vendor
+    // Check if product matches by vendor (ONLY if in brand-mapping.csv)
     if (product.vendor && product.vendor.trim()) {
       const vendor = product.vendor.trim();
       const normalizedVendor = vendor.toLowerCase();
       
-      // Skip excluded vendors (store name, etc.)
-      if (EXCLUDED_VENDORS.has(normalizedVendor)) {
-        return;
-      }
-      
-      // Case-insensitive check for vendor
-      if (!allowedBrands || allowedBrands.vendors.some(v => v.toLowerCase() === normalizedVendor)) {
+      if (allowedVendorsSet.has(normalizedVendor)) {
         brandName = vendor;
       }
     }
     
-    // Check if product matches by tag (if not already matched by vendor)
+    // Check if product matches by tag (ONLY if in brand-mapping.csv AND not a size/color)
     if (!brandName) {
       const matchingTag = product.tags.find(tag => {
         const normalizedTag = tag.toLowerCase();
         
-        // Skip non-brand tags
-        if (NON_BRAND_TAGS.has(normalizedTag)) {
+        // Exclude if it's a size or color value
+        if (sizeColorExclusions.has(normalizedTag)) {
           return false;
         }
         
-        // If allowedBrands is specified, check against it
-        if (allowedBrands?.tags) {
-          return allowedBrands.tags.includes(normalizedTag);
-        }
-        
-        // If no allowedBrands, include all non-excluded tags
-        return true;
+        // Only include if in brand-mapping.csv
+        return allowedTagsSet.has(normalizedTag);
       });
       
       if (matchingTag) {
-        // Use a capitalized version of the tag as the brand name
+        // Find the original brand title from brand-mapping.csv for proper display
+        // For now, capitalize the tag
         brandName = matchingTag.charAt(0).toUpperCase() + matchingTag.slice(1);
       }
     }
@@ -193,7 +196,7 @@ export function getBrandOptions(
     }))
     .sort((a, b) => a.label.localeCompare(b.label));
   
-  console.log('[getBrandOptions] Final options:', options.length, options.slice(0, 5));
+  console.log('[getBrandOptions] Final brand options:', options.length, options.slice(0, 5));
   
   return options;
 }

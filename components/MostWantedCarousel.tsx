@@ -12,9 +12,17 @@ interface Product {
 
 interface MostWantedCarouselProps {
   products: Product[];
+  eyebrow?: string;
+  heading?: string;
+  description?: string;
 }
 
-export function MostWantedCarousel({ products }: MostWantedCarouselProps) {
+export function MostWantedCarousel({
+  products,
+  eyebrow = 'Most Wanted',
+  heading = 'Shop our most coveted picks',
+  description = 'Curated gear that riders reach for first — high performance, great reviews, and premium brands.',
+}: MostWantedCarouselProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const scrollLeft = () => {
@@ -34,13 +42,13 @@ export function MostWantedCarousel({ products }: MostWantedCarouselProps) {
       <div className="mx-auto max-w-7xl space-y-8 px-4 sm:px-6 lg:px-8">
         <div className="space-y-3 text-center">
           <p className="text-sm font-semibold tracking-[0.4em] uppercase text-gray-400">
-            Most Wanted
+            {eyebrow}
           </p>
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-            Shop our most coveted picks
+            {heading}
           </h2>
           <p className="text-gray-600 max-w-3xl mx-auto">
-            Curated gear that riders reach for first — high performance, great reviews, and premium brands.
+            {description}
           </p>
         </div>
 

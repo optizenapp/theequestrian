@@ -55,16 +55,29 @@ interface CsvRow {
 
 // Cache for content
 let contentCache: Map<string, CollectionContent> | null = null;
+let lastModifiedTime: number | null = null;
 
 /**
  * Load and parse the content CSV
  */
 function loadContent(): Map<string, CollectionContent> {
-  if (contentCache) {
+  const csvPath = path.join(process.cwd(), 'exports', 'collection-content.csv');
+  
+  // Check if file has been modified (works in both dev and production)
+  let currentModifiedTime: number | null = null;
+  if (fs.existsSync(csvPath)) {
+    const stats = fs.statSync(csvPath);
+    currentModifiedTime = stats.mtimeMs;
+  }
+  
+  // In development, always reload to pick up CSV changes
+  // In production, reload if file has been modified
+  const shouldUseCache = contentCache && 
+    (process.env.NODE_ENV === 'production' && lastModifiedTime === currentModifiedTime);
+  
+  if (shouldUseCache) {
     return contentCache;
   }
-
-  const csvPath = path.join(process.cwd(), 'exports', 'collection-content.csv');
   
   if (!fs.existsSync(csvPath)) {
     console.warn(`Content CSV not found at: ${csvPath}`);
@@ -111,6 +124,13 @@ function loadContent(): Map<string, CollectionContent> {
     }
 
     contentCache = contentMap;
+    lastModifiedTime = currentModifiedTime;
+    
+    // Log cache refresh in production for monitoring
+    if (process.env.NODE_ENV === 'production') {
+      console.log(`[Content Cache] Loaded ${contentMap.size} collection entries from CSV`);
+    }
+    
     return contentMap;
   } catch (error) {
     console.error('Error loading content CSV:', error);
