@@ -360,7 +360,7 @@ export default function FontTestPage() {
             </div>
             <div className="text-center p-6 bg-gray-50 rounded-lg">
               <div className={`text-xl font-medium text-secondary mb-2 ${getHeadingClass()}`}>Free Shipping</div>
-              <p className={`text-gray-600 ${getBodyClass()}`}>On orders over $100</p>
+              <p className={`text-gray-600 ${getBodyClass()}`}>On all orders</p>
             </div>
           </div>
         </section>
