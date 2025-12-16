@@ -40,7 +40,7 @@ export default function ShippingDeliveryPage() {
         <div className="bg-green-50 border border-green-200 rounded-xl p-4 my-6">
           <p className="text-green-900 font-semibold mb-2">🎉 Free Shipping</p>
           <p className="text-green-800">
-            Enjoy free standard shipping on all orders over $100 within Australia!
+            Enjoy free standard shipping on all orders within Australia!
           </p>
         </div>
 
@@ -183,5 +183,6 @@ export default function ShippingDeliveryPage() {
     </PolicyLayout>
   );
 }
+
 
 

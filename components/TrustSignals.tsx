@@ -38,7 +38,7 @@ const trustSignals = [
       </svg>
     ),
     title: 'Free Shipping',
-    description: 'On orders over $100',
+    description: 'On all orders',
   },
   {
     id: 'returns',
