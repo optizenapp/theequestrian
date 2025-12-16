@@ -1,6 +1,8 @@
 'use client';
 
 import { useRef } from 'react';
+import Link from 'next/link';
+import type { ShopifyProduct } from '@/types/shopify';
 
 interface Product {
   title: string;
@@ -11,10 +13,50 @@ interface Product {
 }
 
 interface MostWantedCarouselProps {
-  products: Product[];
+  products: Product[] | ShopifyProduct[]; // Support both old and new format
   eyebrow?: string;
   heading?: string;
   description?: string;
+}
+
+// Helper to check if product is ShopifyProduct
+function isShopifyProduct(product: Product | ShopifyProduct): product is ShopifyProduct {
+  return 'handle' in product && 'priceRange' in product;
+}
+
+// Helper to format Shopify product for display
+function formatProduct(product: Product | ShopifyProduct): {
+  title: string;
+  price: string;
+  rating: string;
+  tag: string;
+  image: string;
+  handle?: string;
+  primaryCollection?: string;
+} {
+  if (isShopifyProduct(product)) {
+    const price = parseFloat(product.priceRange.minVariantPrice.amount);
+    const comparePrice = product.compareAtPriceRange?.minVariantPrice?.amount
+      ? parseFloat(product.compareAtPriceRange.minVariantPrice.amount)
+      : null;
+    
+    const hasDiscount = comparePrice && comparePrice > price;
+    const priceDisplay = hasDiscount
+      ? `$${price.toFixed(2)} (was $${comparePrice.toFixed(2)})`
+      : `$${price.toFixed(2)}`;
+
+    return {
+      title: product.title,
+      price: priceDisplay,
+      rating: '4.8', // TODO: Get from metafields if available
+      tag: hasDiscount ? 'On Sale' : 'Best Seller',
+      image: product.images.edges[0]?.node.url || '',
+      handle: product.handle,
+      primaryCollection: product.metafield?.value,
+    };
+  }
+  
+  return product;
 }
 
 export function MostWantedCarousel({
@@ -62,29 +104,48 @@ export function MostWantedCarousel({
               WebkitOverflowScrolling: 'touch',
             }}
           >
-            {products.map((item, index) => (
-              <div 
-                key={`${item.title}-${index}`}
-                className="flex-shrink-0 w-[calc(100%-2rem)] sm:w-[calc(50%-1rem)] lg:w-[calc(25%-1.125rem)] scroll-snap-align-start"
-                style={{ scrollSnapAlign: 'start' }}
-              >
-                <div className="rounded-3xl border border-gray-100 bg-gray-50 p-6 shadow-sm hover:shadow-md transition-shadow h-full">
+            {products.map((item, index) => {
+              const formatted = formatProduct(item);
+              const productUrl = formatted.handle && formatted.primaryCollection
+                ? `/${formatted.primaryCollection}/${formatted.handle}`
+                : '#';
+              
+              const CardContent = (
+                <>
                   <div className="relative h-48 w-full rounded-2xl overflow-hidden bg-gray-100">
                     <img
-                      src={item.image}
-                      alt={item.title}
+                      src={formatted.image}
+                      alt={formatted.title}
                       className="h-full w-full object-cover"
                     />
                   </div>
                   <p className="mt-6 text-xs text-primary font-semibold uppercase tracking-[0.4em]">
-                    {item.tag}
+                    {formatted.tag}
                   </p>
-                  <h3 className="mt-2 text-xl font-semibold text-gray-900 line-clamp-2">{item.title}</h3>
-                  <p className="mt-1 text-lg text-gray-700">{item.price}</p>
-                  <p className="mt-1 text-sm text-gray-500">Rating {item.rating} ✦</p>
+                  <h3 className="mt-2 text-xl font-semibold text-gray-900 line-clamp-2">{formatted.title}</h3>
+                  <p className="mt-1 text-lg text-gray-700">{formatted.price}</p>
+                  <p className="mt-1 text-sm text-gray-500">Rating {formatted.rating} ✦</p>
+                </>
+              );
+
+              return (
+                <div 
+                  key={`${formatted.title}-${index}`}
+                  className="flex-shrink-0 w-[calc(100%-2rem)] sm:w-[calc(50%-1rem)] lg:w-[calc(25%-1.125rem)] scroll-snap-align-start"
+                  style={{ scrollSnapAlign: 'start' }}
+                >
+                  {formatted.handle ? (
+                    <Link href={productUrl} className="block rounded-3xl border border-gray-100 bg-gray-50 p-6 shadow-sm hover:shadow-md transition-shadow h-full">
+                      {CardContent}
+                    </Link>
+                  ) : (
+                    <div className="rounded-3xl border border-gray-100 bg-gray-50 p-6 shadow-sm hover:shadow-md transition-shadow h-full">
+                      {CardContent}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Navigation Buttons */}

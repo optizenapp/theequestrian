@@ -4,17 +4,29 @@ import { BestDealsSlider } from '@/components/BestDealsSlider';
 import { MostWantedCarousel } from '@/components/MostWantedCarousel';
 import { HomeRecentArticles } from '@/components/home/HomeRecentArticles';
 import { getHomeSections } from '@/lib/content/home';
+import { getProductsByHandlesAlt } from '@/lib/shopify/products-by-handles';
 
 function InlineHtml({ html }: { html?: string }) {
   if (!html) return null;
   return <span dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
-export default function Home() {
+export default async function Home() {
   const sections = getHomeSections();
 
+  // Fetch real products for sections that use product handles
+  const sectionsWithProducts = await Promise.all(
+    sections.map(async (section) => {
+      if (section.product_handles && section.product_handles.length > 0) {
+        const products = await getProductsByHandlesAlt(section.product_handles);
+        return { ...section, fetchedProducts: products };
+      }
+      return section;
+    })
+  );
+
   // If no CSV is present, keep the existing page usable (minimal fallback)
-  if (!sections.length) {
+  if (!sectionsWithProducts.length) {
     return (
       <div>
         <Hero />
@@ -27,7 +39,7 @@ export default function Home() {
 
   return (
     <div>
-      {sections.map((section) => {
+      {sectionsWithProducts.map((section) => {
         switch (section.type) {
           case 'hero':
             return (
@@ -48,10 +60,15 @@ export default function Home() {
             return <TrustSignals key={section.key} />;
 
           case 'most_wanted_carousel':
+            // Use fetched products if available, otherwise fall back to manual items
+            const carouselProducts = ('fetchedProducts' in section && section.fetchedProducts)
+              ? section.fetchedProducts
+              : (section.most_wanted_items || []);
+            
             return (
               <MostWantedCarousel
                 key={section.key}
-                products={section.most_wanted_items || []}
+                products={carouselProducts}
                 eyebrow={section.eyebrow}
                 heading={section.title_html}
                 description={section.body_html}
@@ -59,6 +76,11 @@ export default function Home() {
             );
 
           case 'most_wanted_grid':
+            // Use fetched products if available, otherwise fall back to manual items
+            const gridProducts = ('fetchedProducts' in section && section.fetchedProducts)
+              ? section.fetchedProducts
+              : (section.most_wanted_items || []);
+            
             return (
               <section key={section.key} className="bg-gray-50 py-16">
                 <div className="mx-auto max-w-7xl space-y-8 px-4 sm:px-6 lg:px-8">
@@ -78,7 +100,7 @@ export default function Home() {
                     )}
                   </div>
                   <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                    {(section.most_wanted_items || []).map((item) => (
+                    {gridProducts.map((item: any) => (
                       <div
                         key={item.title}
                         className="rounded-2xl bg-white p-6 shadow-sm hover:shadow-md transition-shadow overflow-hidden"

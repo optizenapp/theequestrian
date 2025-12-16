@@ -27,6 +27,9 @@ export interface HomeMostWantedItem {
   tag: string;
   image: string;
 }
+
+// New: Just store product handles, fetch real data from Shopify
+export type ProductHandle = string;
  
 export interface HomeFaqItem {
   question: string;
@@ -56,6 +59,7 @@ export interface HomeSection {
  
   // Section-specific payloads
   most_wanted_items?: HomeMostWantedItem[];
+  product_handles?: ProductHandle[]; // New: Array of product handles to fetch from Shopify
   faqs?: HomeFaqItem[];
   seen_in?: string[];
 }
@@ -81,6 +85,7 @@ interface CsvRow {
   image_link?: string;
  
   most_wanted_items_json?: string;
+  product_handles?: string; // New: Comma-separated product handles
   faqs_json?: string;
   seen_in_json?: string;
 }
@@ -183,8 +188,19 @@ function loadHomeSections(): HomeSection[] {
     };
  
     if (type === 'most_wanted_carousel' || type === 'most_wanted_grid') {
-      const items = safeJsonParse<HomeMostWantedItem[]>(row.most_wanted_items_json, []);
-      section.most_wanted_items = Array.isArray(items) ? items : [];
+      // Support both old JSON format and new product handles format
+      if (row.product_handles) {
+        // New format: comma-separated product handles
+        const handles = row.product_handles
+          .split(',')
+          .map(h => h.trim())
+          .filter(h => h.length > 0);
+        section.product_handles = handles;
+      } else if (row.most_wanted_items_json) {
+        // Old format: JSON array of items (for backwards compatibility)
+        const items = safeJsonParse<HomeMostWantedItem[]>(row.most_wanted_items_json, []);
+        section.most_wanted_items = Array.isArray(items) ? items : [];
+      }
     }
  
     if (type === 'faqs') {
