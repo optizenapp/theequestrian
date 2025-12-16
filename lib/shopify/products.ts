@@ -579,7 +579,8 @@ export function getPrimaryCategoryPath(productType: string): string | null {
  * Returns category-based URL: /{category}/{subcategory}/{product-handle}
  * Falls back to /products/{handle} if no category mapping found
  */
-export function getProductCanonicalUrl(product: ProductWithPrimaryCollection): string {
+// Canonical URL only needs handle + productType (and optionally id for batching).
+export function getProductCanonicalUrl(product: Pick<ShopifyProduct, 'handle' | 'productType'>): string {
   // Try to get category path from productType
   const categoryPath = getPrimaryCategoryPath(product.productType);
   
@@ -597,7 +598,9 @@ export function getProductCanonicalUrl(product: ProductWithPrimaryCollection): s
  * More efficient than calling getProductCanonicalUrl() in a loop
  * Uses caching to avoid repeated productType lookups
  */
-export function getProductCanonicalUrls(products: ProductWithPrimaryCollection[]): Map<string, string> {
+export function getProductCanonicalUrls(
+  products: Array<Pick<ShopifyProduct, 'id' | 'handle' | 'productType'>>
+): Map<string, string> {
   const urlMap = new Map<string, string>();
   
   // Build a cache of productType -> categoryPath to avoid repeated lookups
@@ -626,7 +629,7 @@ export function getProductCanonicalUrls(products: ProductWithPrimaryCollection[]
  * Verify a product belongs to a collection path
  */
 export function verifyProductCollectionPath(
-  product: ProductWithPrimaryCollection,
+  product: Pick<ShopifyProduct, 'metafield' | 'productType' | 'handle'>,
   categoryHandle: string,
   subcategoryHandle?: string
 ): boolean {

@@ -2,7 +2,7 @@
 
 import { useRef } from 'react';
 import Link from 'next/link';
-import type { ShopifyProduct } from '@/types/shopify';
+import type { ShopifyProductCard } from '@/types/shopify';
 import { ReviewStars } from '@/components/reviews/ReviewStars';
 
 interface Product {
@@ -14,19 +14,19 @@ interface Product {
 }
 
 interface MostWantedCarouselProps {
-  products: Product[] | ShopifyProduct[]; // Support both old and new format
+  products: Product[] | ShopifyProductCard[]; // Support both old and new format
   eyebrow?: string;
   heading?: string;
   description?: string;
 }
 
-// Helper to check if product is ShopifyProduct
-function isShopifyProduct(product: Product | ShopifyProduct): product is ShopifyProduct {
+// Helper to check if product is a Shopify product card shape
+function isShopifyProduct(product: Product | ShopifyProductCard): product is ShopifyProductCard {
   return 'handle' in product && 'priceRange' in product;
 }
 
 // Helper to format Shopify product for display
-function formatProduct(product: Product | ShopifyProduct): {
+function formatProduct(product: Product | ShopifyProductCard): {
   title: string;
   price: string;
   rating: string;

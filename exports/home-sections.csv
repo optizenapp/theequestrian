@@ -1,10 +1,10 @@
 key,type,enabled,sort_order,eyebrow,title_html,subtitle_html,body_html,cta_text,cta_link,secondary_cta_text,secondary_cta_link,image_url,image_alt,image_link,product_handles,faqs_json,seen_in_json
-hero,hero,true,10,,"The <span class=""text-white"">Equestrian</span>","Australian Owned <span class=""text-primary mx-2"">|</span> Global Brands",,Shop Now,/horse,View Great Deals,/on-sale,/hero-image-v2.jpg,The Equestrian Marketplace Australia,,,,
-trust_signals,trust_signals,true,20,,,,,,,,,,,,,,
-most_wanted_carousel,most_wanted_carousel,true,30,Most Wanted,Shop our most coveted picks,,"Curated gear that riders reach for first — high performance, great reviews, and premium brands.",,,,,,,,"shanga-mesh-combo,shanga-towel-rug,007-mineral-salt-blocks,ca-coolite-rug,eureka-mini-canvas-rug,eureka-mini-synthetic-combo,hamilton-canvas-rugs,collar-check-rug-hood-and-tail-bag-set",,
-most_wanted_grid,most_wanted_grid,true,40,Shop our most wanted,Rider favorites,,,,,,,,,,"shanga-mesh-combo,shanga-towel-rug,007-mineral-salt-blocks,ca-coolite-rug,eureka-mini-canvas-rug,eureka-mini-synthetic-combo,hamilton-canvas-rugs,collar-check-rug-hood-and-tail-bag-set",,
-best_deals_slider,best_deals_slider,true,50,,,,,,,,,,,,,,
-signup,signup,true,60,Get $15 off,Sign up & unlock exclusive offers,,"Join the community for curated drops, early access to new collections, and insider pricing.",Sign up,#,,,,,,,,
-recent_articles,recent_articles,true,70,,,,,,,,,,,,,,
-faqs,faqs,true,80,FAQs,Questions we answer most often,,,,,,,,,,,"[{""question"":""Can you help me recycle my old phone?"",""answer"":""Yes — trade-in options make it easy to offset the cost of new gear.""},{""question"":""Do you offer payment plans?"",""answer"":""Several flexible plans are available; just choose \""pay later\"" at checkout.""},{""question"":""Is shipping free?"",""answer"":""Free shipping on all orders.""}]",
-seen_in,seen_in,true,90,As seen in,Trusted by the industries you admire,,,,,,,,,,,,"[""Trustpilot"",""Glassdoor"",""Medium"",""Vogue"",""CNBC""]"
+hero,hero,TRUE,10,,"The <span class=""text-white"">Equestrian</span>","Australian Owned <span class=""text-primary mx-2"">|</span>Global Brands",,Shop Now,/horse,View Great Deals,/on-sale,/hero-image-v2.jpg,The Equestrian Marketplace Australia,,,,
+trust_signals,trust_signals,TRUE,20,,,,,,,,,,,,,,
+most_wanted_carousel,most_wanted_carousel,TRUE,30,Most Wanted,"Shop over 10,000 products  - Best sellers",,"Curated gear that riders reach for first — high performance, great reviews, and premium brands.",,,,,,,,"shanga-mesh-combo,shanga-towel-rug,007-mineral-salt-blocks,ca-coolite-rug,eureka-mini-canvas-rug,eureka-mini-synthetic-combo,hamilton-canvas-rugs,collar-check-rug-hood-and-tail-bag-set",,
+most_wanted_grid,most_wanted_grid,TRUE,40,Shop our most wanted,Rider favorites,,,,,,,,,,"the-equestrian-cap-learn-how-to-get-it-for-free,animo-ss20-mael-mens-breeches,cavalleria-toscana-all-over-embroidery-saddle-pad-dressage,ca-coolite-rug,eureka-mini-canvas-rug,eureka-mini-synthetic-combo,hamilton-canvas-rugs,collar-check-rug-hood-and-tail-bag-set",,
+best_deals_slider,best_deals_slider,TRUE,50,,,,,,,,,,,,,,
+signup,signup,TRUE,60,Get $15 off,Sign up & unlock exclusive offers,,"Join the community for curated drops, early access to new collections, and insider pricing.",Sign up,#,,,,,,,,
+recent_articles,recent_articles,TRUE,70,,,,,,,,,,,,,,
+faqs,faqs,TRUE,80,FAQs,Questions we answer most often,,,,,,,,,,,"[{""question"":""Can you help me recycle my old phone?"",""answer"":""Yes — trade-in options make it easy to offset the cost of new gear.""},{""question"":""Do you offer payment plans?"",""answer"":""Several flexible plans are available; just choose \""pay later\"" at checkout.""},{""question"":""Is shipping free?"",""answer"":""Free shipping on all orders.""}]",
+seen_in,seen_in,TRUE,90,As seen in,Trusted by the industries you admire,,,,,,,,,,,,"[""Trustpilot"",""Glassdoor"",""Medium"",""Vogue"",""CNBC""]"

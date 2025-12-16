@@ -6,11 +6,11 @@ import { HomeRecentArticles } from '@/components/home/HomeRecentArticles';
 import { getHomeSections } from '@/lib/content/home';
 import { getProductsByHandlesAlt } from '@/lib/shopify/products-by-handles';
 import { ReviewStars } from '@/components/reviews/ReviewStars';
-import type { ShopifyProduct } from '@/types/shopify';
+import type { ShopifyProductCard } from '@/types/shopify';
 import Link from 'next/link';
 
-// Helper to check if product is ShopifyProduct (duplicated from MostWantedCarousel for now)
-function isShopifyProduct(product: any): product is ShopifyProduct {
+// Helper to check if product is ShopifyProductCard (duplicated from MostWantedCarousel for now)
+function isShopifyProduct(product: any): product is ShopifyProductCard {
   return 'handle' in product && 'priceRange' in product;
 }
 

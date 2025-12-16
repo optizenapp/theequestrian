@@ -72,6 +72,28 @@ export interface ShopifyProduct {
   } | null;
 }
 
+/**
+ * Lightweight product shape for grids/carousels.
+ * (We intentionally do NOT require the full ShopifyProduct fields like variants,
+ * collections, description, etc. because our handle-based homepage queries only
+ * fetch a subset.)
+ */
+export type ShopifyProductCard = Pick<
+  ShopifyProduct,
+  | 'id'
+  | 'handle'
+  | 'title'
+  | 'availableForSale'
+  | 'vendor'
+  | 'priceRange'
+  | 'compareAtPriceRange'
+  | 'images'
+  | 'metafield'
+  | 'primaryCollection'
+  | 'reviewRating'
+  | 'reviewCount'
+>;
+
 export interface ShopifyVariant {
   id: string;
   title: string;
@@ -169,11 +191,15 @@ export interface ShopifyCart {
 }
 
 /**
- * Custom metafield for primary collection
+ * Product with primary collection metafield.
+ *
+ * NOTE: This name is kept for backwards compatibility across the codebase.
+ * The Storefront API returns the primary collection as a metafield object
+ * (e.g. `primaryCollection: { value } | null`), which is already represented
+ * on `ShopifyProduct`. We therefore alias to `ShopifyProduct` to avoid
+ * incompatible structural typing.
  */
-export interface ProductWithPrimaryCollection extends ShopifyProduct {
-  primaryCollection?: string; // Format: "category-handle/subcategory-handle"
-}
+export type ProductWithPrimaryCollection = ShopifyProduct;
 
 /**
  * Collection with parent reference and content

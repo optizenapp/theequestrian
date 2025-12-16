@@ -1,5 +1,5 @@
 import { shopifyFetch } from './client';
-import type { ShopifyProduct } from '@/types/shopify';
+import type { ShopifyProductCard } from '@/types/shopify';
 import { getReviewStatsWithCache } from '@/lib/reviews/get-review-stats';
 
 const PRODUCTS_BY_HANDLES_QUERY = `
@@ -16,9 +16,17 @@ const PRODUCTS_BY_HANDLES_QUERY = `
             amount
             currencyCode
           }
+          maxVariantPrice {
+            amount
+            currencyCode
+          }
         }
         compareAtPriceRange {
           minVariantPrice {
+            amount
+            currencyCode
+          }
+          maxVariantPrice {
             amount
             currencyCode
           }
@@ -46,7 +54,7 @@ const PRODUCTS_BY_HANDLES_QUERY = `
  * @param handles - Array of product handles (e.g., ["product-1", "product-2"])
  * @returns Array of ShopifyProduct objects with review stats
  */
-export async function getProductsByHandles(handles: string[]): Promise<ShopifyProduct[]> {
+export async function getProductsByHandles(handles: string[]): Promise<ShopifyProductCard[]> {
   if (!handles.length) return [];
 
   try {
@@ -54,7 +62,7 @@ export async function getProductsByHandles(handles: string[]): Promise<ShopifyPr
     const ids = handles.map(handle => `gid://shopify/Product/${handle}`);
     
     const data = await shopifyFetch<{
-      nodes: (ShopifyProduct | null)[];
+      nodes: (ShopifyProductCard | null)[];
     }>({
       query: PRODUCTS_BY_HANDLES_QUERY,
       variables: { handles: ids },
@@ -62,7 +70,7 @@ export async function getProductsByHandles(handles: string[]): Promise<ShopifyPr
       tags: handles.map(h => `product-${h}`),
     });
 
-    const products = data.nodes.filter((node): node is ShopifyProduct => node !== null);
+    const products = data.nodes.filter((node): node is ShopifyProductCard => node !== null);
 
     // Fetch review stats for each product in parallel
     const productsWithReviews = await Promise.all(
@@ -88,7 +96,7 @@ export async function getProductsByHandles(handles: string[]): Promise<ShopifyPr
  * Fetch products by handles using the Shopify REST-style query
  * This is more reliable for handle-based lookups
  */
-export async function getProductsByHandlesAlt(handles: string[]): Promise<ShopifyProduct[]> {
+export async function getProductsByHandlesAlt(handles: string[]): Promise<ShopifyProductCard[]> {
   if (!handles.length) return [];
 
   try {
@@ -107,9 +115,17 @@ export async function getProductsByHandlesAlt(handles: string[]): Promise<Shopif
                   amount
                   currencyCode
                 }
+                maxVariantPrice {
+                  amount
+                  currencyCode
+                }
               }
               compareAtPriceRange {
                 minVariantPrice {
+                  amount
+                  currencyCode
+                }
+                maxVariantPrice {
                   amount
                   currencyCode
                 }
@@ -131,7 +147,7 @@ export async function getProductsByHandlesAlt(handles: string[]): Promise<Shopif
           }
         `;
 
-        const data = await shopifyFetch<{ product: ShopifyProduct | null }>({
+        const data = await shopifyFetch<{ product: ShopifyProductCard | null }>({
           query,
           variables: { handle },
           cache: 'force-cache',
@@ -151,7 +167,8 @@ export async function getProductsByHandlesAlt(handles: string[]): Promise<Shopif
       })
     );
 
-    return products.filter((p): p is ShopifyProduct => p !== null);
+    // Promise.all returns (ShopifyProductCardWithReviews | null)[]; filter out nulls then cast.
+    return products.filter((p) => p !== null) as ShopifyProductCard[];
   } catch (error) {
     console.error('[getProductsByHandlesAlt] Error fetching products:', error);
     return [];
