@@ -1,5 +1,6 @@
 import { shopifyFetch } from './client';
 import type { ShopifyProduct } from '@/types/shopify';
+import { getReviewStatsWithCache } from '@/lib/reviews/get-review-stats';
 
 const PRODUCTS_BY_HANDLES_QUERY = `
   query GetProductsByHandles($handles: [String!]!) {
@@ -32,13 +33,7 @@ const PRODUCTS_BY_HANDLES_QUERY = `
             }
           }
         }
-        primaryCollection: metafield(namespace: "custom", key: "primary_collection") {
-          value
-        }
-        reviewRating: metafield(namespace: "judgeme", key: "rating") {
-          value
-        }
-        reviewCount: metafield(namespace: "judgeme", key: "reviews_count") {
+        metafield(namespace: "custom", key: "primary_collection") {
           value
         }
       }
@@ -49,7 +44,7 @@ const PRODUCTS_BY_HANDLES_QUERY = `
 /**
  * Fetch multiple products by their handles
  * @param handles - Array of product handles (e.g., ["product-1", "product-2"])
- * @returns Array of ShopifyProduct objects
+ * @returns Array of ShopifyProduct objects with review stats
  */
 export async function getProductsByHandles(handles: string[]): Promise<ShopifyProduct[]> {
   if (!handles.length) return [];
@@ -67,8 +62,21 @@ export async function getProductsByHandles(handles: string[]): Promise<ShopifyPr
       tags: handles.map(h => `product-${h}`),
     });
 
-    // Filter out nulls and return valid products
-    return data.nodes.filter((node): node is ShopifyProduct => node !== null);
+    const products = data.nodes.filter((node): node is ShopifyProduct => node !== null);
+
+    // Fetch review stats for each product in parallel
+    const productsWithReviews = await Promise.all(
+      products.map(async (product) => {
+        const stats = await getReviewStatsWithCache(product.handle);
+        return {
+          ...product,
+          reviewRating: stats ? { value: stats.averageRating.toString() } : null,
+          reviewCount: stats ? { value: stats.reviewCount.toString() } : null,
+        };
+      })
+    );
+
+    return productsWithReviews;
   } catch (error) {
     console.error('[getProductsByHandles] Error fetching products:', error);
     return [];
@@ -115,13 +123,7 @@ export async function getProductsByHandlesAlt(handles: string[]): Promise<Shopif
                   }
                 }
               }
-              primaryCollection: metafield(namespace: "custom", key: "primary_collection") {
-                value
-              }
-              reviewRating: metafield(namespace: "judgeme", key: "rating") {
-                value
-              }
-              reviewCount: metafield(namespace: "judgeme", key: "reviews_count") {
+              metafield(namespace: "custom", key: "primary_collection") {
                 value
               }
             }
@@ -135,7 +137,16 @@ export async function getProductsByHandlesAlt(handles: string[]): Promise<Shopif
           tags: [`product-${handle}`],
         });
 
-        return data.product;
+        if (!data.product) return null;
+
+        // Fetch review stats from Postgres
+        const stats = await getReviewStatsWithCache(data.product.handle);
+        
+        return {
+          ...data.product,
+          reviewRating: stats ? { value: stats.averageRating.toString() } : null,
+          reviewCount: stats ? { value: stats.reviewCount.toString() } : null,
+        };
       })
     );
 
