@@ -68,6 +68,7 @@ export async function getProductsByHandles(handles: string[]): Promise<ShopifyPr
     const productsWithReviews = await Promise.all(
       products.map(async (product) => {
         const stats = await getReviewStatsWithCache(product.handle);
+        
         return {
           ...product,
           reviewRating: stats ? { value: stats.averageRating.toString() } : null,

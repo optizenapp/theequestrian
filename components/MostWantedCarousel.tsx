@@ -46,17 +46,17 @@ function formatProduct(product: Product | ShopifyProduct): {
       ? `$${price.toFixed(2)} (was $${comparePrice.toFixed(2)})`
       : `$${price.toFixed(2)}`;
 
-    // Get rating from Judge.me metafields
+    // Get rating from Judge.me metafields (now Postgres)
     const rating = product.reviewRating?.value 
       ? parseFloat(product.reviewRating.value).toFixed(1)
-      : '4.8';
+      : null; // No fake fallback
     
     const reviewCount = product.reviewCount?.value || null;
 
     return {
       title: product.title,
       price: priceDisplay,
-      rating,
+      rating: rating || '', // Empty string if no rating
       tag: hasDiscount ? 'On Sale' : 'Best Seller',
       image: product.images.edges[0]?.node.url || '',
       handle: product.handle,
@@ -133,10 +133,12 @@ export function MostWantedCarousel({
                   </p>
                   <h3 className="mt-2 text-xl font-semibold text-gray-900 line-clamp-2">{formatted.title}</h3>
                   <p className="mt-1 text-lg text-gray-700">{formatted.price}</p>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Rating {formatted.rating} ✦
-                    {formatted.reviewCount && ` (${formatted.reviewCount} reviews)`}
-                  </p>
+                  {formatted.rating && (
+                    <p className="mt-1 text-sm text-gray-500">
+                      Rating {formatted.rating} ✦
+                      {formatted.reviewCount && ` (${formatted.reviewCount} reviews)`}
+                    </p>
+                  )}
                 </>
               );
 
