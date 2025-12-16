@@ -5,6 +5,7 @@ import { Header } from '@/components/header/Header';
 import { Footer } from '@/components/footer/Footer';
 import { CartProvider } from '@/components/cart/cart-context';
 import { CartDrawer } from '@/components/cart/CartDrawer';
+import { NavigationProgress } from '@/components/NavigationProgress';
 
 const manrope = Manrope({
   subsets: ['latin'],
@@ -30,6 +31,7 @@ export default function RootLayout({
     <html lang="en" className={manrope.variable}>
       <body className={manrope.className}>
         <CartProvider>
+          <NavigationProgress />
           <Header />
           <main className="min-h-screen">
             {children}
