@@ -33,6 +33,7 @@ function formatProduct(product: Product | ShopifyProduct): {
   image: string;
   handle?: string;
   primaryCollection?: string;
+  reviewCount?: string;
 } {
   if (isShopifyProduct(product)) {
     const price = parseFloat(product.priceRange.minVariantPrice.amount);
@@ -45,14 +46,22 @@ function formatProduct(product: Product | ShopifyProduct): {
       ? `$${price.toFixed(2)} (was $${comparePrice.toFixed(2)})`
       : `$${price.toFixed(2)}`;
 
+    // Get rating from Judge.me metafields
+    const rating = product.reviewRating?.value 
+      ? parseFloat(product.reviewRating.value).toFixed(1)
+      : '4.8';
+    
+    const reviewCount = product.reviewCount?.value || null;
+
     return {
       title: product.title,
       price: priceDisplay,
-      rating: '4.8', // TODO: Get from metafields if available
+      rating,
       tag: hasDiscount ? 'On Sale' : 'Best Seller',
       image: product.images.edges[0]?.node.url || '',
       handle: product.handle,
-      primaryCollection: product.metafield?.value,
+      primaryCollection: product.primaryCollection?.value || product.metafield?.value,
+      reviewCount: reviewCount || undefined,
     };
   }
   
@@ -124,7 +133,10 @@ export function MostWantedCarousel({
                   </p>
                   <h3 className="mt-2 text-xl font-semibold text-gray-900 line-clamp-2">{formatted.title}</h3>
                   <p className="mt-1 text-lg text-gray-700">{formatted.price}</p>
-                  <p className="mt-1 text-sm text-gray-500">Rating {formatted.rating} ✦</p>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Rating {formatted.rating} ✦
+                    {formatted.reviewCount && ` (${formatted.reviewCount} reviews)`}
+                  </p>
                 </>
               );
 

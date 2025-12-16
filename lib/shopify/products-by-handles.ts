@@ -32,13 +32,13 @@ const PRODUCTS_BY_HANDLES_QUERY = `
             }
           }
         }
-        metafield(namespace: "custom", key: "primary_collection") {
+        primaryCollection: metafield(namespace: "custom", key: "primary_collection") {
           value
         }
-        metafield(namespace: "reviews", key: "rating") {
+        reviewRating: metafield(namespace: "judgeme", key: "rating") {
           value
         }
-        metafield(namespace: "reviews", key: "rating_count") {
+        reviewCount: metafield(namespace: "judgeme", key: "reviews_count") {
           value
         }
       }
@@ -115,7 +115,13 @@ export async function getProductsByHandlesAlt(handles: string[]): Promise<Shopif
                   }
                 }
               }
-              metafield(namespace: "custom", key: "primary_collection") {
+              primaryCollection: metafield(namespace: "custom", key: "primary_collection") {
+                value
+              }
+              reviewRating: metafield(namespace: "judgeme", key: "rating") {
+                value
+              }
+              reviewCount: metafield(namespace: "judgeme", key: "reviews_count") {
                 value
               }
             }

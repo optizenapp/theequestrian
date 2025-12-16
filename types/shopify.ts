@@ -60,6 +60,16 @@ export interface ShopifyProduct {
   metafield?: {
     value: string;
   } | null;
+  // Additional metafields for specific use cases
+  primaryCollection?: {
+    value: string;
+  } | null;
+  reviewRating?: {
+    value: string;
+  } | null;
+  reviewCount?: {
+    value: string;
+  } | null;
 }
 
 export interface ShopifyVariant {
