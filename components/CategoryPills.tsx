@@ -74,7 +74,7 @@ export function CategoryPills({ categories, basePath }: CategoryPillsProps) {
             <Link
               key={category.handle}
               href={`${basePath}/${category.handle}`}
-              className="inline-flex items-center px-5 py-2.5 bg-gray-200 hover:bg-gray-300 rounded-full text-sm font-normal text-gray-900 whitespace-nowrap transition-colors border border-transparent hover:border-gray-400"
+              className="inline-flex items-center px-5 py-2.5 bg-white hover:bg-primary hover:text-white rounded-full text-sm font-medium text-gray-900 whitespace-nowrap transition-all border-2 border-gray-300 hover:border-primary shadow-sm hover:shadow-md"
             >
               {category.label}
             </Link>
