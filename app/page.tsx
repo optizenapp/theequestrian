@@ -5,6 +5,57 @@ import { MostWantedCarousel } from '@/components/MostWantedCarousel';
 import { HomeRecentArticles } from '@/components/home/HomeRecentArticles';
 import { getHomeSections } from '@/lib/content/home';
 import { getProductsByHandlesAlt } from '@/lib/shopify/products-by-handles';
+import { ReviewStars } from '@/components/reviews/ReviewStars';
+import type { ShopifyProduct } from '@/types/shopify';
+import Link from 'next/link';
+
+// Helper to check if product is ShopifyProduct (duplicated from MostWantedCarousel for now)
+function isShopifyProduct(product: any): product is ShopifyProduct {
+  return 'handle' in product && 'priceRange' in product;
+}
+
+function formatGridProduct(product: any) {
+  if (isShopifyProduct(product)) {
+    const price = parseFloat(product.priceRange.minVariantPrice.amount);
+    const comparePrice = product.compareAtPriceRange?.minVariantPrice?.amount
+      ? parseFloat(product.compareAtPriceRange.minVariantPrice.amount)
+      : null;
+    
+    const hasDiscount = comparePrice && comparePrice > price;
+    const priceDisplay = hasDiscount
+      ? `$${price.toFixed(2)} (was $${comparePrice.toFixed(2)})`
+      : `$${price.toFixed(2)}`;
+
+    // Get rating from custom Postgres lookup
+    const rating = product.reviewRating?.value 
+      ? parseFloat(product.reviewRating.value)
+      : null;
+    
+    const reviewCount = product.reviewCount?.value ? parseInt(product.reviewCount.value) : undefined;
+
+    return {
+      title: product.title,
+      price: priceDisplay,
+      rating,
+      reviewCount,
+      tag: hasDiscount ? 'On Sale' : 'Best Seller',
+      image: product.images.edges[0]?.node.url || '',
+      handle: product.handle,
+      primaryCollection: product.primaryCollection?.value || product.metafield?.value,
+    };
+  }
+  
+  return {
+    title: product.title,
+    price: product.price,
+    rating: product.rating ? parseFloat(product.rating) : undefined,
+    reviewCount: undefined,
+    tag: product.tag,
+    image: product.image,
+    handle: undefined,
+    primaryCollection: undefined,
+  };
+}
 
 function InlineHtml({ html }: { html?: string }) {
   if (!html) return null;
@@ -100,24 +151,59 @@ export default async function Home() {
                     )}
                   </div>
                   <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                    {gridProducts.map((item: any) => (
-                      <div
-                        key={item.title}
-                        className="rounded-2xl bg-white p-6 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
-                      >
-                        <div className="relative h-48 w-full rounded-2xl overflow-hidden bg-gray-100">
-                          <img src={item.image} alt={item.title} className="h-full w-full object-cover" />
+                    {gridProducts.map((item: any, index: number) => {
+                      const formatted = formatGridProduct(item);
+                      const productUrl = formatted.handle && formatted.primaryCollection
+                        ? `/${formatted.primaryCollection}/${formatted.handle}`
+                        : '#';
+
+                      const CardContent = (
+                        <>
+                          <div className="relative h-48 w-full rounded-2xl overflow-hidden bg-gray-100">
+                            {formatted.image && (
+                              <img src={formatted.image} alt={formatted.title} className="h-full w-full object-cover" />
+                            )}
+                          </div>
+                          <p className="mt-4 text-xs text-primary font-semibold uppercase tracking-[0.4em]">
+                            {formatted.tag}
+                          </p>
+                          <h4 className="mt-2 text-lg font-semibold text-gray-900 line-clamp-2">
+                            {formatted.title}
+                          </h4>
+                          <p className="mt-1 text-base text-gray-700">{formatted.price}</p>
+                          {formatted.rating !== null && formatted.rating !== undefined && (
+                            <div className="mt-2">
+                              <ReviewStars 
+                                rating={formatted.rating} 
+                                size="sm"
+                                showNumber={true}
+                                count={formatted.reviewCount}
+                              />
+                            </div>
+                          )}
+                        </>
+                      );
+
+                      return (
+                        <div
+                          key={`${formatted.title}-${index}`}
+                          className="flex h-full"
+                        >
+                          {formatted.handle ? (
+                            <Link 
+                              href={productUrl}
+                              className="w-full rounded-2xl bg-white p-6 shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col"
+                            >
+                              {CardContent}
+                            </Link>
+                          ) : (
+                            <div className="w-full rounded-2xl bg-white p-6 shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col">
+                              {CardContent}
+                            </div>
+                          )}
                         </div>
-                        <p className="mt-4 text-xs text-primary font-semibold uppercase tracking-[0.4em]">
-                          {item.tag}
-                        </p>
-                        <h4 className="mt-2 text-lg font-semibold text-gray-900 line-clamp-2">
-                          {item.title}
-                        </h4>
-                        <p className="mt-1 text-base text-gray-700">{item.price}</p>
-                        <p className="text-sm text-gray-500">Rating {item.rating} ✦</p>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </section>
