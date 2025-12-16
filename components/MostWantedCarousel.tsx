@@ -3,6 +3,7 @@
 import { useRef } from 'react';
 import Link from 'next/link';
 import type { ShopifyProduct } from '@/types/shopify';
+import { ReviewStars } from '@/components/reviews/ReviewStars';
 
 interface Product {
   title: string;
@@ -134,10 +135,14 @@ export function MostWantedCarousel({
                   <h3 className="mt-2 text-xl font-semibold text-gray-900 line-clamp-2">{formatted.title}</h3>
                   <p className="mt-1 text-lg text-gray-700">{formatted.price}</p>
                   {formatted.rating && (
-                    <p className="mt-1 text-sm text-gray-500">
-                      Rating {formatted.rating} ✦
-                      {formatted.reviewCount && ` (${formatted.reviewCount} reviews)`}
-                    </p>
+                    <div className="mt-2">
+                      <ReviewStars 
+                        rating={parseFloat(formatted.rating)} 
+                        size="sm"
+                        showNumber={true}
+                        count={formatted.reviewCount ? parseInt(formatted.reviewCount) : undefined}
+                      />
+                    </div>
                   )}
                 </>
               );
