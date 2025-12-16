@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { SearchBar } from './SearchBar';
 import { TOP_LEVEL_MENU } from '@/lib/navigation/menu-structure';
 
 /**
@@ -96,6 +97,11 @@ export function MobileMenu() {
                   />
                 </svg>
               </button>
+            </div>
+
+            {/* Search Bar */}
+            <div className="p-4 border-b border-gray-200">
+              <SearchBar />
             </div>
 
             {/* Navigation Links */}
