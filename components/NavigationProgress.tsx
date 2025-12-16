@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 /**
  * Top progress bar that shows during navigation
@@ -9,7 +9,6 @@ import { usePathname, useSearchParams } from 'next/navigation';
  */
 export function NavigationProgress() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -17,7 +16,7 @@ export function NavigationProgress() {
     // Reset loading state when route changes
     setIsLoading(false);
     setProgress(0);
-  }, [pathname, searchParams]);
+  }, [pathname]);
 
   useEffect(() => {
     // Listen for navigation start
