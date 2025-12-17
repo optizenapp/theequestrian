@@ -1,8 +1,9 @@
 import { Hero } from '@/components/Hero';
 import { TrustSignals } from '@/components/TrustSignals';
-import { BestDealsSlider } from '@/components/BestDealsSlider';
+import { BestDealsSliderContainer } from '@/components/home/BestDealsSliderContainer';
 import { MostWantedCarousel } from '@/components/MostWantedCarousel';
 import { HomeRecentArticles } from '@/components/home/HomeRecentArticles';
+import { HomeFAQ } from '@/components/home/HomeFAQ';
 import { getHomeSections } from '@/lib/content/home';
 import { getProductsByHandlesAlt } from '@/lib/shopify/products-by-handles';
 import { ReviewStars } from '@/components/reviews/ReviewStars';
@@ -76,13 +77,145 @@ export default async function Home() {
     })
   );
 
+  // Schema.org structured data for homepage
+  const schemaData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "OnlineStore",
+        "@id": "https://www.theequestrian.com.au/#organization",
+        "name": "The Equestrian",
+        "url": "https://www.theequestrian.com.au",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://www.theequestrian.com.au/logo-full.png",
+          "width": 256,
+          "height": 256,
+          "caption": "The Equestrian Logo"
+        },
+        "image": "https://www.theequestrian.com.au/logo-full.png",
+        "description": "Australia's premium online equestrian store. High-quality riding apparel, horse tack, grooming supplies, and accessories for competitive and leisure riders.",
+        "email": "support@theequestrian.com.au",
+        "telephone": "+61-419-851-891",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "41B Luck St",
+          "addressLocality": "Macclesfield",
+          "addressRegion": "SA",
+          "postalCode": "5153",
+          "addressCountry": "AU"
+        },
+        "priceRange": "$$",
+        "currenciesAccepted": "AUD",
+        "paymentAccepted": "Credit Card, PayPal, Afterpay",
+        "areaServed": {
+          "@type": "Country",
+          "name": "Australia"
+        },
+        "sameAs": [
+          "https://www.facebook.com/attheequestrian",
+          "https://instagram.com/theequestrianoz",
+          "https://www.youtube.com/channel/UCvcpt-fRaAY4PBavZicia1g"
+        ],
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "telephone": "+61-419-851-891",
+          "contactType": "customer service",
+          "areaServed": "AU",
+          "availableLanguage": "en"
+        }
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://www.theequestrian.com.au/#website",
+        "url": "https://www.theequestrian.com.au",
+        "name": "The Equestrian",
+        "description": "Your premier Australian destination for equestrian fashion and horse gear.",
+        "inLanguage": "en-AU",
+        "publisher": {
+          "@id": "https://www.theequestrian.com.au/#organization"
+        },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": "https://www.theequestrian.com.au/search?q={search_term_string}"
+          },
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://www.theequestrian.com.au/#webpage",
+        "url": "https://www.theequestrian.com.au",
+        "name": "The Equestrian | Premium Horse Riding Gear & Apparel Australia",
+        "isPartOf": {
+          "@id": "https://www.theequestrian.com.au/#website"
+        },
+        "about": {
+          "@id": "https://www.theequestrian.com.au/#organization"
+        },
+        "datePublished": "2023-10-01T08:00:00+10:00",
+        "description": "Shop The Equestrian for the finest selection of horse tack, riding breeches, helmets, and stable supplies. Located in South Australia."
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "https://www.theequestrian.com.au/#faq",
+        "isPartOf": {
+          "@id": "https://www.theequestrian.com.au/#webpage"
+        },
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What type of equestrian products does The Equestrian specialize in?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The Equestrian offers a curated selection of premium riding apparel, horse tack, grooming supplies, and accessories. We cater to both competitive riders (Dressage, Show Jumping, Eventing) and leisure riders across Australia looking for high-quality gear."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How do I choose the correct size for riding breeches and boots?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "We recommend consulting the specific Size Guide located on every product page. Since equestrian sizing can vary between brands (such as European vs. Australian sizing), we provide detailed measurements to ensure the perfect fit for safety and comfort in the saddle."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What is The Equestrian's return policy on horse tack and apparel?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "We accept returns on items that are clean, unused, and in their original packaging within 30 days of purchase. For safety reasons, certain items like helmets or horse bits may have specific restrictions. Please see our full Returns Policy page for details."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Do you offer free shipping on equestrian gear orders in Australia?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, we offer free standard shipping on qualifying orders within Australia. We ensure all packages, especially saddles and leather goods, are packed securely to arrive in pristine condition."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How should I care for my leather tack to ensure it lasts?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "To maintain the longevity of your bridles and saddles, we recommend cleaning them after every ride with a glycerin soap and conditioning them regularly with a high-quality leather balsam. Store your leather in a cool, dry tack room away from Australian heat and humidity."
+            }
+          }
+        ]
+      }
+    ]
+  };
+
   // If no CSV is present, keep the existing page usable (minimal fallback)
   if (!sectionsWithProducts.length) {
     return (
       <div>
         <Hero />
         <TrustSignals />
-        <BestDealsSlider />
         <HomeRecentArticles />
       </div>
     );
@@ -90,6 +223,11 @@ export default async function Home() {
 
   return (
     <div>
+      {/* Schema.org Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
+      />
       {sectionsWithProducts.map((section) => {
         switch (section.type) {
           case 'hero':
@@ -210,7 +348,12 @@ export default async function Home() {
             );
 
           case 'best_deals_slider':
-            return <BestDealsSlider key={section.key} />;
+            return (
+              <BestDealsSliderContainer 
+                key={section.key} 
+                section={section}
+              />
+            );
 
           case 'signup':
             return (
@@ -247,28 +390,7 @@ export default async function Home() {
             return <HomeRecentArticles key={section.key} />;
 
           case 'faqs':
-            return (
-              <section key={section.key} className="bg-gray-50 py-16">
-                <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-                  <div className="text-center">
-                    {section.eyebrow && (
-                      <p className="text-sm uppercase tracking-[0.4em] text-gray-400">{section.eyebrow}</p>
-                    )}
-                    <h3 className="text-3xl font-bold text-gray-900">
-                      <InlineHtml html={section.title_html} />
-                    </h3>
-                  </div>
-                  <div className="mt-10 grid gap-6 md:grid-cols-3">
-                    {(section.faqs || []).map((faq) => (
-                      <div key={faq.question} className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-                        <h4 className="text-lg font-semibold text-gray-900">{faq.question}</h4>
-                        <p className="mt-2 text-sm text-gray-600">{faq.answer}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </section>
-            );
+            return <HomeFAQ key={section.key} section={section} />;
 
           case 'seen_in':
             return (

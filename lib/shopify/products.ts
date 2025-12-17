@@ -1,6 +1,7 @@
 import { shopifyFetch } from './client';
 import { shopifyAdminFetch } from './admin-client';
 import { GET_PRODUCT_BY_HANDLE, GET_ALL_PRODUCTS, GET_PRODUCTS_BY_QUERY } from './queries';
+import { normalizeColor, isColorValue } from '@/lib/utils/product-options';
 import type { ShopifyProduct, ProductWithPrimaryCollection } from '@/types/shopify';
 
 interface ProductResponse {
@@ -370,8 +371,12 @@ export async function getProductsByTypes(
           (opt) => opt.name.toLowerCase() === 'size'
         );
         if (sizeOption) {
-          const count = sizeCounts.get(sizeOption.value) || 0;
-          sizeCounts.set(sizeOption.value, count + 1);
+          // Skip if it looks like a color (e.g. "Black", "Navy")
+          // This prevents colors from appearing in the Size filter
+          if (!isColorValue(sizeOption.value)) {
+            const count = sizeCounts.get(sizeOption.value) || 0;
+            sizeCounts.set(sizeOption.value, count + 1);
+          }
         }
         
         // Color
@@ -379,14 +384,14 @@ export async function getProductsByTypes(
           (opt) => opt.name.toLowerCase() === 'color'
         );
         if (colorOption) {
-          const normalizedValue = colorOption.value.toLowerCase();
+          const normalizedValue = normalizeColor(colorOption.value);
           const existing = colorCounts.get(normalizedValue);
           if (existing) {
             existing.count++;
           } else {
             colorCounts.set(normalizedValue, {
               count: 1,
-              originalValue: colorOption.value,
+              originalValue: colorOption.value, // Keep original casing/format for display (optional, or pick best one)
             });
           }
         }

@@ -6,6 +6,7 @@
  */
 
 import type { ShopifyProduct, ShopifyVariant } from '@/types/shopify';
+import { normalizeColor, isColorValue } from '@/lib/utils/product-options';
 
 export interface FilterOption {
   value: string;
@@ -39,8 +40,12 @@ export function getSizeOptions(products: ShopifyProduct[]): FilterOption[] {
         (opt) => opt.name.toLowerCase() === 'size'
       );
       if (sizeOption) {
-        const count = sizeMap.get(sizeOption.value) || 0;
-        sizeMap.set(sizeOption.value, count + 1);
+        // Skip if it looks like a color (e.g. "Black", "Navy")
+        // This prevents colors from appearing in the Size filter
+        if (!isColorValue(sizeOption.value)) {
+          const count = sizeMap.get(sizeOption.value) || 0;
+          sizeMap.set(sizeOption.value, count + 1);
+        }
       }
     });
   });
@@ -77,7 +82,7 @@ export function getColorOptions(products: ShopifyProduct[]): FilterOption[] {
         }
       );
       if (colorOption) {
-        const normalizedValue = colorOption.value.toLowerCase();
+        const normalizedValue = normalizeColor(colorOption.value);
         const existing = colorMap.get(normalizedValue);
         if (existing) {
           existing.count++;
@@ -263,8 +268,9 @@ export function filterByColor(
       const colorOption = variant.selectedOptions.find(
         (opt) => opt.name.toLowerCase() === 'color'
       );
+      // Use normalized value for comparison
       return (
-        colorOption && colors.includes(colorOption.value.toLowerCase())
+        colorOption && colors.includes(normalizeColor(colorOption.value))
       );
     });
   });

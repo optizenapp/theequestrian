@@ -35,7 +35,16 @@ export interface HomeFaqItem {
   question: string;
   answer: string;
 }
- 
+
+export interface HomeSliderItem {
+  label: string;
+  image: string;
+  title: string;
+  price: string;
+  saving: string;
+  detail: string;
+}
+
 export interface HomeSection {
   key: string;
   type: HomeSectionType;
@@ -62,6 +71,7 @@ export interface HomeSection {
   product_handles?: ProductHandle[]; // New: Array of product handles to fetch from Shopify
   faqs?: HomeFaqItem[];
   seen_in?: string[];
+  items?: HomeSliderItem[];
 }
  
 interface CsvRow {
@@ -88,6 +98,7 @@ interface CsvRow {
   product_handles?: string; // New: Comma-separated product handles
   faqs_json?: string;
   seen_in_json?: string;
+  items_json?: string;
 }
  
 let cachedSections: HomeSection[] | null = null;
@@ -187,7 +198,7 @@ function loadHomeSections(): HomeSection[] {
       image_link: row.image_link?.trim() || undefined,
     };
  
-    if (type === 'most_wanted_carousel' || type === 'most_wanted_grid') {
+    if (type === 'most_wanted_carousel' || type === 'most_wanted_grid' || type === 'best_deals_slider') {
       // Support both old JSON format and new product handles format
       if (row.product_handles) {
         // New format: comma-separated product handles
@@ -211,6 +222,11 @@ function loadHomeSections(): HomeSection[] {
     if (type === 'seen_in') {
       const seen = safeJsonParse<string[]>(row.seen_in_json, []);
       section.seen_in = Array.isArray(seen) ? seen : [];
+    }
+
+    if (type === 'best_deals_slider') {
+      const items = safeJsonParse<HomeSliderItem[]>(row.items_json, []);
+      section.items = Array.isArray(items) ? items : [];
     }
  
     sections.push(section);

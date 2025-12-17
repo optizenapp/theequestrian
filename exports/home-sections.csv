@@ -1,10 +1,31 @@
 key,type,enabled,sort_order,eyebrow,title_html,subtitle_html,body_html,cta_text,cta_link,secondary_cta_text,secondary_cta_link,image_url,image_alt,image_link,product_handles,faqs_json,seen_in_json
 hero,hero,TRUE,10,,"The <span class=""text-white"">Equestrian</span>","Australian Owned <span class=""text-primary mx-2"">|</span>Global Brands",,Shop Now,/horse,View Great Deals,/on-sale,/hero-image-v2.jpg,The Equestrian Marketplace Australia,,,,
 trust_signals,trust_signals,TRUE,20,,,,,,,,,,,,,,
-most_wanted_carousel,most_wanted_carousel,TRUE,30,Most Wanted,"Shop over 10,000 products  - Best sellers",,"Curated gear that riders reach for first — high performance, great reviews, and premium brands.",,,,,,,,"shanga-mesh-combo,shanga-towel-rug,007-mineral-salt-blocks,ca-coolite-rug,eureka-mini-canvas-rug,eureka-mini-synthetic-combo,hamilton-canvas-rugs,collar-check-rug-hood-and-tail-bag-set",,
-most_wanted_grid,most_wanted_grid,TRUE,40,Shop our most wanted,Rider favorites,,,,,,,,,,"the-equestrian-cap-learn-how-to-get-it-for-free,animo-ss20-mael-mens-breeches,cavalleria-toscana-all-over-embroidery-saddle-pad-dressage,ca-coolite-rug,eureka-mini-canvas-rug,eureka-mini-synthetic-combo,hamilton-canvas-rugs,collar-check-rug-hood-and-tail-bag-set",,
-best_deals_slider,best_deals_slider,TRUE,50,,,,,,,,,,,,,,
-signup,signup,TRUE,60,Get $15 off,Sign up & unlock exclusive offers,,"Join the community for curated drops, early access to new collections, and insider pricing.",Sign up,#,,,,,,,,
+most_wanted_carousel,most_wanted_carousel,TRUE,30,Most Wanted,"Shop over 10,000 products  - Best sellers",,"Curated gear that riders reach for first — high performance, great reviews, and premium brands.",,,,,,,,"shanga-mesh-combo,shanga-towel-rug,ezy-groomer-purple,trust-pony-eggbutt-eliptical,eureka-mini-canvas-rug,cavalor-equicare-bianco-wash,riding-tights-in-beige-sizes-6-to-28,collar-check-rug-hood-and-tail-bag-set",,
+most_wanted_grid,most_wanted_grid,TRUE,40,Shop our most wanted,Rider favorites,,,,,,,,,,"the-equestrian-cap-learn-how-to-get-it-for-free,animo-ss20-mael-mens-breeches,cavalleria-toscana-all-over-embroidery-saddle-pad-dressage,ca-coolite-rug,carbine-gastrazone-1-25litre,diy-kit-for-stainless-steel-30mm-locket-rose-gold,breyer-traditional-doll-cowboy-austin,sprenger-ultra-fit-grip-spur-comfort-roller",,
+best_deals_slider,best_deals_slider,TRUE,50,,Our Featured Collections,,"With 10,000 + products from the worlds greatest brands, we have what you need!",,,,,,,,"horse,rider,clothing/womens,pet,accessories",,
+signup,signup,TRUE,60,Daily & Weekly Offers,Join Our Excluse Deals Club,,"Join the community for curated drops, early access to new collections, and insider pricing.",Sign up,#,,,,,,,,
 recent_articles,recent_articles,TRUE,70,,,,,,,,,,,,,,
-faqs,faqs,TRUE,80,FAQs,Questions we answer most often,,,,,,,,,,,"[{""question"":""Can you help me recycle my old phone?"",""answer"":""Yes — trade-in options make it easy to offset the cost of new gear.""},{""question"":""Do you offer payment plans?"",""answer"":""Several flexible plans are available; just choose \""pay later\"" at checkout.""},{""question"":""Is shipping free?"",""answer"":""Free shipping on all orders.""}]",
-seen_in,seen_in,TRUE,90,As seen in,Trusted by the industries you admire,,,,,,,,,,,,"[""Trustpilot"",""Glassdoor"",""Medium"",""Vogue"",""CNBC""]"
+faqs,faqs,TRUE,80,FAQs,Questions we answer most often,,,,,,,,,,,"[
+  {
+    ""question"": ""What type of equestrian products does The Equestrian specialize in?"",
+    ""answer"": ""The Equestrian offers a curated selection of premium riding apparel, horse tack, grooming supplies, and accessories. We cater to both competitive riders (Dressage, Show Jumping, Eventing) and leisure riders across Australia looking for high-quality gear.""
+  },
+  {
+    ""question"": ""How do I choose the correct size for riding breeches and boots?"",
+    ""answer"": ""We recommend consulting the specific Size Guide located on in our size guide page. Since equestrian sizing can vary between brands (such as European vs. Australian sizing), we provide detailed measurements to ensure the perfect fit for safety and comfort in the saddle.""
+  },
+  {
+    ""question"": ""What is The Equestrian's return policy on horse tack and apparel?"",
+    ""answer"": ""We accept returns on items that are clean, unused, and in their original packaging within 30 days of purchase. For safety reasons, certain items like helmets or horse bits may have specific restrictions. Please see our full Returns Policy page for details.""
+  },
+  {
+    ""question"": ""Do you offer free shipping on equestrian gear orders in Australia?"",
+    ""answer"": ""Yes, we offer free standard shipping on qualifying orders within Australia. We ensure all packages, especially saddles and leather goods, are packed securely to arrive in pristine condition.""
+  },
+  {
+    ""question"": ""How should I care for my leather tack to ensure it lasts?"",
+    ""answer"": ""To maintain the longevity of your bridles and saddles, we recommend cleaning them after every ride with a glycerin soap and conditioning them regularly with a high-quality leather balsam. Store your leather in a cool, dry tack room away from Australian heat and humidity.""
+  }
+]",
+seen_in,seen_in,FALSE,90,As seen in,Trusted by the industries you admire,,,,,,,,,,,,"[""Trustpilot"",""Glassdoor"",""Medium"",""Vogue"",""CNBC""]"

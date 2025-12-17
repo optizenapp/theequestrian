@@ -4,8 +4,9 @@
  * This script:
  * 1. Reads a Shopify product export CSV
  * 2. Reads vendor shipping rates from vendor-shipping-rates.csv
- * 3. Adds shipping cost to each product's price
- * 4. Outputs a new CSV ready to import back to Shopify
+ * 3. Reads tag-based shipping overrides from tag-shipping-rates.csv (optional)
+ * 4. Adds shipping cost to each product's price (tags override vendor rates)
+ * 5. Outputs a new CSV ready to import back to Shopify
  * 
  * Usage:
  *   npx tsx scripts/add-shipping-to-prices.ts input.csv output.csv
@@ -20,6 +21,7 @@ interface ShopifyProductRow {
   Handle: string;
   Title: string;
   Vendor: string;
+  Tags: string;
   'Variant Price': string;
   'Variant Compare At Price'?: string;
   [key: string]: any; // Other Shopify columns
@@ -27,6 +29,11 @@ interface ShopifyProductRow {
 
 interface VendorShippingRate {
   vendor: string;
+  shipping_cost: string;
+}
+
+interface TagShippingRate {
+  tag: string;
   shipping_cost: string;
 }
 
@@ -51,18 +58,46 @@ async function addShippingToPrices(inputFile: string, outputFile: string) {
   }) as VendorShippingRate[];
 
   // Build vendor -> shipping cost map (case-insensitive)
-  const shippingMap = new Map<string, number>();
+  const vendorShippingMap = new Map<string, number>();
   shippingRates.forEach(rate => {
     const vendor = rate.vendor.trim().toLowerCase();
     const cost = parseFloat(rate.shipping_cost);
     if (!isNaN(cost)) {
-      shippingMap.set(vendor, cost);
+      vendorShippingMap.set(vendor, cost);
     }
   });
 
-  console.log(`✅ Loaded ${shippingMap.size} vendor shipping rates\n`);
+  console.log(`✅ Loaded ${vendorShippingMap.size} vendor shipping rates`);
 
-  // 2. Read Shopify product export
+  // 2. Read tag-based shipping overrides (optional)
+  const tagShippingMap = new Map<string, number>();
+  const tagRatesPath = path.join(process.cwd(), 'exports', 'tag-shipping-rates.csv');
+  
+  if (fs.existsSync(tagRatesPath)) {
+    console.log('🏷️  Loading tag-based shipping overrides...');
+    const tagRatesContent = fs.readFileSync(tagRatesPath, 'utf-8');
+    const tagRates = parse(tagRatesContent, {
+      columns: true,
+      skip_empty_lines: true,
+      trim: true,
+    }) as TagShippingRate[];
+
+    tagRates.forEach(rate => {
+      const tag = rate.tag.trim().toLowerCase();
+      const cost = parseFloat(rate.shipping_cost);
+      if (!isNaN(cost)) {
+        tagShippingMap.set(tag, cost);
+      }
+    });
+
+    console.log(`✅ Loaded ${tagShippingMap.size} tag-based shipping overrides`);
+  } else {
+    console.log('ℹ️  No tag-shipping-rates.csv found (optional)');
+  }
+
+  console.log('');
+
+  // 3. Read Shopify product export
   console.log(`📥 Reading product export: ${inputFile}`);
   
   if (!fs.existsSync(inputFile)) {
@@ -79,11 +114,12 @@ async function addShippingToPrices(inputFile: string, outputFile: string) {
 
   console.log(`✅ Loaded ${products.length} product rows\n`);
 
-  // 3. Update prices
+  // 4. Update prices
   console.log('💰 Calculating new prices...');
   let updatedCount = 0;
   let skippedCount = 0;
   let noShippingRateCount = 0;
+  let tagOverrideCount = 0;
 
   const updatedProducts = products.map((product, index) => {
     const vendor = product.Vendor?.trim().toLowerCase();
@@ -93,7 +129,29 @@ async function addShippingToPrices(inputFile: string, outputFile: string) {
       return product;
     }
 
-    const shippingCost = shippingMap.get(vendor);
+    // Check for tag-based shipping override first
+    let shippingCost: number | undefined;
+    let shippingSource = '';
+    
+    if (product.Tags) {
+      const tags = product.Tags.split(',').map(t => t.trim().toLowerCase());
+      
+      // Check each tag for a shipping override (first match wins)
+      for (const tag of tags) {
+        if (tagShippingMap.has(tag)) {
+          shippingCost = tagShippingMap.get(tag);
+          shippingSource = `tag:"${tag}"`;
+          tagOverrideCount++;
+          break;
+        }
+      }
+    }
+
+    // Fall back to vendor shipping rate if no tag override
+    if (shippingCost === undefined) {
+      shippingCost = vendorShippingMap.get(vendor);
+      shippingSource = `vendor:"${product.Vendor}"`;
+    }
     
     if (shippingCost === undefined) {
       noShippingRateCount++;
@@ -130,7 +188,7 @@ async function addShippingToPrices(inputFile: string, outputFile: string) {
     
     // Log first few updates as examples
     if (updatedCount <= 5) {
-      console.log(`  ✓ ${product.Title}: $${currentPrice.toFixed(2)} + $${shippingCost.toFixed(2)} = $${newPrice.toFixed(2)}`);
+      console.log(`  ✓ ${product.Title}: $${currentPrice.toFixed(2)} + $${shippingCost.toFixed(2)} = $${newPrice.toFixed(2)} (${shippingSource})`);
     }
 
     return updatedProduct;
@@ -138,6 +196,7 @@ async function addShippingToPrices(inputFile: string, outputFile: string) {
 
   console.log(`\n📊 Summary:`);
   console.log(`   ✅ Updated: ${updatedCount} products`);
+  console.log(`   🏷️  Tag overrides: ${tagOverrideCount} products`);
   console.log(`   ⚠️  No shipping rate: ${noShippingRateCount} products`);
   console.log(`   ⏭️  Skipped: ${skippedCount} products`);
 

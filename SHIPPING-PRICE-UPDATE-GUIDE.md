@@ -12,7 +12,9 @@ Shopify Products → Export CSV → Add Shipping → Import CSV → Updated Pric
 
 ## Step-by-Step Instructions
 
-### 1. Set Up Vendor Shipping Rates
+### 1. Set Up Shipping Rates
+
+#### A. Vendor Shipping Rates (Required)
 
 Edit `exports/vendor-shipping-rates.csv` with your vendor shipping costs:
 
@@ -27,6 +29,24 @@ Kentucky,20.00
 **Important:**
 - Vendor names must match exactly as they appear in Shopify (case-insensitive)
 - Shipping costs in dollars (e.g., `15.00` for $15)
+
+#### B. Tag-Based Shipping Overrides (Optional)
+
+Edit `exports/tag-shipping-rates.csv` for products that need special shipping based on tags:
+
+```csv
+tag,shipping_cost
+heavy,25.00
+bulky,30.00
+oversized,35.00
+fragile,18.00
+```
+
+**How it works:**
+- **Tags override vendor rates** - If a product has a tag like "heavy", it uses that shipping cost instead of the vendor's default
+- Perfect for products that cost more to ship (heavy items, oversized, fragile, etc.)
+- Case-insensitive matching
+- First matching tag wins if a product has multiple shipping tags
 
 ### 2. Export Products from Shopify
 
@@ -44,16 +64,18 @@ npx tsx scripts/add-shipping-to-prices.ts products_export_2024-12-12.csv product
 
 **What it does:**
 - Reads your product export
-- Looks up shipping cost for each vendor
+- Checks product tags for shipping overrides (e.g., "heavy", "bulky")
+- Falls back to vendor shipping rate if no tag match
 - Adds shipping to `Variant Price`
 - Also updates `Variant Compare At Price` if present
 - Outputs a new CSV ready to import
 
 **Example output:**
 ```
-✓ Ariat Show Jacket: $299.00 + $15.00 = $314.00
-✓ Kerrits Tights: $89.00 + $12.50 = $101.50
-✓ Dublin Boots: $249.00 + $18.00 = $267.00
+✓ Ariat Show Jacket: $299.00 + $15.00 = $314.00 (vendor:"Ariat")
+✓ Heavy Saddle Stand: $149.00 + $25.00 = $174.00 (tag:"heavy")
+✓ Kerrits Tights: $89.00 + $12.50 = $101.50 (vendor:"Kerrits")
+✓ Oversized Jump: $899.00 + $35.00 = $934.00 (tag:"oversized")
 ```
 
 ### 4. Review the Output
@@ -106,6 +128,7 @@ If you frequently update prices, you can:
 ### "No shipping rate for vendor: X"
 - Add the vendor to `exports/vendor-shipping-rates.csv`
 - Check vendor name spelling matches Shopify exactly
+- Or add a tag-based override if this product needs special shipping
 
 ### Prices look wrong
 - Verify shipping costs in CSV are correct
