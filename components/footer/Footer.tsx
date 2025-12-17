@@ -29,6 +29,7 @@ const footerLinks = {
       { label: 'Contact Us', href: '/contact' },
       { label: 'Shipping & Delivery', href: '/shipping-delivery' },
       { label: 'Returns & Refunds', href: '/returns-refunds' },
+      { label: 'Sizing Charts', href: '/sizing' },
       { label: 'FAQs', href: '/faq' },
     ],
   },

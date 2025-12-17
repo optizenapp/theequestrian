@@ -125,8 +125,9 @@ export function getProductTypesForCollection(
   
   const rows = mapping.get(collectionPath);
   
-  // If exact match found, use it
-  if (rows && rows.length > 0) {
+  // If exact match found, and it's a leaf node (has no children), use it
+  // But if it might have children (like pet/dog), we want to fall through to aggregation
+  if (rows && rows.length > 0 && subsubcategory) {
     const productTypes: string[] = [];
     for (const row of rows) {
       if (row.product_type && row.product_type.trim()) {
@@ -136,10 +137,21 @@ export function getProductTypesForCollection(
     return productTypes;
   }
 
-  // For top-level categories without exact match, aggregate from all children
-  if (!subcategory && !subsubcategory) {
+  // For top-level categories or categories with subcategories, aggregate from all children
+  if (!subsubcategory) {
     const productTypes = new Set<string>();
-    const prefix = `${category}/`;
+    
+    // Add exact matches for the current path first
+    if (rows && rows.length > 0) {
+      for (const row of rows) {
+        if (row.product_type && row.product_type.trim()) {
+          productTypes.add(row.product_type.trim());
+        }
+      }
+    }
+
+    // Then find all descendants
+    const prefix = subcategory ? `${category}/${subcategory}/` : `${category}/`;
     
     for (const [path, pathRows] of mapping.entries()) {
       if (path.startsWith(prefix)) {

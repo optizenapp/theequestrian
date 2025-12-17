@@ -23,6 +23,7 @@ import { ProductBreadcrumbs } from '@/components/ProductBreadcrumbs';
 import { ProductBuyBox } from '@/components/product/ProductBuyBox';
 import { ProductDescription } from '@/components/product/ProductDescription';
 import { RelatedProducts } from '@/components/product/RelatedProducts';
+import { SizingGuideLink } from '@/components/product/SizingGuideLink';
 import { generateBreadcrumbSchema } from '@/lib/utils/breadcrumb-schema';
 import { generateProductSchemaGraph } from '@/lib/utils/product-schema';
 import { getReviewStatsWithCache } from '@/lib/reviews/get-review-stats';
@@ -222,6 +223,14 @@ async function renderProductPage(product: ShopifyProduct) {
             </div>
           </div>
         </div>
+        
+        {/* Sizing Guide Link - Between Description and Reviews */}
+        <SizingGuideLink
+          vendor={product.vendor}
+          productType={product.productType}
+          productTitle={product.title}
+          productHandle={product.handle}
+        />
         
         {/* Reviews Section - Full Width Below Product */}
         <ProductReviewSection
