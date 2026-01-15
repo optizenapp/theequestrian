@@ -1,8 +1,9 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 import { ShopifyCart } from '@/types/shopify';
-import { createCart, addToCart, updateCart, removeFromCart, getCart } from '@/app/actions/cart';
+import { createCart, addToCart, updateCart, removeFromCart, getCart, setCartCookie } from '@/app/actions/cart';
 
 interface CartContextType {
   cart: ShopifyCart | null;
@@ -18,6 +19,7 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const router = useRouter();
   const [cart, setCart] = useState<ShopifyCart | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -30,6 +32,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const existingCart = await getCart(cartId);
         if (existingCart) {
           setCart(existingCart);
+          // Sync cart ID to cookie for server-side access
+          await setCartCookie(cartId);
         } else {
           // Cart doesn't exist anymore, remove from localStorage
           localStorage.removeItem('cartId');
@@ -52,9 +56,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
         // Create new cart
         updatedCart = await createCart([{ merchandiseId: variantId, quantity }]);
         localStorage.setItem('cartId', updatedCart.id);
+        // Cookie is already set by createCart server action
       }
 
       setCart(updatedCart);
+      
+      // Refresh server components to update recommendations on cart page
+      router.refresh();
+      
       return updatedCart;
     } catch (error) {
       console.error('Error adding item to cart:', error);
@@ -71,6 +80,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     try {
       const updatedCart = await updateCart(cart.id, [{ id: lineId, quantity }]);
       setCart(updatedCart);
+      
+      // Refresh server components to update recommendations
+      router.refresh();
     } catch (error) {
       console.error('Error updating cart item:', error);
       throw error;
@@ -86,6 +98,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     try {
       const updatedCart = await removeFromCart(cart.id, [lineId]);
       setCart(updatedCart);
+      
+      // Refresh server components to update recommendations
+      router.refresh();
     } catch (error) {
       console.error('Error removing cart item:', error);
       throw error;
@@ -122,6 +137,11 @@ export function useCart() {
   }
   return context;
 }
+
+
+
+
+
 
 
 

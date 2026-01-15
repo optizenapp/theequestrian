@@ -616,6 +616,8 @@ export const GET_CART = `
                 product {
                   handle
                   title
+                  productType
+                  vendor
                   images(first: 1) {
                     edges {
                       node {

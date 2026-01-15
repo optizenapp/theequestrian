@@ -119,6 +119,8 @@ export interface ShopifyVariant {
   product?: {
     handle: string;
     title: string;
+    productType: string;
+    vendor: string;
     images: {
       edges: Array<{
         node: {

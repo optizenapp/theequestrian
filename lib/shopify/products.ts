@@ -538,6 +538,219 @@ export async function getRecommendedProducts(limit: number = 4, productType?: st
   }
 }
 
+interface CartItem {
+  handle: string;
+  productType: string;
+  vendor: string;
+  price: number;
+}
+
+interface ScoredProduct {
+  product: ShopifyProduct;
+  score: number;
+  reasons: string[];
+}
+
+/**
+ * Get smart cart recommendations based on items currently in cart
+ * Uses intelligent scoring algorithm to suggest relevant products
+ * 
+ * @param cartItems - Array of items currently in cart with product details
+ * @param limit - Number of recommendations to return (default: 4)
+ * @returns Array of recommended products sorted by relevance score
+ */
+export async function getSmartCartRecommendations(
+  cartItems: CartItem[],
+  limit: number = 4
+): Promise<ShopifyProduct[]> {
+  try {
+    console.log(`[getSmartCartRecommendations] Analyzing cart with ${cartItems.length} items`);
+    
+    // If cart is empty, return generic recommendations
+    if (cartItems.length === 0) {
+      console.log(`[getSmartCartRecommendations] Empty cart, returning generic recommendations`);
+      return getRecommendedProducts(limit);
+    }
+
+    // Extract unique product types and brands from cart
+    const cartProductTypes = [...new Set(cartItems.map(item => item.productType))];
+    const cartBrands = [...new Set(cartItems.map(item => item.vendor).filter(Boolean))];
+    const cartHandles = new Set(cartItems.map(item => item.handle));
+    
+    // Calculate average price range in cart
+    const avgPrice = cartItems.reduce((sum, item) => sum + item.price, 0) / cartItems.length;
+    const minPriceRange = avgPrice * 0.5; // 50% lower
+    const maxPriceRange = avgPrice * 2; // 200% higher
+    
+    console.log(`[getSmartCartRecommendations] Cart analysis:`, {
+      productTypes: cartProductTypes,
+      brands: cartBrands,
+      avgPrice,
+      priceRange: [minPriceRange, maxPriceRange]
+    });
+
+    // Import complementary product mappings
+    const { getComplementaryTypes } = await import('@/lib/mapping/complementary-products');
+    const complementaryTypes = getComplementaryTypes(cartProductTypes);
+    
+    console.log(`[getSmartCartRecommendations] Complementary types:`, complementaryTypes);
+
+    // Fetch candidates from multiple sources
+    const candidateProducts = new Map<string, ShopifyProduct>();
+    
+    // 1. Fetch products of same types (50% weight)
+    if (cartProductTypes.length > 0) {
+      const sameTypeQuery = cartProductTypes
+        .map(type => `product_type:"${type.replace(/"/g, '\\"')}"`)
+        .join(' OR ');
+      
+      const sameTypeData = await shopifyFetch<ProductsResponse>({
+        query: GET_PRODUCTS_BY_QUERY,
+        variables: { 
+          query: sameTypeQuery,
+          first: 20
+        },
+      });
+      
+      sameTypeData.products?.edges.forEach(({ node }) => {
+        if (!cartHandles.has(node.handle)) {
+          candidateProducts.set(node.id, node);
+        }
+      });
+    }
+    
+    // 2. Fetch products from same brands (30% weight)
+    if (cartBrands.length > 0) {
+      const sameBrandQuery = cartBrands
+        .map(brand => `vendor:"${brand.replace(/"/g, '\\"')}"`)
+        .join(' OR ');
+      
+      const sameBrandData = await shopifyFetch<ProductsResponse>({
+        query: GET_PRODUCTS_BY_QUERY,
+        variables: { 
+          query: sameBrandQuery,
+          first: 20
+        },
+      });
+      
+      sameBrandData.products?.edges.forEach(({ node }) => {
+        if (!cartHandles.has(node.handle)) {
+          candidateProducts.set(node.id, node);
+        }
+      });
+    }
+    
+    // 3. Fetch complementary products (20% weight)
+    if (complementaryTypes.length > 0) {
+      const complementaryQuery = complementaryTypes
+        .map(type => `product_type:"${type.replace(/"/g, '\\"')}"`)
+        .join(' OR ');
+      
+      const complementaryData = await shopifyFetch<ProductsResponse>({
+        query: GET_PRODUCTS_BY_QUERY,
+        variables: { 
+          query: complementaryQuery,
+          first: 20
+        },
+      });
+      
+      complementaryData.products?.edges.forEach(({ node }) => {
+        if (!cartHandles.has(node.handle)) {
+          candidateProducts.set(node.id, node);
+        }
+      });
+    }
+    
+    console.log(`[getSmartCartRecommendations] Found ${candidateProducts.size} candidate products`);
+    
+    if (candidateProducts.size === 0) {
+      console.log(`[getSmartCartRecommendations] No candidates found, falling back to generic`);
+      return getRecommendedProducts(limit);
+    }
+    
+    // Score each candidate product
+    const scoredProducts: ScoredProduct[] = Array.from(candidateProducts.values()).map(product => {
+      let score = 0;
+      const reasons: string[] = [];
+      
+      // Same product type as cart item: +10 points
+      if (cartProductTypes.includes(product.productType)) {
+        score += 10;
+        reasons.push('same category');
+      }
+      
+      // Same brand as cart item: +5 points
+      if (cartBrands.includes(product.vendor)) {
+        score += 5;
+        reasons.push('same brand');
+      }
+      
+      // Complementary category: +8 points
+      if (complementaryTypes.includes(product.productType)) {
+        score += 8;
+        reasons.push('complementary');
+      }
+      
+      // Price range similar to cart items: +3 points
+      const productPrice = parseFloat(product.priceRange.minVariantPrice.amount);
+      if (productPrice >= minPriceRange && productPrice <= maxPriceRange) {
+        score += 3;
+        reasons.push('similar price');
+      }
+      
+      // Currently in stock: +2 points
+      if (product.availableForSale) {
+        score += 2;
+        reasons.push('in stock');
+      }
+      
+      return { product, score, reasons };
+    });
+    
+    // Sort by score (highest first) and add diversity penalty for duplicate types
+    scoredProducts.sort((a, b) => b.score - a.score);
+    
+    // Apply diversity filter: prefer variety in product types
+    const selectedProducts: ShopifyProduct[] = [];
+    const selectedTypes = new Set<string>();
+    const maxPerType = 2; // Maximum 2 products of same type
+    const typeCount = new Map<string, number>();
+    
+    for (const { product, score, reasons } of scoredProducts) {
+      if (selectedProducts.length >= limit) break;
+      
+      const currentCount = typeCount.get(product.productType) || 0;
+      
+      // Allow product if we haven't hit the per-type limit
+      if (currentCount < maxPerType) {
+        selectedProducts.push(product);
+        selectedTypes.add(product.productType);
+        typeCount.set(product.productType, currentCount + 1);
+        
+        console.log(`[getSmartCartRecommendations] Selected: ${product.title} (score: ${score}, reasons: ${reasons.join(', ')})`);
+      }
+    }
+    
+    // If we don't have enough products, fill with highest scoring regardless of type
+    if (selectedProducts.length < limit) {
+      for (const { product } of scoredProducts) {
+        if (selectedProducts.length >= limit) break;
+        if (!selectedProducts.find(p => p.id === product.id)) {
+          selectedProducts.push(product);
+        }
+      }
+    }
+    
+    console.log(`[getSmartCartRecommendations] Returning ${selectedProducts.length} recommendations with ${selectedTypes.size} unique types`);
+    
+    return selectedProducts;
+  } catch (error) {
+    console.error('Error in getSmartCartRecommendations:', error);
+    // Fallback to generic recommendations
+    return getRecommendedProducts(limit);
+  }
+}
+
 // Module-level cache for productType -> categoryPath mappings
 // This persists across requests in the same Node.js process
 const categoryPathCache = new Map<string, string | null>();
