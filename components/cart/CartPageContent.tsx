@@ -22,10 +22,8 @@ export function CartPageContent({ recommendedProducts = [] }: CartPageContentPro
   const subtotal = parseFloat(cart?.cost.subtotalAmount.amount || '0');
   const currencyCode = cart?.cost.subtotalAmount.currencyCode || 'AUD';
   
-  // Placeholder fees for demonstration to match layout
-  const qualityAssuranceFee = 5.99;
   const shippingCost = 0; // Free
-  const total = subtotal + qualityAssuranceFee + shippingCost;
+  const total = subtotal + shippingCost;
 
   // Date for delivery estimate (e.g., 3-5 days from now)
   const deliveryDateStart = new Date();
@@ -297,10 +295,6 @@ if (isInCart) return null;
                   <div className="flex justify-between">
                     <span>Shipping</span>
                     <span className="text-green-600 font-medium">Free</span>
-                  </div>
-                  <div className="flex justify-between group relative">
-                    <span className="border-b border-dotted border-gray-400 cursor-help">Quality Assurance Fee</span>
-                    <span>${qualityAssuranceFee.toFixed(2)}</span>
                   </div>
                 </div>
 
