@@ -40,12 +40,79 @@ interface CollectionSchemaFastParams {
 }
 
 /**
+ * Generate keywords from collection name and URL for enhanced SEO
+ */
+function generateKeywords(collectionName: string, collectionUrl: string): string {
+  const keywords: string[] = [];
+  
+  // Extract from URL path
+  const urlParts = collectionUrl.split('/').filter(p => p);
+  const category = urlParts[urlParts.length - 2] || '';
+  const subcategory = urlParts[urlParts.length - 1] || '';
+  
+  // Add collection name
+  keywords.push(collectionName.toLowerCase());
+  
+  // Add category-specific keywords
+  if (category === 'horse') {
+    keywords.push('equestrian', 'horse tack', 'horse equipment');
+    if (subcategory === 'saddles') keywords.push('riding saddles', 'horse saddles', 'equestrian saddles');
+    if (subcategory === 'rugs') keywords.push('horse rugs', 'horse blankets', 'turnout rugs');
+    if (subcategory === 'boots') keywords.push('horse boots', 'leg protection', 'equine boots');
+    if (subcategory === 'halters') keywords.push('horse halters', 'headstalls', 'lead ropes');
+  } else if (category === 'clothing') {
+    keywords.push('equestrian clothing', 'riding apparel', 'horse riding wear');
+    if (subcategory === 'breeches') keywords.push('riding breeches', 'riding pants', 'equestrian breeches');
+  } else if (category === 'rider') {
+    keywords.push('rider equipment', 'equestrian gear', 'riding accessories');
+    if (subcategory === 'helmets') keywords.push('riding helmets', 'equestrian helmets', 'safety helmets');
+  }
+  
+  // Add Australian context
+  keywords.push('Australia', 'Australian equestrian');
+  
+  return keywords.join(', ');
+}
+
+/**
+ * Generate sameAs links for external authority (Wikipedia, etc.)
+ */
+function generateSameAsLinks(collectionName: string, collectionUrl: string): string[] {
+  const links: string[] = [];
+  const urlParts = collectionUrl.split('/').filter(p => p);
+  const subcategory = urlParts[urlParts.length - 1] || '';
+  
+  // Map to Wikipedia pages (only for well-known equestrian terms)
+  const wikipediaMap: Record<string, string> = {
+    'saddles': 'https://en.wikipedia.org/wiki/Saddle',
+    'halters': 'https://en.wikipedia.org/wiki/Halter',
+    'bridles': 'https://en.wikipedia.org/wiki/Bridle',
+    'rugs': 'https://en.wikipedia.org/wiki/Horse_blanket',
+    'boots': 'https://en.wikipedia.org/wiki/Horse_boot',
+    'helmets': 'https://en.wikipedia.org/wiki/Equestrian_helmet',
+    'breeches': 'https://en.wikipedia.org/wiki/Breeches',
+  };
+  
+  if (wikipediaMap[subcategory]) {
+    links.push(wikipediaMap[subcategory]);
+  }
+  
+  return links;
+}
+
+/**
  * Generate "Best in Class" collection schema - FAST VERSION
  * 
  * Performance optimizations:
  * - Uses simple /products/{handle} URLs (no expensive canonical lookups)
  * - Limits to 12 products by default (Google doesn't need all 36)
  * - Skips image URLs (optional, reduces payload)
+ * 
+ * Enhanced with world-class schema properties:
+ * - additionalType for better classification
+ * - keywords for semantic understanding
+ * - about for topical relevance
+ * - sameAs for external authority links
  */
 export function generateCollectionSchemaFast(params: CollectionSchemaFastParams) {
   const {
@@ -102,17 +169,31 @@ export function generateCollectionSchemaFast(params: CollectionSchemaFastParams)
     };
   });
 
-  // Build the CollectionPage entity
+  // Build the CollectionPage entity with enhanced schema properties
   const collectionPageEntity: any = {
     '@type': 'CollectionPage',
     '@id': collectionUrl,
     name: collectionName,
     url: collectionUrl,
+    
+    // Enhanced: Add additionalType for more specific classification
+    additionalType: 'https://schema.org/ProductCollection',
+    
     mainEntity: {
       '@type': 'ItemList',
       itemListOrder: 'https://schema.org/ItemListOrderDescending',
       numberOfItems: products.length, // Total count, not just schema items
       itemListElement: itemListElements,
+    },
+    
+    // Enhanced: Add keywords for better semantic understanding
+    keywords: generateKeywords(collectionName, collectionUrl),
+    
+    // Enhanced: Add about property for topical relevance
+    about: {
+      '@type': 'Thing',
+      name: collectionName,
+      description: collectionDescription || `${collectionName} for equestrian use`,
     },
   };
 
@@ -127,6 +208,12 @@ export function generateCollectionSchemaFast(params: CollectionSchemaFastParams)
       name: parentCollection.name,
       url: parentCollection.url,
     };
+  }
+  
+  // Enhanced: Add sameAs for Wikipedia/external authority links (if available)
+  const sameAsLinks = generateSameAsLinks(collectionName, collectionUrl);
+  if (sameAsLinks.length > 0) {
+    collectionPageEntity.sameAs = sameAsLinks;
   }
 
   // Return @graph structure

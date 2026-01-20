@@ -107,13 +107,6 @@ export const collectionRedirects: Record<string, string> = {
   "/collections/black-friday-deals-for-equestrians/jumping": "/horse/boots/jumping"
 };
 
-export const blogRedirects: Record<string, string> = {
-  "/blogs/news/summer-riding-tips": "/news/summer-riding-tips",
-  "/blogs/news/best-saddles-2024": "/news/best-saddles-2024"
-};
+export const blogRedirects: Record<string, string> = {};
 
-export const pageRedirects: Record<string, string> = {
-  "/pages/about": "/about",
-  "/pages/contact": "/contact",
-  "/pages/shipping": "/shipping-delivery"
-};
+export const pageRedirects: Record<string, string> = {};

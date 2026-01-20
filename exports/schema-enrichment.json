@@ -1,0 +1,62 @@
+[
+  {
+    "url_path": "/horse/pads/all-purpose",
+    "h1_title": "All Purpose Pads",
+    "sameAs": "https://en.wikipedia.org/wiki/Long-distance_horse_riding"
+  },
+  {
+    "url_path": "/horse/halters",
+    "h1_title": "Headstalls",
+    "sameAs": "https://en.wikipedia.org/wiki/Glossary_of_equestrian_terms",
+    "keywords": [
+      "english",
+      "horse",
+      "equestrian"
+    ],
+    "about": [
+      {
+        "type": "Thing",
+        "name": "Where"
+      },
+      {
+        "type": "Thing",
+        "name": "American English"
+      },
+      {
+        "type": "Thing",
+        "name": "British English"
+      },
+      {
+        "type": "Thing",
+        "name": "Australia"
+      }
+    ]
+  },
+  {
+    "url_path": "/horse/halters/leads",
+    "h1_title": "Leads & Snap Hooks",
+    "sameAs": "https://en.wikipedia.org/wiki/List_of_Puerto_Ricans",
+    "about": [
+      {
+        "type": "Thing",
+        "name": "Puerto Rico"
+      },
+      {
+        "type": "Thing",
+        "name": "Borinquen"
+      },
+      {
+        "type": "Thing",
+        "name": "Puerto Rican"
+      },
+      {
+        "type": "Thing",
+        "name": "Certificates"
+      },
+      {
+        "type": "Thing",
+        "name": "Puerto Rican Citizenship"
+      }
+    ]
+  }
+]
