@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Manrope } from 'next/font/google';
 import './globals.css';
 import { Header } from '@/components/header/Header';
+import { FreeShippingBanner } from '@/components/header/FreeShippingBanner';
 import { Footer } from '@/components/footer/Footer';
 import { CartProvider } from '@/components/cart/cart-context';
 import { CartDrawer } from '@/components/cart/CartDrawer';
@@ -32,6 +33,7 @@ export default function RootLayout({
       <body className={manrope.className}>
         <CartProvider>
           <NavigationProgress />
+          <FreeShippingBanner />
           <Header />
           <main className="min-h-screen">
             {children}

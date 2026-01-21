@@ -8,6 +8,8 @@ import { useState } from 'react';
 import { FaCcVisa, FaCcMastercard, FaCcPaypal } from 'react-icons/fa';
 import { SiAfterpay, SiShopify } from 'react-icons/si';
 import { ShopifyProduct } from '@/types/shopify';
+import { DraftOrderCheckoutButton } from './DraftOrderCheckoutButton';
+import { calculateDisplayPrice } from '@/lib/shipping/calculate-display-price';
 
 interface CartPageContentProps {
   recommendedProducts?: ShopifyProduct[];
@@ -19,11 +21,25 @@ export function CartPageContent({ recommendedProducts = [] }: CartPageContentPro
   const [addingToCartId, setAddingToCartId] = useState<string | null>(null);
 
   const itemCount = cart?.totalQuantity || 0;
-  const subtotal = parseFloat(cart?.cost.subtotalAmount.amount || '0');
-  const currencyCode = cart?.cost.subtotalAmount.currencyCode || 'AUD';
   
-  const shippingCost = 0; // Free
-  const total = subtotal + shippingCost;
+  // Calculate subtotal with shipping included for each item
+  const subtotalWithShipping = cart?.lines.edges.reduce((total, { node: line }) => {
+    const basePrice = parseFloat(line.merchandise.price.amount);
+    const productData = {
+      vendor: line.merchandise.product?.vendor,
+      tags: line.merchandise.product?.tags,
+      weight: line.merchandise.weight,
+    };
+    const displayPrice = calculateDisplayPrice(
+      { amount: line.merchandise.price.amount, currencyCode: line.merchandise.price.currencyCode },
+      productData
+    );
+    return total + (parseFloat(displayPrice.amount) * line.quantity);
+  }, 0) || 0;
+  
+  const currencyCode = cart?.cost.subtotalAmount.currencyCode || 'AUD';
+  const shippingCost = 0; // Free (already included in prices)
+  const total = subtotalWithShipping;
 
   // Date for delivery estimate (e.g., 3-5 days from now)
   const deliveryDateStart = new Date();
@@ -73,7 +89,20 @@ export function CartPageContent({ recommendedProducts = [] }: CartPageContentPro
                 {cart.lines.edges.map(({ node: line }) => {
                   const product = line.merchandise.product;
                   const image = product?.images.edges[0]?.node;
-                  const price = parseFloat(line.merchandise.price.amount);
+                  const basePrice = parseFloat(line.merchandise.price.amount);
+                  
+                  // Calculate display price with shipping
+                  const productData = {
+                    vendor: product?.vendor,
+                    tags: product?.tags,
+                    weight: line.merchandise.weight,
+                  };
+                  const displayPrice = calculateDisplayPrice(
+                    { amount: line.merchandise.price.amount, currencyCode: line.merchandise.price.currencyCode },
+                    productData
+                  );
+                  const price = parseFloat(displayPrice.amount);
+                  
                   // Mock "Compare At" price for savings demo (10% more)
                   const compareAtPrice = price * 1.1;
                   const savings = compareAtPrice - price;
@@ -177,11 +206,11 @@ export function CartPageContent({ recommendedProducts = [] }: CartPageContentPro
                 })}
               </div>
 
-              {/* Complete Your Cart Section */}
+              {/* Want These In Your Cart Too Section */}
               {recommendedProducts.length > 0 && (
                 <div className="pt-8 border-t border-gray-200">
                   <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-bold text-gray-900">Complete your cart:</h2>
+                    <h2 className="text-xl font-bold text-gray-900">Want These In Your Cart Too?</h2>
                     <div className="flex gap-2">
                       <button 
                         className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
@@ -290,7 +319,7 @@ if (isInCart) return null;
                 <div className="space-y-3 text-sm text-gray-600 mb-6">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span>${subtotal.toFixed(2)}</span>
+                    <span>${subtotalWithShipping.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Shipping</span>
@@ -306,13 +335,8 @@ if (isInCart) return null;
                   <span className="text-2xl font-bold text-gray-900">${total.toFixed(2)}</span>
                 </div>
 
-                {/* Checkout Button */}
-                <a
-                  href={cart.checkoutUrl}
-                  className="block w-full bg-action text-white text-center py-4 rounded-full font-bold text-lg hover:bg-action-hover hover:shadow-lg transition-all mb-4 transform active:scale-[0.99]"
-                >
-                  Go to checkout
-                </a>
+                {/* Checkout Button - Using Draft Orders with Custom Prices */}
+                <DraftOrderCheckoutButton className="block w-full bg-action text-white text-center py-4 rounded-full font-bold text-lg hover:bg-action-hover hover:shadow-lg transition-all mb-4 transform active:scale-[0.99]" />
 
                 {/* Legal / Trust */}
                 <div className="text-xs text-gray-500 text-center mb-4">

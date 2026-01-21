@@ -5,9 +5,11 @@ import { ShopifyProduct } from '@/types/shopify';
 import { ProductVariantSelector } from '@/components/ProductVariantSelector';
 import { AddToCartButton } from './AddToCartButton';
 import { BuyNowButton } from './BuyNowButton';
+import { MobileStickyBar } from './MobileStickyBar';
 import { FaCcVisa, FaCcMastercard, FaCcPaypal } from 'react-icons/fa';
 import { SiAfterpay, SiShopify } from 'react-icons/si';
 import Image from 'next/image';
+import { calculateDisplayPrice } from '@/lib/shipping/calculate-display-price';
 
 interface ProductBuyBoxProps {
   product: ShopifyProduct;
@@ -57,31 +59,62 @@ export function ProductBuyBox({ product }: ProductBuyBoxProps) {
     }));
   };
 
-  const price = selectedVariant?.price.amount || product.priceRange.minVariantPrice.amount;
-  const compareAtPrice = selectedVariant?.compareAtPrice?.amount;
+  const basePrice = selectedVariant?.price.amount || product.priceRange.minVariantPrice.amount;
+  const baseCompareAtPrice = selectedVariant?.compareAtPrice?.amount;
   const isAvailable = selectedVariant?.availableForSale ?? true;
+
+  // Calculate display prices with shipping included
+  const productData = {
+    vendor: product.vendor,
+    tags: product.tags,
+    weight: selectedVariant?.weight,
+  };
+  
+  const displayPrice = calculateDisplayPrice(
+    { amount: basePrice, currencyCode: product.priceRange.minVariantPrice.currencyCode },
+    productData
+  );
+  
+  const displayCompareAtPrice = baseCompareAtPrice
+    ? calculateDisplayPrice(
+        { amount: baseCompareAtPrice, currencyCode: product.priceRange.minVariantPrice.currencyCode },
+        productData
+      )
+    : null;
 
   return (
     <div className="space-y-6">
-      {/* Price */}
+      {/* Price with Shipping Included */}
       <div className="mb-6">
         <div className="flex items-baseline gap-3 mb-2">
           <span className="text-4xl font-bold text-gray-900">
-            ${parseFloat(price).toFixed(2)}
+            ${parseFloat(displayPrice.amount).toFixed(2)}
           </span>
-          {compareAtPrice && parseFloat(compareAtPrice) > parseFloat(price) && (
+          {displayCompareAtPrice && parseFloat(displayCompareAtPrice.amount) > parseFloat(displayPrice.amount) && (
             <span className="text-lg text-gray-400 line-through font-medium">
-              ${parseFloat(compareAtPrice).toFixed(2)}
+              ${parseFloat(displayCompareAtPrice.amount).toFixed(2)}
             </span>
           )}
         </div>
-        {compareAtPrice && parseFloat(compareAtPrice) > parseFloat(price) && (
-          <div className="inline-block">
-            <span className="px-3 py-1 rounded-md text-sm font-semibold text-gray-900" style={{ backgroundColor: '#94F5BD' }}>
-              Save ${(parseFloat(compareAtPrice) - parseFloat(price)).toFixed(2)}
+        
+        {/* Badges Row - Save Amount + FREE SHIPPING */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Save Amount Badge - First if present */}
+          {displayCompareAtPrice && parseFloat(displayCompareAtPrice.amount) > parseFloat(displayPrice.amount) && (
+            <span className="inline-block px-3 py-1.5 rounded-md text-sm font-semibold text-gray-900" style={{ backgroundColor: '#94F5BD' }}>
+              Save ${(parseFloat(displayCompareAtPrice.amount) - parseFloat(displayPrice.amount)).toFixed(2)}
             </span>
-          </div>
-        )}
+          )}
+          
+          {/* FREE SHIPPING Badge - Square, Bright Blue */}
+          <span className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-sm font-bold text-white shadow-sm" style={{ backgroundColor: '#155dfb' }}>
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+              <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
+            </svg>
+            FREE SHIPPING
+          </span>
+        </div>
       </div>
 
       {/* Variant Selector */}
@@ -169,6 +202,13 @@ export function ProductBuyBox({ product }: ProductBuyBoxProps) {
           <span>Easy returns within 30 days</span>
         </div>
       </div>
+
+      {/* Mobile Sticky Bar - Only visible on mobile, appears on scroll */}
+      <MobileStickyBar 
+        product={product}
+        selectedVariant={selectedVariant}
+        isAvailable={isAvailable}
+      />
     </div>
   );
 }

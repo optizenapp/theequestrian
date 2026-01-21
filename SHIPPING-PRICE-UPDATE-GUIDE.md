@@ -1,38 +1,58 @@
 # Shipping Price Update Guide
 
+This guide will help you add shipping costs to product prices in Shopify, enabling a "Free Shipping" model on your headless frontend.
+
 ## Overview
 
-This guide explains how to add vendor shipping costs to product prices in Shopify, enabling you to offer "Free Shipping" while covering shipping costs in the product price.
+**Goal**: Add each vendor's shipping cost to their product prices in Shopify, so you can offer "Free Shipping" on the frontend while vendors still get compensated for shipping.
 
-## Workflow
-
-```
-Shopify Products → Export CSV → Add Shipping → Import CSV → Updated Prices
-```
+**Approach**: 
+1. Generate a vendor list from your database
+2. Map each vendor to their shipping rate(s)
+3. Export products from Shopify
+4. Run the script to update prices
+5. Import updated prices back to Shopify
 
 ## Step-by-Step Instructions
 
-### 1. Set Up Shipping Rates
+### Step 1: Generate Vendor List Template
 
-#### A. Vendor Shipping Rates (Required)
+Run this command to create a CSV template with all your vendors:
 
-Edit `exports/vendor-shipping-rates.csv` with your vendor shipping costs:
-
-```csv
-vendor,shipping_cost
-Ariat,15.00
-Kerrits,12.50
-Dublin,18.00
-Kentucky,20.00
+```bash
+npm run get-vendors
 ```
 
-**Important:**
-- Vendor names must match exactly as they appear in Shopify (case-insensitive)
-- Shipping costs in dollars (e.g., `15.00` for $15)
+This will:
+- Query your database for all unique vendors
+- Show you how many products each vendor has
+- Create `exports/vendor-shipping-rates-TEMPLATE.csv`
 
-#### B. Tag-Based Shipping Overrides (Optional)
+### Step 2: Fill in Shipping Rates
 
-Edit `exports/tag-shipping-rates.csv` for products that need special shipping based on tags:
+Open `exports/vendor-shipping-rates-TEMPLATE.csv` and fill in the `shipping_cost` column:
+
+**Example:**
+
+```csv
+vendor,shipping_cost,notes
+Acavallo,15.00,254 products - Standard shipping
+Ariat,12.50,423 products - Standard shipping
+Ascot Saddlery,18.00,1205 products - Mix of items
+Black Dog,15.00,204 products - Pet treats
+...
+```
+
+**Tips:**
+- Most vendors will have 1 standard rate
+- For vendors with heavy items, you can use tag-based overrides (see Step 3)
+- The `notes` column is optional - just for your reference
+
+Save the file as `exports/vendor-shipping-rates.csv` (remove `-TEMPLATE` from filename).
+
+### Step 3: (Optional) Create Tag-Based Shipping Overrides
+
+If some products within a vendor's catalog have different shipping (e.g., heavy items), create `exports/tag-shipping-rates.csv`:
 
 ```csv
 tag,shipping_cost
@@ -40,111 +60,252 @@ heavy,25.00
 bulky,30.00
 oversized,35.00
 fragile,18.00
+saddles,40.00
+rugs-heavy,28.00
 ```
 
 **How it works:**
-- **Tags override vendor rates** - If a product has a tag like "heavy", it uses that shipping cost instead of the vendor's default
-- Perfect for products that cost more to ship (heavy items, oversized, fragile, etc.)
-- Case-insensitive matching
-- First matching tag wins if a product has multiple shipping tags
+- Tags are checked first (highest priority)
+- If a product has a matching tag, that shipping rate is used
+- Otherwise, the vendor's default rate is used
 
-### 2. Export Products from Shopify
+**To add tags to products:**
+1. Go to Shopify Admin → Products
+2. Filter by vendor
+3. Select products that need special shipping
+4. Bulk add tags like "heavy" or "bulky"
+
+### Step 4: Export Products from Shopify
 
 1. Go to **Shopify Admin** → **Products**
 2. Click **Export**
-3. Select **All products**
-4. Format: **CSV for Excel, Numbers, or other spreadsheet programs**
-5. Download the file (e.g., `products_export_2024-12-12.csv`)
+3. Export **All products** in **CSV** format
+4. Save the file in your project (e.g., `shopify-products-export.csv`)
 
-### 3. Run the Script
+### Step 5: Run the Price Update Script
 
 ```bash
-npx tsx scripts/add-shipping-to-prices.ts products_export_2024-12-12.csv products_import_updated.csv
+npm run add-shipping shopify-products-export.csv shopify-products-updated.csv
+```
+
+Or with full path:
+
+```bash
+npx tsx scripts/add-shipping-to-prices.ts shopify-products-export.csv shopify-products-updated.csv
 ```
 
 **What it does:**
-- Reads your product export
-- Checks product tags for shipping overrides (e.g., "heavy", "bulky")
-- Falls back to vendor shipping rate if no tag match
-- Adds shipping to `Variant Price`
-- Also updates `Variant Compare At Price` if present
-- Outputs a new CSV ready to import
+1. Reads your product export
+2. Reads vendor shipping rates from `exports/vendor-shipping-rates.csv`
+3. Reads tag shipping overrides from `exports/tag-shipping-rates.csv` (if exists)
+4. For each product:
+   - Checks if product has a tag with shipping override → use that rate
+   - Otherwise, uses vendor's default shipping rate
+   - Adds shipping cost to price: `new_price = old_price + shipping_cost`
+   - Also updates "Compare At Price" if present
+5. Outputs `shopify-products-updated.csv`
 
 **Example output:**
+
 ```
-✓ Ariat Show Jacket: $299.00 + $15.00 = $314.00 (vendor:"Ariat")
-✓ Heavy Saddle Stand: $149.00 + $25.00 = $174.00 (tag:"heavy")
-✓ Kerrits Tights: $89.00 + $12.50 = $101.50 (vendor:"Kerrits")
-✓ Oversized Jump: $899.00 + $35.00 = $934.00 (tag:"oversized")
+🚀 Starting price update process...
+
+📦 Loading vendor shipping rates...
+✅ Loaded 156 vendor shipping rates
+
+🏷️  Loading tag-based shipping overrides...
+✅ Loaded 6 tag-based shipping overrides
+
+📥 Reading product export: shopify-products-export.csv
+✅ Loaded 4409 product rows
+
+💰 Calculating new prices...
+  ✓ Ariat Auburn Baselayer: $79.95 + $12.50 = $92.45 (vendor:"Ariat")
+  ✓ Heavy Saddle Pad: $149.00 + $40.00 = $189.00 (tag:"saddles")
+  ✓ Dog Toy: $12.99 + $15.00 = $27.99 (vendor:"Black Dog")
+  ...
+
+📊 Summary:
+   ✅ Updated: 4320 products
+   🏷️  Tag overrides: 89 products
+   ⚠️  No shipping rate: 12 products
+   ⏭️  Skipped: 77 products
+
+💾 Writing updated CSV: shopify-products-updated.csv
+
+✅ Done! Import shopify-products-updated.csv back to Shopify to update prices.
 ```
 
-### 4. Review the Output
+### Step 6: Review the Updated CSV
 
-Open `products_import_updated.csv` and spot-check a few prices to ensure they look correct.
+Open `shopify-products-updated.csv` and spot-check some prices:
 
-### 5. Import Back to Shopify
+- Verify prices increased by the correct amount
+- Check that heavy/special items used tag overrides
+- Look for any products that were skipped or had warnings
+
+### Step 7: Import Back to Shopify
 
 1. Go to **Shopify Admin** → **Products**
 2. Click **Import**
-3. Upload `products_import_updated.csv`
-4. **Important:** Select **"Overwrite any current products that have the same handle"**
-5. Click **Upload and continue**
-6. Review the preview
-7. Click **Import products**
+3. Upload `shopify-products-updated.csv`
+4. **Important**: Select **"Overwrite existing products"** option
+5. Click **Import**
+6. Wait for import to complete (may take a few minutes for 4400+ products)
 
-### 6. Verify
+### Step 8: Verify in Shopify
 
-- Check a few products in Shopify admin to confirm prices updated
-- Check your headless site - prices should reflect immediately
-- Test checkout to ensure everything works
+1. Check a few products in Shopify Admin
+2. Verify prices were updated correctly
+3. Check products with tags to ensure overrides worked
+
+### Step 9: Sync to Headless Database
+
+Once prices are updated in Shopify, sync them to your headless database:
+
+```bash
+npm run db:sync
+```
+
+This will pull the updated prices into your Neon Postgres database.
+
+### Step 10: Update Marketplace App Settings
+
+As per your support chat, you need to:
+
+1. Disable "Split Cart" feature in the marketplace app
+2. Enable free shipping for all vendors in the marketplace app settings
+3. Or set up free shipping in Shopify shipping settings
+
+**Reference**: https://marketplace-doc.webkul.com/zenith/Featured-App/Shipping/Marketplace%20Shipping.html
 
 ## Important Notes
 
-### ✅ Pros of This Approach:
-- **Single source of truth** - Shopify has the correct price
-- **No code changes** - Your headless site automatically shows updated prices
-- **Accurate analytics** - Revenue reports are correct
-- **Legal compliance** - Display price = checkout price
+### Price Storage Strategy
 
-### ⚠️ Things to Consider:
-- **One-time update** - If shipping costs change, you'll need to re-run
-- **Vendor changes** - New vendors need to be added to `vendor-shipping-rates.csv`
-- **Backup first** - Always export current prices before updating
+**✅ Correct approach (what you're doing):**
+- Update prices in Shopify backend
+- Prices sync to headless database via webhooks
+- Single source of truth
 
-### 🚫 What NOT to Do:
-- Don't modify prices in your Next.js app (display layer)
-- Don't show different prices than Shopify charges
-- Don't forget to update compare-at prices if products are on sale
+**❌ Don't do this:**
+- Only update prices in headless database
+- Shopify checkout would show different (lower) prices
+- Customers would be confused
 
-## Automation (Optional)
+### Backup & Safety
 
-If you frequently update prices, you can:
-1. Schedule this script to run weekly
-2. Use Shopify webhooks to trigger updates
-3. Build an admin UI to manage vendor shipping rates
+Before importing to Shopify:
+1. Export your current products as backup
+2. Review the updated CSV carefully
+3. Test with a small subset first if nervous
+
+### Webhooks
+
+Your project has real-time webhooks set up. After you update prices in Shopify:
+- Webhooks will automatically sync changes to Neon database
+- No manual sync needed (though you can run `npm run db:sync` to be sure)
+
+### Reverting Changes
+
+If you need to revert:
+1. Keep your original export file
+2. Import it back to Shopify (it has the old prices)
+3. Or manually adjust shipping rates in the CSV and re-run
 
 ## Troubleshooting
 
 ### "No shipping rate for vendor: X"
-- Add the vendor to `exports/vendor-shipping-rates.csv`
-- Check vendor name spelling matches Shopify exactly
-- Or add a tag-based override if this product needs special shipping
 
-### Prices look wrong
-- Verify shipping costs in CSV are correct
-- Check if prices were already updated (don't run twice!)
-- Review the output CSV before importing
+**Solution**: Add that vendor to `exports/vendor-shipping-rates.csv`
 
-### Import failed
-- Ensure CSV format matches Shopify's export format
-- Check for special characters in product titles
-- Verify all required columns are present
+### Tag override not working
 
-## Need Help?
+**Checklist**:
+- Tag is in `exports/tag-shipping-rates.csv`
+- Tag name matches exactly (case-insensitive)
+- Product has that tag in Shopify
+- Tag CSV file is in `exports/` folder
 
-The script logs detailed information about:
-- How many products were updated
-- Which vendors have no shipping rates
-- Example price calculations
+### Price didn't update in Shopify
 
-Review the output carefully before importing!
+**Checklist**:
+- Selected "Overwrite existing products" during import
+- Wait for import to complete fully
+- Check Shopify import log for errors
+- Verify the Handle column matches between export and import
+
+### Products skipped
+
+Products are skipped if:
+- No Vendor specified
+- No matching shipping rate found
+- Invalid price format
+
+Check the script output for specific warnings.
+
+## Examples
+
+### Standard vendor (all products same shipping)
+
+```csv
+vendor,shipping_cost,notes
+Ariat,12.50,All items standard shipping
+```
+
+### Vendor with heavy items using tags
+
+1. Add vendor default rate:
+```csv
+vendor,shipping_cost,notes
+Kentucky Horsewear,15.00,Most items
+```
+
+2. Add tag override:
+```csv
+tag,shipping_cost
+kentucky-heavy,28.00
+```
+
+3. Tag heavy products in Shopify with "kentucky-heavy"
+
+### Mix of both
+
+`vendor-shipping-rates.csv`:
+```csv
+vendor,shipping_cost,notes
+Acavallo,15.00,254 products
+Ariat,12.50,423 products
+Ascot Saddlery,18.00,1205 products
+```
+
+`tag-shipping-rates.csv`:
+```csv
+tag,shipping_cost
+heavy,25.00
+bulky,30.00
+saddles,40.00
+```
+
+Products will use:
+- Tag rate if they have "heavy", "bulky", or "saddles" tag
+- Vendor rate otherwise
+
+## Summary
+
+1. ✅ **npm run get-vendors** - Generate template
+2. ✅ Fill in `exports/vendor-shipping-rates.csv`
+3. ✅ (Optional) Create `exports/tag-shipping-rates.csv`
+4. ✅ Export products from Shopify
+5. ✅ **npm run add-shipping input.csv output.csv**
+6. ✅ Review output CSV
+7. ✅ Import to Shopify
+8. ✅ Verify prices
+9. ✅ **npm run db:sync**
+10. ✅ Update marketplace app settings
+
+Your headless frontend can now truthfully show "Free Shipping" 🎉
+
+## Questions?
+
+Check the script output for detailed logs and error messages. The script is designed to be safe and provide clear feedback about what it's doing.

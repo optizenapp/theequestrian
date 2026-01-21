@@ -39,3 +39,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+.env*.local
+
+# Shopify exports (may contain sensitive pricing data)
+shopify-*.csv
+*-export.csv
+*-updated.csv
+
+# Vendor shipping rates (business sensitive)
+# Note: TEMPLATE files are safe to commit
+exports/vendor-shipping-rates.csv
+exports/tag-shipping-rates.csv

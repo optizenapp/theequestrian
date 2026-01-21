@@ -1,5 +1,7 @@
-tag,shipping_cost
-heavy,25.00
-bulky,30.00
-oversized,35.00
-fragile,18.00
+tag,shipping_cost,notes
+heavy,25.00,Products over 5kg
+bulky,30.00,Large volume items
+oversized,35.00,Items requiring large box
+saddles,40.00,Saddles and heavy tack
+rugs-large,28.00,Large horse rugs
+fragile,18.00,Requires extra packaging
