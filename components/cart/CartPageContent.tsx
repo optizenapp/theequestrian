@@ -27,8 +27,8 @@ export function CartPageContent({ recommendedProducts = [] }: CartPageContentPro
     const basePrice = parseFloat(line.merchandise.price.amount);
     const productData = {
       vendor: line.merchandise.product?.vendor,
-      tags: line.merchandise.product?.tags,
-      weight: line.merchandise.weight,
+      tags: [], // Cart doesn't include tags, use empty array (will use vendor rate)
+      // weight not available in cart, will use vendor flat rate
     };
     const displayPrice = calculateDisplayPrice(
       { amount: line.merchandise.price.amount, currencyCode: line.merchandise.price.currencyCode },
@@ -94,8 +94,8 @@ export function CartPageContent({ recommendedProducts = [] }: CartPageContentPro
                   // Calculate display price with shipping
                   const productData = {
                     vendor: product?.vendor,
-                    tags: product?.tags,
-                    weight: line.merchandise.weight,
+                    tags: [], // Cart doesn't include tags, use empty array (will use vendor rate)
+                    // weight not available in cart, will use vendor flat rate
                   };
                   const displayPrice = calculateDisplayPrice(
                     { amount: line.merchandise.price.amount, currencyCode: line.merchandise.price.currencyCode },
@@ -144,10 +144,9 @@ export function CartPageContent({ recommendedProducts = [] }: CartPageContentPro
                                 )}
                               </div>
 
-                              {/* Delivery Info */}
+                              {/* Express Shipping Info */}
                               <div className="text-sm">
-                                <p className="text-gray-900">Get it by <span className="font-medium">{deliveryString}</span> • Free</p>
-                                <p className="text-gray-500 text-xs mt-0.5">Express available at checkout</p>
+                                <p className="text-xs font-medium" style={{ color: '#155dfb' }}>Express available at checkout</p>
                               </div>
                             </div>
 

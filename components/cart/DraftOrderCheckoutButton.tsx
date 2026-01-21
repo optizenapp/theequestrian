@@ -56,10 +56,10 @@ export function DraftOrderCheckoutButton({ className }: DraftOrderCheckoutButton
         variantId: node.merchandise.id,
         quantity: node.quantity,
         price: node.merchandise.price.amount,
-        vendor: node.merchandise.product.vendor || 'Unknown',
-        tags: node.merchandise.product.tags || [],
-        title: node.merchandise.product.title || node.merchandise.title,
-        weight: node.merchandise.weight?.value, // Weight in grams (if available)
+        vendor: node.merchandise.product?.vendor || 'Unknown',
+        tags: [], // Cart doesn't include tags
+        title: node.merchandise.product?.title || node.merchandise.title,
+        // weight not available in cart
       }));
       
       console.log('[Checkout] Creating draft order...');

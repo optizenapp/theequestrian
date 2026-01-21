@@ -67,7 +67,7 @@ export function ProductBuyBox({ product }: ProductBuyBoxProps) {
   const productData = {
     vendor: product.vendor,
     tags: product.tags,
-    weight: selectedVariant?.weight,
+    // weight property not available on variant type, will use vendor/tag rates
   };
   
   const displayPrice = calculateDisplayPrice(
