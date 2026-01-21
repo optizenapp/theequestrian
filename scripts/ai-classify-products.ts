@@ -129,7 +129,7 @@ async function fetchProductsNeedingClassification(): Promise<Product[]> {
   let cursor: string | null = null;
 
   while (hasNextPage) {
-    const result = await shopifyFetch<any>({
+    const result: any = await shopifyFetch<any>({
       query,
       variables: { first: 250, after: cursor },
       cache: 'no-store',
