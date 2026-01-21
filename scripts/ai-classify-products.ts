@@ -62,7 +62,7 @@ function loadValidProductTypes(): string[] {
     columns: true,
     skip_empty_lines: true,
     trim: true,
-  });
+  }) as Array<{ action?: string; product_type?: string; [key: string]: any }>;
 
   // Extract unique product types (excluding excluded ones)
   const productTypes = new Set<string>();
