@@ -73,13 +73,13 @@ async function testKepHelmetUrl() {
     const fs = require('fs');
     const csvPath = path.join(process.cwd(), 'exports', 'mapping-template-draft2.csv');
     const csvContent = fs.readFileSync(csvPath, 'utf-8');
-    const lines = csvContent.split('\n').filter(line => 
+    const lines = csvContent.split('\n').filter((line: string) => 
       line.includes(product.productType) || line.includes('RIDER: Helmets')
     );
     
     if (lines.length > 0) {
       console.log('   Found in mapping CSV:');
-      lines.forEach(line => console.log(`   ${line}`));
+      lines.forEach((line: string) => console.log(`   ${line}`));
     }
 
   } catch (error) {

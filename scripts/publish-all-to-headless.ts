@@ -40,7 +40,7 @@ async function getHeadlessPublicationId(): Promise<string | null> {
   `;
 
   try {
-    const result = await shopifyAdminFetch<{ publications: { edges: Array<{ node: Publication }> } }>({
+    const result: { publications: { edges: Array<{ node: Publication }> } } = await shopifyAdminFetch<{ publications: { edges: Array<{ node: Publication }> } }>({
       query,
     });
 
@@ -100,7 +100,12 @@ async function getAllProducts(): Promise<Product[]> {
     `;
 
     try {
-      const result = await shopifyAdminFetch<{
+      const result: {
+        products: {
+          edges: Array<{ node: Product }>;
+          pageInfo: { hasNextPage: boolean; endCursor: string };
+        };
+      } = await shopifyAdminFetch<{
         products: {
           edges: Array<{ node: Product }>;
           pageInfo: { hasNextPage: boolean; endCursor: string };
@@ -175,7 +180,12 @@ async function publishProductsToHeadless(
       `;
 
       try {
-        const result = await shopifyAdminFetch<{
+        const result: {
+          publishablePublish: {
+            publishable: { id: string; title: string } | null;
+            userErrors: Array<{ field: string[]; message: string }>;
+          };
+        } = await shopifyAdminFetch<{
           publishablePublish: {
             publishable: { id: string; title: string } | null;
             userErrors: Array<{ field: string[]; message: string }>;

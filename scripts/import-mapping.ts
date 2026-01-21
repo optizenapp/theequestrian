@@ -421,7 +421,20 @@ async function applyUpdatesToShopify(updates: ProductUpdate[]) {
           ]
         : [];
 
-      const result = await shopifyAdminFetch<{
+      const result: {
+        metafieldsSet: {
+          metafields: Array<{
+            id: string;
+            namespace: string;
+            key: string;
+            value: string;
+          }> | null;
+          userErrors: Array<{
+            field: string[];
+            message: string;
+          }>;
+        };
+      } = await shopifyAdminFetch<{
         metafieldsSet: {
           metafields: Array<{
             id: string;
