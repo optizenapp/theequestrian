@@ -102,12 +102,49 @@ function loadMapping(): Map<string, MappingRow[]> {
 }
 
 /**
+ * Build merge map for resolving product type aliases
+ * Maps product types with 'merge' action to their target product type
+ * 
+ * Example: "RIDER: Helmets" -> "Helmets", "Helmet" -> "Helmets"
+ */
+function buildMergeMap(): Map<string, string> {
+  const mapping = loadMapping();
+  const mergeMap = new Map<string, string>();
+  
+  for (const [_, rows] of mapping.entries()) {
+    for (const row of rows) {
+      if (row.action === 'merge' && row.merge_to && row.product_type) {
+        const sourceType = row.product_type.trim();
+        const targetType = row.merge_to.trim();
+        mergeMap.set(sourceType, targetType);
+      }
+    }
+  }
+  
+  return mergeMap;
+}
+
+/**
+ * Resolve a product type through merge actions
+ * If the product type has a merge action, return the merge target
+ * Otherwise return the original product type
+ */
+function resolveProductType(productType: string, mergeMap: Map<string, string>): string {
+  const trimmed = productType.trim();
+  return mergeMap.get(trimmed) || trimmed;
+}
+
+/**
  * Get all productTypes that should appear on a given collection page
+ * Handles merge actions: includes BOTH the original product types AND their merge targets
+ * This ensures products are found regardless of which product_type value they have in Shopify
+ * 
+ * Example: If "RIDER: Helmets" merges to "Helmets", the query will include BOTH types
  * 
  * @param category - e.g., "horse"
  * @param subcategory - e.g., "boots" (optional)
  * @param subsubcategory - e.g., "bell-boots" (optional)
- * @returns Array of product types that should appear on this page
+ * @returns Array of product types to query (includes both original and merged types)
  */
 export function getProductTypesForCollection(
   category: string,
@@ -115,6 +152,7 @@ export function getProductTypesForCollection(
   subsubcategory?: string
 ): string[] {
   const mapping = loadMapping();
+  const mergeMap = buildMergeMap();
   
   // Build the path to look up
   const pathParts = [category];
@@ -128,13 +166,21 @@ export function getProductTypesForCollection(
   // If exact match found, and it's a leaf node (has no children), use it
   // But if it might have children (like pet/dog), we want to fall through to aggregation
   if (rows && rows.length > 0 && subsubcategory) {
-    const productTypes: string[] = [];
+    const productTypes = new Set<string>();
     for (const row of rows) {
       if (row.product_type && row.product_type.trim()) {
-        productTypes.push(row.product_type.trim());
+        const originalType = row.product_type.trim();
+        
+        // Always include the original product type (for products that have this exact type in Shopify)
+        productTypes.add(originalType);
+        
+        // If this is a merge action, also include the target type
+        if (row.action === 'merge' && row.merge_to) {
+          productTypes.add(row.merge_to.trim());
+        }
       }
     }
-    return productTypes;
+    return Array.from(productTypes);
   }
 
   // For top-level categories or categories with subcategories, aggregate from all children
@@ -145,7 +191,15 @@ export function getProductTypesForCollection(
     if (rows && rows.length > 0) {
       for (const row of rows) {
         if (row.product_type && row.product_type.trim()) {
-          productTypes.add(row.product_type.trim());
+          const originalType = row.product_type.trim();
+          
+          // Always include the original product type
+          productTypes.add(originalType);
+          
+          // If this is a merge action, also include the target type
+          if (row.action === 'merge' && row.merge_to) {
+            productTypes.add(row.merge_to.trim());
+          }
         }
       }
     }
@@ -157,7 +211,15 @@ export function getProductTypesForCollection(
       if (path.startsWith(prefix)) {
         for (const row of pathRows) {
           if (row.product_type && row.product_type.trim()) {
-            productTypes.add(row.product_type.trim());
+            const originalType = row.product_type.trim();
+            
+            // Always include the original product type
+            productTypes.add(originalType);
+            
+            // If this is a merge action, also include the target type
+            if (row.action === 'merge' && row.merge_to) {
+              productTypes.add(row.merge_to.trim());
+            }
           }
         }
       }

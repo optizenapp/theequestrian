@@ -54,7 +54,8 @@
     "fix-meta-titles-pet": "tsx scripts/fix-meta-titles-pet.ts",
     "get-vendors": "tsx scripts/get-all-vendors.ts",
     "add-shipping": "tsx scripts/add-shipping-to-prices.ts",
-    "test:draft-order": "tsx scripts/test-draft-order.ts"
+    "test:draft-order": "tsx scripts/test-draft-order.ts",
+    "ai:classify-products": "tsx scripts/ai-classify-products.ts"
   },
   "dependencies": {
     "@vercel/kv": "^3.0.0",
