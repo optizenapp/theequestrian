@@ -7,6 +7,7 @@ import { ProductDescription } from '@/components/product/ProductDescription';
 import { generateBreadcrumbSchema } from '@/lib/utils/breadcrumb-schema';
 import { getBreadcrumbsForProduct } from '@/lib/mapping/collection-mapping';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
+import { getProductBulletPoints } from '@/lib/products/bullet-points';
 
 export const revalidate = 300;
 
@@ -15,12 +16,6 @@ interface ProductCatchAllPageProps {
     slug: string[];
   }>;
 }
-
-const featureHighlights = [
-  'Premium quality materials for long-lasting durability and comfort',
-  'Expertly designed for optimal performance in all conditions',
-  'Trusted by professionals and enthusiasts worldwide',
-];
 
 /**
  * Catch-all route for product pages at any category depth
@@ -90,6 +85,9 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
     additionalPaths,
     siteUrl
   );
+
+  // Get product-specific bullet points
+  const featureHighlights = getProductBulletPoints(product.id);
 
   return (
     <div className="bg-background min-h-screen pb-20">

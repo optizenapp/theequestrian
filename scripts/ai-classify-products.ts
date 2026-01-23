@@ -9,6 +9,13 @@
  *   npm run ai:classify-products -- --dry-run
  *   npm run ai:classify-products -- --start=0 --limit=50
  *   npm run ai:classify-products
+ *   npm run ai:classify-products -- --resume=exports/ai-classified-products-2026-01-21.csv
+ * 
+ * Options:
+ *   --dry-run                    Test mode, no files written
+ *   --start=N                    Start at product index N
+ *   --limit=N                    Process only N products
+ *   --resume=path/to/file.csv    Skip products already in this CSV file
  */
 
 import * as dotenv from 'dotenv';
@@ -34,17 +41,56 @@ interface Product {
 // Parse command line arguments
 const args = process.argv.slice(2);
 const dryRun = args.includes('--dry-run');
+const resumeArg = args.find(arg => arg.startsWith('--resume='));
 const startArg = args.find(arg => arg.startsWith('--start='));
 const limitArg = args.find(arg => arg.startsWith('--limit='));
 
 const startIndex = startArg ? parseInt(startArg.split('=')[1]) : 0;
 const limitCount = limitArg ? parseInt(limitArg.split('=')[1]) : undefined;
+const resumeFile = resumeArg ? resumeArg.split('=')[1] : null;
 
 console.log('🤖 AI Product Type Classifier\n');
 console.log('='.repeat(60));
 
 if (dryRun) {
   console.log('🧪 DRY RUN MODE - No files will be written\n');
+}
+
+if (resumeFile) {
+  console.log(`🔄 RESUME MODE - Skipping already classified products from: ${resumeFile}\n`);
+}
+
+/**
+ * Load already-classified products from a resume file
+ */
+function loadAlreadyClassified(filePath: string): Set<string> {
+  const classifiedIds = new Set<string>();
+  
+  if (!fs.existsSync(filePath)) {
+    console.log(`⚠️  Resume file not found: ${filePath}`);
+    return classifiedIds;
+  }
+
+  try {
+    const csvContent = fs.readFileSync(filePath, 'utf-8');
+    const records = parse(csvContent, {
+      columns: true,
+      skip_empty_lines: true,
+      trim: true,
+    }) as Array<{ shopify_id?: string; [key: string]: any }>;
+
+    for (const row of records) {
+      if (row.shopify_id) {
+        classifiedIds.add(row.shopify_id);
+      }
+    }
+
+    console.log(`✅ Loaded ${classifiedIds.size} already-classified products from resume file\n`);
+  } catch (error) {
+    console.error(`❌ Error loading resume file:`, error);
+  }
+
+  return classifiedIds;
 }
 
 /**
@@ -85,15 +131,10 @@ function loadValidProductTypes(): string[] {
 async function fetchProductsNeedingClassification(): Promise<Product[]> {
   console.log('📦 Fetching products from Shopify...\n');
 
+  // Only classify products with truly missing product types
   const problemTypes = [
     '(No Product Type)',
     '',
-    'Default',
-    'Veterinary',
-    'Clothing',
-    'Accessories',
-    'Pet',
-    'General',
   ];
 
   const query = `
@@ -169,6 +210,68 @@ async function fetchProductsNeedingClassification(): Promise<Product[]> {
 }
 
 /**
+ * Save progress to CSV (incremental or final)
+ */
+async function saveProgressToCSV(
+  products: Product[],
+  results: Map<string, any>,
+  isIncremental: boolean = false
+): Promise<void> {
+  const timestamp = new Date().toISOString().split('T')[0];
+  const filename = isIncremental 
+    ? `ai-classified-products-${timestamp}-progress.csv`
+    : `ai-classified-products-${timestamp}.csv`;
+  
+  const csvRows = [
+    [
+      'shopify_id',
+      'handle',
+      'title',
+      'vendor',
+      'current_type',
+      'suggested_type',
+      'confidence',
+      'validation_status',
+      'reasoning',
+      'alternative_types',
+      'tags',
+      'collections',
+    ],
+  ];
+
+  for (const product of products) {
+    const result = results.get(product.id);
+    if (!result) continue;
+
+    csvRows.push([
+      product.id,
+      product.handle,
+      product.title,
+      product.vendor,
+      product.productType || '(No Product Type)',
+      result.suggestedType,
+      result.confidence.toString(),
+      result.validationStatus,
+      result.reasoning,
+      result.alternativeTypes?.join('; ') || '',
+      product.tags.slice(0, 5).join('; '),
+      product.collections.edges.slice(0, 3).map((e: any) => e.node.handle).join('; '),
+    ]);
+  }
+
+  const csvContent = stringify(csvRows);
+  const outputPath = path.join(process.cwd(), 'exports', filename);
+  
+  fs.writeFileSync(outputPath, csvContent);
+  
+  if (isIncremental) {
+    console.log(`    💾 Progress saved: ${results.size} products classified`);
+  } else {
+    console.log(`✅ Final export: ${outputPath}`);
+  }
+}
+
+/**
  * Main classification process
  */
 async function main() {
@@ -176,11 +279,24 @@ async function main() {
     // Step 1: Load valid product types
     const validProductTypes = loadValidProductTypes();
 
-    // Step 2: Fetch products needing classification
+    // Step 2: Load already-classified products if resuming
+    const alreadyClassified = resumeFile ? loadAlreadyClassified(resumeFile) : new Set<string>();
+
+    // Step 3: Fetch products needing classification
     const allProducts = await fetchProductsNeedingClassification();
 
+    // Step 4: Filter out already-classified products
+    const unclassifiedProducts = alreadyClassified.size > 0
+      ? allProducts.filter(p => !alreadyClassified.has(p.id))
+      : allProducts;
+
+    if (alreadyClassified.size > 0) {
+      console.log(`✅ Filtered out ${allProducts.length - unclassifiedProducts.length} already-classified products`);
+      console.log(`📊 Remaining to classify: ${unclassifiedProducts.length} products\n`);
+    }
+
     // Apply start/limit filters
-    const productsToClassify = allProducts.slice(
+    const productsToClassify = unclassifiedProducts.slice(
       startIndex,
       limitCount ? startIndex + limitCount : undefined
     );
@@ -227,6 +343,11 @@ async function main() {
       console.log(`    Claude validated (total): ${batchStats.claudeValidated}`);
       console.log(`    Needs review: ${batchStats.needsReview}`);
       console.log(`    Avg confidence: ${batchStats.avgConfidence.toFixed(1)}%`);
+
+      // Save progress after each batch (incremental save)
+      if (!dryRun) {
+        await saveProgressToCSV(productsToClassify, allResults, true);
+      }
     }
 
     // Step 5: Generate statistics
@@ -240,55 +361,10 @@ async function main() {
     console.log(`Needs manual review: ${stats.needsReview} (${(stats.needsReview / stats.total * 100).toFixed(1)}%)`);
     console.log(`Average confidence: ${stats.avgConfidence.toFixed(1)}%`);
 
-    // Step 6: Export to CSV
+    // Step 6: Export final CSV
     if (!dryRun) {
-      console.log('\n📝 Exporting results to CSV...\n');
-      
-      const csvRows = [
-        [
-          'Product ID',
-          'Handle',
-          'Title',
-          'Current Product Type',
-          'Vendor',
-          'Tags (first 5)',
-          'Collections (first 3)',
-          'AI Suggested Type',
-          'Confidence %',
-          'Validation Status',
-          'Reasoning',
-          'Alternative Types',
-          'Manual Override',
-        ],
-      ];
-
-      for (const product of productsToClassify) {
-        const result = allResults.get(product.id);
-        if (!result) continue;
-
-        csvRows.push([
-          product.id.replace('gid://shopify/Product/', ''),
-          product.handle,
-          product.title,
-          product.productType || '(No Product Type)',
-          product.vendor,
-          product.tags.slice(0, 5).join('; '),
-          product.collections.edges.slice(0, 3).map(e => e.node.handle).join('; '),
-          result.suggestedType,
-          result.confidence.toString(),
-          result.validationStatus,
-          result.reasoning,
-          result.alternativeTypes?.join('; ') || '',
-          '', // Manual override - empty for user to fill
-        ]);
-      }
-
-      const csvContent = stringify(csvRows);
-      const outputPath = path.join(process.cwd(), 'exports', 'products-classified-by-ai.csv');
-      
-      fs.writeFileSync(outputPath, csvContent);
-      
-      console.log(`✅ Exported to: ${outputPath}`);
+      console.log('\n📝 Exporting final results to CSV...\n');
+      await saveProgressToCSV(productsToClassify, allResults, false);
     } else {
       console.log('\n🧪 DRY RUN - Skipping CSV export');
     }

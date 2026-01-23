@@ -7,6 +7,7 @@ import { Footer } from '@/components/footer/Footer';
 import { CartProvider } from '@/components/cart/cart-context';
 import { CartDrawer } from '@/components/cart/CartDrawer';
 import { NavigationProgress } from '@/components/NavigationProgress';
+import { ConfiguredShopifyInbox } from '@/components/chat/ConfiguredShopifyInbox';
 
 const manrope = Manrope({
   subsets: ['latin'],
@@ -40,6 +41,16 @@ export default function RootLayout({
           </main>
           <Footer />
           <CartDrawer />
+          <ConfiguredShopifyInbox
+            config={{
+              colors: {
+                background: '#00B2A9', // Your Shopify Admin teal
+                text: '#FFFFFF',
+                buttons: '#6A6A6A', // Your Shopify Admin gray
+              },
+              greetingMessage: '👋 Hey. Welcome to The Equestrian. If you have a question, just ask. We\'ll reply shortly.',
+            }}
+          />
         </CartProvider>
       </body>
     </html>

@@ -277,10 +277,17 @@ vercel --prod
 
 ## 📚 Resources
 
+### Documentation
+- [Scripts and Automation Wiki](./SCRIPTS-AND-AUTOMATION-WIKI.md) - Complete guide to all scripts and cron jobs
+- [Scripts Quick Reference](./SCRIPTS-QUICK-REFERENCE.md) - Quick command reference
+- [Product Bullet Points System](./PRODUCT-BULLET-POINTS-SYSTEM.md) - AI-powered bullet points
+- [Master Content Generator](./MASTER-CONTENT-GENERATOR-V2.md) - Collection content generation
+- [Project Brief](./shopify-headless-migration-brief.md) - Original technical brief
+
+### External Resources
 - [Shopify Storefront API Docs](https://shopify.dev/docs/api/storefront)
 - [Next.js App Router Docs](https://nextjs.org/docs/app)
 - [Vercel Deployment Docs](https://vercel.com/docs)
-- [Project Brief](./shopify-headless-migration-brief.md)
 
 ## 📝 License
 

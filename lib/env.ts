@@ -23,6 +23,11 @@ const envSchema = z.object({
   SENTRY_DSN: z.string().optional(),
   NEXT_PUBLIC_GOOGLE_ANALYTICS_ID: z.string().optional(),
   NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
+
+  // Shopify Inbox
+  NEXT_PUBLIC_SHOPIFY_INBOX_SCRIPT_URL: z.string().url().optional(),
+  NEXT_PUBLIC_SHOPIFY_INBOX_ENABLED: z.string().optional(),
+  NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

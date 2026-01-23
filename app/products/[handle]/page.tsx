@@ -12,6 +12,7 @@ import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { getBreadcrumbsForProduct } from '@/lib/mapping/collection-mapping';
 import ProductReviewSection from '@/components/reviews/ProductReviewSection';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
+import { getProductBulletPoints } from '@/lib/products/bullet-points';
 
 export const revalidate = 300;
 
@@ -20,12 +21,6 @@ interface ProductPageProps {
     handle: string;
   }>;
 }
-
-const featureHighlights = [
-  'Premium quality materials for long-lasting durability and comfort',
-  'Expertly designed for optimal performance in all conditions',
-  'Trusted by professionals and enthusiasts worldwide',
-];
 
 /**
  * Legacy product route: /products/{handle}
@@ -95,6 +90,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
   // Fetch review stats for related products (server-side batch)
   const relatedHandles = relatedProducts.map(p => p.handle);
   const relatedReviewStatsMap = await getReviewStatsForProducts(relatedHandles);
+
+  // Get product-specific bullet points
+  const featureHighlights = getProductBulletPoints(product.id);
 
   return (
     <div className="bg-background min-h-screen pb-20">
