@@ -1,9 +1,38 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { blogRedirects, collectionRedirects, pageRedirects } from '@/lib/redirects/maps';
 
 export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Redirect legacy collection URLs.
+  if (pathname.startsWith('/collections/')) {
+    const target = collectionRedirects[pathname];
+    if (target) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = target;
+      return NextResponse.redirect(redirectUrl, 301);
+    }
+  }
+
+  // Redirect legacy blog URLs (specific map, then fallback to strip /blogs).
+  if (pathname.startsWith('/blogs/')) {
+    const target = blogRedirects[pathname] ?? pathname.replace(/^\/blogs/, '');
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = target;
+    return NextResponse.redirect(redirectUrl, 301);
+  }
+
+  // Redirect legacy page URLs (specific map, then fallback to strip /pages).
+  if (pathname.startsWith('/pages/')) {
+    const target = pageRedirects[pathname] ?? pathname.replace(/^\/pages/, '');
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = target;
+    return NextResponse.redirect(redirectUrl, 301);
+  }
+
   // Only protect /admin routes
-  if (request.nextUrl.pathname.startsWith('/admin')) {
+  if (pathname.startsWith('/admin')) {
     // Check if user is authenticated
     const isAuthenticated = request.cookies.get('admin-auth')?.value === 'true';
     
@@ -24,5 +53,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: '/admin/:path*',
+  matcher: ['/admin/:path*', '/collections/:path*', '/blogs/:path*', '/pages/:path*'],
 };

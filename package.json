@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "redirects:generate": "tsx scripts/generate-redirects.ts",
+    "redirects:export:blogs": "tsx scripts/export-blog-redirects.ts",
     "redirects:validate": "tsx scripts/validate-redirects.ts",
     "redirects:test": "tsx scripts/test-redirects.ts",
     "redirects:test:prod": "TEST_URL=https://theequestrian.vercel.app tsx scripts/test-redirects.ts",
