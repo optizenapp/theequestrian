@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "npm run redirects:generate && next dev -p 3001",
+    "dev": "npm run redirects:generate && next dev -p 3003",
     "build": "npm run redirects:generate && next build",
     "start": "next start",
     "lint": "eslint",
