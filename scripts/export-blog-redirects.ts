@@ -86,7 +86,7 @@ async function fetchAllBlogs(): Promise<ShopifyBlog[]> {
   let hasNextPage = true;
 
   while (hasNextPage) {
-    const response = await shopifyFetch<BlogResponse>({
+    const response: BlogResponse = await shopifyFetch<BlogResponse>({
       query: BLOGS_QUERY,
       variables: { first: 50, after },
       cache: 'no-store',
@@ -106,7 +106,7 @@ async function fetchAllArticles(blogHandle: string): Promise<string[]> {
   let hasNextPage = true;
 
   while (hasNextPage) {
-    const response = await shopifyFetch<ArticlesResponse>({
+    const response: ArticlesResponse = await shopifyFetch<ArticlesResponse>({
       query: ARTICLES_QUERY,
       variables: { handle: blogHandle, first: 250, after },
       cache: 'no-store',
