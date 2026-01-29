@@ -1,4 +1,24 @@
-vendor,shipping_cost,notes
-Example Vendor 1,15.00,Replace with your actual vendors
-Example Vendor 2,12.50,Run 'npm run get-vendors' to generate template
-Example Vendor 3,20.00,See README-SHIPPING-RATES.md for details
+vendor_name,shipping_cost
+Ascot Saddlery,12
+Shire Saddleworld,15
+HORSE QUEENED,15
+Tacklet,15
+Paddock Blade,0
+The Equestrian,0
+JNK Collective,12
+QJ Riding Wear,8
+Runaway Equestrian Co.,18
+Plum Tack,8
+JP Equestrian Fashion,8
+Ippico Equestrian,8
+Top Brands,8
+Little Equine Co,8
+Helmet Brims,18
+CAN Animal Care,15
+Diamond Deluxe Horsewear,15
+Hitchley & Harrow,8
+Living Horse Tails Jewellery By Monika,8
+EAC Animal Care,8
+Dapple Eq,8
+Thinline Global Australia,8
+Trailrace,0
