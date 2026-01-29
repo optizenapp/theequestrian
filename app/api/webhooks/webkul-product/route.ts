@@ -20,13 +20,13 @@ async function loadRates() {
   const path = await import('path');
   const { parse } = await import('csv-parse/sync');
 
-  // Vercel deployment paths
+  // Load from public folder (deployed with Vercel)
   const projectRoot = process.cwd();
-  const exportsPath = path.join(projectRoot, 'exports');
+  const publicPath = path.join(projectRoot, 'public');
   
   // Load vendor rates
   const vendorCsv = fs.readFileSync(
-    path.join(exportsPath, 'vendor-shipping-rates.csv'),
+    path.join(publicPath, 'vendor-shipping-rates.csv'),
     'utf-8'
   );
   const vendorRecords = parse(vendorCsv, { columns: true, skip_empty_lines: true });
@@ -39,7 +39,7 @@ async function loadRates() {
 
   // Load tag rates
   const tagCsv = fs.readFileSync(
-    path.join(exportsPath, 'tag-shipping-rates.csv'),
+    path.join(publicPath, 'tag-shipping-rates.csv'),
     'utf-8'
   );
   const tagRecords = parse(tagCsv, { columns: true, skip_empty_lines: true });
@@ -52,7 +52,7 @@ async function loadRates() {
 
   // Load seller mapping
   const sellerCsv = fs.readFileSync(
-    path.join(exportsPath, 'seller-to-vendor-mapping.csv'),
+    path.join(publicPath, 'seller-to-vendor-mapping.csv'),
     'utf-8'
   );
   const sellerRecords = parse(sellerCsv, { columns: true, skip_empty_lines: true });

@@ -1,0 +1,4 @@
+vendor,shipping_cost,notes
+Example Vendor 1,15.00,Replace with your actual vendors
+Example Vendor 2,12.50,Run 'npm run get-vendors' to generate template
+Example Vendor 3,20.00,See README-SHIPPING-RATES.md for details
