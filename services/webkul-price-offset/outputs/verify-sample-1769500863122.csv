@@ -1,0 +1,24 @@
+product_id,variant_id,vendor,tags,shipping_offset,current_price,audit_vendor_price,expected_adjusted_price,baseline_source,status
+21241697,62272395,,,,0.00,0.00,,audit,no_offset
+21233177,62246575,,bangle|bracelet|cuff|horsehair|silver|sterling silver,,99.90,99.90,,audit,no_offset
+21233177,62246576,,bangle|bracelet|cuff|horsehair|silver|sterling silver,,99.90,99.90,,audit,no_offset
+21233177,62246577,,bangle|bracelet|cuff|horsehair|silver|sterling silver,,99.90,99.90,,audit,no_offset
+21222509,62224556,,,,44.95,44.95,,audit,no_offset
+21216114,62211511,,Cap|caps|RM Williams,,49.00,49.00,,audit,no_offset
+21216014,62211303,,caps|hats|RM Williams,,0.00,0.00,,audit,no_offset
+21215107,62209552,,Handbag|RM Williams|tote bag,,649.00,649.00,,audit,no_offset
+21215104,62209549,,bandana|RM Williams,,59.00,59.00,,audit,no_offset
+21215100,62209536,,Ladies|Ladies Casual|ladies fashion|Ladies Shirt|RM Williams,,199.00,199.00,,audit,no_offset
+21215100,62209537,,Ladies|Ladies Casual|ladies fashion|Ladies Shirt|RM Williams,,199.00,199.00,,audit,no_offset
+21215100,62209538,,Ladies|Ladies Casual|ladies fashion|Ladies Shirt|RM Williams,,199.00,199.00,,audit,no_offset
+21215100,62209539,,Ladies|Ladies Casual|ladies fashion|Ladies Shirt|RM Williams,,199.00,199.00,,audit,no_offset
+21215100,62209540,,Ladies|Ladies Casual|ladies fashion|Ladies Shirt|RM Williams,,199.00,199.00,,audit,no_offset
+21215083,62209490,,Ladies|Ladies Casual|ladies fashion|Ladies Shirt|RM Williams,,199.00,199.00,,audit,no_offset
+21215083,62209491,,Ladies|Ladies Casual|ladies fashion|Ladies Shirt|RM Williams,,199.00,199.00,,audit,no_offset
+21215083,62209492,,Ladies|Ladies Casual|ladies fashion|Ladies Shirt|RM Williams,,199.00,199.00,,audit,no_offset
+21215083,62209493,,Ladies|Ladies Casual|ladies fashion|Ladies Shirt|RM Williams,,199.00,199.00,,audit,no_offset
+21215083,62209494,,Ladies|Ladies Casual|ladies fashion|Ladies Shirt|RM Williams,,199.00,199.00,,audit,no_offset
+21215072,62209473,,Knitwear|Ladies|Ladies Casual|ladies fashion|RM Williams,,229.00,229.00,,audit,no_offset
+21215072,62209474,,Knitwear|Ladies|Ladies Casual|ladies fashion|RM Williams,,229.00,229.00,,audit,no_offset
+21215072,62209475,,Knitwear|Ladies|Ladies Casual|ladies fashion|RM Williams,,229.00,229.00,,audit,no_offset
+21215072,62209476,,Knitwear|Ladies|Ladies Casual|ladies fashion|RM Williams,,229.00,229.00,,audit,no_offset

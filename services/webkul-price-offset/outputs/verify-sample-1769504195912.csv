@@ -1,0 +1,24 @@
+product_id,variant_id,vendor,tags,shipping_offset,current_price,audit_vendor_price,expected_adjusted_price,baseline_source,status
+21241697,62272395,Shire Saddleworld,,15,0.00,0.00,15.00,audit,vendor_price
+21233177,62246575,Living Horse Tails Jewellery By Monika,bangle|bracelet|cuff|horsehair|silver|sterling silver,8,99.90,99.90,107.90,audit,vendor_price
+21233177,62246576,Living Horse Tails Jewellery By Monika,bangle|bracelet|cuff|horsehair|silver|sterling silver,8,99.90,99.90,107.90,audit,vendor_price
+21233177,62246577,Living Horse Tails Jewellery By Monika,bangle|bracelet|cuff|horsehair|silver|sterling silver,8,99.90,99.90,107.90,audit,vendor_price
+21222509,62224556,Shire Saddleworld,,15,44.95,44.95,59.95,audit,vendor_price
+21216114,62211511,Dapple Eq,Cap|caps|RM Williams,8,49.00,49.00,57.00,audit,vendor_price
+21216014,62211303,Dapple Eq,caps|hats|RM Williams,8,0.00,0.00,8.00,audit,vendor_price
+21215107,62209552,Dapple Eq,Handbag|RM Williams|tote bag,8,649.00,649.00,657.00,audit,vendor_price
+21215104,62209549,Dapple Eq,bandana|RM Williams,8,59.00,59.00,67.00,audit,vendor_price
+21215100,62209536,Dapple Eq,Ladies|Ladies Casual|ladies fashion|Ladies Shirt|RM Williams,8,199.00,199.00,207.00,audit,vendor_price
+21215100,62209537,Dapple Eq,Ladies|Ladies Casual|ladies fashion|Ladies Shirt|RM Williams,8,199.00,199.00,207.00,audit,vendor_price
+21215100,62209538,Dapple Eq,Ladies|Ladies Casual|ladies fashion|Ladies Shirt|RM Williams,8,199.00,199.00,207.00,audit,vendor_price
+21215100,62209539,Dapple Eq,Ladies|Ladies Casual|ladies fashion|Ladies Shirt|RM Williams,8,199.00,199.00,207.00,audit,vendor_price
+21215100,62209540,Dapple Eq,Ladies|Ladies Casual|ladies fashion|Ladies Shirt|RM Williams,8,199.00,199.00,207.00,audit,vendor_price
+21215083,62209490,Dapple Eq,Ladies|Ladies Casual|ladies fashion|Ladies Shirt|RM Williams,8,199.00,199.00,207.00,audit,vendor_price
+21215083,62209491,Dapple Eq,Ladies|Ladies Casual|ladies fashion|Ladies Shirt|RM Williams,8,199.00,199.00,207.00,audit,vendor_price
+21215083,62209492,Dapple Eq,Ladies|Ladies Casual|ladies fashion|Ladies Shirt|RM Williams,8,199.00,199.00,207.00,audit,vendor_price
+21215083,62209493,Dapple Eq,Ladies|Ladies Casual|ladies fashion|Ladies Shirt|RM Williams,8,199.00,199.00,207.00,audit,vendor_price
+21215083,62209494,Dapple Eq,Ladies|Ladies Casual|ladies fashion|Ladies Shirt|RM Williams,8,199.00,199.00,207.00,audit,vendor_price
+21215072,62209473,Dapple Eq,Knitwear|Ladies|Ladies Casual|ladies fashion|RM Williams,8,229.00,229.00,237.00,audit,vendor_price
+21215072,62209474,Dapple Eq,Knitwear|Ladies|Ladies Casual|ladies fashion|RM Williams,8,229.00,229.00,237.00,audit,vendor_price
+21215072,62209475,Dapple Eq,Knitwear|Ladies|Ladies Casual|ladies fashion|RM Williams,8,229.00,229.00,237.00,audit,vendor_price
+21215072,62209476,Dapple Eq,Knitwear|Ladies|Ladies Casual|ladies fashion|RM Williams,8,229.00,229.00,237.00,audit,vendor_price

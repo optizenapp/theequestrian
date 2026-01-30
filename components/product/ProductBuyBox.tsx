@@ -9,7 +9,6 @@ import { MobileStickyBar } from './MobileStickyBar';
 import { FaCcVisa, FaCcMastercard, FaCcPaypal } from 'react-icons/fa';
 import { SiAfterpay, SiShopify } from 'react-icons/si';
 import Image from 'next/image';
-import { calculateDisplayPrice } from '@/lib/shipping/calculate-display-price';
 
 interface ProductBuyBoxProps {
   product: ShopifyProduct;
@@ -63,23 +62,17 @@ export function ProductBuyBox({ product }: ProductBuyBoxProps) {
   const baseCompareAtPrice = selectedVariant?.compareAtPrice?.amount;
   const isAvailable = selectedVariant?.availableForSale ?? true;
 
-  // Calculate display prices with shipping included
-  const productData = {
-    vendor: product.vendor,
-    tags: product.tags,
-    // weight property not available on variant type, will use vendor/tag rates
+  // Use Shopify prices directly (shipping is already included in Shopify prices via Webkul middleware)
+  const displayPrice = {
+    amount: basePrice,
+    currencyCode: product.priceRange.minVariantPrice.currencyCode
   };
   
-  const displayPrice = calculateDisplayPrice(
-    { amount: basePrice, currencyCode: product.priceRange.minVariantPrice.currencyCode },
-    productData
-  );
-  
   const displayCompareAtPrice = baseCompareAtPrice
-    ? calculateDisplayPrice(
-        { amount: baseCompareAtPrice, currencyCode: product.priceRange.minVariantPrice.currencyCode },
-        productData
-      )
+    ? {
+        amount: baseCompareAtPrice,
+        currencyCode: product.priceRange.minVariantPrice.currencyCode
+      }
     : null;
 
   return (

@@ -1,0 +1,27 @@
+product_id,variant_id,vendor,tags,shipping_offset,current_price,audit_vendor_price,expected_adjusted_price,baseline_source,status
+21270563,62352800,QJ Riding Wear,,8,99.95,,107.95,current,vendor_price
+21270563,62352801,QJ Riding Wear,,8,99.95,,107.95,current,vendor_price
+21270563,62352802,QJ Riding Wear,,8,99.95,,107.95,current,vendor_price
+21270563,62352803,QJ Riding Wear,,8,99.95,,107.95,current,vendor_price
+21270563,62352804,QJ Riding Wear,,8,99.95,,107.95,current,vendor_price
+21270563,62352805,QJ Riding Wear,,8,99.95,,107.95,current,vendor_price
+21270563,62352806,QJ Riding Wear,,8,99.95,,107.95,current,vendor_price
+21270563,62352807,QJ Riding Wear,,8,99.95,,107.95,current,vendor_price
+21270563,62352808,QJ Riding Wear,,8,99.95,,107.95,current,vendor_price
+21270563,62352809,QJ Riding Wear,,8,99.95,,107.95,current,vendor_price
+21270563,62352810,QJ Riding Wear,,8,99.95,,107.95,current,vendor_price
+21270563,62352811,QJ Riding Wear,,8,99.95,,107.95,current,vendor_price
+21270563,62352812,QJ Riding Wear,,8,99.95,,107.95,current,vendor_price
+21270563,62352813,QJ Riding Wear,,8,99.95,,107.95,current,vendor_price
+21270563,62352814,QJ Riding Wear,,8,99.95,,107.95,current,vendor_price
+21270563,62352815,QJ Riding Wear,,8,99.95,,107.95,current,vendor_price
+21270563,62353575,QJ Riding Wear,,8,99.95,,107.95,current,vendor_price
+21270563,62353576,QJ Riding Wear,,8,99.95,,107.95,current,vendor_price
+21270563,62353577,QJ Riding Wear,,8,99.95,,107.95,current,vendor_price
+21270563,62353578,QJ Riding Wear,,8,99.95,,107.95,current,vendor_price
+21250875,62298394,Living Horse Tails Jewellery By Monika,gold|gold plated|horse shoe|horsehair|horseshoe|mane|necklace|pendant|resin|rose gold|silver|solid gold|sterling silver|White Gold|yellow gold,8,199.90,199.90,207.90,audit,vendor_price
+21241697,62272395,Shire Saddleworld,,15,15.00,0.00,15.00,audit,already_adjusted
+21233177,62246575,Living Horse Tails Jewellery By Monika,bangle|bracelet|cuff|horsehair|silver|sterling silver,8,115.90,107.90,115.90,audit,already_adjusted
+21233177,62246576,Living Horse Tails Jewellery By Monika,bangle|bracelet|cuff|horsehair|silver|sterling silver,8,107.90,99.90,107.90,audit,already_adjusted
+21233177,62246577,Living Horse Tails Jewellery By Monika,bangle|bracelet|cuff|horsehair|silver|sterling silver,8,107.90,99.90,107.90,audit,already_adjusted
+21222509,62224556,Shire Saddleworld,,15,44.95,44.95,59.95,audit,vendor_price

@@ -87,7 +87,7 @@ export function ProductCard({ product, priority = false, showBreadcrumbs = false
             currencyCode={price.currencyCode}
             vendor={product.vendor}
             tags={product.tags}
-            includeShipping={true}
+            includeShipping={false}
           />
           
           {!product.availableForSale && (

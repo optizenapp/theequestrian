@@ -1,0 +1,35 @@
+{
+  "name": "webkul-price-offset",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "start": "node --enable-source-maps dist/index.js",
+    "build": "tsc -p tsconfig.json",
+    "db:init": "tsx src/jobs/init-db.ts",
+    "bulk": "tsx src/jobs/bulk.ts",
+    "report": "tsx src/jobs/report-changes.ts",
+    "rollback": "tsx src/jobs/rollback.ts",
+    "verify:sample": "tsx src/jobs/verify-sample.ts",
+    "reconcile": "tsx src/jobs/reconcile.ts",
+    "extract:vendors": "tsx src/jobs/extract-vendors.ts",
+    "extract:tags": "tsx src/jobs/extract-tags.ts",
+    "debug:product": "tsx src/jobs/debug-product.ts",
+    "get:sellers": "tsx src/jobs/get-sellers-fast.ts",
+    "match:sellers": "tsx src/jobs/match-sellers-to-vendors.ts"
+  },
+  "dependencies": {
+    "csv-parse": "^6.1.0",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "p-queue": "^8.1.0",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.2",
+    "@types/node": "^20",
+    "tsx": "^4.21.0",
+    "typescript": "^5"
+  }
+}

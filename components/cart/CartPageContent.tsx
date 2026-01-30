@@ -9,7 +9,6 @@ import { FaCcVisa, FaCcMastercard, FaCcPaypal } from 'react-icons/fa';
 import { SiAfterpay, SiShopify } from 'react-icons/si';
 import { ShopifyProduct } from '@/types/shopify';
 import { DraftOrderCheckoutButton } from './DraftOrderCheckoutButton';
-import { calculateDisplayPrice } from '@/lib/shipping/calculate-display-price';
 
 interface CartPageContentProps {
   recommendedProducts?: ShopifyProduct[];
@@ -22,19 +21,10 @@ export function CartPageContent({ recommendedProducts = [] }: CartPageContentPro
 
   const itemCount = cart?.totalQuantity || 0;
   
-  // Calculate subtotal with shipping included for each item
+  // Calculate subtotal (shipping is already included in Shopify prices via Webkul middleware)
   const subtotalWithShipping = cart?.lines.edges.reduce((total, { node: line }) => {
-    const basePrice = parseFloat(line.merchandise.price.amount);
-    const productData = {
-      vendor: line.merchandise.product?.vendor,
-      tags: [], // Cart doesn't include tags, use empty array (will use vendor rate)
-      // weight not available in cart, will use vendor flat rate
-    };
-    const displayPrice = calculateDisplayPrice(
-      { amount: line.merchandise.price.amount, currencyCode: line.merchandise.price.currencyCode },
-      productData
-    );
-    return total + (parseFloat(displayPrice.amount) * line.quantity);
+    const price = parseFloat(line.merchandise.price.amount);
+    return total + (price * line.quantity);
   }, 0) || 0;
   
   const currencyCode = cart?.cost.subtotalAmount.currencyCode || 'AUD';
@@ -92,16 +82,8 @@ export function CartPageContent({ recommendedProducts = [] }: CartPageContentPro
                   const basePrice = parseFloat(line.merchandise.price.amount);
                   
                   // Calculate display price with shipping
-                  const productData = {
-                    vendor: product?.vendor,
-                    tags: [], // Cart doesn't include tags, use empty array (will use vendor rate)
-                    // weight not available in cart, will use vendor flat rate
-                  };
-                  const displayPrice = calculateDisplayPrice(
-                    { amount: line.merchandise.price.amount, currencyCode: line.merchandise.price.currencyCode },
-                    productData
-                  );
-                  const price = parseFloat(displayPrice.amount);
+                  // Use Shopify price directly (shipping already included via Webkul middleware)
+                  const price = parseFloat(line.merchandise.price.amount);
                   
                   // Mock "Compare At" price for savings demo (10% more)
                   const compareAtPrice = price * 1.1;
