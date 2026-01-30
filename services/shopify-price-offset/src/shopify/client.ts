@@ -47,7 +47,15 @@ async function shopifyFetch(endpoint: string, options: RequestInit = {}) {
     throw new Error(`Shopify API ${response.status}: ${text}`);
   }
 
-  return response.json();
+  const data = await response.json();
+  
+  // Attach Link header for pagination
+  const linkHeader = response.headers.get('Link');
+  if (linkHeader) {
+    data._link = linkHeader;
+  }
+  
+  return data;
 }
 
 export async function getAllProducts(): Promise<ShopifyProduct[]> {
@@ -70,8 +78,8 @@ export async function getAllProducts(): Promise<ShopifyProduct[]> {
     if (data.products && data.products.length > 0) {
       products.push(...data.products);
       
-      // Check for pagination
-      const linkHeader = data.link; // Shopify returns Link header for pagination
+      // Check for pagination using Link header
+      const linkHeader = data._link;
       if (linkHeader && linkHeader.includes('rel="next"')) {
         // Extract page_info from link header
         const nextMatch = linkHeader.match(/page_info=([^&>]+)/);
