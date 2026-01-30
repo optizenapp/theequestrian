@@ -164,9 +164,9 @@ export async function POST(req: NextRequest) {
       const currentCompareAt = variant.compare_at_price ? parseFloat(variant.compare_at_price) : null;
       const variantId = variant.id.toString();
 
-      // Check audit database to see if we've already processed this variant at this price
+      // Check audit database to see if we've already processed this variant
       const auditCheck = await sql`
-        SELECT vendor_price, adjusted_price, shipping_offset 
+        SELECT vendor_price, adjusted_price, shipping_offset, updated_at
         FROM shopify_price_audit 
         WHERE variant_id = ${variantId}
         ORDER BY updated_at DESC 
@@ -176,10 +176,23 @@ export async function POST(req: NextRequest) {
       if (auditCheck.length > 0) {
         const lastAudit = auditCheck[0];
         const lastAdjustedPrice = parseFloat(lastAudit.adjusted_price);
+        const lastVendorPrice = parseFloat(lastAudit.vendor_price);
+        const lastUpdated = new Date(lastAudit.updated_at);
+        const nowTime = new Date();
+        const secondsSinceUpdate = (nowTime.getTime() - lastUpdated.getTime()) / 1000;
         
-        // If current price matches our last adjusted price, skip (already processed)
-        if (Math.abs(currentPrice - lastAdjustedPrice) < 0.01) {
-          console.log(`[Shopify Webhook] Variant ${variantId} already processed ($${currentPrice}), skipping`);
+        // If current price matches our last adjusted price AND it was updated recently (< 60s ago),
+        // this is likely our own update triggering the webhook - skip it
+        if (Math.abs(currentPrice - lastAdjustedPrice) < 0.01 && secondsSinceUpdate < 60) {
+          console.log(`[Shopify Webhook] Variant ${variantId} was just updated ${secondsSinceUpdate.toFixed(0)}s ago to $${currentPrice}, skipping loop`);
+          skipped++;
+          continue;
+        }
+        
+        // If current price is close to last vendor price, it means Webkul synced a new price
+        // We should update it
+        if (Math.abs(currentPrice - lastVendorPrice) < 0.01) {
+          console.log(`[Shopify Webhook] Variant ${variantId} price unchanged from vendor ($${currentPrice}), skipping`);
           skipped++;
           continue;
         }
