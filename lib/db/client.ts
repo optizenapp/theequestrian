@@ -70,7 +70,7 @@ export async function initializeSchema(): Promise<void> {
     ];
     
     for (const index of indexes) {
-      await sql(index);
+      await sql.unsafe(index);
     }
     
     // Create facet_cache table
