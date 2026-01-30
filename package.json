@@ -61,6 +61,7 @@
     "update:bullets": "tsx scripts/update-product-bullets.ts"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
     "@vercel/kv": "^3.0.0",
     "@vercel/postgres": "^0.10.0",
     "csv-parse": "^6.1.0",

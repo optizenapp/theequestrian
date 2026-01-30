@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { neon } from '@neondatabase/serverless';
 
 const SHOPIFY_WEBHOOK_SECRET = process.env.SHOPIFY_WEBHOOK_SECRET || '';
 const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || '';
 const SHOPIFY_STORE_DOMAIN = process.env.SHOPIFY_STORE_DOMAIN || '';
+const DATABASE_URL = process.env.DATABASE_URL || '';
+
+const sql = neon(DATABASE_URL);
 
 // Vendor shipping rates (hardcoded for performance)
 const VENDOR_RATES: Record<string, number> = {
@@ -43,24 +47,14 @@ const DEFAULT_SHIPPING = 8.00;
 
 function verifyWebhook(req: NextRequest, body: string): boolean {
   const hmac = req.headers.get('x-shopify-hmac-sha256');
-  if (!hmac || !SHOPIFY_WEBHOOK_SECRET) {
-    console.error('[Shopify Webhook] Missing HMAC or secret');
-    return false;
-  }
-
-  // Temporary diagnostic log
-  console.log('[Shopify Webhook] Secret length:', SHOPIFY_WEBHOOK_SECRET.length);
-  console.log('[Shopify Webhook] Secret first 10 chars:', SHOPIFY_WEBHOOK_SECRET.substring(0, 10));
+  if (!hmac || !SHOPIFY_WEBHOOK_SECRET) return false;
 
   const hash = crypto
     .createHmac('sha256', SHOPIFY_WEBHOOK_SECRET)
     .update(body, 'utf8')
     .digest('base64');
 
-  const isValid = crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(hmac));
-  console.log('[Shopify Webhook] Signature valid:', isValid);
-  
-  return isValid;
+  return crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(hmac));
 }
 
 function getShippingOffset(vendor: string, tags: string[]): number {
@@ -159,11 +153,37 @@ export async function POST(req: NextRequest) {
 
     console.log(`[Shopify Webhook] Applying +$${shippingOffset} shipping offset`);
 
-    // Update each variant
+    // CRITICAL: Prevent infinite loop by checking audit database
+    // Only update if the current price matches the vendor's base price (no offset yet)
+    
     let variantsUpdated = 0;
+    let skipped = 0;
+    
     for (const variant of product.variants || []) {
       const currentPrice = parseFloat(variant.price);
       const currentCompareAt = variant.compare_at_price ? parseFloat(variant.compare_at_price) : null;
+      const variantId = variant.id.toString();
+
+      // Check audit database to see if we've already processed this variant at this price
+      const auditCheck = await sql`
+        SELECT vendor_price, adjusted_price, shipping_offset 
+        FROM shopify_price_audit 
+        WHERE variant_id = ${variantId}
+        ORDER BY updated_at DESC 
+        LIMIT 1
+      `;
+
+      if (auditCheck.length > 0) {
+        const lastAudit = auditCheck[0];
+        const lastAdjustedPrice = parseFloat(lastAudit.adjusted_price);
+        
+        // If current price matches our last adjusted price, skip (already processed)
+        if (Math.abs(currentPrice - lastAdjustedPrice) < 0.01) {
+          console.log(`[Shopify Webhook] Variant ${variantId} already processed ($${currentPrice}), skipping`);
+          skipped++;
+          continue;
+        }
+      }
 
       // Calculate new price with shipping
       const newPrice = (currentPrice + shippingOffset).toFixed(2);
@@ -175,12 +195,33 @@ export async function POST(req: NextRequest) {
         newCompareAt = (parseFloat(newPrice) / ratio).toFixed(2);
       }
 
-      // Only update if price changed
-      if (Math.abs(parseFloat(newPrice) - currentPrice) > 0.01) {
-        await updateVariantPrice(variant.id, newPrice, newCompareAt);
-        variantsUpdated++;
-        console.log(`[Shopify Webhook] Updated variant ${variant.id}: $${currentPrice} → $${newPrice}`);
-      }
+      // Update the variant price
+      await updateVariantPrice(variant.id, newPrice, newCompareAt);
+      
+      // Log to audit database
+      await sql`
+        INSERT INTO shopify_price_audit (
+          variant_id, product_id, vendor, vendor_price, shipping_offset, 
+          adjusted_price, source, updated_at
+        ) VALUES (
+          ${variantId}, ${productId.toString()}, ${vendor}, ${currentPrice.toFixed(2)}, 
+          ${shippingOffset}, ${newPrice}, 'webhook', NOW()
+        )
+        ON CONFLICT (variant_id) 
+        DO UPDATE SET
+          vendor_price = ${currentPrice.toFixed(2)},
+          shipping_offset = ${shippingOffset},
+          adjusted_price = ${newPrice},
+          source = 'webhook',
+          updated_at = NOW()
+      `;
+      
+      variantsUpdated++;
+      console.log(`[Shopify Webhook] Updated variant ${variantId}: $${currentPrice} → $${newPrice}`);
+    }
+
+    if (skipped > 0) {
+      console.log(`[Shopify Webhook] Skipped ${skipped} variants (already processed)`);
     }
 
     const duration = Date.now() - startTime;
