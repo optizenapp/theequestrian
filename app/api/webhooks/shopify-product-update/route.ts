@@ -173,6 +173,9 @@ export async function POST(req: NextRequest) {
         LIMIT 1
       `;
 
+      let shouldUpdate = true;
+      let isNewVendorPrice = false;
+
       if (auditCheck.length > 0) {
         const lastAudit = auditCheck[0];
         const lastAdjustedPrice = parseFloat(lastAudit.adjusted_price);
@@ -181,21 +184,40 @@ export async function POST(req: NextRequest) {
         const nowTime = new Date();
         const secondsSinceUpdate = (nowTime.getTime() - lastUpdated.getTime()) / 1000;
         
-        // If current price matches our last adjusted price AND it was updated recently (< 60s ago),
-        // this is likely our own update triggering the webhook - skip it
-        if (Math.abs(currentPrice - lastAdjustedPrice) < 0.01 && secondsSinceUpdate < 60) {
-          console.log(`[Shopify Webhook] Variant ${variantId} was just updated ${secondsSinceUpdate.toFixed(0)}s ago to $${currentPrice}, skipping loop`);
-          skipped++;
-          continue;
+        // Case 1: Current price matches our last adjusted price
+        // This means either:
+        // - Our webhook just updated it (if recent) → SKIP to prevent loop
+        // - Webkul synced back our adjusted price (if old) → SKIP, already correct
+        if (Math.abs(currentPrice - lastAdjustedPrice) < 0.01) {
+          console.log(`[Shopify Webhook] Variant ${variantId} price $${currentPrice} matches last adjusted price, skipping`);
+          shouldUpdate = false;
         }
         
-        // If current price is close to last vendor price, it means Webkul synced a new price
-        // We should update it
-        if (Math.abs(currentPrice - lastVendorPrice) < 0.01) {
-          console.log(`[Shopify Webhook] Variant ${variantId} price unchanged from vendor ($${currentPrice}), skipping`);
-          skipped++;
-          continue;
+        // Case 2: Current price is different from both vendor and adjusted
+        // This means Webkul synced a NEW vendor price (e.g., sale price) → UPDATE
+        else if (Math.abs(currentPrice - lastVendorPrice) > 0.01 && 
+                 Math.abs(currentPrice - lastAdjustedPrice) > 0.01) {
+          console.log(`[Shopify Webhook] Variant ${variantId} has new vendor price: $${lastVendorPrice} → $${currentPrice}`);
+          isNewVendorPrice = true;
+          shouldUpdate = true;
         }
+        
+        // Case 3: Current price matches last vendor price (no offset)
+        // This means Webkul synced, removing our offset → UPDATE to re-apply offset
+        else if (Math.abs(currentPrice - lastVendorPrice) < 0.01) {
+          console.log(`[Shopify Webhook] Variant ${variantId} price reset to vendor price $${currentPrice}, re-applying offset`);
+          shouldUpdate = true;
+        }
+      } else {
+        // No audit record, this is the first time we're processing this variant
+        console.log(`[Shopify Webhook] Variant ${variantId} is new, applying offset`);
+        shouldUpdate = true;
+        isNewVendorPrice = true;
+      }
+
+      if (!shouldUpdate) {
+        skipped++;
+        continue;
       }
 
       // Calculate new price with shipping
