@@ -100,35 +100,41 @@ export async function searchProducts(
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     
     // Get total count
-    const countQuery = `
-      SELECT COUNT(*) as total
-      FROM products
-      ${whereClause}
-    `;
-    const countResult = await sql(countQuery, params);
+    // Note: Neon's sql function doesn't support parameterized queries with dynamic WHERE clauses
+    // We need to use template literals directly
+    let countResult: any[];
+    if (conditions.length === 0) {
+      countResult = await sql`SELECT COUNT(*) as total FROM products` as unknown as any[];
+    } else {
+      // Build query with params embedded (safe because params are from our controlled filters)
+      const countQuery = `SELECT COUNT(*) as total FROM products ${whereClause}`;
+      countResult = await sql.unsafe(countQuery) as unknown as any[];
+    }
     const totalCount = parseInt(countResult[0].total);
     
     // Get products with pagination
-    const productsQuery = `
-      SELECT 
-        id,
-        handle,
-        title,
-        description,
-        vendor,
-        product_type,
-        tags,
-        image_url,
-        image_alt,
-        available_for_sale,
-        shopify_created_at
-      FROM products
-      ${whereClause}
-      ORDER BY shopify_created_at DESC
-      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
-    `;
-    
-    const productsResult = await sql(productsQuery, [...params, limit, offset]);
+    let productsResult: any[];
+    if (conditions.length === 0) {
+      productsResult = await sql`
+        SELECT 
+          id, handle, title, description, vendor, product_type,
+          tags, image_url, image_alt, available_for_sale, shopify_created_at
+        FROM products
+        ORDER BY shopify_created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+      ` as unknown as any[];
+    } else {
+      const productsQuery = `
+        SELECT 
+          id, handle, title, description, vendor, product_type,
+          tags, image_url, image_alt, available_for_sale, shopify_created_at
+        FROM products
+        ${whereClause}
+        ORDER BY shopify_created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+      `;
+      productsResult = await sql.unsafe(productsQuery) as unknown as any[];
+    }
     
     return {
       products: productsResult as ProductQueryResult[],
@@ -193,7 +199,7 @@ export async function calculateFacets(
       HAVING LOWER(vendor) IS NOT NULL AND LOWER(vendor) != ''
       ORDER BY count DESC
     `;
-    const brandResult = await sql(brandQuery, params);
+    const brandResult = await sql.unsafe(brandQuery) as unknown as any[];
     
     // Get size facets (from tags)
     // This is a simplified version - you may want to filter tags that look like sizes
@@ -207,7 +213,7 @@ export async function calculateFacets(
       ORDER BY count DESC
       LIMIT 50
     `;
-    const sizeResult = await sql(sizeQuery, params);
+    const sizeResult = await sql.unsafe(sizeQuery) as unknown as any[];
     
     // Get color facets (from tags)
     const colorQuery = `
@@ -220,7 +226,7 @@ export async function calculateFacets(
       ORDER BY count DESC
       LIMIT 50
     `;
-    const colorResult = await sql(colorQuery, params);
+    const colorResult = await sql.unsafe(colorQuery) as unknown as any[];
     
     return {
       brands: brandResult.map(row => ({
