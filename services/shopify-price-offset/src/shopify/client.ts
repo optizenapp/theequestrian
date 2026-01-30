@@ -2,13 +2,12 @@ import { config } from '../config.js';
 import PQueue from 'p-queue';
 
 // Shopify Admin API allows 2 requests per second per app
-// With burst allowance, can handle up to 40 requests in a 10-second window
-// Using 4 req/sec with burst handling for optimal performance
+// Using conservative rate limiting to avoid 429 errors
 const queue = new PQueue({
   intervalCap: config.rateLimit.perSecond,
   interval: 1000,
-  carryoverConcurrencyCount: true,
-  concurrency: 2, // Process 2 requests concurrently
+  carryoverConcurrencyCount: false,
+  concurrency: 1, // Process 1 request at a time to stay under limit
 });
 
 export interface ShopifyProduct {
