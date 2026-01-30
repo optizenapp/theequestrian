@@ -43,14 +43,24 @@ const DEFAULT_SHIPPING = 8.00;
 
 function verifyWebhook(req: NextRequest, body: string): boolean {
   const hmac = req.headers.get('x-shopify-hmac-sha256');
-  if (!hmac || !SHOPIFY_WEBHOOK_SECRET) return false;
+  if (!hmac || !SHOPIFY_WEBHOOK_SECRET) {
+    console.error('[Shopify Webhook] Missing HMAC or secret');
+    return false;
+  }
+
+  // Temporary diagnostic log
+  console.log('[Shopify Webhook] Secret length:', SHOPIFY_WEBHOOK_SECRET.length);
+  console.log('[Shopify Webhook] Secret first 10 chars:', SHOPIFY_WEBHOOK_SECRET.substring(0, 10));
 
   const hash = crypto
     .createHmac('sha256', SHOPIFY_WEBHOOK_SECRET)
     .update(body, 'utf8')
     .digest('base64');
 
-  return crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(hmac));
+  const isValid = crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(hmac));
+  console.log('[Shopify Webhook] Signature valid:', isValid);
+  
+  return isValid;
 }
 
 function getShippingOffset(vendor: string, tags: string[]): number {
