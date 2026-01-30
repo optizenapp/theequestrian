@@ -166,7 +166,7 @@ export async function POST(req: NextRequest) {
 
       // Check audit database to see if we've already processed this variant
       const auditCheck = await sql`
-        SELECT vendor_price, adjusted_price, shipping_offset, updated_at
+        SELECT shopify_price, adjusted_price, shipping_offset, updated_at
         FROM shopify_price_audit 
         WHERE variant_id = ${variantId}
         ORDER BY updated_at DESC 
@@ -179,7 +179,7 @@ export async function POST(req: NextRequest) {
       if (auditCheck.length > 0) {
         const lastAudit = auditCheck[0];
         const lastAdjustedPrice = parseFloat(lastAudit.adjusted_price);
-        const lastVendorPrice = parseFloat(lastAudit.vendor_price);
+        const lastShopifyPrice = parseFloat(lastAudit.shopify_price);
         const lastUpdated = new Date(lastAudit.updated_at);
         const nowTime = new Date();
         const secondsSinceUpdate = (nowTime.getTime() - lastUpdated.getTime()) / 1000;
@@ -193,18 +193,18 @@ export async function POST(req: NextRequest) {
           shouldUpdate = false;
         }
         
-        // Case 2: Current price is different from both vendor and adjusted
+        // Case 2: Current price is different from both shopify and adjusted
         // This means Webkul synced a NEW vendor price (e.g., sale price) → UPDATE
-        else if (Math.abs(currentPrice - lastVendorPrice) > 0.01 && 
+        else if (Math.abs(currentPrice - lastShopifyPrice) > 0.01 && 
                  Math.abs(currentPrice - lastAdjustedPrice) > 0.01) {
-          console.log(`[Shopify Webhook] Variant ${variantId} has new vendor price: $${lastVendorPrice} → $${currentPrice}`);
+          console.log(`[Shopify Webhook] Variant ${variantId} has new vendor price: $${lastShopifyPrice} → $${currentPrice}`);
           isNewVendorPrice = true;
           shouldUpdate = true;
         }
         
-        // Case 3: Current price matches last vendor price (no offset)
+        // Case 3: Current price matches last shopify price (no offset)
         // This means Webkul synced, removing our offset → UPDATE to re-apply offset
-        else if (Math.abs(currentPrice - lastVendorPrice) < 0.01) {
+        else if (Math.abs(currentPrice - lastShopifyPrice) < 0.01) {
           console.log(`[Shopify Webhook] Variant ${variantId} price reset to vendor price $${currentPrice}, re-applying offset`);
           shouldUpdate = true;
         }
@@ -236,18 +236,18 @@ export async function POST(req: NextRequest) {
       // Log to audit database
       await sql`
         INSERT INTO shopify_price_audit (
-          variant_id, product_id, vendor, vendor_price, shipping_offset, 
-          adjusted_price, source, updated_at
+          variant_id, product_id, vendor_name, shopify_price, shipping_offset, 
+          adjusted_price, last_source, updated_at, tags
         ) VALUES (
           ${variantId}, ${productId.toString()}, ${vendor}, ${currentPrice.toFixed(2)}, 
-          ${shippingOffset}, ${newPrice}, 'webhook', NOW()
+          ${shippingOffset}, ${newPrice}, 'webhook', NOW(), ${tags}
         )
         ON CONFLICT (variant_id) 
         DO UPDATE SET
-          vendor_price = ${currentPrice.toFixed(2)},
+          shopify_price = ${currentPrice.toFixed(2)},
           shipping_offset = ${shippingOffset},
           adjusted_price = ${newPrice},
-          source = 'webhook',
+          last_source = 'webhook',
           updated_at = NOW()
       `;
       
