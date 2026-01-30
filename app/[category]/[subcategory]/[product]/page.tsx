@@ -439,8 +439,44 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  // If it's a product (will redirect anyway, but for completeness)
+  // It's a product - fetch and generate full metadata
+  const product = await getProductByHandle(thirdSegment);
+  
+  if (!product) {
+    return {
+      title: 'Product Not Found',
+    };
+  }
+
+  const canonicalUrl = `${siteUrl}${getProductCanonicalUrl(product)}`;
+  const title = `${product.title} | The Equestrian`;
+  const description = product.description || `Shop ${product.title} at The Equestrian. Quality equestrian supplies and equipment.`;
+
   return {
-    title: 'The Equestrian',
+    title,
+    description,
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      title,
+      description,
+      url: canonicalUrl,
+      siteName: 'The Equestrian',
+      images: product.images.edges[0]?.node ? [
+        {
+          url: product.images.edges[0].node.url,
+          width: product.images.edges[0].node.width || 1200,
+          height: product.images.edges[0].node.height || 1200,
+          alt: product.images.edges[0].node.altText || product.title,
+        },
+      ] : [],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: product.images.edges[0]?.node ? [product.images.edges[0].node.url] : [],
+    },
   };
 }
