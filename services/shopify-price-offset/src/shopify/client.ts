@@ -62,8 +62,10 @@ export async function getAllProducts(): Promise<ShopifyProduct[]> {
   const products: ShopifyProduct[] = [];
   let pageInfo: string | null = null;
   let hasNextPage = true;
+  let pageCount = 0;
+  const MAX_PAGES = 200; // Safety limit: 200 pages × 250 = 50,000 products max
 
-  while (hasNextPage) {
+  while (hasNextPage && pageCount < MAX_PAGES) {
     const params = new URLSearchParams({
       limit: '250',
       fields: 'id,title,vendor,tags,variants',
@@ -74,9 +76,20 @@ export async function getAllProducts(): Promise<ShopifyProduct[]> {
     }
 
     const data = await queue.add(() => shopifyFetch(`/products.json?${params}`));
+    pageCount++;
     
     if (data.products && data.products.length > 0) {
+      const previousCount = products.length;
       products.push(...data.products);
+      
+      console.log(`[Shopify] Fetched ${products.length} products so far... (page ${pageCount}, +${data.products.length} products)`);
+      
+      // Stop if we got fewer than 250 products (last page)
+      if (data.products.length < 250) {
+        console.log(`[Shopify] Last page detected (${data.products.length} products)`);
+        hasNextPage = false;
+        break;
+      }
       
       // Check for pagination using Link header
       const linkHeader = data._link;
@@ -91,8 +104,10 @@ export async function getAllProducts(): Promise<ShopifyProduct[]> {
     } else {
       hasNextPage = false;
     }
+  }
 
-    console.log(`[Shopify] Fetched ${products.length} products so far...`);
+  if (pageCount >= MAX_PAGES) {
+    console.log(`[Shopify] Reached max page limit (${MAX_PAGES} pages)`);
   }
 
   return products;
