@@ -1,5 +1,5 @@
 import { initDb, upsertAudit, getAuditByVariant } from '../db/index.js';
-import { loadVendorRates, loadTagRates } from '../csv/loadRates.js';
+import { loadVendorRates, loadTagRates } from '../db/rates.js';
 import { getAllProducts, updateVariantPrice } from '../shopify/client.js';
 import { resolveShippingOffset, normalizeTags } from '../price/offset.js';
 import { config } from '../config.js';
@@ -20,11 +20,11 @@ async function run() {
 
   await initDb();
   
-  const vendorRates = loadVendorRates();
-  const tagRates = loadTagRates();
+  const vendorRates = await loadVendorRates();
+  const tagRates = await loadTagRates();
   
-  console.log(`[Bulk] Loaded ${vendorRates.size} vendor rates`);
-  console.log(`[Bulk] Loaded ${tagRates.size} tag rates`);
+  console.log(`[Bulk] Loaded ${vendorRates.size} vendor rates from Postgres`);
+  console.log(`[Bulk] Loaded ${tagRates.size} tag rates from Postgres`);
   
   if (SAMPLE_SIZE) {
     console.log(`[Bulk] SAMPLE MODE: Will process ${SAMPLE_SIZE} products only`);
@@ -50,6 +50,14 @@ async function run() {
 
     try {
       console.log(`\n[${processed + 1}] Processing: ${product.title} (ID: ${product.id})`);
+
+      // Only process published products
+      if (product.status !== 'active') {
+        console.log(`[Bulk] Skipping ${product.status || 'draft'} product`);
+        skipped++;
+        processed++;
+        continue;
+      }
 
       const vendor = product.vendor || '';
       const tags = normalizeTags(product.tags);

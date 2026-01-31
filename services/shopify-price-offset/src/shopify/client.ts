@@ -15,6 +15,7 @@ export interface ShopifyProduct {
   title: string;
   vendor: string;
   tags: string;
+  status: string; // 'active', 'draft', 'archived'
   variants: ShopifyVariant[];
 }
 
@@ -67,7 +68,7 @@ export async function getAllProducts(): Promise<ShopifyProduct[]> {
   while (hasNextPage && pageCount < MAX_PAGES) {
     const params = new URLSearchParams({
       limit: '250',
-      fields: 'id,title,vendor,tags,variants',
+      fields: 'id,title,vendor,tags,status,variants',
     });
 
     if (pageInfo) {
@@ -115,7 +116,7 @@ export async function getAllProducts(): Promise<ShopifyProduct[]> {
 export async function getProductById(productId: string): Promise<ShopifyProduct | null> {
   try {
     const data = await queue.add(() => 
-      shopifyFetch(`/products/${productId}.json?fields=id,title,vendor,tags,variants`)
+      shopifyFetch(`/products/${productId}.json?fields=id,title,vendor,tags,status,variants`)
     );
     return data.product || null;
   } catch (error) {

@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "bulk": "tsx src/jobs/bulk.ts",
+    "bulk:smart": "tsx src/jobs/bulk-smart.ts",
     "bulk:dry-run": "SHOPIFY_DRY_RUN=true tsx src/jobs/bulk.ts",
+    "bulk:dry-run:smart": "SHOPIFY_DRY_RUN=true tsx src/jobs/bulk-smart.ts",
+    "bulk:dry-run:sample": "SHOPIFY_DRY_RUN=true SAMPLE_SIZE=10 tsx src/jobs/bulk-smart.ts",
     "verify:sample": "SAMPLE_SIZE=10 tsx src/jobs/bulk.ts",
     "rollback": "tsx src/jobs/rollback.ts",
     "db:init": "tsx src/jobs/init-db.ts"
