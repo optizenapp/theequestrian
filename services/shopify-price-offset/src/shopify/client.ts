@@ -102,7 +102,7 @@ export async function getAllProducts(): Promise<ShopifyProduct[]> {
   let pageInfo: string | null = null;
   let hasNextPage = true;
   let pageCount = 0;
-  const MAX_PAGES = 200; // Safety limit: 200 pages × 250 = 50,000 products max
+  const MAX_PAGES = 1000; // Safety limit: 1000 pages × 250 = 250,000 products max (enough for entire catalog)
 
   while (hasNextPage && pageCount < MAX_PAGES) {
     const params = new URLSearchParams({
