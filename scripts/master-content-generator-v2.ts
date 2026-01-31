@@ -71,7 +71,7 @@ function getActualProductTypes(urlPath: string): string[] {
   const subsubcategory = parts[2] || undefined;
   
   try {
-    const productTypes = getProductTypesForCollection(category, subcategory, subsubcategory);
+    const productTypes = await getProductTypesForCollection(category, subcategory, subsubcategory);
     console.log(`      📦 Actual product types from Shopify: [${productTypes.join(', ')}]`);
     return productTypes;
   } catch (error) {

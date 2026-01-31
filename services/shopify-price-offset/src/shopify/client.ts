@@ -1,14 +1,33 @@
 import { config } from '../config.js';
 import PQueue from 'p-queue';
 
-// Shopify Admin API allows 2 requests per second per app
-// Using conservative rate limiting to avoid 429 errors
+const rateLimitPerSecond = Math.max(1, Math.floor(config.rateLimit.perSecond || 1));
+
+// Track last API call time to enforce strict rate limiting
+let lastCallTime = 0;
+const minDelayBetweenCalls = 1100; // 1.1 seconds between calls (slightly more than 1/sec)
+
+// Centralized rate-limited queue for ALL Shopify API calls (REST + GraphQL)
 const queue = new PQueue({
-  intervalCap: config.rateLimit.perSecond,
+  intervalCap: rateLimitPerSecond,
   interval: 1000,
   carryoverConcurrencyCount: false,
-  concurrency: 1, // Process 1 request at a time to stay under limit
+  concurrency: 1,
 });
+
+// Wrapper to ensure strict timing
+async function rateLimitedCall<T>(fn: () => Promise<T>): Promise<T> {
+  const now = Date.now();
+  const timeSinceLastCall = now - lastCallTime;
+  
+  if (timeSinceLastCall < minDelayBetweenCalls) {
+    const waitTime = minDelayBetweenCalls - timeSinceLastCall;
+    await new Promise(resolve => setTimeout(resolve, waitTime));
+  }
+  
+  lastCallTime = Date.now();
+  return fn();
+}
 
 export interface ShopifyProduct {
   id: string;
@@ -58,6 +77,26 @@ async function shopifyFetch(endpoint: string, options: RequestInit = {}) {
   return data;
 }
 
+export async function shopifyGraphql<T = any>(query: string, variables: Record<string, any>) {
+  return queue.add(() => rateLimitedCall(async () => {
+    const response = await fetch(`https://${config.shopify.storeDomain}/admin/api/${config.shopify.apiVersion}/graphql.json`, {
+      method: 'POST',
+      headers: {
+        'X-Shopify-Access-Token': config.shopify.accessToken,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ query, variables }),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`GraphQL ${response.status}: ${text}`);
+    }
+
+    return (await response.json()) as T;
+  }));
+}
+
 export async function getAllProducts(): Promise<ShopifyProduct[]> {
   const products: ShopifyProduct[] = [];
   let pageInfo: string | null = null;
@@ -75,7 +114,7 @@ export async function getAllProducts(): Promise<ShopifyProduct[]> {
       params.set('page_info', pageInfo);
     }
 
-    const data = await queue.add(() => shopifyFetch(`/products.json?${params}`));
+    const data = await queue.add(() => rateLimitedCall(() => shopifyFetch(`/products.json?${params}`)));
     pageCount++;
     
     if (data.products && data.products.length > 0) {
@@ -115,9 +154,9 @@ export async function getAllProducts(): Promise<ShopifyProduct[]> {
 
 export async function getProductById(productId: string): Promise<ShopifyProduct | null> {
   try {
-    const data = await queue.add(() => 
+    const data = await queue.add(() => rateLimitedCall(() => 
       shopifyFetch(`/products/${productId}.json?fields=id,title,vendor,tags,status,variants`)
-    );
+    ));
     return data.product || null;
   } catch (error) {
     console.error(`[Shopify] Error fetching product ${productId}:`, error);
@@ -141,10 +180,10 @@ export async function updateVariantPrice(
     payload.variant.compare_at_price = compareAtPrice;
   }
 
-  await queue.add(() =>
+  await queue.add(() => rateLimitedCall(() =>
     shopifyFetch(`/variants/${variantId}.json`, {
       method: 'PUT',
       body: JSON.stringify(payload),
     })
-  );
+  ));
 }

@@ -51,7 +51,7 @@ interface FAQItem {
 /**
  * Get actual product types from Shopify mapping
  */
-function getActualProductTypes(urlPath: string): string[] {
+async function getActualProductTypes(urlPath: string): Promise<string[]> {
   const parts = urlPath.split('/').filter(p => p);
   
   if (parts.length === 0) return [];
@@ -61,7 +61,7 @@ function getActualProductTypes(urlPath: string): string[] {
   const subsubcategory = parts[2] || undefined;
   
   try {
-    const productTypes = getProductTypesForCollection(category, subcategory, subsubcategory);
+    const productTypes = await getProductTypesForCollection(category, subcategory, subsubcategory);
     console.log(`      📦 Product types: [${productTypes.slice(0, 3).join(', ')}${productTypes.length > 3 ? '...' : ''}]`);
     return productTypes;
   } catch (error) {

@@ -64,6 +64,10 @@ export async function POST(req: NextRequest) {
   const startTime = Date.now();
 
   try {
+    if (process.env.PRICE_OFFSET_WEBHOOK_DISABLED === 'true') {
+      return NextResponse.json({ ok: true, skipped: true, reason: 'Webhook disabled' });
+    }
+
     const rawBody = await req.text();
     
     // Verify webhook signature

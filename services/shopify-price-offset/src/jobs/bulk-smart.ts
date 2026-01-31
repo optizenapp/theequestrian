@@ -1,24 +1,14 @@
 import { initDb, upsertAudit } from '../db/index.js';
 import { loadVendorRates, loadTagRates } from '../db/rates.js';
-import { updateVariantPrice } from '../shopify/client.js';
+import { updateVariantPrice, shopifyGraphql } from '../shopify/client.js';
 import { resolveShippingOffset, normalizeTags } from '../price/offset.js';
 import { config } from '../config.js';
-import PQueue from 'p-queue';
-
 const SAMPLE_SIZE = process.env.SAMPLE_SIZE ? Number(process.env.SAMPLE_SIZE) : null;
 const PRICE_EPSILON = 0.01;
 
 function closeTo(a: number, b: number) {
   return Math.abs(a - b) <= PRICE_EPSILON;
 }
-
-// Rate-limited fetch
-const queue = new PQueue({
-  intervalCap: config.rateLimit.perSecond,
-  interval: 1000,
-  carryoverConcurrencyCount: false,
-  concurrency: 1,
-});
 
 async function shopifyFetch(endpoint: string, options: RequestInit = {}) {
   const url = `https://${config.shopify.storeDomain}/admin/api/${config.shopify.apiVersion}${endpoint}`;
@@ -59,7 +49,7 @@ async function getProductsForVendor(vendorName: string): Promise<any[]> {
   while (hasNextPage) {
     const query = `
       query($vendor: String!, $cursor: String) {
-        products(first: 250, query: $vendor, after: $cursor) {
+        products(first: 25, query: $vendor, after: $cursor) {
           edges {
             cursor
             node {
@@ -94,22 +84,10 @@ async function getProductsForVendor(vendorName: string): Promise<any[]> {
       cursor,
     };
 
-    const data = await queue.add(() => 
-      fetch(`https://${config.shopify.storeDomain}/admin/api/2024-01/graphql.json`, {
-        method: 'POST',
-        headers: {
-          'X-Shopify-Access-Token': config.shopify.accessToken,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ query, variables }),
-      }).then(async (res) => {
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(`GraphQL ${res.status}: ${text}`);
-        }
-        return res.json();
-      })
-    );
+    const data = await shopifyGraphql<any>(query, variables);
+    
+    // CRITICAL: Wait 2 seconds after each GraphQL call to avoid rate limits
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
     if (data.data?.products?.edges) {
       for (const edge of data.data.products.edges) {
@@ -195,6 +173,11 @@ async function run() {
       for (const product of products) {
         if (SAMPLE_SIZE && totalProcessed >= SAMPLE_SIZE) {
           break;
+        }
+
+        // Delay before each product to avoid rate limits (3 seconds)
+        if (totalProcessed > 0) {
+          await new Promise(resolve => setTimeout(resolve, 3000));
         }
 
         try {

@@ -174,7 +174,7 @@ async function testHelmetProduct() {
   console.log('Test 4: Checking what product types getProductTypesForCollection returns');
   try {
     const { getProductTypesForCollection } = await import('../lib/mapping/collection-mapping');
-    const productTypes = getProductTypesForCollection('rider', 'helmets');
+    const productTypes = await getProductTypesForCollection('rider', 'helmets');
     
     console.log(`✅ Product types for /rider/helmets:`);
     console.log(`   Total: ${productTypes.length} types`);

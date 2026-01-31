@@ -17,7 +17,7 @@ horse,grooming,show-prep,STABLE: Show Preparation,include,,
 rider,helmets,,Helmets,include,,add subs
 clothing,accessories,,Clothing - Clothing Accessories,include,,add subs
 horse,pads,,Saddle Cloths,include,,add subs
-horse,boots,,HORSE: Horse Boots,merge,boots,
+horse,boots,,HORSE: Horse Boots,merge,Horse Boots,
 rider,giftware,,RIDER: Giftware,include,,add subs
 horse,racing,,HORSE: Racing & PVC,include,,add subs
 horse,pads,,HORSE: Saddlecloths,merge,pads,
@@ -98,7 +98,7 @@ rider,accessories,hair,RIDER: Stocks & Hair Accessories,include,,
 horse,rugs,accessories,RUGS: Rug Accessories,include,,
 horse,pads,wither-pads,HORSE: Wither & Back Pads,include,,
 horse,stable,fly-control,Fly Control,include,,
-horse,boots,,Horse Boots & Bandages,merge,boots,
+horse,boots,,Horse Boots & Bandages,merge,Horse Boots,
 clothing,footwear,,FOOTWEAR: Equestrian Footwear,include,,add subs
 horse,tack,bridles,Browbands,include,,
 horse,saddles,,Saddles,include,,add subs
@@ -394,7 +394,7 @@ horse,pads,wither-relief,Wither relief saddlepad,include,,
 rider,whips,,Whips,merge,whips,
 horse,boots,travel,Travel Boots,include,,
 horse,boots,ice-boots,ICE BOOTS,merge,ice-boots,
-horse,boots,,Horse Boots & Leg Wraps,merge,boots,
+horse,boots,,Horse Boots & Leg Wraps,merge,Horse Boots,
 clothing,accessories,scarves,Scarf,include,,
 clothing,womens,jackets,ladies jacket,include,,
 clothing,kids,show-jackets,Girls Competition Jacket,merge,show-jackets,

@@ -63,7 +63,7 @@ function getActualProductTypes(urlPath: string): string[] {
   const subsubcategory = parts[2] || undefined;
   
   try {
-    const productTypes = getProductTypesForCollection(category, subcategory, subsubcategory);
+    const productTypes = await getProductTypesForCollection(category, subcategory, subsubcategory);
     console.log(`      📦 Product types: [${productTypes.slice(0, 3).join(', ')}${productTypes.length > 3 ? '...' : ''}]`);
     return productTypes;
   } catch (error) {

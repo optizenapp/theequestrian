@@ -116,6 +116,10 @@ async function logToAudit(record: {
 
 export async function POST(request: NextRequest) {
   try {
+    if (process.env.PRICE_OFFSET_WEBHOOK_DISABLED === 'true') {
+      return NextResponse.json({ ok: true, skipped: true, reason: 'Webhook disabled' });
+    }
+
     // Get raw body for verification
     const body = await request.text();
     
