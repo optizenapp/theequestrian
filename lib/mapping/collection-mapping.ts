@@ -1,7 +1,7 @@
 /**
  * Collection Mapping Helper
  * 
- * Reads the mapping CSV and provides functions to:
+ * Reads the mapping from Postgres (with CSV fallback) and provides functions to:
  * 1. Get productTypes for a given collection path
  * 2. Get collection path for a given productType
  * 3. Filter products based on collection hierarchy
@@ -11,6 +11,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as csv from 'csv-parse/sync';
 import { getCategoryContent } from '@/lib/content/collections';
+import { sql } from '@/lib/db/client';
 
 interface MappingRow {
   top_level: string;
@@ -23,39 +24,20 @@ interface MappingRow {
 }
 
 let cachedMapping: Map<string, MappingRow[]> | null = null;
-let lastMappingMtime: number = 0;
+let lastCacheTime: number = 0;
+const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
 /**
- * Load the mapping CSV and cache it
- * In development, checks file modification time to reload when CSV changes
+ * Load the mapping from CSV (fallback only)
+ * Used when database is unavailable
  */
-function loadMapping(): Map<string, MappingRow[]> {
+function loadMappingFromCSV(): Map<string, MappingRow[]> {
   const mappingPath = path.join(process.cwd(), 'exports', 'mapping-template-draft2.csv');
   
-  // In development, check if file has been modified
-  if (cachedMapping && fs.existsSync(mappingPath)) {
-    const stats = fs.statSync(mappingPath);
-    const currentMtime = stats.mtimeMs;
-    
-    if (currentMtime > lastMappingMtime) {
-      console.log('[loadMapping] CSV file changed, reloading...');
-      cachedMapping = null;
-      lastMappingMtime = currentMtime;
-    } else if (cachedMapping) {
-      return cachedMapping;
-    }
-  } else if (cachedMapping) {
-    return cachedMapping;
-  }
-
   if (!fs.existsSync(mappingPath)) {
-    console.warn(`Mapping file not found: ${mappingPath}`);
+    console.warn(`[loadMappingFromCSV] Mapping file not found: ${mappingPath}`);
     return new Map();
   }
-
-  // Update last modified time
-  const stats = fs.statSync(mappingPath);
-  lastMappingMtime = stats.mtimeMs;
 
   const csvContent = fs.readFileSync(mappingPath, 'utf-8');
   const records = csv.parse(csvContent, {
@@ -97,8 +79,85 @@ function loadMapping(): Map<string, MappingRow[]> {
     mappingByPath.get(collectionPath)!.push(row);
   }
 
-  cachedMapping = mappingByPath;
   return mappingByPath;
+}
+
+/**
+ * Load the mapping from Postgres and cache it
+ * Falls back to CSV if database is unavailable
+ * In-memory cache with 15-minute TTL
+ */
+async function loadMapping(): Promise<Map<string, MappingRow[]>> {
+  // Check in-memory cache first (with TTL)
+  if (cachedMapping && Date.now() - lastCacheTime < CACHE_TTL_MS) {
+    return cachedMapping;
+  }
+
+  try {
+    // Query database
+    const rows = await sql`
+      SELECT 
+        top_level,
+        parent_category,
+        subcategory_handle,
+        product_type,
+        action,
+        merge_to,
+        notes
+      FROM collection_mapping
+      WHERE action != 'exclude'
+      ORDER BY top_level, parent_category, subcategory_handle
+    `;
+
+    // Build Map structure (same as CSV version)
+    const mappingByPath = new Map<string, MappingRow[]>();
+    
+    for (const row of rows) {
+      const pathParts: string[] = [];
+      if (row.top_level && row.top_level.trim()) {
+        pathParts.push(row.top_level.trim());
+      }
+      if (row.parent_category && row.parent_category.trim()) {
+        pathParts.push(row.parent_category.trim());
+      }
+      if (row.subcategory_handle && row.subcategory_handle.trim()) {
+        pathParts.push(row.subcategory_handle.trim());
+      }
+
+      const collectionPath = pathParts.join('/');
+      
+      if (!collectionPath) {
+        continue;
+      }
+
+      if (!mappingByPath.has(collectionPath)) {
+        mappingByPath.set(collectionPath, []);
+      }
+      mappingByPath.get(collectionPath)!.push(row as MappingRow);
+    }
+
+    cachedMapping = mappingByPath;
+    lastCacheTime = Date.now();
+    
+    console.log(`[loadMapping] Loaded ${rows.length} mapping rows from Postgres`);
+    return mappingByPath;
+    
+  } catch (error) {
+    console.error('[loadMapping] Database error, falling back to CSV:', error);
+    
+    // If we have stale cache, use it
+    if (cachedMapping) {
+      console.log('[loadMapping] Using stale cache');
+      return cachedMapping;
+    }
+    
+    // Otherwise fall back to CSV
+    console.log('[loadMapping] Loading from CSV fallback');
+    const csvMapping = loadMappingFromCSV();
+    cachedMapping = csvMapping;
+    lastCacheTime = Date.now();
+    return csvMapping;
+  }
 }
 
 /**
@@ -107,8 +166,8 @@ function loadMapping(): Map<string, MappingRow[]> {
  * 
  * Example: "RIDER: Helmets" -> "Helmets", "Helmet" -> "Helmets"
  */
-function buildMergeMap(): Map<string, string> {
-  const mapping = loadMapping();
+async function buildMergeMap(): Promise<Map<string, string>> {
+  const mapping = await loadMapping();
   const mergeMap = new Map<string, string>();
   
   for (const [_, rows] of mapping.entries()) {
@@ -146,13 +205,13 @@ function resolveProductType(productType: string, mergeMap: Map<string, string>):
  * @param subsubcategory - e.g., "bell-boots" (optional)
  * @returns Array of product types to query (includes both original and merged types)
  */
-export function getProductTypesForCollection(
+export async function getProductTypesForCollection(
   category: string,
   subcategory?: string,
   subsubcategory?: string
-): string[] {
-  const mapping = loadMapping();
-  const mergeMap = buildMergeMap();
+): Promise<string[]> {
+  const mapping = await loadMapping();
+  const mergeMap = await buildMergeMap();
   
   // Build the path to look up
   const pathParts = [category];
@@ -238,11 +297,11 @@ export function getProductTypesForCollection(
  * @param subcategory - e.g., "boots" (optional)
  * @returns Array of unique subcategory handles
  */
-export function getSubcategoriesForCollection(
+export async function getSubcategoriesForCollection(
   category: string,
   subcategory?: string
-): Array<{ handle: string; label: string; count: number }> {
-  const mapping = loadMapping();
+): Promise<Array<{ handle: string; label: string; count: number }>> {
+  const mapping = await loadMapping();
   
   const prefix = subcategory ? `${category}/${subcategory}/` : `${category}/`;
   const subcategories = new Map<string, { label: string; count: number }>();
@@ -278,13 +337,13 @@ export function getSubcategoriesForCollection(
 /**
  * Filter products by productType for a given collection
  */
-export function filterProductsByCollection<T extends { productType?: string | null }>(
+export async function filterProductsByCollection<T extends { productType?: string | null }>(
   products: T[],
   category: string,
   subcategory?: string,
   subsubcategory?: string
-): T[] {
-  const allowedProductTypes = getProductTypesForCollection(category, subcategory, subsubcategory);
+): Promise<T[]> {
+  const allowedProductTypes = await getProductTypesForCollection(category, subcategory, subsubcategory);
   
   console.log(`[filterProductsByCollection] ${category}/${subcategory || ''}/${subsubcategory || ''}`);
   console.log(`  Allowed types (${allowedProductTypes.length}):`, allowedProductTypes.slice(0, 10));
@@ -352,27 +411,23 @@ export function getCollectionHierarchy(
 
 /**
  * Get collection title from the mapping
+ * Note: This function remains synchronous and uses cached mapping
+ * For database content (h1_title, breadcrumb_label), use getCategoryContent() directly
  */
 export function getCollectionTitle(
   category: string,
   subcategory?: string,
   subsubcategory?: string
 ): string {
-  // 1. Try Content CSV first (Master Source for labels)
-  try {
-    const content = getCategoryContent(category, subcategory, subsubcategory);
-    if (content) {
-      // Prefer breadcrumb label, then h1_title
-      if (content.breadcrumb_label) return content.breadcrumb_label;
-      if (content.h1_title) return content.h1_title;
-    }
-  } catch (e) {
-    // Ignore errors and fall back to mapping
-    console.warn('Error fetching content for title:', e);
+  // Use cached mapping (if available) or fallback to CSV
+  let mapping: Map<string, MappingRow[]>;
+  
+  if (cachedMapping) {
+    mapping = cachedMapping;
+  } else {
+    // Synchronous fallback to CSV for this function
+    mapping = loadMappingFromCSV();
   }
-
-  // 2. Fallback to Mapping CSV
-  const mapping = loadMapping();
   
   const pathParts = [category];
   if (subcategory) pathParts.push(subcategory);
@@ -398,14 +453,14 @@ export function getCollectionTitle(
  * @param productType - The Shopify product type
  * @returns Array of breadcrumb paths (primary first, then additional paths)
  */
-export function getBreadcrumbsForProduct(
+export async function getBreadcrumbsForProduct(
   productType: string
-): Array<Array<{ label: string; href: string }>> {
+): Promise<Array<Array<{ label: string; href: string }>>> {
   if (!productType || !productType.trim()) {
     return [];
   }
 
-  const mapping = loadMapping();
+  const mapping = await loadMapping();
   const normalizedProductType = productType.toLowerCase().trim();
   const breadcrumbPaths: Array<Array<{ label: string; href: string }>> = [];
 

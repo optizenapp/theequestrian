@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get subcategories from mapping
-    const subcategories = getSubcategoriesForCollection(category, subcategory || undefined);
+    const subcategories = await getSubcategoriesForCollection(category, subcategory || undefined);
 
     return NextResponse.json({
       category,

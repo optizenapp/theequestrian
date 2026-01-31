@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get subcategories from mapping
-    const subcategories = getSubcategoriesForCollection(category);
+    const subcategories = await getSubcategoriesForCollection(category);
 
     // Check for custom content from CSV
     const customContent = getMegaMenuContent(category);
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
       subcategories.map(async (subcategory) => {
         try {
           // Get product types for this subcategory
-          const productTypes = getProductTypesForCollection(category, subcategory.handle);
+          const productTypes = await getProductTypesForCollection(category, subcategory.handle);
           
           if (productTypes.length === 0) {
             return {
