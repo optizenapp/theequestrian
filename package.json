@@ -58,7 +58,17 @@
     "test:draft-order": "tsx scripts/test-draft-order.ts",
     "ai:classify-products": "tsx scripts/ai-classify-products.ts",
     "generate:bullets": "tsx scripts/generate-product-bullets.ts",
-    "update:bullets": "tsx scripts/update-product-bullets.ts"
+    "update:bullets": "tsx scripts/update-product-bullets.ts",
+    "content:migrate": "tsx scripts/migrate-csv-to-postgres.ts",
+    "shipping:init": "tsx scripts/init-vendor-shipping-tables.ts",
+    "shipping:migrate": "tsx scripts/migrate-vendor-rates-to-postgres.ts",
+    "content:generate": "tsx scripts/ai-generate-collection-content.ts",
+    "content:generate:dry": "DRY_RUN=true tsx scripts/ai-generate-collection-content.ts",
+    "content:test": "SAMPLE_SIZE=2 tsx scripts/ai-generate-collection-content.ts",
+    "mapping:init": "tsx scripts/init-collection-mapping-table.ts",
+    "mapping:migrate": "tsx scripts/migrate-mapping-to-postgres.ts",
+    "mapping:audit": "tsx scripts/audit-mapping-issues.ts",
+    "mapping:fix": "tsx scripts/fix-mapping-merge-rules.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
@@ -70,6 +80,7 @@
     "graphql-request": "^7.3.1",
     "next": "^16.0.7",
     "openai": "^6.14.0",
+    "pg": "^8.18.0",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
     "react-icons": "^5.5.0",
