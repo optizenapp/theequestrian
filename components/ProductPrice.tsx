@@ -1,7 +1,5 @@
 'use client';
 
-import { calculateDisplayPrice, type ProductForPricing } from '@/lib/shipping/calculate-display-price';
-
 interface PriceValue {
   amount: string;
   currencyCode: string;
@@ -12,7 +10,7 @@ interface ProductPriceProps {
   compareAtPrice?: PriceValue | null;
   currencyCode?: string; // Optional, can be derived from price
   className?: string;
-  // Product data for shipping calculation
+  // Legacy props (no longer used - prices already include shipping from Shopify)
   vendor?: string;
   tags?: string[];
   weight?: {
@@ -25,28 +23,21 @@ interface ProductPriceProps {
 /**
  * Product Price Component
  * Renders a price with currency formatting and optional compare-at price
- * NOW INCLUDES SHIPPING IN DISPLAY PRICE!
+ * 
+ * NOTE: Prices from Shopify already include shipping offset (updated by bulk script/webhooks)
+ * No need to calculate shipping on the frontend anymore!
  */
 export function ProductPrice({ 
   price, 
   compareAtPrice, 
   className = '',
-  vendor,
-  tags,
-  weight,
   includeShipping = true,
 }: ProductPriceProps) {
   if (!price) return null;
 
-  // Calculate price with shipping included
-  const productData: ProductForPricing = { vendor, tags, weight };
-  const displayPrice = includeShipping 
-    ? calculateDisplayPrice(price, productData)
-    : price;
-  
-  const displayCompareAtPrice = includeShipping && compareAtPrice
-    ? calculateDisplayPrice(compareAtPrice, productData)
-    : compareAtPrice;
+  // Prices already include shipping from Shopify (no calculation needed)
+  const displayPrice = price;
+  const displayCompareAtPrice = compareAtPrice;
 
   const hasDiscount = displayCompareAtPrice && parseFloat(displayCompareAtPrice.amount) > parseFloat(displayPrice.amount);
 

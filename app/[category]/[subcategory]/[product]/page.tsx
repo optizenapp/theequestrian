@@ -63,7 +63,7 @@ export default async function Page({ params, searchParams }: PageProps) {
   const filterColors = color ? (Array.isArray(color) ? color : color.split(',')) : undefined;
 
   // 1. Check if this is a valid sub-subcategory
-  const allowedProductTypes = getProductTypesForCollection(category, subcategory, thirdSegment);
+  const allowedProductTypes = await getProductTypesForCollection(category, subcategory, thirdSegment);
   
   // If it maps to a collection, render the collection page
   if (allowedProductTypes.length > 0) {
@@ -105,7 +105,7 @@ async function renderProductPage(product: ShopifyProduct) {
   
   // Build breadcrumb paths from product type using mapping
   const breadcrumbPaths = product.productType 
-    ? getBreadcrumbsForProduct(product.productType)
+    ? await getBreadcrumbsForProduct(product.productType)
     : [];
   
   // Primary breadcrumb path (most specific/longest path first)
@@ -260,7 +260,7 @@ async function renderSubSubcategoryPage(
   filterColors?: string[]
 ) {
   // Get allowed product types for this collection
-  const allowedProductTypes = getProductTypesForCollection(category, subcategory, subsubcategory);
+  const allowedProductTypes = await getProductTypesForCollection(category, subcategory, subsubcategory);
   
   // Fetch products with pagination (36 per page)
   const { products: filteredProducts, pageInfo, totalCount } = await getProductsByTypes(
@@ -278,17 +278,17 @@ async function renderSubSubcategoryPage(
   const totalProductCount = totalCount;
 
   // Get sibling sub-subcategories (for pills)
-  const allSubSubcategories = getMappingSubcategories(category, subcategory);
+  const allSubSubcategories = await getMappingSubcategories(category, subcategory);
   const siblingSubSubcategories = allSubSubcategories.filter(s => s.handle !== subsubcategory);
 
   // Get collection titles and content
   const mappingTitle = getCollectionTitle(category, subcategory, subsubcategory);
   const breadcrumbs = getCollectionHierarchy(category, subcategory, subsubcategory);
   
-  // Get rich content from CSV
-  const content = getCategoryContent(category, subcategory, subsubcategory);
+  // Get rich content from database
+  const content = await getCategoryContent(category, subcategory, subsubcategory);
   
-  // Use CSV content if available, otherwise fallback to mapping
+  // Use database content if available, otherwise fallback to mapping
   const pageTitle = content?.h1_title || mappingTitle;
   const description = content?.short_description || '';
   
@@ -399,11 +399,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
   
   // Check if it's a collection
-  const allowedProductTypes = getProductTypesForCollection(category, subcategory, thirdSegment);
+  const allowedProductTypes = await getProductTypesForCollection(category, subcategory, thirdSegment);
   
   if (allowedProductTypes.length > 0) {
     const collectionTitle = getCollectionTitle(category, subcategory, thirdSegment);
-    const content = getCategoryContent(category, subcategory, thirdSegment);
+    const content = await getCategoryContent(category, subcategory, thirdSegment);
     const canonicalUrl = `${siteUrl}/${category}/${subcategory}/${thirdSegment}`;
 
     const title = content?.meta_title || `${collectionTitle} | The Equestrian`;

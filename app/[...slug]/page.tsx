@@ -69,7 +69,7 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
   
   // Build breadcrumb paths from product type using mapping
   const breadcrumbPaths = product.productType 
-    ? getBreadcrumbsForProduct(product.productType)
+    ? await getBreadcrumbsForProduct(product.productType)
     : [];
   
   // Primary breadcrumb path (most specific/longest path first)

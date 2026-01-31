@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { neon } from '@neondatabase/serverless';
+import { loadShippingRates, resolveShippingOffset, normalizeTags } from '@/lib/shipping/rates';
 
 const SHOPIFY_WEBHOOK_SECRET = process.env.SHOPIFY_WEBHOOK_SECRET || '';
 const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || '';
@@ -8,42 +9,6 @@ const SHOPIFY_STORE_DOMAIN = process.env.SHOPIFY_STORE_DOMAIN || '';
 const DATABASE_URL = process.env.DATABASE_URL || '';
 
 const sql = neon(DATABASE_URL);
-
-// Vendor shipping rates (hardcoded for performance)
-const VENDOR_RATES: Record<string, number> = {
-  'Ascot Saddlery': 12.00,
-  'HORSE QUEENED': 15.00,
-  'Tacklet': 15.00,
-  'Shire Saddleworld': 15.00,
-  'Paddock Blade': 0.00,
-  'The Equestrian': 0.00,
-  'JNK Collective': 12.00,
-  'QJ Riding Wear': 8.00,
-  'Runaway Equestrian Co.': 18.00,
-  'Plum Tack': 8.00,
-  'JP Equestrian Fashion': 8.00,
-  'Ippico Equestrian': 8.00,
-  'Top Brands': 8.00,
-  'Little Equine Co': 8.00,
-  'Helmet Brims': 18.00,
-  'Diamond Deluxe Horsewear': 15.00,
-  'Hitchley & Harrow': 8.00,
-  'Living Horse Tails Jewellery By Monika': 8.00,
-  'EAC Animal Care': 8.00,
-  'Dapple Eq': 8.00,
-  'Thinline Global Australia': 8.00,
-  'Trailrace': 0.00,
-  'CAN Animal Care': 15.00, // Base rate, weight-based overrides below
-};
-
-// Tag-based overrides (higher priority than vendor rates)
-const TAG_OVERRIDES: Record<string, number> = {
-  '#HEAVY': 15.00,
-  'HEAVY': 15.00,
-  'ponyjet': 15.00,
-};
-
-const DEFAULT_SHIPPING = 8.00;
 
 function verifyWebhook(req: NextRequest, body: string): boolean {
   const hmac = req.headers.get('x-shopify-hmac-sha256');
@@ -55,30 +20,6 @@ function verifyWebhook(req: NextRequest, body: string): boolean {
     .digest('base64');
 
   return crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(hmac));
-}
-
-function getShippingOffset(vendor: string, tags: string[]): number {
-  // Priority 1: Check tag overrides
-  for (const tag of tags) {
-    const cleanTag = tag.trim().toUpperCase();
-    if (TAG_OVERRIDES[cleanTag] !== undefined) {
-      return TAG_OVERRIDES[cleanTag];
-    }
-    if (TAG_OVERRIDES[`#${cleanTag}`] !== undefined) {
-      return TAG_OVERRIDES[`#${cleanTag}`];
-    }
-  }
-
-  // Priority 2: Check vendor rate (case-insensitive)
-  const vendorLower = vendor.toLowerCase().trim();
-  for (const [vendorName, rate] of Object.entries(VENDOR_RATES)) {
-    if (vendorName.toLowerCase() === vendorLower) {
-      return rate;
-    }
-  }
-
-  // Priority 3: Default shipping
-  return DEFAULT_SHIPPING;
 }
 
 async function updateVariantPrice(variantId: string, price: string, compareAtPrice?: string | null) {
@@ -134,15 +75,16 @@ export async function POST(req: NextRequest) {
     const product = JSON.parse(rawBody);
     const productId = product.id;
     const vendor = product.vendor || '';
-    const tags = product.tags ? product.tags.split(',').map((t: string) => t.trim()) : [];
+    const tags = normalizeTags(product.tags);
 
     console.log(`[Shopify Webhook] Product update: ${product.title} (ID: ${productId})`);
     console.log(`[Shopify Webhook] Vendor: ${vendor}, Tags: ${tags.join(', ')}`);
 
-    // Calculate shipping offset
-    const shippingOffset = getShippingOffset(vendor, tags);
+    // Load shipping rates from Postgres and calculate offset
+    const rates = await loadShippingRates();
+    const { shippingOffset, tagMatch } = resolveShippingOffset(vendor, tags, rates);
     
-    if (shippingOffset === 0) {
+    if (shippingOffset === null || shippingOffset === 0) {
       console.log(`[Shopify Webhook] No shipping offset for vendor: ${vendor}, skipping`);
       return NextResponse.json({ 
         ok: true, 
@@ -283,11 +225,12 @@ export async function POST(req: NextRequest) {
  * Health check endpoint
  */
 export async function GET() {
+  const rates = await loadShippingRates();
   return NextResponse.json({
     ok: true,
     service: 'shopify-product-update-webhook',
-    vendorRatesCount: Object.keys(VENDOR_RATES).length,
-    tagOverridesCount: Object.keys(TAG_OVERRIDES).length,
+    vendorRatesCount: rates.vendorRates.size,
+    tagRatesCount: rates.tagRates.size,
     timestamp: new Date().toISOString(),
   });
 }

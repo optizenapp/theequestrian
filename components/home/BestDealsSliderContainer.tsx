@@ -80,7 +80,7 @@ export async function BestDealsSliderContainer({ section }: BestDealsSliderConta
 
         // 2. Try as Custom Category Handle (e.g., "horse", "rider")
         // These are your headless category routes, not Shopify collections
-        const productTypes = getProductTypesForCollection(handle);
+        const productTypes = await getProductTypesForCollection(handle);
         
         if (productTypes.length > 0) {
           // Fetch products for this category (limit to 1 product)

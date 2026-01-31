@@ -56,7 +56,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const filterColors = color ? (Array.isArray(color) ? color : color.split(',')) : undefined;
 
   // Check if this category exists in our mapping
-  const allowedProductTypes = getProductTypesForCollection(category);
+  const allowedProductTypes = await getProductTypesForCollection(category);
   
   if (allowedProductTypes.length === 0) {
     // Try as a product (fallback)
@@ -150,16 +150,16 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     : getAllowedBrandVendors();
 
   // Get subcategories from our mapping
-  const subcategories = getMappingSubcategories(category);
+  const subcategories = await getMappingSubcategories(category);
 
   // Get collection title from mapping (Fallback)
   const mappingTitle = getCollectionTitle(category);
   const breadcrumbs = getCollectionHierarchy(category);
   
-  // Get rich content from CSV
-  const content = getCategoryContent(category);
+  // Get rich content from database
+  const content = await getCategoryContent(category);
   
-  // Use CSV content if available, otherwise fallback to mapping
+  // Use database content if available, otherwise fallback to mapping
   const pageTitle = content?.h1_title || mappingTitle;
   const description = content?.short_description || '';
   
@@ -254,7 +254,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
  */
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
   const { category } = await params;
-  const content = getCategoryContent(category);
+  const content = await getCategoryContent(category);
   const mappingTitle = getCollectionTitle(category);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
   const canonicalUrl = `${siteUrl}/${category}`;

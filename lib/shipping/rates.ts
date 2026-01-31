@@ -1,119 +1,175 @@
 /**
- * Vendor Shipping Rates Configuration
- * 
- * Maps vendors to their shipping costs.
- * Update this file when shipping rates change.
+ * Vendor Shipping Rates - Postgres Version
+ * Centralized module for loading and resolving shipping rates
  */
 
-export const VENDOR_SHIPPING_RATES: Record<string, number> = {
-  'Ascot Saddlery': 12.00,
-  'HORSE QUEENED': 15.00,
-  'Tacklet': 15.00,
-  'Shire Saddleworld': 15.00,
-  'Paddock Blade': 0.00,
-  'The Equestrian': 0.00,
-  'JNK Collective': 12.00,
-  'QJ Riding Wear': 8.00,
-  'Runaway Equestrian Co.': 18.00,
-  'Plum Tack': 8.00,
-  'JP Equestrian Fashion': 8.00,
-  'Ippico Equestrian': 8.00,
-  'Top Brands': 8.00,
-  'Little Equine Co': 8.00,
-  'Helmet Brims': 18.00,
-  'Diamond Deluxe Horsewear': 15.00,
-  'Hitchley & Harrow': 8.00,
-  'Living Horse Tails Jewellery By Monika': 8.00,
-  'EAC Animal Care': 8.00,
-  'Dapple Eq': 8.00,
-  'Thinline Global Australia': 8.00,
-  'Trailrace ': 0.00,
-  // CAN Animal Care uses weight-based rates (see WEIGHT_BASED_VENDORS below)
-};
+import { sql } from '@/lib/db/client';
+
+export interface VendorRate {
+  vendor: string;
+  baseRate: number;
+  tagOverrides: Record<string, number>;
+  weightTiers?: Array<{ min: number; max: number; rate: number }>;
+}
+
+export interface ShippingRates {
+  vendorRates: Map<string, VendorRate>;
+  tagRates: Map<string, number>;
+}
+
+// Cache for 15 minutes
+let cachedRates: ShippingRates | null = null;
+let cacheTimestamp: number = 0;
+const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 
 /**
- * Tag-based shipping overrides
- * Higher priority than vendor rates
- * Tags must match EXACTLY as they appear in Shopify (case-sensitive)
+ * Load all shipping rates from Postgres
  */
-export const TAG_SHIPPING_OVERRIDES: Record<string, number> = {
-  '#HEAVY': 15.00,    // Ascot Saddlery heavy items
-  'ponyjet': 15.00,   // The Equestrian ponyjet items
-};
-
-/**
- * Default shipping cost if vendor not found
- */
-export const DEFAULT_SHIPPING_COST = 8.00;
-
-/**
- * Weight-based shipping configuration
- * For vendors that calculate shipping based on product weight
- */
-export const WEIGHT_BASED_VENDORS: Record<string, Array<{ maxWeight: number; cost: number }>> = {
-  'CAN Animal Care': [
-    { maxWeight: 5, cost: 15.00 },      // 0-5kg = $15
-    { maxWeight: 10, cost: 20.00 },     // 5.01-10kg = $20
-    { maxWeight: 20, cost: 25.00 },     // 10.01-20kg = $25
-    { maxWeight: Infinity, cost: 25.00 }, // 20kg+ = $25
-  ],
-};
-
-/**
- * Get shipping cost for a product
- * Checks weight-based rules first, then tags, then vendor rate, then default
- * 
- * @param vendor - Vendor name (must match Shopify exactly)
- * @param tags - Product tags
- * @param weightInKg - Product weight in kilograms (optional)
- */
-export function getShippingCost(vendor: string, tags: string[] = [], weightInKg?: number): number {
-  // Normalize inputs
-  const vendorLower = vendor.toLowerCase().trim();
-  const tagsLower = tags.map(t => t.toLowerCase().trim());
+export async function loadShippingRates(): Promise<ShippingRates> {
+  const now = Date.now();
   
-  // 1. Check weight-based vendors first (highest priority for weight-based vendors)
-  const weightRules = Object.entries(WEIGHT_BASED_VENDORS).find(
-    ([vendorName]) => vendorName.toLowerCase() === vendorLower
-  )?.[1];
-  
-  if (weightRules && weightInKg !== undefined) {
-    for (const rule of weightRules) {
-      if (weightInKg <= rule.maxWeight) {
-        console.log(`[Shipping] ${vendor}: ${weightInKg}kg → $${rule.cost} (weight-based)`);
-        return rule.cost;
-      }
-    }
+  // Return cached rates if still valid
+  if (cachedRates && (now - cacheTimestamp) < CACHE_TTL) {
+    return cachedRates;
   }
-  
-  // 2. Check tag overrides (high priority)
-  // Tags must match EXACTLY (case-sensitive)
-  for (const [tag, cost] of Object.entries(TAG_SHIPPING_OVERRIDES)) {
-    if (tags.includes(tag)) {
-      return cost;
-    }
+
+  // Load from database
+  const vendorRates = new Map<string, VendorRate>();
+  const tagRates = new Map<string, number>();
+
+  // Load vendor rates
+  const vendors = await sql`
+    SELECT 
+      vendor_name,
+      base_rate,
+      tag_overrides,
+      weight_tiers
+    FROM vendor_shipping_rates
+    WHERE active = true
+  `;
+
+  for (const row of vendors) {
+    vendorRates.set(row.vendor_name, {
+      vendor: row.vendor_name,
+      baseRate: parseFloat(row.base_rate),
+      tagOverrides: row.tag_overrides || {},
+      weightTiers: row.weight_tiers || undefined,
+    });
   }
-  
-  // 3. Check vendor rate
-  for (const [vendorName, cost] of Object.entries(VENDOR_SHIPPING_RATES)) {
-    if (vendorName.toLowerCase() === vendorLower) {
-      return cost;
-    }
+
+  // Load global tag rates
+  const tags = await sql`
+    SELECT tag, rate
+    FROM shipping_tag_rates
+    WHERE active = true
+  `;
+
+  for (const row of tags) {
+    tagRates.set(row.tag, parseFloat(row.rate));
   }
-  
-  // 4. Return default if vendor not found
-  console.warn(`No shipping rate found for vendor: ${vendor}, using default: $${DEFAULT_SHIPPING_COST}`);
-  return DEFAULT_SHIPPING_COST;
+
+  // Update cache
+  cachedRates = { vendorRates, tagRates };
+  cacheTimestamp = now;
+
+  return cachedRates;
 }
 
 /**
- * Calculate total shipping for multiple products
+ * Invalidate cache (call after updating rates)
  */
-export function calculateTotalShipping(
-  items: Array<{ vendor: string; tags?: string[]; quantity: number; weightInKg?: number }>
+export function invalidateCache() {
+  cachedRates = null;
+  cacheTimestamp = 0;
+}
+
+/**
+ * Normalize tags (handle arrays or comma-separated strings)
+ */
+export function normalizeTags(tags: string | string[] | null | undefined): string[] {
+  if (!tags) return [];
+  if (Array.isArray(tags)) return tags;
+  return tags.split(',').map(t => t.trim()).filter(Boolean);
+}
+
+/**
+ * Resolve shipping offset for a product
+ * Priority:
+ * 1. Vendor-specific tag overrides
+ * 2. Weight-based rates (if weight provided)
+ * 3. Base vendor rate
+ * 4. Global tag rates (fallback)
+ */
+export function resolveShippingOffset(
+  vendor: string,
+  tags: string[],
+  rates: ShippingRates,
+  weight?: number
+): { shippingOffset: number | null; tagMatch: string | null } {
+  const normalizedTags = normalizeTags(tags);
+  const vendorLower = vendor.toLowerCase().trim();
+
+  // Find vendor match (case-insensitive)
+  let vendorMatch: VendorRate | undefined;
+  for (const [vendorName, rate] of rates.vendorRates.entries()) {
+    if (vendorName.toLowerCase() === vendorLower) {
+      vendorMatch = rate;
+      break;
+    }
+  }
+
+  if (vendorMatch) {
+    // Priority 1: Vendor-specific tag overrides
+    for (const tag of normalizedTags) {
+      const cleanTag = tag.replace(/^#/, '').trim();
+      const tagOverride = vendorMatch.tagOverrides[tag] || vendorMatch.tagOverrides[cleanTag];
+      if (tagOverride !== undefined) {
+        return { shippingOffset: tagOverride, tagMatch: tag };
+      }
+    }
+
+    // Priority 2: Weight-based rates
+    if (vendorMatch.weightTiers && weight !== undefined) {
+      for (const tier of vendorMatch.weightTiers) {
+        if (weight >= tier.min && weight <= tier.max) {
+          return { shippingOffset: tier.rate, tagMatch: null };
+        }
+      }
+    }
+
+    // Priority 3: Base vendor rate
+    return { shippingOffset: vendorMatch.baseRate, tagMatch: null };
+  }
+
+  // Priority 4: Global tag rates (fallback)
+  for (const tag of normalizedTags) {
+    const cleanTag = tag.replace(/^#/, '').trim();
+    const tagRate = rates.tagRates.get(tag) || rates.tagRates.get(cleanTag);
+    if (tagRate !== undefined) {
+      return { shippingOffset: tagRate, tagMatch: tag };
+    }
+  }
+
+  return { shippingOffset: null, tagMatch: null };
+}
+
+/**
+ * Get shipping cost for a product (synchronous, uses cached rates)
+ * Returns 0 if no shipping cost applies or rates not loaded
+ * 
+ * Note: This is a synchronous wrapper for frontend use.
+ * For backend/webhook use, call loadShippingRates() first.
+ */
+export function getShippingCost(
+  vendor: string,
+  tags: string[],
+  weight?: number
 ): number {
-  return items.reduce((total, item) => {
-    const shippingCost = getShippingCost(item.vendor, item.tags || [], item.weightInKg);
-    return total + (shippingCost * item.quantity);
-  }, 0);
+  // If cache is empty or expired, return 0 (rates not loaded)
+  if (!cachedRates) {
+    return 0;
+  }
+
+  const result = resolveShippingOffset(vendor, tags, cachedRates, weight);
+  return result.shippingOffset || 0;
 }

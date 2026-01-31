@@ -45,7 +45,7 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
   const filterColors = color ? (Array.isArray(color) ? color : color.split(',')) : undefined;
 
   // Check if this path exists in our mapping
-  const allowedProductTypes = getProductTypesForCollection(category, subcategory);
+  const allowedProductTypes = await getProductTypesForCollection(category, subcategory);
   
   if (allowedProductTypes.length === 0) {
     notFound();
@@ -81,16 +81,16 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
   const reviewStatsMap = await getReviewStatsForProducts(productHandles);
 
   // Get sub-subcategories from our mapping (third level)
-  const subSubcategories = getMappingSubcategories(category, subcategory);
+  const subSubcategories = await getMappingSubcategories(category, subcategory);
   
   // Get collection data
   const mappingTitle = getCollectionTitle(category, subcategory);
   const breadcrumbs = getCollectionHierarchy(category, subcategory);
   
-  // Get rich content from CSV
-  const content = getCategoryContent(category, subcategory);
+  // Get rich content from database
+  const content = await getCategoryContent(category, subcategory);
   
-  // Use CSV content if available, otherwise fallback to mapping
+  // Use database content if available, otherwise fallback to mapping
   const pageTitle = content?.h1_title || mappingTitle;
   const description = content?.short_description || '';
   
@@ -193,7 +193,7 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
  */
 export async function generateMetadata({ params }: SubcategoryPageProps): Promise<Metadata> {
   const { category, subcategory } = await params;
-  const content = getCategoryContent(category, subcategory);
+  const content = await getCategoryContent(category, subcategory);
   const mappingTitle = getCollectionTitle(category, subcategory);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
   const canonicalUrl = `${siteUrl}/${category}/${subcategory}`;
