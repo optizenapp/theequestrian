@@ -1,5 +1,5 @@
 import { initDb } from '../db';
-import { loadTagRates, loadVendorRates } from '../csv/loadRates';
+import { loadVendorRates, loadTagRates } from '../db/rates';
 import { loadSellerMapping } from '../csv/loadSellerMapping';
 import { getProductById, listProducts } from '../webkul/products';
 import { processProduct } from '../processor';
@@ -9,9 +9,22 @@ const SAMPLE_SIZE = process.env.SAMPLE_SIZE ? Number(process.env.SAMPLE_SIZE) : 
 
 async function run() {
   await initDb();
-  const vendorRates = loadVendorRates();
-  const tagRates = loadTagRates();
+  
+  // Load rates from Postgres
+  const vendorRatesMap = await loadVendorRates();
+  const tagRatesMap = await loadTagRates();
   const sellerMapping = loadSellerMapping();
+  
+  // Convert to format expected by processProduct
+  const vendorRates = new Map();
+  for (const [vendor, rate] of vendorRatesMap) {
+    vendorRates.set(vendor, rate);
+  }
+  
+  const tagRates = new Map();
+  for (const [tag, rate] of tagRatesMap) {
+    tagRates.set(tag, rate);
+  }
   
   console.log(`[Bulk] Loaded ${vendorRates.size} vendor rates`);
   console.log(`[Bulk] Loaded ${tagRates.size} tag rates`);
@@ -48,9 +61,17 @@ async function run() {
         continue;
       }
       
+      // Only process products that are published to Shopify
       const productAny = fullProduct as any;
+      if (!productAny.shopify_product_id || productAny.shopify_product_id === '0' || productAny.shopify_product_id === 0) {
+        console.log(`[Bulk] Skipping unpublished product ${fullProduct.id} (no Shopify ID)`);
+        skipped += 1;
+        processed += 1;
+        continue;
+      }
+      
       const productName = productAny.product_name ?? productAny.title ?? productAny.handle ?? String(fullProduct.id);
-      console.log(`\n[${processed + 1}] Processing: ${productName} (ID: ${fullProduct.id})`);
+      console.log(`\n[${processed + 1}] Processing: ${productName} (ID: ${fullProduct.id}, Shopify: ${productAny.shopify_product_id})`);
       
       try {
         await processProduct(fullProduct, { vendorRates, tagRates, sellerMapping }, 'bulk');
