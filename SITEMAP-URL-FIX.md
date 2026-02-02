@@ -26,6 +26,10 @@ After redeployment, check:
 - https://www.theequestrian.com.au/sitemap.xml
 - All URLs should be `https://www.theequestrian.com.au/...` instead of `localhost:3001`
 
+## Status
+✅ Environment variable updated in Vercel
+🚀 Deploying to apply changes...
+
 ## Files That Use This Variable
 - `app/sitemap.ts` - Main sitemap index
 - All sub-sitemaps in `app/sitemap/` folder
