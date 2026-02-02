@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { FaCcVisa, FaCcMastercard, FaCcPaypal } from 'react-icons/fa';
 import { SiAfterpay, SiShopify } from 'react-icons/si';
 import { ShopifyProduct } from '@/types/shopify';
+import { normalizeCheckoutUrl } from '@/lib/shopify/cart-utils';
 
 interface CartPageContentProps {
   recommendedProducts?: ShopifyProduct[];
@@ -322,7 +323,7 @@ if (isInCart) return null;
 
                 {/* Checkout Button - Standard Shopify Checkout */}
                 <a
-                  href={cart.checkoutUrl}
+                  href={normalizeCheckoutUrl(cart.checkoutUrl)}
                   className="block w-full bg-action text-white text-center py-4 rounded-full font-bold text-lg hover:bg-action-hover hover:shadow-lg transition-all mb-4 transform active:scale-[0.99]"
                 >
                   Checkout

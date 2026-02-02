@@ -3,6 +3,7 @@
 import { useCart } from './cart-context';
 import Image from 'next/image';
 import Link from 'next/link';
+import { normalizeCheckoutUrl } from '@/lib/shopify/cart-utils';
 
 export function CartDrawer() {
   const { cart, isOpen, closeCart, updateCartItem, removeCartItem } = useCart();
@@ -136,7 +137,7 @@ export function CartDrawer() {
               Shipping and taxes calculated at checkout
             </p>
             <a
-              href={cart.checkoutUrl}
+              href={normalizeCheckoutUrl(cart.checkoutUrl)}
               className="block w-full bg-action text-white text-center py-3 rounded-full font-semibold hover:bg-action-hover hover:-translate-y-0.5 hover:shadow-md transition-all"
             >
               Checkout

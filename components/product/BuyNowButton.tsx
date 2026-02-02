@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useCart } from '@/components/cart/cart-context';
+import { normalizeCheckoutUrl } from '@/lib/shopify/cart-utils';
 
 interface BuyNowButtonProps {
   variantId: string;
@@ -18,8 +19,8 @@ export function BuyNowButton({ variantId, disabled }: BuyNowButtonProps) {
     setIsProcessing(true);
     try {
       const cart = await addCartItem(variantId, 1);
-      // Redirect to Shopify checkout
-      window.location.href = cart.checkoutUrl;
+      // Redirect to Shopify checkout (normalized to use proper checkout domain)
+      window.location.href = normalizeCheckoutUrl(cart.checkoutUrl);
     } catch (error) {
       console.error('Failed to process buy now:', error);
       alert('Failed to process purchase. Please try again.');

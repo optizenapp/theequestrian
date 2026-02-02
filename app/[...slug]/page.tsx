@@ -29,6 +29,11 @@ interface ProductCatchAllPageProps {
 export default async function ProductCatchAllPage({ params }: ProductCatchAllPageProps) {
   const { slug } = await params;
   
+  // Check for legacy cart permalink URLs (should be handled by middleware but catch here as backup)
+  if (slug[0] === 'cart' && slug[1] === 'c') {
+    redirect('/cart');
+  }
+  
   // Last segment is the product handle
   const handle = slug[slug.length - 1];
   
