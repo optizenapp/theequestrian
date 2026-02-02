@@ -5,6 +5,14 @@ import { blogRedirects, collectionRedirects, pageRedirects } from '@/lib/redirec
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Redirect legacy cart permalinks (Shopify cart share URLs)
+  // Format: /cart/c/[cart-id]?key=...
+  if (pathname.startsWith('/cart/c/')) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = '/cart';
+    return NextResponse.redirect(redirectUrl, 301);
+  }
+
   // Redirect legacy collection URLs.
   if (pathname.startsWith('/collections/')) {
     const target = collectionRedirects[pathname];
@@ -53,5 +61,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/collections/:path*', '/blogs/:path*', '/pages/:path*'],
+  matcher: ['/admin/:path*', '/collections/:path*', '/blogs/:path*', '/pages/:path*', '/cart/c/:path*'],
 };
