@@ -8,7 +8,6 @@ import { useState } from 'react';
 import { FaCcVisa, FaCcMastercard, FaCcPaypal } from 'react-icons/fa';
 import { SiAfterpay, SiShopify } from 'react-icons/si';
 import { ShopifyProduct } from '@/types/shopify';
-import { DraftOrderCheckoutButton } from './DraftOrderCheckoutButton';
 
 interface CartPageContentProps {
   recommendedProducts?: ShopifyProduct[];
@@ -321,8 +320,13 @@ if (isInCart) return null;
                   <span className="text-2xl font-bold text-gray-900">${total.toFixed(2)}</span>
                 </div>
 
-                {/* Checkout Button - Using Draft Orders with Custom Prices */}
-                <DraftOrderCheckoutButton className="block w-full bg-action text-white text-center py-4 rounded-full font-bold text-lg hover:bg-action-hover hover:shadow-lg transition-all mb-4 transform active:scale-[0.99]" />
+                {/* Checkout Button - Standard Shopify Checkout */}
+                <a
+                  href={cart.checkoutUrl}
+                  className="block w-full bg-action text-white text-center py-4 rounded-full font-bold text-lg hover:bg-action-hover hover:shadow-lg transition-all mb-4 transform active:scale-[0.99]"
+                >
+                  Checkout
+                </a>
 
                 {/* Legal / Trust */}
                 <div className="text-xs text-gray-500 text-center mb-4">
