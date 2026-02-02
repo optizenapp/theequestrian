@@ -796,10 +796,19 @@ export function getPrimaryCategoryPath(productType: string): string | null {
  * Get canonical URL for a product
  * Returns category-based URL: /{category}/{subcategory}/{product-handle}
  * Falls back to /products/{handle} if no category mapping found
+ * 
+ * Priority:
+ * 1. Use primary_collection metafield if set
+ * 2. Derive from productType via mapping
+ * 3. Fallback to /products/{handle}
  */
-// Canonical URL only needs handle + productType (and optionally id for batching).
-export function getProductCanonicalUrl(product: Pick<ShopifyProduct, 'handle' | 'productType'>): string {
-  // Try to get category path from productType
+export function getProductCanonicalUrl(product: Pick<ShopifyProduct, 'handle' | 'productType'> & { metafield?: { value: string } | null }): string {
+  // First priority: Use metafield if set
+  if (product.metafield?.value) {
+    return `/${product.metafield.value}/${product.handle}`;
+  }
+  
+  // Second priority: Try to get category path from productType
   const categoryPath = getPrimaryCategoryPath(product.productType);
   
   if (categoryPath) {
@@ -815,27 +824,40 @@ export function getProductCanonicalUrl(product: Pick<ShopifyProduct, 'handle' | 
  * Batch calculate canonical URLs for multiple products
  * More efficient than calling getProductCanonicalUrl() in a loop
  * Uses caching to avoid repeated productType lookups
+ * 
+ * Priority:
+ * 1. Use primary_collection metafield if set
+ * 2. Derive from productType via mapping
+ * 3. Fallback to /products/{handle}
  */
 export function getProductCanonicalUrls(
-  products: Array<Pick<ShopifyProduct, 'id' | 'handle' | 'productType'>>
+  products: Array<Pick<ShopifyProduct, 'id' | 'handle' | 'productType'> & { metafield?: { value: string } | null }>
 ): Map<string, string> {
   const urlMap = new Map<string, string>();
   
-  // Build a cache of productType -> categoryPath to avoid repeated lookups
+  // Build a cache of productType -> categoryPath to avoid repeated productType lookups
   const pathCache = new Map<string, string | null>();
   
   for (const product of products) {
-    const productType = product.productType;
+    let canonicalUrl: string;
     
-    // Check cache first
-    if (!pathCache.has(productType)) {
-      pathCache.set(productType, getPrimaryCategoryPath(productType));
+    // First priority: Use metafield if set
+    if (product.metafield?.value) {
+      canonicalUrl = `/${product.metafield.value}/${product.handle}`;
+    } else {
+      // Second priority: Try productType mapping
+      const productType = product.productType;
+      
+      // Check cache first
+      if (!pathCache.has(productType)) {
+        pathCache.set(productType, getPrimaryCategoryPath(productType));
+      }
+      
+      const categoryPath = pathCache.get(productType);
+      canonicalUrl = categoryPath 
+        ? `${categoryPath}/${product.handle}`
+        : `/products/${product.handle}`;
     }
-    
-    const categoryPath = pathCache.get(productType);
-    const canonicalUrl = categoryPath 
-      ? `${categoryPath}/${product.handle}`
-      : `/products/${product.handle}`;
     
     urlMap.set(product.id, canonicalUrl);
   }
