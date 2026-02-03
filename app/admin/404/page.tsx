@@ -163,7 +163,7 @@ export default function AdminNotFoundPage() {
       const res = await fetch('/api/admin/404/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pageLimit: 300, linkLimit: 500, includeLinks: true }),
+        body: JSON.stringify({ pageLimit: null, linkLimit: null, includeLinks: true }),
       });
       const payload = await res.json();
       if (!res.ok) {

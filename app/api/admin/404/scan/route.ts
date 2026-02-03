@@ -4,8 +4,8 @@ import { scanNotFoundUrls } from '@/lib/not-found/scan';
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
-    const pageLimit = typeof body?.pageLimit === 'number' ? body.pageLimit : 300;
-    const linkLimit = typeof body?.linkLimit === 'number' ? body.linkLimit : 500;
+    const pageLimit = typeof body?.pageLimit === 'number' ? body.pageLimit : null;
+    const linkLimit = typeof body?.linkLimit === 'number' ? body.linkLimit : null;
     const includeLinks = typeof body?.includeLinks === 'boolean' ? body.includeLinks : false;
     const result = await scanNotFoundUrls({ pageLimit, linkLimit, includeLinks });
     return NextResponse.json(result);

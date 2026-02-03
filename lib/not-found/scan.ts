@@ -83,8 +83,8 @@ const withConcurrency = async <T>(
 };
 
 export async function scanNotFoundUrls(options?: {
-  pageLimit?: number;
-  linkLimit?: number;
+  pageLimit?: number | null;
+  linkLimit?: number | null;
   includeLinks?: boolean;
 }) {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
@@ -94,14 +94,14 @@ export async function scanNotFoundUrls(options?: {
 
   const { pageLimit = 300, linkLimit = 500, includeLinks = false } = options ?? {};
   const urls = await fetchSitemapUrls(baseUrl);
-  const sample = urls.slice(0, pageLimit);
+  const sample = pageLimit ? urls.slice(0, pageLimit) : urls;
   let scanned = 0;
   let notFound = 0;
   let linkScanned = 0;
 
   const discoveredLinks = new Map<string, string>();
 
-  await withConcurrency(sample, 6, async (url) => {
+  await withConcurrency(sample, 4, async (url) => {
     scanned += 1;
     const res = await fetch(url, { method: 'GET', redirect: 'manual' });
     if (res.status === 404) {
@@ -117,7 +117,7 @@ export async function scanNotFoundUrls(options?: {
       const html = await res.text();
       const links = extractInternalLinks(html, baseUrl);
       for (const link of links) {
-        if (discoveredLinks.size >= linkLimit) break;
+        if (linkLimit && discoveredLinks.size >= linkLimit) break;
         if (!discoveredLinks.has(link)) {
           discoveredLinks.set(link, normalizePath(url));
         }

@@ -4,8 +4,8 @@ import { scanNotFoundUrls } from '@/lib/not-found/scan';
 export async function GET() {
   try {
     const result = await scanNotFoundUrls({
-      pageLimit: 300,
-      linkLimit: 500,
+      pageLimit: null,
+      linkLimit: null,
       includeLinks: true,
     });
     return NextResponse.json(result);
