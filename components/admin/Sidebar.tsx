@@ -54,6 +54,11 @@
        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3l2.5 5 5.5.8-4 3.9.9 5.6-4.9-2.6-4.9 2.6.9-5.6-4-3.9 5.5-.8z" />
      </svg>
    ),
+  alert: (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v4m0 4h.01M10.3 4.7l-7 12.1A1.5 1.5 0 004.6 19h14.8a1.5 1.5 0 001.3-2.2l-7-12.1a1.5 1.5 0 00-2.4 0z" />
+    </svg>
+  ),
  };
 
  export function Sidebar({ items, activePath }: SidebarProps) {

@@ -1,0 +1,16 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/404-scan",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/404-rollup",
+      "schedule": "10 2 * * *"
+    },
+    {
+      "path": "/api/cron/redirect-audit",
+      "schedule": "20 2 * * *"
+    }
+  ]
+}

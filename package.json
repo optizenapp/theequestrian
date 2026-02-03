@@ -68,7 +68,10 @@
     "mapping:init": "tsx scripts/init-collection-mapping-table.ts",
     "mapping:migrate": "tsx scripts/migrate-mapping-to-postgres.ts",
     "mapping:audit": "tsx scripts/audit-mapping-issues.ts",
-    "mapping:fix": "tsx scripts/fix-mapping-merge-rules.ts"
+    "mapping:fix": "tsx scripts/fix-mapping-merge-rules.ts",
+    "redirects:audit": "tsx scripts/audit-manual-redirects.ts",
+    "404s:rollup": "tsx scripts/rollup-404s.ts",
+    "404s:scan": "tsx scripts/scan-404s.ts"
   },
   "dependencies": {
     "@google-analytics/data": "^5.2.1",

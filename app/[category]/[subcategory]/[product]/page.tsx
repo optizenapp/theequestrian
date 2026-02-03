@@ -1,4 +1,4 @@
-import { notFound, redirect } from 'next/navigation';
+import { notFound, permanentRedirect, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { getProductsByTypes, getProductByHandle, getProductCanonicalUrl, getRecommendedProducts } from '@/lib/shopify/products';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
@@ -34,6 +34,7 @@ import { getProductBulletPoints } from '@/lib/products/bullet-points';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import type { ShopifyProduct } from '@/types/shopify';
+import { getManualRedirect } from '@/lib/redirects/manual';
 
 // ISR Configuration: Revalidate every 15 minutes
 export const revalidate = 900;
@@ -61,6 +62,14 @@ export default async function Page({ params, searchParams }: PageProps) {
   const filterBrands = brand ? (Array.isArray(brand) ? brand : brand.split(',')) : undefined;
   const filterSizes = size ? (Array.isArray(size) ? size : size.split(',')) : undefined;
   const filterColors = color ? (Array.isArray(color) ? color : color.split(',')) : undefined;
+
+  const manualRedirect = await getManualRedirect(`/${category}/${subcategory}/${thirdSegment}`);
+  if (manualRedirect) {
+    if (manualRedirect.type === '301' || manualRedirect.type === '308') {
+      permanentRedirect(manualRedirect.to);
+    }
+    redirect(manualRedirect.to);
+  }
 
   // 1. Check if this is a valid sub-subcategory
   const allowedProductTypes = await getProductTypesForCollection(category, subcategory, thirdSegment);

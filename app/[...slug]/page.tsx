@@ -1,4 +1,4 @@
-import { notFound, redirect } from 'next/navigation';
+import { notFound, permanentRedirect, redirect } from 'next/navigation';
 import { getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
 import { ProductImageGallery } from '@/components/ProductImageGallery';
 import { ProductBreadcrumbs } from '@/components/ProductBreadcrumbs';
@@ -8,6 +8,7 @@ import { generateBreadcrumbSchema } from '@/lib/utils/breadcrumb-schema';
 import { getBreadcrumbsForProduct } from '@/lib/mapping/collection-mapping';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
+import { getManualRedirect } from '@/lib/redirects/manual';
 
 export const revalidate = 300;
 
@@ -28,6 +29,15 @@ interface ProductCatchAllPageProps {
  */
 export default async function ProductCatchAllPage({ params }: ProductCatchAllPageProps) {
   const { slug } = await params;
+
+  const requestedPath = `/${slug.join('/')}`;
+  const manualRedirect = await getManualRedirect(requestedPath);
+  if (manualRedirect) {
+    if (manualRedirect.type === '301' || manualRedirect.type === '308') {
+      permanentRedirect(manualRedirect.to);
+    }
+    redirect(manualRedirect.to);
+  }
   
   // Check for legacy cart permalink URLs (should be handled by middleware but catch here as backup)
   if (slug[0] === 'cart' && slug[1] === 'c') {
@@ -46,7 +56,6 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
 
   // Get the canonical URL for this product
   const canonicalUrl = getProductCanonicalUrl(product);
-  const requestedPath = `/${slug.join('/')}`;
   
   // If the requested path doesn't match the canonical URL, redirect
   // BUT: Only if the canonical is NOT /products/{handle} (which would create a loop)

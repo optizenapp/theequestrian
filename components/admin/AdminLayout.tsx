@@ -20,6 +20,7 @@
     () => [
       { href: '/admin', label: 'Dashboard', icon: 'home' },
       { href: '/admin/analytics', label: 'GA4 Analytics', icon: 'chart' },
+      { href: '/admin/404', label: '404 Monitor', icon: 'alert' },
       { href: '/admin/seo', label: 'SEO & GSC', icon: 'chart' },
       { href: '/admin/feeds', label: 'Marketing Feeds', icon: 'feed' },
       { href: '/admin/email', label: 'Email Campaigns', icon: 'email' },

@@ -1,4 +1,4 @@
-import { notFound, redirect } from 'next/navigation';
+import { notFound, permanentRedirect, redirect } from 'next/navigation';
 import { getProductByHandle, getProductCanonicalUrl, getRecommendedProducts } from '@/lib/shopify/products';
 import { ProductImageGallery } from '@/components/ProductImageGallery';
 import { ProductBreadcrumbs } from '@/components/ProductBreadcrumbs';
@@ -13,6 +13,7 @@ import { getBreadcrumbsForProduct } from '@/lib/mapping/collection-mapping';
 import ProductReviewSection from '@/components/reviews/ProductReviewSection';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
+import { getManualRedirect } from '@/lib/redirects/manual';
 
 export const revalidate = 300;
 
@@ -33,6 +34,13 @@ interface ProductPageProps {
  */
 export default async function ProductPage({ params }: ProductPageProps) {
   const { handle } = await params;
+  const manualRedirect = await getManualRedirect(`/products/${handle}`);
+  if (manualRedirect) {
+    if (manualRedirect.type === '301' || manualRedirect.type === '308') {
+      permanentRedirect(manualRedirect.to);
+    }
+    redirect(manualRedirect.to);
+  }
   const product = await getProductByHandle(handle);
 
   if (!product) {

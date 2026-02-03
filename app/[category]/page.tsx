@@ -1,4 +1,4 @@
-import { notFound, redirect } from 'next/navigation';
+import { notFound, permanentRedirect, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { getProductsByTypes } from '@/lib/shopify/products';
 import { getProductByHandle, getProductCanonicalUrl, getProductCanonicalUrls } from '@/lib/shopify/products';
@@ -22,6 +22,7 @@ import { RelatedCategories } from '@/components/collection/RelatedCategories';
 import { RichContent } from '@/components/collection/RichContent';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { getManualRedirect } from '@/lib/redirects/manual';
 
 // ISR Configuration: Revalidate every 15 minutes
 export const revalidate = 900;
@@ -46,6 +47,14 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const filterBrands = brand ? (Array.isArray(brand) ? brand : brand.split(',')) : undefined;
   const filterSizes = size ? (Array.isArray(size) ? size : size.split(',')) : undefined;
   const filterColors = color ? (Array.isArray(color) ? color : color.split(',')) : undefined;
+
+  const manualRedirect = await getManualRedirect(`/${category}`);
+  if (manualRedirect) {
+    if (manualRedirect.type === '301' || manualRedirect.type === '308') {
+      permanentRedirect(manualRedirect.to);
+    }
+    redirect(manualRedirect.to);
+  }
 
   // Check if this category exists in our mapping
   const allowedProductTypes = await getProductTypesForCollection(category);
