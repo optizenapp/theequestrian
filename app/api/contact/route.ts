@@ -1,10 +1,25 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize Resend with API key
+const resendApiKey = process.env.RESEND_API_KEY;
+if (!resendApiKey) {
+  console.error('RESEND_API_KEY is not set in environment variables');
+}
+
+const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 export async function POST(request: Request) {
   try {
+    // Check if Resend is configured
+    if (!resend || !resendApiKey) {
+      console.error('Resend API key is missing');
+      return NextResponse.json(
+        { error: 'Email service is not configured. Please contact support directly.' },
+        { status: 500 }
+      );
+    }
+
     const body = await request.json();
     const { name, email, phone, subject, message } = body;
 
@@ -25,10 +40,14 @@ export async function POST(request: Request) {
       );
     }
 
+    // Get email configuration from environment variables
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+    const toEmail = process.env.CONTACT_EMAIL || 'hello@theequestrian.com.au';
+
     // Send email using Resend
     const { data, error } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
-      to: process.env.CONTACT_EMAIL || 'hello@theequestrian.com.au',
+      from: fromEmail,
+      to: toEmail,
       replyTo: email,
       subject: subject || `New Contact Form Submission from ${name}`,
       html: `
@@ -147,8 +166,21 @@ export async function POST(request: Request) {
 
     if (error) {
       console.error('Resend error:', error);
+      // Provide more detailed error message for debugging
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       return NextResponse.json(
-        { error: 'Failed to send email' },
+        { 
+          error: 'Failed to send email',
+          details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+        },
+        { status: 500 }
+      );
+    }
+
+    if (!data) {
+      console.error('Resend returned no data');
+      return NextResponse.json(
+        { error: 'Failed to send email - no response from email service' },
         { status: 500 }
       );
     }

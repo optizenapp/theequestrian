@@ -267,10 +267,15 @@ async function renderSubSubcategoryPage(
     allowedProductTypes, 
     36, 
     afterCursor,
-    {
+    { 
       brands: filterBrands,
       sizes: filterSizes,
       colors: filterColors
+    },
+    {
+      category,
+      subcategory,
+      subsubcategory: thirdSegment
     }
   );
 

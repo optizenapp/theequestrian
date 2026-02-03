@@ -194,9 +194,62 @@ export async function getAllProducts(): Promise<ProductWithPrimaryCollection[]> 
 }
 
 /**
+ * Check if a product belongs to a specific category path
+ * Uses primary_collection metafield or derives from productType mapping
+ */
+function productBelongsToCategory(
+  product: ProductWithPrimaryCollection,
+  category: string,
+  subcategory?: string,
+  subsubcategory?: string
+): boolean {
+  // Priority 1: Check primary_collection metafield
+  if (product.metafield?.value) {
+    const metafieldPath = product.metafield.value.split('/');
+    if (subsubcategory) {
+      return metafieldPath[0] === category && 
+             metafieldPath[1] === subcategory && 
+             metafieldPath[2] === subsubcategory;
+    } else if (subcategory) {
+      return metafieldPath[0] === category && metafieldPath[1] === subcategory;
+    } else {
+      return metafieldPath[0] === category;
+    }
+  }
+
+  // Priority 2: Derive from productType mapping
+  if (product.productType) {
+    const categoryPath = getPrimaryCategoryPath(product.productType);
+    if (categoryPath) {
+      const pathParts = categoryPath.split('/').filter(p => p);
+      if (subsubcategory) {
+        return pathParts.length >= 3 &&
+               pathParts[0] === category &&
+               pathParts[1] === subcategory &&
+               pathParts[2] === subsubcategory;
+      } else if (subcategory) {
+        return pathParts.length >= 2 &&
+               pathParts[0] === category &&
+               pathParts[1] === subcategory;
+      } else {
+        return pathParts.length >= 1 && pathParts[0] === category;
+      }
+    }
+  }
+
+  return false;
+}
+
+/**
  * Get products by product types (optimized for collection pages)
  * Uses Shopify's query parameter to filter on the server side
  * Sorts products with in-stock items first, out-of-stock last across ALL pages
+ * 
+ * @param productTypes - Array of product types to filter by
+ * @param limit - Number of products per page
+ * @param after - Cursor for pagination
+ * @param filters - Optional filters (brands, sizes, colors)
+ * @param categoryFilter - Optional category path to filter products (e.g., 'clothing' or 'horse/rugs')
  */
 export async function getProductsByTypes(
   productTypes: string[], 
@@ -206,6 +259,11 @@ export async function getProductsByTypes(
     brands?: string[];
     sizes?: string[];
     colors?: string[];
+  },
+  categoryFilter?: {
+    category: string;
+    subcategory?: string;
+    subsubcategory?: string;
   }
 ): Promise<{ 
   products: ProductWithPrimaryCollection[]; 
@@ -434,12 +492,24 @@ export async function getProductsByTypes(
 
     console.log(`[getProductsByTypes] 📊 Facets calculated: ${brandFacets.length} brands, ${sizeFacets.length} sizes, ${colorFacets.length} colors`);
 
-    // --- FILTERING ALREADY DONE BY SHOPIFY ---
-    // No need for in-memory filtering - Shopify's query already filtered by brand/size/color
-    // The products we fetched are already the filtered results
+    // --- FILTER PRODUCTS BY CATEGORY ---
+    // Filter to only include products that belong to the specified category
     let filteredProducts = [...allProductsUnfiltered];
     
-    console.log(`[getProductsByTypes] ✅ Using ${filteredProducts.length} products (pre-filtered by Shopify query)`);
+    if (categoryFilter) {
+      const beforeCategoryFilter = filteredProducts.length;
+      filteredProducts = filteredProducts.filter(product => 
+        productBelongsToCategory(
+          product,
+          categoryFilter.category,
+          categoryFilter.subcategory,
+          categoryFilter.subsubcategory
+        )
+      );
+      console.log(`[getProductsByTypes] 🔍 Category filter applied: ${beforeCategoryFilter} → ${filteredProducts.length} products (category: ${categoryFilter.category}${categoryFilter.subcategory ? `/${categoryFilter.subcategory}` : ''}${categoryFilter.subsubcategory ? `/${categoryFilter.subsubcategory}` : ''})`);
+    }
+    
+    console.log(`[getProductsByTypes] ✅ Using ${filteredProducts.length} products (pre-filtered by Shopify query${categoryFilter ? ' + category filter' : ''})`);
 
     // Sort products: In-stock first, out-of-stock last
     filteredProducts.sort((a, b) => {

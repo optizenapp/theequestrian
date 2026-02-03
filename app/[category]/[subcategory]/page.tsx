@@ -52,6 +52,7 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
   }
 
   // Fetch products with pagination (36 per page)
+  // Filter by category and subcategory to ensure only products belonging to this path are shown
   const { products: filteredProducts, pageInfo, facets, totalCount } = await getProductsByTypes(
     allowedProductTypes, 
     36, 
@@ -60,6 +61,10 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
       brands: filterBrands,
       sizes: filterSizes,
       colors: filterColors
+    },
+    {
+      category,
+      subcategory
     }
   );
 

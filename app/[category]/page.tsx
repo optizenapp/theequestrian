@@ -147,6 +147,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   }
 
   // Fetch products with pagination (36 per page)
+  // Filter by category to ensure only products belonging to this category are shown
   const { products: filteredProducts, pageInfo, facets, totalCount } = await getProductsByTypes(
     allowedProductTypes, 
     36, 
@@ -155,6 +156,9 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
       brands: filterBrands,
       sizes: filterSizes,
       colors: filterColors
+    },
+    {
+      category
     }
   );
 

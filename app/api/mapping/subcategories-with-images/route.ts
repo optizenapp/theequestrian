@@ -69,7 +69,17 @@ export async function GET(request: NextRequest) {
           }
 
           // Fetch just 1 product to get a sample image
-          const { products } = await getProductsByTypes(productTypes, 1);
+          // Filter by category/subcategory to ensure we get a product from the right category
+          const { products } = await getProductsByTypes(
+            productTypes, 
+            1,
+            null,
+            undefined,
+            {
+              category,
+              subcategory: subcategory.handle
+            }
+          );
           
           const sampleProduct = products[0];
           const image = sampleProduct?.images?.edges?.[0]?.node;

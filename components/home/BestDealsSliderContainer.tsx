@@ -84,7 +84,16 @@ export async function BestDealsSliderContainer({ section }: BestDealsSliderConta
         
         if (productTypes.length > 0) {
           // Fetch products for this category (limit to 1 product)
-          const categoryProducts = await getProductsByTypes(productTypes, 1, null);
+          // Filter by category to ensure we get a product from the right category
+          const categoryProducts = await getProductsByTypes(
+            productTypes, 
+            1, 
+            null,
+            undefined,
+            {
+              category: handle
+            }
+          );
           const firstProduct = categoryProducts.products[0];
           
           if (firstProduct) {
