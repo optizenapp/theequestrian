@@ -275,7 +275,7 @@ async function renderSubSubcategoryPage(
     {
       category,
       subcategory,
-      subsubcategory: thirdSegment
+      subsubcategory
     }
   );
 
