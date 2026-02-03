@@ -16,18 +16,19 @@
    const router = useRouter();
    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-   const navItems = useMemo(
-     () => [
-       { href: '/admin', label: 'Dashboard', icon: 'home' },
-       { href: '/admin/seo', label: 'SEO & Analytics', icon: 'chart' },
-       { href: '/admin/feeds', label: 'Marketing Feeds', icon: 'feed' },
-       { href: '/admin/email', label: 'Email Campaigns', icon: 'email' },
-       { href: '/admin/sms', label: 'SMS Campaigns', icon: 'sms' },
-       { href: '/admin/ads', label: 'Ad Optimization', icon: 'ads' },
-       { href: '/admin/reviews', label: 'Reviews', icon: 'reviews' },
-     ],
-     []
-   );
+  const navItems = useMemo(
+    () => [
+      { href: '/admin', label: 'Dashboard', icon: 'home' },
+      { href: '/admin/analytics', label: 'GA4 Analytics', icon: 'chart' },
+      { href: '/admin/seo', label: 'SEO & GSC', icon: 'chart' },
+      { href: '/admin/feeds', label: 'Marketing Feeds', icon: 'feed' },
+      { href: '/admin/email', label: 'Email Campaigns', icon: 'email' },
+      { href: '/admin/sms', label: 'SMS Campaigns', icon: 'sms' },
+      { href: '/admin/ads', label: 'Ad Optimization', icon: 'ads' },
+      { href: '/admin/reviews', label: 'Reviews', icon: 'reviews' },
+    ],
+    []
+  );
 
    const handleLogout = async () => {
      setIsLoggingOut(true);

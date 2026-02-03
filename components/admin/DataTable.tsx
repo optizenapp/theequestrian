@@ -1,4 +1,12 @@
- interface Column<T> {
+type CellValue =
+  | string
+  | number
+  | {
+      text: string;
+      tone?: 'positive' | 'negative' | 'neutral';
+    };
+
+interface Column<T> {
    key: keyof T;
    header: string;
  }
@@ -10,7 +18,7 @@
    emptyState?: string;
  }
 
- export function DataTable<T extends { id: string }>({
+export function DataTable<T extends { id: string }>({
    title,
    columns,
    rows,
@@ -42,11 +50,27 @@
              ) : (
                rows.map((row) => (
                  <tr key={row.id} className="hover:bg-gray-50">
-                   {columns.map((column) => (
-                     <td key={String(column.key)} className="px-5 py-3">
-                       {String(row[column.key])}
-                     </td>
-                   ))}
+                  {columns.map((column) => {
+                    const value = row[column.key] as CellValue;
+                    if (typeof value === 'object' && value !== null && 'text' in value) {
+                      const tone =
+                        value.tone === 'positive'
+                          ? 'text-emerald-600'
+                          : value.tone === 'negative'
+                          ? 'text-rose-600'
+                          : 'text-gray-500';
+                      return (
+                        <td key={String(column.key)} className={`px-5 py-3 ${tone}`}>
+                          {value.text}
+                        </td>
+                      );
+                    }
+                    return (
+                      <td key={String(column.key)} className="px-5 py-3">
+                        {String(value)}
+                      </td>
+                    );
+                  })}
                  </tr>
                ))
              )}

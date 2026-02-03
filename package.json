@@ -71,6 +71,7 @@
     "mapping:fix": "tsx scripts/fix-mapping-merge-rules.ts"
   },
   "dependencies": {
+    "@google-analytics/data": "^5.2.1",
     "@neondatabase/serverless": "^1.0.2",
     "@vercel/kv": "^3.0.0",
     "@vercel/postgres": "^0.10.0",
