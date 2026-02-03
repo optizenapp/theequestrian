@@ -15,7 +15,7 @@ const ensureNotFoundTable = async () => {
 
 export async function logServerNotFound() {
   try {
-    const headerStore = headers();
+    const headerStore = await headers();
     const path = headerStore.get('x-request-path') || '/';
     const referrer = headerStore.get('referer');
     const userAgent = headerStore.get('user-agent');
