@@ -4,6 +4,7 @@ import { useCart } from './cart-context';
 import Image from 'next/image';
 import Link from 'next/link';
 import { normalizeCheckoutUrl } from '@/lib/shopify/cart-utils';
+import { trackGaEvent } from '@/lib/analytics/ga4';
 
 export function CartDrawer() {
   const { cart, isOpen, closeCart, updateCartItem, removeCartItem } = useCart();
@@ -138,6 +139,14 @@ export function CartDrawer() {
             </p>
             <a
               href={normalizeCheckoutUrl(cart.checkoutUrl)}
+              onClick={() =>
+                trackGaEvent('begin_checkout', {
+                  currency: currencyCode,
+                  value: parseFloat(subtotal),
+                  item_count: itemCount,
+                  source: 'cart_drawer',
+                })
+              }
               className="block w-full bg-action text-white text-center py-3 rounded-full font-semibold hover:bg-action-hover hover:-translate-y-0.5 hover:shadow-md transition-all"
             >
               Checkout

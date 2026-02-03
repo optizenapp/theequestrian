@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useCart } from '@/components/cart/cart-context';
 import { normalizeCheckoutUrl } from '@/lib/shopify/cart-utils';
+import { trackGaEvent } from '@/lib/analytics/ga4';
 
 interface BuyNowButtonProps {
   variantId: string;
@@ -19,6 +20,13 @@ export function BuyNowButton({ variantId, disabled }: BuyNowButtonProps) {
     setIsProcessing(true);
     try {
       const cart = await addCartItem(variantId, 1);
+      trackGaEvent('add_to_cart', {
+        items: [{ item_id: variantId, quantity: 1 }],
+      });
+      trackGaEvent('begin_checkout', {
+        items: [{ item_id: variantId, quantity: 1 }],
+        source: 'buy_now',
+      });
       // Redirect to Shopify checkout (normalized to use proper checkout domain)
       window.location.href = normalizeCheckoutUrl(cart.checkoutUrl);
     } catch (error) {

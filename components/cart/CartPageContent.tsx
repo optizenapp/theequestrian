@@ -9,6 +9,7 @@ import { FaCcVisa, FaCcMastercard, FaCcPaypal } from 'react-icons/fa';
 import { SiAfterpay, SiShopify } from 'react-icons/si';
 import { ShopifyProduct } from '@/types/shopify';
 import { normalizeCheckoutUrl } from '@/lib/shopify/cart-utils';
+import { trackGaEvent } from '@/lib/analytics/ga4';
 
 interface CartPageContentProps {
   recommendedProducts?: ShopifyProduct[];
@@ -324,6 +325,14 @@ if (isInCart) return null;
                 {/* Checkout Button - Standard Shopify Checkout */}
                 <a
                   href={normalizeCheckoutUrl(cart.checkoutUrl)}
+                  onClick={() =>
+                    trackGaEvent('begin_checkout', {
+                      currency: cart.cost.totalAmount.currencyCode,
+                      value: total,
+                      item_count: cart.totalQuantity,
+                      source: 'cart_page',
+                    })
+                  }
                   className="block w-full bg-action text-white text-center py-4 rounded-full font-bold text-lg hover:bg-action-hover hover:shadow-lg transition-all mb-4 transform active:scale-[0.99]"
                 >
                   Checkout

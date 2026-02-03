@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useCart } from '@/components/cart/cart-context';
+import { trackGaEvent } from '@/lib/analytics/ga4';
 
 interface AddToCartButtonProps {
   variantId: string;
@@ -19,6 +20,9 @@ export function AddToCartButton({ variantId, disabled }: AddToCartButtonProps) {
     setIsAdding(true);
     try {
       await addCartItem(variantId, 1);
+      trackGaEvent('add_to_cart', {
+        items: [{ item_id: variantId, quantity: 1 }],
+      });
       setShowSuccess(true);
       openCart();
       

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { Resend } from 'resend';
+import { sql } from '@vercel/postgres';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -68,6 +69,44 @@ export async function POST(request: NextRequest) {
       customer: order.customer?.email,
       items: order.line_items?.length,
     });
+
+    // Track GA4 purchase event (store in DB for later client-side tracking)
+    try {
+      const totalAmount = parseFloat(order.total_price || '0');
+      const currency = order.currency || 'AUD';
+      const items = lineItems.map((item: any) => ({
+        item_id: item.product_id?.toString(),
+        item_name: item.title,
+        quantity: item.quantity,
+        price: parseFloat(item.price || '0'),
+      }));
+
+      await sql`
+        INSERT INTO ga4_purchase_events (
+          order_id,
+          order_number,
+          customer_email,
+          total_amount,
+          currency,
+          items,
+          created_at
+        ) VALUES (
+          ${order.id.toString()},
+          ${orderNumber.toString()},
+          ${customerEmail},
+          ${totalAmount},
+          ${currency},
+          ${JSON.stringify(items)},
+          NOW()
+        )
+        ON CONFLICT (order_id) DO NOTHING
+      `;
+      
+      console.log('✅ GA4 purchase event queued for order:', orderNumber);
+    } catch (gaError) {
+      console.error('❌ Failed to queue GA4 purchase event:', gaError);
+      // Don't fail the webhook if GA4 tracking fails
+    }
 
     // Extract customer and order details
     const customerEmail = order.customer?.email;

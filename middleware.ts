@@ -53,7 +53,7 @@ export function middleware(request: NextRequest) {
     
     // If authenticated and on login page, redirect to dashboard
     if (isAuthenticated && request.nextUrl.pathname.startsWith('/admin/login')) {
-      return NextResponse.redirect(new URL('/admin/reviews', request.url));
+      return NextResponse.redirect(new URL('/admin', request.url));
     }
   }
   

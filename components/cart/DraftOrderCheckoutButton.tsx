@@ -9,6 +9,7 @@
 
 import { useState } from 'react';
 import { useCart } from './cart-context';
+import { trackGaEvent } from '@/lib/analytics/ga4';
 
 interface DraftOrderCheckoutButtonProps {
   className?: string;
@@ -65,6 +66,13 @@ export function DraftOrderCheckoutButton({ className }: DraftOrderCheckoutButton
       console.log('[Checkout] Creating draft order...');
       console.log('[Checkout] Items:', items.length);
       
+      trackGaEvent('begin_checkout', {
+        currency: cart.cost.totalAmount.currencyCode,
+        value: parseFloat(cart.cost.totalAmount.amount),
+        item_count: cart.totalQuantity,
+        source: 'draft_order',
+      });
+
       // Create draft order
       const response = await fetch('/api/checkout/create-draft-order', {
         method: 'POST',

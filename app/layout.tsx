@@ -8,12 +8,14 @@ import { CartProvider } from '@/components/cart/cart-context';
 import { CartDrawer } from '@/components/cart/CartDrawer';
 import { NavigationProgress } from '@/components/NavigationProgress';
 import { ConfiguredShopifyInbox } from '@/components/chat/ConfiguredShopifyInbox';
+import Script from 'next/script';
 
 const manrope = Manrope({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-manrope',
 });
+const gaMeasurementId = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID;
 
 export const metadata: Metadata = {
   title: 'The Equestrian - Premium Equestrian Equipment',
@@ -37,6 +39,24 @@ export default function RootLayout({
   return (
     <html lang="en" className={manrope.variable}>
       <body className={manrope.className}>
+        {gaMeasurementId ? (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}
+              strategy="afterInteractive"
+            />
+            <Script id="ga4-init" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${gaMeasurementId}', {
+                  page_path: window.location.pathname,
+                });
+              `}
+            </Script>
+          </>
+        ) : null}
         <CartProvider>
           <NavigationProgress />
           <FreeShippingBanner />

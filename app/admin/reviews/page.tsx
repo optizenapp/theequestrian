@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { AdminLayout } from '@/components/admin/AdminLayout';
 import { ReviewStars } from '@/components/reviews/ReviewStars';
 
 interface Review {
@@ -35,8 +35,6 @@ export default function AdminReviewsPage() {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
-  const router = useRouter();
-
   useEffect(() => {
     fetchReviews();
   }, [filterStatus, searchQuery]);
@@ -90,12 +88,6 @@ export default function AdminReviewsPage() {
     }
   };
 
-  const handleLogout = async () => {
-    await fetch('/api/admin/auth', { method: 'DELETE' });
-    router.push('/admin/login');
-    router.refresh();
-  };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
@@ -105,39 +97,18 @@ export default function AdminReviewsPage() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-action mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading reviews...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Review Management</h1>
-              <p className="text-sm text-gray-600 mt-1">The Equestrian Admin Dashboard</p>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              Logout
-            </button>
+    <AdminLayout title="Review Management" subtitle="Approve, reject, or remove product reviews">
+      <div className={isLoading ? 'flex items-center justify-center py-24' : ''}>
+        {isLoading && (
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-action mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading reviews...</p>
           </div>
-        </div>
+        )}
       </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Cards */}
+      {!isLoading && (
+        <>
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
             <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
@@ -280,8 +251,9 @@ export default function AdminReviewsPage() {
             </div>
           )}
         </div>
-      </div>
-    </div>
+        </>
+      )}
+    </AdminLayout>
   );
 }
 
