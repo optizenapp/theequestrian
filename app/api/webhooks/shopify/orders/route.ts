@@ -6,19 +6,20 @@ import { sql } from '@vercel/postgres';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 /**
- * Shopify Webhook Handler: Order Fulfillment
+ * Shopify Webhook Handler: Order Creation
  * 
- * This endpoint receives webhooks from Shopify when an order is fulfilled.
- * It sends a review request email to the customer after a delay (e.g., 7 days).
+ * This endpoint receives webhooks from Shopify when an order is created.
+ * It tracks GA4 purchase events and can send review request emails.
  * 
  * Setup Instructions:
  * 1. In Shopify Admin, go to Settings > Notifications > Webhooks
- * 2. Create a new webhook:
- *    - Event: Order fulfillment
+ * 2. Create webhook for order creation:
+ *    - Event: Order creation (orders/create)
  *    - Format: JSON
- *    - URL: https://yourdomain.com/api/webhooks/shopify/orders
+ *    - URL: https://www.theequestrian.com.au/api/webhooks/shopify/orders
  *    - Webhook API version: 2024-01 (or latest)
- * 3. Add SHOPIFY_WEBHOOK_SECRET to your environment variables
+ * 3. Optionally create webhook for order fulfillment (orders/fulfilled) for review emails
+ * 4. Add SHOPIFY_WEBHOOK_SECRET to your environment variables
  */
 
 // Verify Shopify webhook signature
@@ -63,56 +64,59 @@ export async function POST(request: NextRequest) {
     // Parse the webhook payload
     const order = JSON.parse(body);
 
-    console.log('📦 Order fulfilled:', {
-      orderId: order.id,
-      orderNumber: order.order_number,
-      customer: order.customer?.email,
-      items: order.line_items?.length,
-    });
-
-    // Track GA4 purchase event (store in DB for later client-side tracking)
-    try {
-      const totalAmount = parseFloat(order.total_price || '0');
-      const currency = order.currency || 'AUD';
-      const items = lineItems.map((item: any) => ({
-        item_id: item.product_id?.toString(),
-        item_name: item.title,
-        quantity: item.quantity,
-        price: parseFloat(item.price || '0'),
-      }));
-
-      await sql`
-        INSERT INTO ga4_purchase_events (
-          order_id,
-          order_number,
-          customer_email,
-          total_amount,
-          currency,
-          items,
-          created_at
-        ) VALUES (
-          ${order.id.toString()},
-          ${orderNumber.toString()},
-          ${customerEmail},
-          ${totalAmount},
-          ${currency},
-          ${JSON.stringify(items)},
-          NOW()
-        )
-        ON CONFLICT (order_id) DO NOTHING
-      `;
-      
-      console.log('✅ GA4 purchase event queued for order:', orderNumber);
-    } catch (gaError) {
-      console.error('❌ Failed to queue GA4 purchase event:', gaError);
-      // Don't fail the webhook if GA4 tracking fails
-    }
-
     // Extract customer and order details
     const customerEmail = order.customer?.email;
     const customerName = order.customer?.first_name || 'Customer';
     const orderNumber = order.order_number;
     const lineItems = order.line_items || [];
+
+    console.log('📦 Order created:', {
+      orderId: order.id,
+      orderNumber: order.order_number,
+      customer: order.customer?.email,
+      items: order.line_items?.length,
+      totalPrice: order.total_price,
+    });
+
+    // Track GA4 purchase event (store in DB for later client-side tracking)
+    if (customerEmail && lineItems.length > 0) {
+      try {
+        const totalAmount = parseFloat(order.total_price || '0');
+        const currency = order.currency || 'AUD';
+        const items = lineItems.map((item: any) => ({
+          item_id: item.product_id?.toString(),
+          item_name: item.title,
+          quantity: item.quantity,
+          price: parseFloat(item.price || '0'),
+        }));
+
+        await sql`
+          INSERT INTO ga4_purchase_events (
+            order_id,
+            order_number,
+            customer_email,
+            total_amount,
+            currency,
+            items,
+            created_at
+          ) VALUES (
+            ${order.id.toString()},
+            ${orderNumber.toString()},
+            ${customerEmail},
+            ${totalAmount},
+            ${currency},
+            ${JSON.stringify(items)},
+            NOW()
+          )
+          ON CONFLICT (order_id) DO NOTHING
+        `;
+        
+        console.log('✅ GA4 purchase event queued for order:', orderNumber);
+      } catch (gaError) {
+        console.error('❌ Failed to queue GA4 purchase event:', gaError);
+        // Don't fail the webhook if GA4 tracking fails
+      }
+    }
 
     if (!customerEmail || lineItems.length === 0) {
       console.log('⚠️ Skipping review request: No email or no items');

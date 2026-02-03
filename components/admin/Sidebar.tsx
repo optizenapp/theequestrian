@@ -11,7 +11,7 @@
    activePath: string | null;
  }
 
- const iconMap: Record<string, JSX.Element> = {
+ const iconMap: Record<string, React.ReactElement> = {
    home: (
      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor">
        <path

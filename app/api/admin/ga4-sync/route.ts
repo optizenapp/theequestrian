@@ -42,11 +42,13 @@ export async function POST() {
     // For now, just mark as sent (placeholder)
     const eventIds = result.rows.map((row) => row.id);
     
-    await sql`
-      UPDATE ga4_purchase_events
-      SET sent_to_ga4 = TRUE, sent_at = NOW()
-      WHERE id = ANY(${eventIds})
-    `;
+    if (eventIds.length > 0) {
+      await sql`
+        UPDATE ga4_purchase_events
+        SET sent_to_ga4 = TRUE, sent_at = NOW()
+        WHERE id = ANY(ARRAY[${eventIds.join(',')}]::INTEGER[])
+      `;
+    }
 
     return NextResponse.json({
       success: true,
