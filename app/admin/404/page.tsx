@@ -79,6 +79,7 @@ export default function AdminNotFoundPage() {
   const [editRedirects, setEditRedirects] = useState<
     Record<string, { to: string; type: string; status: string }>
   >({});
+  const [resolvedInternal, setResolvedInternal] = useState<Set<string>>(new Set());
   const [redirectSourceFilter, setRedirectSourceFilter] = useState<'all' | 'manual' | 'csv'>('all');
   const [importRunning, setImportRunning] = useState(false);
   const [importMessage, setImportMessage] = useState<string | null>(null);
@@ -187,6 +188,12 @@ export default function AdminNotFoundPage() {
   };
 
   const getTotalPages = (count: number) => Math.max(1, Math.ceil(count / pageSize));
+
+  const visibleInternalRecent = data
+    ? data.internalRecent.filter(
+        (row) => !resolvedInternal.has(`${row.path}::${row.referrer ?? 'direct'}`)
+      )
+    : [];
 
   const handleCreateRedirect = async () => {
     setStatusMessage(null);
@@ -312,6 +319,7 @@ export default function AdminNotFoundPage() {
     setRedirectDrafts((prev) => ({ ...prev, [key]: '' }));
     setRedirectTypeDrafts((prev) => ({ ...prev, [key]: '301' }));
     setRedirectSaving((prev) => ({ ...prev, [key]: false }));
+    setResolvedInternal((prev) => new Set(prev).add(key));
     fetchRedirects(redirectSourceFilter === 'all' ? undefined : redirectSourceFilter);
   };
 
@@ -573,9 +581,9 @@ export default function AdminNotFoundPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100 text-gray-700">
-                        {data.internalRecent.length ? (
-                          paginate(data.internalRecent, internalPage).map((row, index) => {
-                            const key = `${row.path}::${row.referrer ?? 'direct'}::${index}`;
+                        {visibleInternalRecent.length ? (
+                          paginate(visibleInternalRecent, internalPage).map((row, index) => {
+                            const key = `${row.path}::${row.referrer ?? 'direct'}`;
                             return (
                               <tr key={key} className="hover:bg-gray-50">
                                 <td className="px-5 py-3">{row.path}</td>
@@ -629,7 +637,7 @@ export default function AdminNotFoundPage() {
                   </div>
                   <div className="flex items-center justify-between px-5 py-3 text-xs text-gray-500">
                     <span>
-                      Showing {Math.min(pageSize, data.internalRecent.length)} of {data.internalRecent.length}
+                      Showing {Math.min(pageSize, visibleInternalRecent.length)} of {visibleInternalRecent.length}
                     </span>
                     <div className="flex items-center gap-2">
                       <button
@@ -641,16 +649,16 @@ export default function AdminNotFoundPage() {
                         Prev
                       </button>
                       <span>
-                        Page {internalPage} of {getTotalPages(data.internalRecent.length)}
+                        Page {internalPage} of {getTotalPages(visibleInternalRecent.length)}
                       </span>
                       <button
                         type="button"
                         onClick={() =>
                           setInternalPage((page) =>
-                            Math.min(getTotalPages(data.internalRecent.length), page + 1)
+                            Math.min(getTotalPages(visibleInternalRecent.length), page + 1)
                           )
                         }
-                        disabled={internalPage >= getTotalPages(data.internalRecent.length)}
+                        disabled={internalPage >= getTotalPages(visibleInternalRecent.length)}
                         className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         Next
