@@ -1,12 +1,14 @@
 import Link from 'next/link';
 import { NotFoundLogger } from '@/components/NotFoundLogger';
+import { logServerNotFound } from '@/lib/not-found/log';
 
 export const metadata = {
   title: '404 | The Equestrian',
   description: 'We could not find the page you requested.',
 };
 
-export default function NotFoundPage() {
+export default async function NotFoundPage() {
+  await logServerNotFound();
   return (
     <div className="mx-auto flex min-h-[60vh] max-w-3xl flex-col items-center justify-center px-6 py-16 text-center">
       <NotFoundLogger />

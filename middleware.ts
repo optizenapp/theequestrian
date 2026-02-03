@@ -56,8 +56,15 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/admin', request.url));
     }
   }
-  
-  return NextResponse.next();
+
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-request-path', pathname);
+
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
 }
 
 export const config = {
