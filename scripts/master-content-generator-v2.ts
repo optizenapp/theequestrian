@@ -1,5 +1,10 @@
 #!/usr/bin/env tsx
 
+// CRITICAL: Load env vars BEFORE any other imports
+import { config } from 'dotenv';
+import { resolve } from 'path';
+config({ path: resolve(process.cwd(), '.env.local') });
+
 /**
  * Master Content Generator V2 - WITH VERBOSE LOGGING
  * 
@@ -61,7 +66,7 @@ interface ValidationIssue {
  * Get actual product types from Shopify mapping for this collection
  * This is THE SOURCE OF TRUTH - no more guessing!
  */
-function getActualProductTypes(urlPath: string): string[] {
+async function getActualProductTypes(urlPath: string): Promise<string[]> {
   const parts = urlPath.split('/').filter(p => p);
   
   if (parts.length === 0) return [];

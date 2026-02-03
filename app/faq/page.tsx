@@ -43,7 +43,7 @@ export default function FaqPage() {
           <h2 className="text-2xl font-bold text-gray-900 mb-3">Where can I find sizing charts?</h2>
           <p>
             Our sizing charts are available at{' '}
-            <a href="/sizing" className="text-action hover:text-action-hover">
+            <a href="/sizing">
               theequestrian.com.au/sizing
             </a>
             . We recommend checking sizing before ordering.
@@ -56,7 +56,7 @@ export default function FaqPage() {
             Returns are accepted within 30 days of receiving your items, provided they are unused and in original
             packaging. Refunds are for the product only and exclude postage. Exchanges may incur shipping charges. For
             full details, visit{' '}
-            <a href="/returns-refunds" className="text-action hover:text-action-hover">
+            <a href="/returns-refunds">
               theequestrian.com.au/returns-refunds
             </a>
             .
@@ -69,7 +69,7 @@ export default function FaqPage() {
             We ship Australia wide with tracking. Orders placed before 12pm on a business day are often shipped the same
             day. Delivery times vary by location and carrier, and express options may be available at checkout. For
             full details, visit{' '}
-            <a href="/shipping-delivery" className="text-action hover:text-action-hover">
+            <a href="/shipping-delivery">
               theequestrian.com.au/shipping-delivery
             </a>
             .

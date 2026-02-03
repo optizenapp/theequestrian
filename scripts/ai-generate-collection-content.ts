@@ -43,6 +43,7 @@ interface CategoryPath {
 
 const DRY_RUN = process.env.DRY_RUN === 'true';
 const SAMPLE_SIZE = parseInt(process.env.SAMPLE_SIZE || '0', 10);
+const TARGET_PATH = process.env.TARGET_PATH || '';
 
 async function generateCollectionContent() {
   console.log('🚀 AI Collection Content Generator\n');
@@ -51,7 +52,9 @@ async function generateCollectionContent() {
     console.log('⚠️  DRY RUN MODE - No database changes will be made\n');
   }
 
-  if (SAMPLE_SIZE > 0) {
+  if (TARGET_PATH) {
+    console.log(`🎯 TARGET MODE - Processing only: ${TARGET_PATH}\n`);
+  } else if (SAMPLE_SIZE > 0) {
     console.log(`📊 SAMPLE MODE - Processing only ${SAMPLE_SIZE} categories\n`);
   }
 
@@ -87,10 +90,18 @@ async function generateCollectionContent() {
   const categoryPaths = buildCategoryPaths(mappingRows);
   console.log(`✅ Found ${categoryPaths.length} categories to process\n`);
 
-  // Apply sample size limit
-  const pathsToProcess = SAMPLE_SIZE > 0 
-    ? categoryPaths.slice(0, SAMPLE_SIZE)
-    : categoryPaths;
+  // Apply filters (target path or sample size)
+  let pathsToProcess = categoryPaths;
+  
+  if (TARGET_PATH) {
+    pathsToProcess = categoryPaths.filter(p => p.urlPath === TARGET_PATH);
+    if (pathsToProcess.length === 0) {
+      console.error(`❌ Target path not found: ${TARGET_PATH}`);
+      process.exit(1);
+    }
+  } else if (SAMPLE_SIZE > 0) {
+    pathsToProcess = categoryPaths.slice(0, SAMPLE_SIZE);
+  }
 
   console.log(`📊 Processing ${pathsToProcess.length} categories...\n`);
 

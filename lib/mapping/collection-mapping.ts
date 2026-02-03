@@ -317,10 +317,15 @@ export async function getSubcategoriesForCollection(
         if (existing) {
           existing.count += rows.length;
         } else {
-          // Use getCollectionTitle to get the proper H1 from collection-content.csv
-          const label = subcategory 
-            ? getCollectionTitle(category, subcategory, nextLevel)
-            : getCollectionTitle(category, nextLevel);
+          // Prefer content-driven labels so pills match page names
+          const content = subcategory
+            ? await getCategoryContent(category, subcategory, nextLevel)
+            : await getCategoryContent(category, nextLevel);
+          const label = content?.breadcrumb_label || content?.h1_title || (
+            subcategory
+              ? getCollectionTitle(category, subcategory, nextLevel)
+              : getCollectionTitle(category, nextLevel)
+          );
           subcategories.set(nextLevel, { label, count: rows.length });
         }
       }
@@ -436,9 +441,32 @@ export function getCollectionTitle(
   const collectionPath = pathParts.join('/');
   const rows = mapping.get(collectionPath);
   
-  if (rows && rows.length > 0 && rows[0].product_type) {
-    // Use the first product type as the title
-    return rows[0].product_type;
+  if (rows && rows.length > 0) {
+    const lastPart = subsubcategory || subcategory || category;
+    const normalizedHandle = lastPart
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
+    // Prefer rows that explicitly map to this handle (merge_to) or match the handle when normalized
+    const preferredRow = rows.find((row) => {
+      if (row.merge_to && row.merge_to.trim()) {
+        return row.merge_to.trim().toLowerCase() === normalizedHandle;
+      }
+      if (row.product_type && row.product_type.trim()) {
+        const normalizedType = row.product_type
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '');
+        return normalizedType === normalizedHandle;
+      }
+      return false;
+    });
+
+    const titleSource = preferredRow?.product_type || rows[0].product_type;
+    if (titleSource) {
+      return titleSource;
+    }
   }
 
   // Fallback: generate from path

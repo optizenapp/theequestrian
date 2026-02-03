@@ -96,7 +96,7 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
   const content = await getCategoryContent(category, subcategory);
   
   // Use database content if available, otherwise fallback to mapping
-  const pageTitle = content?.h1_title || mappingTitle;
+  const pageTitle = content?.breadcrumb_label || content?.h1_title || mappingTitle;
   const description = content?.short_description || '';
   
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
