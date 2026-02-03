@@ -42,7 +42,7 @@ export async function POST(request: Request) {
 
     // Get email configuration from environment variables
     const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
-    const toEmail = process.env.CONTACT_EMAIL || 'hello@theequestrian.com.au';
+    const toEmail = process.env.CONTACT_EMAIL || 'support@theequestrian.com.au';
 
     // Send email using Resend
     const { data, error } = await resend.emails.send({
