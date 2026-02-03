@@ -3,25 +3,29 @@
 import { useEffect, useState } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { StatCard } from '@/components/admin/StatCard';
-import { DataTable } from '@/components/admin/DataTable';
+
+interface RollupRow {
+  path: string;
+  source: string;
+  hit_count: number;
+  ga4_views: number;
+  first_seen: string;
+  last_seen: string;
+  latest_referrer: string | null;
+  suggested_to: string | null;
+  suggested_type: string | null;
+  confidence: number | null;
+  suggested_reason: string | null;
+  status: string | null;
+}
 
 interface NotFoundData {
-  dateRange: { startDate: string; endDate: string };
-  internalTotal: number;
+  rollupTotal: number;
+  rollupHits: number;
+  rollup: RollupRow[];
   internalDaily: Array<{
     day: string;
     hits: number;
-  }>;
-  internalTop: Array<{
-    path: string;
-    hits: number;
-    last_seen: string;
-  }>;
-  internalRecent: Array<{
-    path: string;
-    referrer: string | null;
-    hits: number;
-    last_seen: string;
   }>;
   ga4Total: number;
   ga4Top: Array<{
@@ -46,31 +50,14 @@ export default function AdminNotFoundPage() {
   const [data, setData] = useState<NotFoundData | null>(null);
   const [redirects, setRedirects] = useState<ManualRedirect[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [startDate, setStartDate] = useState(() => {
-    const date = new Date();
-    date.setDate(date.getDate() - 7);
-    return date.toISOString().slice(0, 10);
-  });
-  const [endDate, setEndDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [fromPath, setFromPath] = useState('');
   const [toPath, setToPath] = useState('');
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const [suggestions, setSuggestions] = useState<
-    Record<string, { from: string; to: string; reason?: string }>
-  >({});
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [conflicts, setConflicts] = useState<ManualRedirect[]>([]);
   const [attempting, setAttempting] = useState<Record<string, boolean>>({});
-  const [attemptErrors, setAttemptErrors] = useState<Record<string, string>>({});
-  const [auditRunning, setAuditRunning] = useState(false);
-  const [auditMessage, setAuditMessage] = useState<string | null>(null);
-  const [rollupRunning, setRollupRunning] = useState(false);
-  const [rollupMessage, setRollupMessage] = useState<string | null>(null);
-  const [scanRunning, setScanRunning] = useState(false);
-  const [scanMessage, setScanMessage] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'internal' | 'ga4' | 'redirects'>('internal');
+  const [activeTab, setActiveTab] = useState<'internal' | 'redirects'>('internal');
   const [internalPage, setInternalPage] = useState(1);
-  const [ga4Page, setGa4Page] = useState(1);
   const [redirectsPage, setRedirectsPage] = useState(1);
   const pageSize = 20;
   const [redirectDrafts, setRedirectDrafts] = useState<Record<string, string>>({});
@@ -79,10 +66,19 @@ export default function AdminNotFoundPage() {
   const [editRedirects, setEditRedirects] = useState<
     Record<string, { to: string; type: string; status: string }>
   >({});
-  const [resolvedInternal, setResolvedInternal] = useState<Set<string>>(new Set());
+  const [resolvedRollup, setResolvedRollup] = useState<Set<string>>(new Set());
   const [redirectSourceFilter, setRedirectSourceFilter] = useState<'all' | 'manual' | 'csv'>('all');
   const [importRunning, setImportRunning] = useState(false);
   const [importMessage, setImportMessage] = useState<string | null>(null);
+  const [refreshRunning, setRefreshRunning] = useState(false);
+  const [refreshMessage, setRefreshMessage] = useState<string | null>(null);
+  const [rollupStatusFilter, setRollupStatusFilter] = useState<
+    'open' | 'all' | 'pending' | 'manual' | 'ignored'
+  >('open');
+  const [rollupSourceFilter, setRollupSourceFilter] = useState<
+    'all' | 'internal' | 'ga4' | 'scan' | 'mixed'
+  >('all');
+  const [hideSuggested, setHideSuggested] = useState(true);
 
   useEffect(() => {
     fetchData();
@@ -90,19 +86,13 @@ export default function AdminNotFoundPage() {
     fetchConflicts();
   }, []);
 
-  const fetchData = async (range?: { startDate: string; endDate: string }) => {
+  const fetchData = async () => {
     setIsLoading(true);
-    const params = new URLSearchParams();
-    if (range?.startDate && range?.endDate) {
-      params.set('startDate', range.startDate);
-      params.set('endDate', range.endDate);
-    }
-    const res = await fetch(`/api/admin/404?${params.toString()}`);
+    const res = await fetch('/api/admin/404');
     const payload = await res.json();
     setData(payload);
     setIsLoading(false);
     setInternalPage(1);
-    setGa4Page(1);
   };
 
   const fetchRedirects = async (source?: string) => {
@@ -118,67 +108,23 @@ export default function AdminNotFoundPage() {
     setConflicts(payload.conflicts || []);
   };
 
-  const runAudit = async () => {
-    setActionMessage(null);
-    setAuditMessage(null);
-    setAuditRunning(true);
-    try {
-      const res = await fetch('/api/admin/redirects/audit', { method: 'POST' });
-      const payload = await res.json();
-      if (!res.ok) {
-        setAuditMessage(payload?.error || 'Failed to run audit.');
-        return;
-      }
-      setConflicts(payload.conflicts || []);
-      setAuditMessage(`Audit completed. Conflicts found: ${payload.conflicts?.length || 0}`);
-    } catch (error) {
-      setAuditMessage('Failed to run audit.');
-    } finally {
-      setAuditRunning(false);
-    }
-  };
 
-  const runRollup = async () => {
-    setRollupMessage(null);
-    setRollupRunning(true);
+  const refreshSuggestions = async () => {
+    setRefreshMessage(null);
+    setRefreshRunning(true);
     try {
-      const res = await fetch('/api/admin/404/rollup', { method: 'POST' });
+      const res = await fetch('/api/admin/404/recalculate', { method: 'POST' });
       const payload = await res.json();
       if (!res.ok) {
-        setRollupMessage(payload?.error || 'Failed to roll up 404s.');
+        setRefreshMessage(payload?.error || 'Failed to refresh suggestions.');
         return;
       }
-      setRollupMessage(`Rollup complete. Days updated: ${payload.days || 0}`);
-      fetchData({ startDate, endDate });
+      setRefreshMessage(`Suggestions refreshed. Updated: ${payload.updated || 0}.`);
+      fetchData();
     } catch (error) {
-      setRollupMessage('Failed to roll up 404s.');
+      setRefreshMessage('Failed to refresh suggestions.');
     } finally {
-      setRollupRunning(false);
-    }
-  };
-
-  const runScan = async () => {
-    setScanMessage(null);
-    setScanRunning(true);
-    try {
-      const res = await fetch('/api/admin/404/scan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pageLimit: null, linkLimit: null, includeLinks: true }),
-      });
-      const payload = await res.json();
-      if (!res.ok) {
-        setScanMessage(payload?.error || 'Failed to scan site.');
-        return;
-      }
-      setScanMessage(
-        `Scan complete. URLs scanned: ${payload.scanned}, links scanned: ${payload.linkScanned}, 404s: ${payload.notFound}`
-      );
-      fetchData({ startDate, endDate });
-    } catch (error) {
-      setScanMessage('Failed to scan site.');
-    } finally {
-      setScanRunning(false);
+      setRefreshRunning(false);
     }
   };
 
@@ -189,10 +135,22 @@ export default function AdminNotFoundPage() {
 
   const getTotalPages = (count: number) => Math.max(1, Math.ceil(count / pageSize));
 
-  const visibleInternalRecent = data
-    ? data.internalRecent.filter(
-        (row) => !resolvedInternal.has(`${row.path}::${row.referrer ?? 'direct'}`)
-      )
+  const visibleRollup = data
+    ? data.rollup.filter((row) => {
+        if (resolvedRollup.has(row.path)) return false;
+        const status = row.status || 'pending';
+        if (rollupStatusFilter === 'open' && status === 'ignored') return false;
+        if (rollupStatusFilter !== 'open' && rollupStatusFilter !== 'all' && status !== rollupStatusFilter) {
+          return false;
+        }
+        if (rollupSourceFilter !== 'all' && row.source !== rollupSourceFilter) {
+          return false;
+        }
+        if (hideSuggested && row.suggested_to) {
+          return false;
+        }
+        return true;
+      })
     : [];
 
   const handleCreateRedirect = async () => {
@@ -201,10 +159,11 @@ export default function AdminNotFoundPage() {
       setStatusMessage('Please enter both from and to paths.');
       return;
     }
+    const type = redirectTypeDrafts['new'] || '301';
     const res = await fetch('/api/admin/redirects', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: fromPath, to: toPath }),
+      body: JSON.stringify({ from: fromPath, to: toPath, type }),
     });
     const payload = await res.json();
     if (!res.ok) {
@@ -213,62 +172,39 @@ export default function AdminNotFoundPage() {
     }
     setFromPath('');
     setToPath('');
+    setRedirectTypeDrafts((prev) => ({ ...prev, new: '301' }));
     setStatusMessage(`Redirect added: ${payload.redirect.from} → ${payload.redirect.to}`);
     fetchRedirects(redirectSourceFilter === 'all' ? undefined : redirectSourceFilter);
   };
 
-  const attemptMatch = async (path: string) => {
-    setActionMessage(null);
-    setAttemptErrors((prev) => ({ ...prev, [path]: '' }));
-    setAttempting((prev) => ({ ...prev, [path]: true }));
-    try {
-      const res = await fetch('/api/admin/redirects/attempt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path }),
-      });
-      const payload = await res.json();
-      if (!res.ok) {
-        setAttemptErrors((prev) => ({
-          ...prev,
-          [path]: payload?.error || 'No match found.',
-        }));
-        return;
-      }
-      setSuggestions((prev) => ({ ...prev, [path]: payload.redirect }));
-    } catch (error) {
-      setAttemptErrors((prev) => ({
-        ...prev,
-        [path]: 'Failed to attempt match.',
-      }));
-    } finally {
-      setAttempting((prev) => ({ ...prev, [path]: false }));
-    }
+
+  const applyRollupSuggestion = (path: string, to: string, type?: string | null) => {
+    setRedirectDrafts((prev) => ({ ...prev, [path]: to }));
+    setRedirectTypeDrafts((prev) => ({ ...prev, [path]: type || '301' }));
   };
 
-  const approveRedirect = async (path: string) => {
-    const suggestion = suggestions[path];
-    if (!suggestion) return;
-    setAttempting((prev) => ({ ...prev, [path]: true }));
+  const approveRollupSuggestion = async (row: RollupRow) => {
+    if (!row.suggested_to) return;
+    setAttempting((prev) => ({ ...prev, [row.path]: true }));
     const res = await fetch('/api/admin/redirects', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: suggestion.from, to: suggestion.to, type: '301' }),
+      body: JSON.stringify({
+        from: row.path,
+        to: row.suggested_to,
+        type: row.suggested_type || '301',
+      }),
     });
     const payload = await res.json();
     if (!res.ok) {
       setActionMessage(payload?.error || 'Failed to save redirect.');
-      setAttempting((prev) => ({ ...prev, [path]: false }));
+      setAttempting((prev) => ({ ...prev, [row.path]: false }));
       return;
     }
     setActionMessage(`Redirect added: ${payload.redirect.from} → ${payload.redirect.to}`);
-    setSuggestions((prev) => {
-      const next = { ...prev };
-      delete next[path];
-      return next;
-    });
+    setResolvedRollup((prev) => new Set(prev).add(row.path));
     fetchRedirects(redirectSourceFilter === 'all' ? undefined : redirectSourceFilter);
-    setAttempting((prev) => ({ ...prev, [path]: false }));
+    setAttempting((prev) => ({ ...prev, [row.path]: false }));
   };
 
   const updateRedirectStatus = async (id: number, status: 'active' | 'disabled') => {
@@ -319,7 +255,7 @@ export default function AdminNotFoundPage() {
     setRedirectDrafts((prev) => ({ ...prev, [key]: '' }));
     setRedirectTypeDrafts((prev) => ({ ...prev, [key]: '301' }));
     setRedirectSaving((prev) => ({ ...prev, [key]: false }));
-    setResolvedInternal((prev) => new Set(prev).add(key));
+    setResolvedRollup((prev) => new Set(prev).add(key));
     fetchRedirects(redirectSourceFilter === 'all' ? undefined : redirectSourceFilter);
   };
 
@@ -393,69 +329,11 @@ export default function AdminNotFoundPage() {
 
   return (
     <AdminLayout title="404 Monitor" subtitle="Track missing pages and add manual redirects">
-      <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900">Date range</h3>
-            <p className="text-xs text-gray-500">Filter 404 activity by date.</p>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <label className="text-xs font-medium text-gray-600">
-              Start date
-              <input
-                type="date"
-                value={startDate}
-                onChange={(event) => setStartDate(event.target.value)}
-                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900"
-              />
-            </label>
-            <label className="text-xs font-medium text-gray-600">
-              End date
-              <input
-                type="date"
-                value={endDate}
-                onChange={(event) => setEndDate(event.target.value)}
-                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900"
-              />
-            </label>
-            <button
-              type="button"
-              onClick={() => fetchData({ startDate, endDate })}
-              className="h-10 self-end rounded-lg bg-action px-4 text-sm font-semibold text-white hover:bg-pink-600"
-            >
-              Apply
-            </button>
-            <button
-              type="button"
-              onClick={runRollup}
-              disabled={rollupRunning}
-              className="h-10 self-end rounded-lg border border-gray-200 px-4 text-sm font-semibold text-gray-700 hover:border-gray-300 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {rollupRunning ? 'Running rollup...' : 'Run internal rollup'}
-            </button>
-            <button
-              type="button"
-              onClick={runScan}
-              disabled={scanRunning}
-              className="h-10 self-end rounded-lg border border-gray-200 px-4 text-sm font-semibold text-gray-700 hover:border-gray-300 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {scanRunning ? 'Scanning...' : 'Scan site for 404s'}
-            </button>
-          </div>
+      {refreshMessage ? (
+        <div className="mb-4 rounded-2xl border border-gray-200 bg-white p-4 text-xs text-gray-500 shadow-sm">
+          {refreshMessage}
         </div>
-        {data?.dateRange ? (
-          <p className="mt-3 text-xs text-gray-500">
-            Showing {data.dateRange.startDate} to {data.dateRange.endDate}.
-          </p>
-        ) : null}
-        {rollupMessage ? (
-          <p className="mt-2 text-xs text-gray-500">{rollupMessage}</p>
-        ) : null}
-        {scanMessage ? (
-          <p className="mt-1 text-xs text-gray-500">{scanMessage}</p>
-        ) : null}
-      </div>
-
+      ) : null}
       {isLoading || !data ? (
         <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center text-sm text-gray-600">
           Loading 404 data...
@@ -464,9 +342,9 @@ export default function AdminNotFoundPage() {
         <>
           <div className="grid gap-4 md:grid-cols-2">
             <StatCard
-              label="Internal 404 hits"
-              value={data.internalTotal.toLocaleString()}
-              helper="Captured by not-found logger"
+              label="Unique 404 paths"
+              value={data.rollupTotal.toLocaleString()}
+              helper="Deduped across sources"
             />
             <StatCard
               label="GA4 404 views"
@@ -486,18 +364,7 @@ export default function AdminNotFoundPage() {
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                Internal 404s
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('ga4')}
-                className={`rounded-full px-4 py-2 text-xs font-semibold ${
-                  activeTab === 'ga4'
-                    ? 'bg-action text-white'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                GA4 404s
+                Unified 404s
               </button>
               <button
                 type="button"
@@ -514,91 +381,137 @@ export default function AdminNotFoundPage() {
 
             {activeTab === 'internal' ? (
               <div className="p-5">
-                <div className="grid gap-6 lg:grid-cols-2">
-                  <DataTable
-                    title="Internal 404s"
-                    columns={[
-                      { key: 'path', header: 'Path' },
-                      { key: 'hits', header: 'Hits' },
-                      { key: 'lastSeen', header: 'Last Seen' },
-                    ]}
-                    rows={data.internalTop.map((row, index) => ({
-                      id: String(index + 1),
-                      path: row.path,
-                      hits: row.hits.toLocaleString(),
-                      lastSeen: new Date(row.last_seen).toLocaleString(),
-                    }))}
-                  />
-                  <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                    <h3 className="text-sm font-semibold text-gray-900">Internal 404 trend</h3>
-                    <p className="text-xs text-gray-500">Daily 404 counts for the selected range.</p>
-                    <div className="mt-4 flex h-28 items-end gap-2">
-                      {data.internalDaily.length === 0 ? (
-                        <div className="text-xs text-gray-400">No internal 404s recorded.</div>
-                      ) : (
-                        (() => {
-                          const maxHits = Math.max(
-                            1,
-                            ...data.internalDaily.map((item) => item.hits)
-                          );
-                          return data.internalDaily.map((row) => {
-                            const height = Math.round((row.hits / maxHits) * 96);
-                            return (
-                              <div key={row.day} className="flex flex-1 flex-col items-center gap-1">
-                                <div
-                                  className="w-3 rounded-full bg-action"
-                                  style={{ height: `${height}px` }}
-                                  title={`${row.hits} hits`}
-                                />
-                                <span className="text-[10px] text-gray-400">
-                                  {row.day.slice(5)}
-                                </span>
-                              </div>
-                            );
-                          });
-                        })()
-                      )}
-                    </div>
-                  </div>
-                </div>
-
                 <div className="mt-6 rounded-2xl border border-gray-200 bg-white shadow-sm">
                   <div className="border-b border-gray-100 px-5 py-4">
-                    <h3 className="text-sm font-semibold text-gray-900">Internal 404 details</h3>
+                    <h3 className="text-sm font-semibold text-gray-900">Unified 404 table</h3>
                     <p className="text-xs text-gray-500">
-                      Review URLs, source referrers, and add redirects directly.
+                      Deduped by path with suggestions and status.
                     </p>
+                    <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-600">
+                      <button
+                        type="button"
+                        onClick={refreshSuggestions}
+                        disabled={refreshRunning}
+                        className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-gray-300 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {refreshRunning ? 'Refreshing...' : 'Refresh suggestions'}
+                      </button>
+                      <label className="flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1 text-xs">
+                        <input
+                          type="checkbox"
+                          checked={hideSuggested}
+                          onChange={(event) => setHideSuggested(event.target.checked)}
+                          className="h-3 w-3"
+                        />
+                        Hide suggested
+                      </label>
+                      <select
+                        value={rollupStatusFilter}
+                        onChange={(event) =>
+                          setRollupStatusFilter(
+                            event.target.value as 'open' | 'all' | 'pending' | 'manual' | 'ignored'
+                          )
+                        }
+                        className="rounded-full border border-gray-200 px-3 py-1 text-xs"
+                      >
+                        <option value="open">Open (exclude ignored)</option>
+                        <option value="all">All statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="manual">Manual</option>
+                        <option value="ignored">Ignored</option>
+                      </select>
+                      <select
+                        value={rollupSourceFilter}
+                        onChange={(event) =>
+                          setRollupSourceFilter(
+                            event.target.value as 'all' | 'internal' | 'ga4' | 'scan' | 'mixed'
+                          )
+                        }
+                        className="rounded-full border border-gray-200 px-3 py-1 text-xs"
+                      >
+                        <option value="all">All sources</option>
+                        <option value="internal">Internal</option>
+                        <option value="ga4">GA4</option>
+                        <option value="scan">Scan</option>
+                        <option value="mixed">Mixed</option>
+                      </select>
+                    </div>
                   </div>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full text-sm">
-                      <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+                  <div>
+                    <table className="w-full table-fixed text-xs">
+                      <colgroup>
+                        <col className="w-[52%]" />
+                        <col className="w-[26%]" />
+                        <col className="hidden md:table-column w-[10%]" />
+                        <col className="w-[12%]" />
+                      </colgroup>
+                      <thead className="bg-gray-50 text-[10px] uppercase tracking-wide text-gray-500">
                         <tr>
                           <th className="px-5 py-3 text-left font-semibold">URL</th>
-                          <th className="px-5 py-3 text-left font-semibold">Source</th>
                           <th className="px-5 py-3 text-left font-semibold">Redirect to</th>
-                          <th className="px-5 py-3 text-left font-semibold">Type</th>
-                          <th className="px-5 py-3 text-left font-semibold">Action</th>
+                          <th className="px-5 py-3 text-left font-semibold hidden md:table-cell">Type</th>
+                          <th className="px-3 py-3 text-left font-semibold">Action</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100 text-gray-700">
-                        {visibleInternalRecent.length ? (
-                          paginate(visibleInternalRecent, internalPage).map((row, index) => {
-                            const key = `${row.path}::${row.referrer ?? 'direct'}`;
+                        {visibleRollup.length ? (
+                          paginate(visibleRollup, internalPage).map((row) => {
+                            const key = row.path;
                             return (
                               <tr key={key} className="hover:bg-gray-50">
-                                <td className="px-5 py-3">{row.path}</td>
-                                <td className="px-5 py-3 text-xs text-gray-500">
-                                  {row.referrer || 'Direct / Unknown'}
+                                <td className="px-5 py-3 align-top break-all">
+                                  <div className="font-medium text-gray-900">{row.path}</div>
+                                  <div className="mt-1 space-y-1 text-[10px] text-gray-400">
+                                    <div>{row.latest_referrer || 'Direct / Unknown'}</div>
+                                    <div>
+                                      {row.source} · {row.hit_count.toLocaleString()} hits
+                                      {row.ga4_views ? ` · ${row.ga4_views.toLocaleString()} GA4` : ''}
+                                    </div>
+                                    <div>{new Date(row.last_seen).toLocaleString()}</div>
+                                    <div>Status: {row.status || 'pending'}</div>
+                                  </div>
+                                  {row.suggested_to ? (
+                                    <div className="mt-2 flex flex-col gap-2 text-[10px] text-gray-500">
+                                      <span className="break-all">
+                                        Suggestion: {row.suggested_to}
+                                      </span>
+                                      <div className="flex flex-wrap gap-2">
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            applyRollupSuggestion(
+                                              row.path,
+                                              row.suggested_to || '',
+                                              row.suggested_type
+                                            )
+                                          }
+                                          className="rounded-full border border-gray-200 px-3 py-1 font-semibold text-gray-700 hover:border-gray-300"
+                                        >
+                                          Use suggestion
+                                        </button>
+                                        <button
+                                          type="button"
+                                          disabled={attempting[row.path]}
+                                          onClick={() => approveRollupSuggestion(row)}
+                                          className="rounded-full bg-action px-3 py-1 font-semibold text-white hover:bg-pink-600 disabled:cursor-not-allowed disabled:opacity-60"
+                                        >
+                                          {attempting[row.path] ? 'Saving...' : 'Approve redirect'}
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="mt-2 text-[10px] text-gray-400">No suggestion yet</div>
+                                  )}
                                 </td>
-                                <td className="px-5 py-3">
+                                <td className="px-5 py-3 align-top">
                                   <input
                                     value={redirectDrafts[key] || ''}
                                     onChange={(event) => updateRedirectDraft(key, event.target.value)}
                                     placeholder="/new-url"
-                                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                                    className="w-full min-w-0 rounded-lg border border-gray-200 px-3 py-2 text-sm"
                                   />
                                 </td>
-                                <td className="px-5 py-3">
+                                <td className="px-5 py-3 hidden md:table-cell">
                                   <select
                                     value={redirectTypeDrafts[key] || '301'}
                                     onChange={(event) =>
@@ -612,23 +525,25 @@ export default function AdminNotFoundPage() {
                                     <option value="308">308</option>
                                   </select>
                                 </td>
-                                <td className="px-5 py-3">
-                                  <button
-                                    type="button"
-                                    disabled={redirectSaving[key]}
-                                    onClick={() => saveRedirectFromRow(key, row.path)}
-                                    className="rounded-full bg-action px-3 py-1 text-xs font-semibold text-white hover:bg-pink-600 disabled:cursor-not-allowed disabled:opacity-60"
-                                  >
-                                    {redirectSaving[key] ? 'Saving...' : 'Save redirect'}
-                                  </button>
+                                <td className="px-3 py-3 align-top">
+                                  <div className="flex flex-col items-end gap-2">
+                                    <button
+                                      type="button"
+                                      disabled={redirectSaving[key]}
+                                      onClick={() => saveRedirectFromRow(key, row.path)}
+                                      className="inline-flex items-center justify-center rounded-full bg-action px-3 py-1 text-xs font-semibold text-white hover:bg-pink-600 disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                      {redirectSaving[key] ? 'Saving...' : 'Save'}
+                                    </button>
+                                  </div>
                                 </td>
                               </tr>
                             );
                           })
                         ) : (
                           <tr>
-                            <td colSpan={5} className="px-5 py-8 text-center text-sm text-gray-500">
-                              No internal 404 details yet.
+                            <td colSpan={11} className="px-5 py-8 text-center text-sm text-gray-500">
+                              No 404 rollup entries yet.
                             </td>
                           </tr>
                         )}
@@ -637,7 +552,7 @@ export default function AdminNotFoundPage() {
                   </div>
                   <div className="flex items-center justify-between px-5 py-3 text-xs text-gray-500">
                     <span>
-                      Showing {Math.min(pageSize, visibleInternalRecent.length)} of {visibleInternalRecent.length}
+                      Showing {Math.min(pageSize, visibleRollup.length)} of {visibleRollup.length}
                     </span>
                     <div className="flex items-center gap-2">
                       <button
@@ -649,16 +564,16 @@ export default function AdminNotFoundPage() {
                         Prev
                       </button>
                       <span>
-                        Page {internalPage} of {getTotalPages(visibleInternalRecent.length)}
+                        Page {internalPage} of {getTotalPages(visibleRollup.length)}
                       </span>
                       <button
                         type="button"
                         onClick={() =>
                           setInternalPage((page) =>
-                            Math.min(getTotalPages(visibleInternalRecent.length), page + 1)
+                            Math.min(getTotalPages(visibleRollup.length), page + 1)
                           )
                         }
-                        disabled={internalPage >= getTotalPages(visibleInternalRecent.length)}
+                        disabled={internalPage >= getTotalPages(visibleRollup.length)}
                         className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         Next
@@ -669,134 +584,18 @@ export default function AdminNotFoundPage() {
               </div>
             ) : null}
 
-            {activeTab === 'ga4' ? (
-              <div className="p-5">
-                <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
-                  <div className="border-b border-gray-100 px-5 py-4">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <h3 className="text-sm font-semibold text-gray-900">GA4 404 candidates</h3>
-                      <button
-                        type="button"
-                        onClick={runAudit}
-                        disabled={auditRunning}
-                        className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-gray-300 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        {auditRunning ? 'Running audit...' : 'Run redirect audit'}
-                      </button>
-                    </div>
-                    {auditMessage ? (
-                      <p className="mt-2 text-xs text-gray-500">{auditMessage}</p>
-                    ) : null}
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full text-sm">
-                      <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
-                        <tr>
-                          <th className="px-5 py-3 text-left font-semibold">Path</th>
-                          <th className="px-5 py-3 text-left font-semibold">Views</th>
-                          <th className="px-5 py-3 text-left font-semibold">Users</th>
-                          <th className="px-5 py-3 text-left font-semibold">Match</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100 text-gray-700">
-                        {data?.ga4Top.length ? (
-                          paginate(data.ga4Top, ga4Page).map((row) => {
-                            const suggestion = suggestions[row.path];
-                            return (
-                              <tr key={row.path} className="hover:bg-gray-50">
-                                <td className="px-5 py-3">{row.path}</td>
-                                <td className="px-5 py-3">{row.views.toLocaleString()}</td>
-                                <td className="px-5 py-3">{row.users.toLocaleString()}</td>
-                                <td className="px-5 py-3">
-                                  {suggestion ? (
-                                    <div className="flex flex-col gap-2 text-xs">
-                                      <span className="text-gray-600">
-                                        {suggestion.from} → {suggestion.to}
-                                      </span>
-                                      <span className="text-[10px] text-gray-400">
-                                        Suggested by{' '}
-                                        {suggestion.reason === 'category' ? 'category' : 'product'} match
-                                      </span>
-                                      <button
-                                        type="button"
-                                        disabled={attempting[row.path]}
-                                        onClick={() => approveRedirect(row.path)}
-                                        className="w-fit rounded-full bg-action px-3 py-1 text-xs font-semibold text-white hover:bg-pink-600 disabled:cursor-not-allowed disabled:opacity-60"
-                                      >
-                                        {attempting[row.path] ? 'Saving...' : 'Approve redirect'}
-                                      </button>
-                                    </div>
-                                  ) : (
-                                    <div className="flex flex-col gap-2 text-xs">
-                                      <button
-                                        type="button"
-                                        disabled={attempting[row.path]}
-                                        onClick={() => attemptMatch(row.path)}
-                                        className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-gray-300 disabled:cursor-not-allowed disabled:opacity-60"
-                                      >
-                                        {attempting[row.path] ? 'Searching...' : 'Attempt match & redirect'}
-                                      </button>
-                                      {attemptErrors[row.path] ? (
-                                        <span className="text-[10px] text-rose-600">
-                                          {attemptErrors[row.path]}
-                                        </span>
-                                      ) : null}
-                                    </div>
-                                  )}
-                                </td>
-                              </tr>
-                            );
-                          })
-                        ) : (
-                          <tr>
-                            <td colSpan={4} className="px-5 py-8 text-center text-sm text-gray-500">
-                              No GA4 404 candidates yet.
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                  <div className="flex items-center justify-between px-5 py-3 text-xs text-gray-500">
-                    <span>
-                      Showing {Math.min(pageSize, data.ga4Top.length)} of {data.ga4Top.length}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setGa4Page((page) => Math.max(1, page - 1))}
-                        disabled={ga4Page === 1}
-                        className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        Prev
-                      </button>
-                      <span>
-                        Page {ga4Page} of {getTotalPages(data.ga4Top.length)}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setGa4Page((page) =>
-                            Math.min(getTotalPages(data.ga4Top.length), page + 1)
-                          )
-                        }
-                        disabled={ga4Page >= getTotalPages(data.ga4Top.length)}
-                        className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        Next
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : null}
 
             {activeTab === 'redirects' ? (
               <div className="p-5">
                 <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
                   <div className="border-b border-gray-100 px-5 py-4">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <h3 className="text-sm font-semibold text-gray-900">Manual redirects</h3>
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-900">Current Redirects</h3>
+                        <p className="text-xs text-gray-500">
+                          Manual redirects take precedence when a missing path is requested.
+                        </p>
+                      </div>
                       <div className="flex flex-wrap items-center gap-2">
                         <select
                           value={redirectSourceFilter}
@@ -825,19 +624,81 @@ export default function AdminNotFoundPage() {
                     {importMessage ? (
                       <p className="mt-2 text-xs text-gray-500">{importMessage}</p>
                     ) : null}
+                    {statusMessage ? (
+                      <p className="mt-2 text-xs text-gray-500">{statusMessage}</p>
+                    ) : null}
+                    {actionMessage ? (
+                      <p className="mt-1 text-xs text-gray-500">{actionMessage}</p>
+                    ) : null}
                   </div>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full text-sm">
+                  <div>
+                    <table className="w-full table-fixed text-xs">
                       <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
                         <tr>
                           <th className="px-5 py-3 text-left font-semibold">From</th>
                           <th className="px-5 py-3 text-left font-semibold">To</th>
-                          <th className="px-5 py-3 text-left font-semibold">Type</th>
-                          <th className="px-5 py-3 text-left font-semibold">Status</th>
-                          <th className="px-5 py-3 text-left font-semibold">Actions</th>
+                          <th className="px-5 py-3 text-left font-semibold hidden md:table-cell">Type</th>
+                          <th className="px-5 py-3 text-left font-semibold hidden md:table-cell">Status</th>
+                          <th className="px-5 py-3 text-left font-semibold w-40">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100 text-gray-700">
+                        <tr className="bg-gray-50/60">
+                          <td className="px-5 py-3 align-top break-words">
+                            <input
+                              value={fromPath}
+                              onChange={(event) => setFromPath(event.target.value)}
+                              placeholder="/old-url"
+                              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                            />
+                          </td>
+                          <td className="px-5 py-3 align-top">
+                            <input
+                              value={toPath}
+                              onChange={(event) => setToPath(event.target.value)}
+                              placeholder="/new-url"
+                              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                            />
+                            <div className="mt-2 md:hidden">
+                              <select
+                                value={redirectTypeDrafts['new'] || '301'}
+                                onChange={(event) =>
+                                  updateRedirectTypeDraft('new', event.target.value)
+                                }
+                                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                              >
+                                <option value="301">301</option>
+                                <option value="302">302</option>
+                                <option value="307">307</option>
+                                <option value="308">308</option>
+                              </select>
+                            </div>
+                          </td>
+                          <td className="px-5 py-3 hidden md:table-cell">
+                            <select
+                              value={redirectTypeDrafts['new'] || '301'}
+                              onChange={(event) =>
+                                updateRedirectTypeDraft('new', event.target.value)
+                              }
+                              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                            >
+                              <option value="301">301</option>
+                              <option value="302">302</option>
+                              <option value="307">307</option>
+                              <option value="308">308</option>
+                            </select>
+                          </td>
+                          <td className="px-5 py-3 text-xs text-gray-500 hidden md:table-cell">new</td>
+                          <td className="px-5 py-3 w-40">
+                            <button
+                              type="button"
+                              onClick={handleCreateRedirect}
+                              className="w-full max-w-[120px] rounded-full bg-action px-3 py-1 text-xs font-semibold text-white hover:bg-pink-600"
+                            >
+                              Save
+                            </button>
+                          </td>
+                        </tr>
                         {redirects.length ? (
                           paginate(redirects, redirectsPage).map((row) => {
                             const draft = editRedirects[row.id] ?? {
@@ -847,8 +708,13 @@ export default function AdminNotFoundPage() {
                             };
                             return (
                               <tr key={row.id} className="hover:bg-gray-50">
-                                <td className="px-5 py-3">{row.from_path}</td>
-                                <td className="px-5 py-3">
+                                <td className="px-5 py-3 align-top break-words">
+                                  <div>{row.from_path}</div>
+                                  <div className="mt-1 text-[10px] text-gray-400 md:hidden">
+                                    {draft.status || 'active'} · {draft.type}
+                                  </div>
+                                </td>
+                                <td className="px-5 py-3 align-top">
                                   <input
                                     value={draft.to}
                                     onChange={(event) =>
@@ -856,8 +722,35 @@ export default function AdminNotFoundPage() {
                                     }
                                     className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
                                   />
+                                  <div className="mt-2 md:hidden">
+                                    <select
+                                      value={draft.type}
+                                      onChange={(event) =>
+                                        updateEditRedirect(row.id, 'type', event.target.value)
+                                      }
+                                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                                    >
+                                      <option value="301">301</option>
+                                      <option value="302">302</option>
+                                      <option value="307">307</option>
+                                      <option value="308">308</option>
+                                    </select>
+                                  </div>
+                                  <div className="mt-2 md:hidden">
+                                    <select
+                                      value={draft.status}
+                                      onChange={(event) =>
+                                        updateEditRedirect(row.id, 'status', event.target.value)
+                                      }
+                                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                                    >
+                                      <option value="active">Active</option>
+                                      <option value="disabled">Disabled</option>
+                                      <option value="conflict">Conflict</option>
+                                    </select>
+                                  </div>
                                 </td>
-                                <td className="px-5 py-3">
+                                <td className="px-5 py-3 hidden md:table-cell">
                                   <select
                                     value={draft.type}
                                     onChange={(event) =>
@@ -871,7 +764,7 @@ export default function AdminNotFoundPage() {
                                     <option value="308">308</option>
                                   </select>
                                 </td>
-                                <td className="px-5 py-3">
+                                <td className="px-5 py-3 hidden md:table-cell">
                                   <select
                                     value={draft.status}
                                     onChange={(event) =>
@@ -884,8 +777,8 @@ export default function AdminNotFoundPage() {
                                     <option value="conflict">Conflict</option>
                                   </select>
                                 </td>
-                                <td className="px-5 py-3">
-                                  <div className="flex flex-wrap gap-2">
+                                <td className="px-5 py-3 w-40">
+                                  <div className="flex flex-col gap-2">
                                     <button
                                       type="button"
                                       onClick={() =>
@@ -896,14 +789,14 @@ export default function AdminNotFoundPage() {
                                           row.status || 'active'
                                         )
                                       }
-                                      className="rounded-full bg-action px-3 py-1 text-xs font-semibold text-white hover:bg-pink-600"
+                                      className="w-full max-w-[120px] rounded-full bg-action px-3 py-1 text-xs font-semibold text-white hover:bg-pink-600"
                                     >
                                       Save
                                     </button>
                                     <button
                                       type="button"
                                       onClick={() => deleteManualRedirect(row.id)}
-                                      className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-gray-300"
+                                      className="w-full max-w-[120px] rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-gray-300"
                                     >
                                       Delete
                                     </button>
@@ -958,147 +851,6 @@ export default function AdminNotFoundPage() {
           </div>
         </>
       )}
-
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-900">Add manual redirect</h3>
-          <p className="mt-1 text-xs text-gray-500">
-            Manual redirects take precedence when a missing path is requested.
-          </p>
-          <div className="mt-4 space-y-3">
-            <input
-              value={fromPath}
-              onChange={(event) => setFromPath(event.target.value)}
-              placeholder="/old-url"
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
-            />
-            <input
-              value={toPath}
-              onChange={(event) => setToPath(event.target.value)}
-              placeholder="/new-url"
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
-            />
-            <button
-              type="button"
-              onClick={handleCreateRedirect}
-              className="w-full rounded-lg bg-action px-4 py-2 text-sm font-semibold text-white hover:bg-pink-600"
-            >
-              Save redirect
-            </button>
-            {statusMessage ? (
-              <p className="text-xs text-gray-500">{statusMessage}</p>
-            ) : null}
-            {actionMessage ? (
-              <p className="text-xs text-gray-500">{actionMessage}</p>
-            ) : null}
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
-          <div className="border-b border-gray-100 px-5 py-4">
-            <h3 className="text-sm font-semibold text-gray-900">Manual redirects</h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
-                <tr>
-                  <th className="px-5 py-3 text-left font-semibold">From</th>
-                  <th className="px-5 py-3 text-left font-semibold">To</th>
-                  <th className="px-5 py-3 text-left font-semibold">Type</th>
-                  <th className="px-5 py-3 text-left font-semibold">Status</th>
-                  <th className="px-5 py-3 text-left font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 text-gray-700">
-                {redirects.length ? (
-                  redirects.map((row) => {
-                    const draft = editRedirects[row.id] ?? {
-                      to: row.to_path,
-                      type: row.redirect_type || '301',
-                      status: row.status || 'active',
-                    };
-                    return (
-                      <tr key={row.id} className="hover:bg-gray-50">
-                        <td className="px-5 py-3">{row.from_path}</td>
-                        <td className="px-5 py-3">
-                          <input
-                            value={draft.to}
-                            onChange={(event) =>
-                              updateEditRedirect(row.id, 'to', event.target.value)
-                            }
-                            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
-                          />
-                        </td>
-                        <td className="px-5 py-3">
-                          <select
-                            value={draft.type}
-                            onChange={(event) =>
-                              updateEditRedirect(row.id, 'type', event.target.value)
-                            }
-                            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
-                          >
-                            <option value="301">301</option>
-                            <option value="302">302</option>
-                            <option value="307">307</option>
-                            <option value="308">308</option>
-                          </select>
-                        </td>
-                        <td className="px-5 py-3">
-                          <select
-                            value={draft.status}
-                            onChange={(event) =>
-                              updateEditRedirect(row.id, 'status', event.target.value)
-                            }
-                            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
-                          >
-                            <option value="active">Active</option>
-                            <option value="disabled">Disabled</option>
-                            <option value="conflict">Conflict</option>
-                          </select>
-                        </td>
-                        <td className="px-5 py-3">
-                          <div className="flex flex-wrap gap-2">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                saveManualRedirect(
-                                  row.id,
-                                  row.to_path,
-                                  row.redirect_type || '301',
-                                  row.status || 'active'
-                                )
-                              }
-                              className="rounded-full bg-action px-3 py-1 text-xs font-semibold text-white hover:bg-pink-600"
-                            >
-                              Save
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => deleteManualRedirect(row.id)}
-                              className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-gray-300"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                          <p className="mt-2 text-[10px] text-gray-400">
-                            Source: {row.source || 'manual'}
-                          </p>
-                        </td>
-                      </tr>
-                    );
-                  })
-                ) : (
-                  <tr>
-                    <td colSpan={5} className="px-5 py-8 text-center text-sm text-gray-500">
-                      No manual redirects yet.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
 
       <div className="mt-6 rounded-2xl border border-gray-200 bg-white shadow-sm">
         <div className="border-b border-gray-100 px-5 py-4">

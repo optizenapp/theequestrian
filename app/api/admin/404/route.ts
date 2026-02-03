@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
 import { BetaAnalyticsDataClient } from '@google-analytics/data';
+import { ensureNotFoundRollupTable, upsertNotFoundRollup } from '@/lib/not-found/rollup-store';
 
 const isIsoDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value);
 const formatIsoDate = (date: Date) => date.toISOString().slice(0, 10);
@@ -34,49 +35,39 @@ const ensureNotFoundDailyTable = async () => {
 
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const startDate = searchParams.get('startDate');
-    const endDate = searchParams.get('endDate');
     const today = new Date();
-    const defaultStart = addDays(today, -7);
-    const dateRange =
-      startDate && endDate && isIsoDate(startDate) && isIsoDate(endDate)
-        ? { startDate, endDate }
-        : { startDate: formatIsoDate(defaultStart), endDate: formatIsoDate(today) };
+    const defaultStart = addDays(today, -30);
+    const dateRange = {
+      startDate: formatIsoDate(defaultStart),
+      endDate: formatIsoDate(today),
+    };
 
     await ensureNotFoundTable();
     await ensureNotFoundDailyTable();
+    await ensureNotFoundRollupTable();
 
-    const internalTop = await sql`
-      SELECT path,
-             COUNT(*)::int as hits,
-             MAX(created_at) as last_seen
-      FROM not_found_events
-      WHERE created_at >= ${dateRange.startDate}::date
-        AND created_at < (${dateRange.endDate}::date + INTERVAL '1 day')
-      GROUP BY path
-      ORDER BY hits DESC
-      LIMIT 20
+    const rollupTotals = await sql`
+      SELECT COUNT(*)::int as total,
+             COALESCE(SUM(hit_count), 0)::int as hits
+      FROM not_found_rollup
     `;
 
-    const internalTotal = await sql`
-      SELECT COUNT(*)::int as total
-      FROM not_found_events
-      WHERE created_at >= ${dateRange.startDate}::date
-        AND created_at < (${dateRange.endDate}::date + INTERVAL '1 day')
-    `;
-
-    const internalRecent = await sql`
+    const rollupRows = await sql`
       SELECT path,
-             referrer,
-             COUNT(*)::int as hits,
-             MAX(created_at) as last_seen
-      FROM not_found_events
-      WHERE created_at >= ${dateRange.startDate}::date
-        AND created_at < (${dateRange.endDate}::date + INTERVAL '1 day')
-      GROUP BY path, referrer
+             source,
+             hit_count,
+             ga4_views,
+             first_seen,
+             last_seen,
+             latest_referrer,
+             suggested_to,
+             suggested_type,
+             confidence,
+             suggested_reason,
+             status
+      FROM not_found_rollup
       ORDER BY last_seen DESC
-      LIMIT 50
+      LIMIT 500
     `;
 
     const dailyRollup = await sql`
@@ -152,13 +143,23 @@ export async function GET(request: Request) {
           return { path, views, users };
         }) ?? [];
       ga4Total = ga4Top.reduce((sum, row) => sum + row.views, 0);
+      await Promise.all(
+        ga4Top.map((row) =>
+          upsertNotFoundRollup({
+            path: row.path,
+            referrer: 'ga4',
+            source: 'ga4',
+            hitIncrement: 0,
+            ga4Views: row.views,
+          })
+        )
+      );
     }
 
     return NextResponse.json({
-      dateRange,
-      internalTotal: internalTotal.rows[0]?.total ?? 0,
-      internalTop: internalTop.rows,
-      internalRecent: internalRecent.rows,
+      rollupTotal: rollupTotals.rows[0]?.total ?? 0,
+      rollupHits: rollupTotals.rows[0]?.hits ?? 0,
+      rollup: rollupRows.rows,
       internalDaily: dailyRollup.rows.length > 0 ? dailyRollup.rows : dailyFromEvents.rows,
       ga4Total,
       ga4Top,

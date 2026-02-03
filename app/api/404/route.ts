@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
+import { upsertNotFoundRollup } from '@/lib/not-found/rollup-store';
 
 const ensureNotFoundTable = async () => {
   await sql`
@@ -29,6 +30,12 @@ export async function POST(request: Request) {
       INSERT INTO not_found_events (path, referrer, user_agent)
       VALUES (${path}, ${referrer}, ${userAgent})
     `;
+    await upsertNotFoundRollup({
+      path,
+      referrer,
+      source: 'internal',
+      hitIncrement: 1,
+    });
 
     return NextResponse.json({ ok: true });
   } catch (error) {

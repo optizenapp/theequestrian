@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createManualRedirect, listManualRedirects } from '@/lib/redirects/manual';
+import { markRollupStatus } from '@/lib/not-found/rollup-store';
 
 export async function GET(request: Request) {
   try {
@@ -26,6 +27,7 @@ export async function POST(request: Request) {
     }
 
     const redirect = await createManualRedirect(from, to, type, source);
+    await markRollupStatus(from, 'manual');
     return NextResponse.json({ redirect });
   } catch (error) {
     console.error('Redirect create error:', error);

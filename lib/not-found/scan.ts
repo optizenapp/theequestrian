@@ -1,4 +1,5 @@
 import { sql } from '@vercel/postgres';
+import { upsertNotFoundRollup } from '@/lib/not-found/rollup-store';
 
 const extractLocs = (xml: string) => {
   const locs: string[] = [];
@@ -111,6 +112,12 @@ export async function scanNotFoundUrls(options?: {
         INSERT INTO not_found_events (path, referrer, user_agent)
         VALUES (${path}, ${'site-scan'}, ${'scanner'})
       `;
+      await upsertNotFoundRollup({
+        path,
+        referrer: 'site-scan',
+        source: 'scan',
+        hitIncrement: 1,
+      });
       return;
     }
     if (includeLinks && res.ok) {
@@ -136,6 +143,12 @@ export async function scanNotFoundUrls(options?: {
         INSERT INTO not_found_events (path, referrer, user_agent)
         VALUES (${path}, ${source}, ${'link-scan'})
       `;
+      await upsertNotFoundRollup({
+        path,
+        referrer: source,
+        source: 'scan',
+        hitIncrement: 1,
+      });
     }
   });
 
