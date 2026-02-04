@@ -27,6 +27,7 @@ import { shopifyFetch } from '../lib/shopify/client';
 import { ProductClassifier } from '../lib/ai/product-classifier';
 import { parse } from 'csv-parse/sync';
 import { stringify } from 'csv-stringify/sync';
+import { sql } from '@vercel/postgres';
 
 interface Product {
   id: string;
@@ -126,9 +127,49 @@ function loadValidProductTypes(): string[] {
 }
 
 /**
+ * Load allowed vendors from vendor-shipping.csv and DB table
+ */
+async function loadAllowedVendors(): Promise<Set<string>> {
+  const vendorFile = path.join(process.cwd(), 'vendor-shipping.csv');
+  const allowed = new Set<string>();
+
+  if (fs.existsSync(vendorFile)) {
+    const csvContent = fs.readFileSync(vendorFile, 'utf-8');
+    const records = parse(csvContent, {
+      columns: true,
+      skip_empty_lines: true,
+      trim: true,
+    }) as Array<{ Vendor?: string }>;
+
+    records.forEach((row) => {
+      if (row.Vendor && row.Vendor.trim()) {
+        allowed.add(row.Vendor.trim().toLowerCase());
+      }
+    });
+  }
+
+  try {
+    const result = await sql`
+      SELECT DISTINCT vendor
+      FROM vendor_shipping_rates
+    `;
+    result.rows.forEach((row) => {
+      if (row.vendor) {
+        allowed.add(String(row.vendor).trim().toLowerCase());
+      }
+    });
+  } catch (error) {
+    console.warn('⚠️  Unable to read vendor_shipping_rates table, using CSV only.');
+  }
+
+  console.log(`✅ Loaded ${allowed.size} allowed vendors\n`);
+  return allowed;
+}
+
+/**
  * Fetch products needing classification from Shopify
  */
-async function fetchProductsNeedingClassification(): Promise<Product[]> {
+async function fetchProductsNeedingClassification(allowedVendors: Set<string>): Promise<Product[]> {
   console.log('📦 Fetching products from Shopify...\n');
 
   // Only classify products with truly missing product types
@@ -190,12 +231,18 @@ async function fetchProductsNeedingClassification(): Promise<Product[]> {
     problemTypes.includes(p.productType)
   );
 
+  const vendorFiltered = productsNeedingTypes.filter((p) =>
+    allowedVendors.has((p.vendor || '').toLowerCase())
+  );
+
   console.log(`\n✅ Total products: ${allProducts.length}`);
+  console.log(`✅ Allowed vendors: ${allowedVendors.size}`);
   console.log(`⚠️  Products needing classification: ${productsNeedingTypes.length}\n`);
+  console.log(`🔒 Products after vendor filter: ${vendorFiltered.length}\n`);
 
   // Group by current type
   const grouped = new Map<string, number>();
-  productsNeedingTypes.forEach(p => {
+  vendorFiltered.forEach(p => {
     const type = p.productType || '(No Product Type)';
     grouped.set(type, (grouped.get(type) || 0) + 1);
   });
@@ -206,7 +253,96 @@ async function fetchProductsNeedingClassification(): Promise<Product[]> {
   }
   console.log();
 
-  return productsNeedingTypes;
+  return vendorFiltered;
+}
+
+/**
+ * Save progress to database and CSV
+ */
+async function saveProgressToDatabase(
+  products: Product[],
+  results: Map<string, any>,
+  isIncremental: boolean = false
+): Promise<void> {
+  // Save to database directly
+  let saved = 0;
+  for (const product of products) {
+    const result = results.get(product.id);
+    if (!result) continue;
+
+    // Extract OpenAI and Claude details from the result
+    const openaiType = result.openaiType || result.suggestedType;
+    const openaiConfidence = result.openaiConfidence || result.confidence;
+    const claudeType = result.claudeType || result.alternativeTypes?.[0] || result.suggestedType;
+    const claudeConfidence = result.claudeConfidence || result.confidence;
+    const bothAgree = result.validationStatus === 'claude-validated' && !result.alternativeTypes;
+    const needsReview = result.validationStatus === 'needs-review';
+
+    try {
+      await sql`
+        INSERT INTO ai_product_classifications (
+          shopify_id,
+          handle,
+          title,
+          vendor,
+          current_type,
+          suggested_type,
+          confidence,
+          openai_type,
+          openai_confidence,
+          claude_type,
+          claude_confidence,
+          both_agree,
+          needs_review,
+          status,
+          created_at,
+          updated_at
+        )
+        VALUES (
+          ${product.id},
+          ${product.handle},
+          ${product.title},
+          ${product.vendor || null},
+          ${product.productType || null},
+          ${result.suggestedType},
+          ${result.confidence},
+          ${openaiType},
+          ${openaiConfidence},
+          ${claudeType || null},
+          ${claudeConfidence || null},
+          ${bothAgree},
+          ${needsReview},
+          'pending',
+          NOW(),
+          NOW()
+        )
+        ON CONFLICT (shopify_id) DO UPDATE
+        SET
+          handle = EXCLUDED.handle,
+          title = EXCLUDED.title,
+          vendor = EXCLUDED.vendor,
+          current_type = EXCLUDED.current_type,
+          suggested_type = EXCLUDED.suggested_type,
+          confidence = EXCLUDED.confidence,
+          openai_type = EXCLUDED.openai_type,
+          openai_confidence = EXCLUDED.openai_confidence,
+          claude_type = EXCLUDED.claude_type,
+          claude_confidence = EXCLUDED.claude_confidence,
+          both_agree = EXCLUDED.both_agree,
+          needs_review = EXCLUDED.needs_review,
+          updated_at = NOW()
+      `;
+      saved++;
+    } catch (error) {
+      console.error(`Failed to save classification for ${product.handle}:`, error);
+    }
+  }
+
+  if (isIncremental) {
+    console.log(`    💾 Progress saved to database: ${saved} products`);
+  } else {
+    console.log(`✅ Saved ${saved} classifications to database`);
+  }
 }
 
 /**
@@ -265,9 +401,9 @@ async function saveProgressToCSV(
   fs.writeFileSync(outputPath, csvContent);
   
   if (isIncremental) {
-    console.log(`    💾 Progress saved: ${results.size} products classified`);
+    console.log(`    💾 Progress saved to CSV: ${results.size} products classified`);
   } else {
-    console.log(`✅ Final export: ${outputPath}`);
+    console.log(`✅ Final CSV export: ${outputPath}`);
   }
 }
 
@@ -279,13 +415,16 @@ async function main() {
     // Step 1: Load valid product types
     const validProductTypes = loadValidProductTypes();
 
-    // Step 2: Load already-classified products if resuming
+    // Step 2: Load allowed vendors
+    const allowedVendors = await loadAllowedVendors();
+
+    // Step 3: Load already-classified products if resuming
     const alreadyClassified = resumeFile ? loadAlreadyClassified(resumeFile) : new Set<string>();
 
-    // Step 3: Fetch products needing classification
-    const allProducts = await fetchProductsNeedingClassification();
+    // Step 4: Fetch products needing classification
+    const allProducts = await fetchProductsNeedingClassification(allowedVendors);
 
-    // Step 4: Filter out already-classified products
+    // Step 5: Filter out already-classified products
     const unclassifiedProducts = alreadyClassified.size > 0
       ? allProducts.filter(p => !alreadyClassified.has(p.id))
       : allProducts;
@@ -305,10 +444,10 @@ async function main() {
     console.log('='.repeat(60));
     console.log();
 
-    // Step 3: Initialize classifier
+    // Step 6: Initialize classifier
     const classifier = new ProductClassifier(validProductTypes);
 
-    // Step 4: Process in batches of 50
+    // Step 7: Process in batches of 50
     const batchSize = 50;
     const allResults = new Map();
 
@@ -346,6 +485,7 @@ async function main() {
 
       // Save progress after each batch (incremental save)
       if (!dryRun) {
+        await saveProgressToDatabase(productsToClassify, allResults, true);
         await saveProgressToCSV(productsToClassify, allResults, true);
       }
     }
@@ -361,24 +501,23 @@ async function main() {
     console.log(`Needs manual review: ${stats.needsReview} (${(stats.needsReview / stats.total * 100).toFixed(1)}%)`);
     console.log(`Average confidence: ${stats.avgConfidence.toFixed(1)}%`);
 
-    // Step 6: Export final CSV
+    // Step 6: Export final results
     if (!dryRun) {
-      console.log('\n📝 Exporting final results to CSV...\n');
+      console.log('\n📝 Saving final results...\n');
+      await saveProgressToDatabase(productsToClassify, allResults, false);
       await saveProgressToCSV(productsToClassify, allResults, false);
     } else {
-      console.log('\n🧪 DRY RUN - Skipping CSV export');
+      console.log('\n🧪 DRY RUN - Skipping database and CSV export');
     }
 
     // Step 7: Next steps
     console.log('\n' + '='.repeat(60));
     console.log('\n📋 NEXT STEPS:\n');
-    console.log('1. Review the CSV file: exports/products-classified-by-ai.csv');
-    console.log('2. Check "Needs manual review" rows and fill "Manual Override" if needed');
-    console.log('3. Use Shopify bulk editor to import product types:');
-    console.log('   - Go to Products → Import');
-    console.log('   - Map "AI Suggested Type" → "Product Type"');
-    console.log('   - Or use "Manual Override" column for reviewed items');
-    console.log('4. Verify products appear on headless frontend');
+    console.log('1. Review classifications at: /admin/ai-classifications');
+    console.log('2. Approve or reject each suggestion');
+    console.log('3. Click "Apply to Shopify" to update product types via API');
+    console.log('4. Or use "Apply All Approved" to batch update');
+    console.log('5. Verify products appear on headless frontend');
     console.log('\n💡 To process more products, run:');
     console.log(`   npm run ai:classify-products -- --start=${startIndex + productsToClassify.length} --limit=50\n`);
 
