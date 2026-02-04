@@ -440,6 +440,14 @@ export default function AIClassificationsPage() {
                       <div className="mt-1 text-[10px] text-gray-400">
                         {classification.vendor} • {classification.handle}
                       </div>
+                      <a
+                        href={`https://www.theequestrian.com.au/products/${classification.handle}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-1 inline-block text-[10px] text-blue-600 hover:text-blue-800 hover:underline"
+                      >
+                        View product →
+                      </a>
                     </td>
                     <td className="px-5 py-3 text-gray-600">
                       {classification.current_type || <span className="text-gray-400">(empty)</span>}
