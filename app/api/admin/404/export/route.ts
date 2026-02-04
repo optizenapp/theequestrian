@@ -22,8 +22,8 @@ export async function GET(request: Request) {
         hit_count,
         ga4_views,
         last_seen,
-        suggestion_target,
-        suggestion_reason,
+        suggested_to AS suggestion_target,
+        suggested_reason AS suggestion_reason,
         status
       FROM not_found_rollup
       ORDER BY last_seen DESC

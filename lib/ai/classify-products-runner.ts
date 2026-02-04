@@ -325,6 +325,7 @@ export async function runClassification(options: RunOptions = {}) {
     const batchResults = await classifier.classifyBatch(
       batch.map((p) => ({
         id: p.id,
+        handle: p.handle,
         title: p.title,
         vendor: p.vendor,
         tags: p.tags,
