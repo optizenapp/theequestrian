@@ -13,70 +13,43 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const limitParam = url.searchParams.get('limit');
     const limit = limitParam ? Number(limitParam) : 10000;
-    const batchSize = 2000;
+
+    const result = await sql`
+      SELECT 
+        path,
+        latest_referrer,
+        source,
+        hit_count,
+        ga4_views,
+        last_seen,
+        suggestion_target,
+        suggestion_reason,
+        status
+      FROM not_found_rollup
+      ORDER BY last_seen DESC
+      LIMIT ${Number.isFinite(limit) && limit > 0 ? limit : 10000}
+    `;
 
     const headersLine =
       'path,latest_referrer,source,hit_count,ga4_views,last_seen,suggestion_target,suggestion_reason,status\n';
-    const encoder = new TextEncoder();
+    const rows = result.rows
+      .map((row) => {
+        const path = `"${(row.path || '').replace(/"/g, '""')}"`;
+        const referrer = `"${(row.latest_referrer || '').replace(/"/g, '""')}"`;
+        const source = row.source || '';
+        const hitCount = row.hit_count || 0;
+        const ga4Views = row.ga4_views || 0;
+        const lastSeen = row.last_seen ? new Date(row.last_seen).toISOString() : '';
+        const suggestionTarget = `"${(row.suggestion_target || '').replace(/"/g, '""')}"`;
+        const suggestionReason = `"${(row.suggestion_reason || '').replace(/"/g, '""')}"`;
+        const status = row.status || 'pending';
+        return `${path},${referrer},${source},${hitCount},${ga4Views},${lastSeen},${suggestionTarget},${suggestionReason},${status}`;
+      })
+      .join('\n');
 
-    const stream = new ReadableStream({
-      async start(controller) {
-        try {
-          controller.enqueue(encoder.encode(headersLine));
-          let offset = 0;
-          let remaining = Number.isFinite(limit) && limit > 0 ? limit : 10000;
+    const csv = headersLine + rows + (rows ? '\n' : '');
 
-          while (remaining > 0) {
-            const pageSize = Math.min(batchSize, remaining);
-            const result = await sql`
-              SELECT 
-                path,
-                latest_referrer,
-                source,
-                hit_count,
-                ga4_views,
-                last_seen,
-                suggestion_target,
-                suggestion_reason,
-                status
-              FROM not_found_rollup
-              ORDER BY last_seen DESC
-              LIMIT ${pageSize}
-              OFFSET ${offset}
-            `;
-
-            if (result.rows.length === 0) {
-              break;
-            }
-
-            const rows = result.rows
-              .map((row) => {
-                const path = `"${(row.path || '').replace(/"/g, '""')}"`;
-                const referrer = `"${(row.latest_referrer || '').replace(/"/g, '""')}"`;
-                const source = row.source || '';
-                const hitCount = row.hit_count || 0;
-                const ga4Views = row.ga4_views || 0;
-                const lastSeen = row.last_seen ? new Date(row.last_seen).toISOString() : '';
-                const suggestionTarget = `"${(row.suggestion_target || '').replace(/"/g, '""')}"`;
-                const suggestionReason = `"${(row.suggestion_reason || '').replace(/"/g, '""')}"`;
-                const status = row.status || 'pending';
-                return `${path},${referrer},${source},${hitCount},${ga4Views},${lastSeen},${suggestionTarget},${suggestionReason},${status}`;
-              })
-              .join('\n');
-
-            controller.enqueue(encoder.encode(rows + '\n'));
-            offset += result.rows.length;
-            remaining -= result.rows.length;
-          }
-
-          controller.close();
-        } catch (streamError) {
-          controller.error(streamError);
-        }
-      },
-    });
-
-    return new NextResponse(stream, {
+    return new NextResponse(csv, {
       headers: {
         'Content-Type': 'text/csv',
         'Content-Disposition': 'attachment; filename="404s.csv"',
