@@ -129,11 +129,15 @@ const EXCLUDED_VENDORS = new Set([
 /**
  * Get a product by its handle
  */
-export async function getProductByHandle(handle: string): Promise<ShopifyProduct | null> {
+export async function getProductByHandle(
+  handle: string,
+  options?: { cache?: RequestCache }
+): Promise<ShopifyProduct | null> {
   try {
     const data = await shopifyFetch<ProductResponse>({
       query: GET_PRODUCT_BY_HANDLE,
       variables: { handle },
+      cache: options?.cache ?? 'force-cache',
     });
 
     return data.product;

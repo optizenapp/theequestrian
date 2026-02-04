@@ -13,7 +13,7 @@ import { getBreadcrumbsForProduct } from '@/lib/mapping/collection-mapping';
 import ProductReviewSection from '@/components/reviews/ProductReviewSection';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
-import { getManualRedirect } from '@/lib/redirects/manual';
+import { createManualRedirect, getManualRedirect } from '@/lib/redirects/manual';
 
 export const revalidate = 300;
 
@@ -41,7 +41,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     }
     redirect(manualRedirect.to);
   }
-  const product = await getProductByHandle(handle);
+  const product = await getProductByHandle(handle, { cache: 'no-store' });
 
   if (!product) {
     notFound();
@@ -53,7 +53,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
   
   // Only redirect if canonical URL is different (i.e., product has a category mapping)
   if (canonicalUrl !== currentUrl) {
-    redirect(canonicalUrl);
+    try {
+      await createManualRedirect(currentUrl, canonicalUrl, '301', 'auto');
+    } catch (error) {
+      console.error('Failed to create auto redirect:', error);
+    }
+    permanentRedirect(canonicalUrl);
   }
 
   // If we reach here, product has no mapping - render fallback page
