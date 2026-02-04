@@ -215,7 +215,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 export async function generateMetadata({ params }: ProductPageProps) {
   const { handle } = await params;
   
-  const product = await getProductByHandle(handle);
+  const product = await getProductByHandle(handle, { cache: 'no-store' });
   
   if (!product) {
     return {
