@@ -864,9 +864,19 @@ export default function AdminNotFoundPage() {
                             };
                             return (
                               <tr key={row.id} className="hover:bg-gray-50">
-                                <td className="px-5 py-3 align-top break-words">
-                                  <div>{row.from_path}</div>
-                                  <div className="mt-1 text-[10px] text-gray-400 md:hidden">
+                                <td className="px-5 py-3 align-top break-words space-y-1">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <span>{row.from_path}</span>
+                                    <a
+                                      href={row.from_path}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="text-[10px] font-semibold text-blue-600 hover:text-blue-800"
+                                    >
+                                      Test URL
+                                    </a>
+                                  </div>
+                                  <div className="text-[10px] text-gray-400 md:hidden">
                                     {draft.status || 'active'} · {draft.type}
                                   </div>
                                   <div className="mt-1 text-[10px] text-gray-400 lg:hidden">

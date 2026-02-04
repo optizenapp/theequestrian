@@ -1,13 +1,25 @@
 import { sql } from '@vercel/postgres';
 
+const safeDecodePath = (value: string) => {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+};
+
 const normalizePath = (value: string) => {
   if (!value) return '/';
   const trimmed = value.trim();
-  if (!trimmed.startsWith('/')) return `/${trimmed}`;
-  if (trimmed.length > 1 && trimmed.endsWith('/')) {
-    return trimmed.slice(0, -1);
+  const decoded = safeDecodePath(trimmed);
+  let normalized = decoded;
+  if (!normalized.startsWith('/')) {
+    normalized = `/${normalized}`;
   }
-  return trimmed;
+  if (normalized.length > 1 && normalized.endsWith('/')) {
+    normalized = normalized.slice(0, -1);
+  }
+  return normalized;
 };
 
 const ensureRedirectTable = async () => {
