@@ -70,6 +70,10 @@ export default function AdminNotFoundPage() {
   const [redirectSourceFilter, setRedirectSourceFilter] = useState<'all' | 'manual' | 'csv'>('all');
   const [importRunning, setImportRunning] = useState(false);
   const [importMessage, setImportMessage] = useState<string | null>(null);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [upload404File, setUpload404File] = useState<File | null>(null);
+  const [import404Running, setImport404Running] = useState(false);
+  const [import404Message, setImport404Message] = useState<string | null>(null);
   const [refreshRunning, setRefreshRunning] = useState(false);
   const [refreshMessage, setRefreshMessage] = useState<string | null>(null);
   const [rollupStatusFilter, setRollupStatusFilter] = useState<
@@ -155,6 +159,7 @@ export default function AdminNotFoundPage() {
 
   const handleCreateRedirect = async () => {
     setStatusMessage(null);
+    setActionMessage(null);
     if (!fromPath || !toPath) {
       setStatusMessage('Please enter both from and to paths.');
       return;
@@ -174,7 +179,8 @@ export default function AdminNotFoundPage() {
     setToPath('');
     setRedirectTypeDrafts((prev) => ({ ...prev, new: '301' }));
     setStatusMessage(`Redirect added: ${payload.redirect.from} → ${payload.redirect.to}`);
-    fetchRedirects(redirectSourceFilter === 'all' ? undefined : redirectSourceFilter);
+    setRedirectsPage(1);
+    await fetchRedirects(redirectSourceFilter === 'all' ? undefined : redirectSourceFilter);
   };
 
 
@@ -276,6 +282,8 @@ export default function AdminNotFoundPage() {
     fallbackType: string,
     fallbackStatus: string
   ) => {
+    setActionMessage(null);
+    setStatusMessage(null);
     const draft = editRedirects[id];
     const to = draft?.to || fallbackTo;
     const type = draft?.type || fallbackType || '301';
@@ -291,7 +299,7 @@ export default function AdminNotFoundPage() {
       return;
     }
     setActionMessage('Redirect updated.');
-    fetchRedirects(redirectSourceFilter === 'all' ? undefined : redirectSourceFilter);
+    await fetchRedirects(redirectSourceFilter === 'all' ? undefined : redirectSourceFilter);
   };
 
   const deleteManualRedirect = async (id: number) => {
@@ -311,19 +319,60 @@ export default function AdminNotFoundPage() {
     setImportMessage(null);
     setImportRunning(true);
     try {
-      const res = await fetch('/api/admin/redirects/import', { method: 'POST' });
+      let res;
+      if (uploadFile) {
+        const formData = new FormData();
+        formData.append('file', uploadFile);
+        res = await fetch('/api/admin/redirects/import', {
+          method: 'POST',
+          body: formData,
+        });
+      } else {
+        res = await fetch('/api/admin/redirects/import', { method: 'POST' });
+      }
       const payload = await res.json();
       if (!res.ok) {
         setImportMessage(payload?.error || 'Failed to import redirects.');
         return;
       }
       setImportMessage(`Imported ${payload.imported} redirects from CSV.`);
+      setUploadFile(null);
       setRedirectsPage(1);
-      fetchRedirects(redirectSourceFilter === 'all' ? undefined : redirectSourceFilter);
+      await fetchRedirects(redirectSourceFilter === 'all' ? undefined : redirectSourceFilter);
     } catch (error) {
       setImportMessage('Failed to import redirects.');
     } finally {
       setImportRunning(false);
+    }
+  };
+
+  const import404Csv = async () => {
+    setImport404Message(null);
+    setImport404Running(true);
+    try {
+      if (!upload404File) {
+        setImport404Message('Please select a CSV file.');
+        return;
+      }
+      const formData = new FormData();
+      formData.append('file', upload404File);
+      const res = await fetch('/api/admin/404/import', {
+        method: 'POST',
+        body: formData,
+      });
+      const payload = await res.json();
+      if (!res.ok) {
+        setImport404Message(payload?.error || 'Failed to import 404s.');
+        return;
+      }
+      setImport404Message(`Imported ${payload.imported} 404 entries from CSV.`);
+      setUpload404File(null);
+      setInternalPage(1);
+      await fetchData();
+    } catch (error) {
+      setImport404Message('Failed to import 404s.');
+    } finally {
+      setImport404Running(false);
     }
   };
 
@@ -388,6 +437,35 @@ export default function AdminNotFoundPage() {
                       Deduped by path with suggestions and status.
                     </p>
                     <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-600">
+                      <a
+                        href="/api/admin/404/export"
+                        download="404s.csv"
+                        className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-gray-300"
+                      >
+                        Download CSV
+                      </a>
+                      <label className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-gray-300 cursor-pointer">
+                        <input
+                          type="file"
+                          accept=".csv"
+                          onChange={(event) => {
+                            const file = event.target.files?.[0];
+                            if (file) {
+                              setUpload404File(file);
+                            }
+                          }}
+                          className="hidden"
+                        />
+                        {upload404File ? upload404File.name : 'Choose CSV file'}
+                      </label>
+                      <button
+                        type="button"
+                        onClick={import404Csv}
+                        disabled={import404Running || !upload404File}
+                        className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-gray-300 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {import404Running ? 'Importing...' : 'Upload & import'}
+                      </button>
                       <button
                         type="button"
                         onClick={refreshSuggestions}
@@ -436,6 +514,11 @@ export default function AdminNotFoundPage() {
                         <option value="mixed">Mixed</option>
                       </select>
                     </div>
+                    {import404Message && (
+                      <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-xs text-blue-700">
+                        {import404Message}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <table className="w-full table-fixed text-xs">
@@ -611,13 +694,42 @@ export default function AdminNotFoundPage() {
                           <option value="manual">Manual</option>
                           <option value="csv">CSV</option>
                         </select>
+                        <a
+                          href="/api/admin/redirects/export"
+                          download="redirects.csv"
+                          className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-gray-300"
+                        >
+                          Download CSV
+                        </a>
+                        <label className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-gray-300 cursor-pointer">
+                          <input
+                            type="file"
+                            accept=".csv"
+                            onChange={(event) => {
+                              const file = event.target.files?.[0];
+                              if (file) {
+                                setUploadFile(file);
+                              }
+                            }}
+                            className="hidden"
+                          />
+                          {uploadFile ? uploadFile.name : 'Choose CSV file'}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={importCsvRedirects}
+                          disabled={importRunning || !uploadFile}
+                          className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-gray-300 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {importRunning ? 'Importing...' : 'Upload & import'}
+                        </button>
                         <button
                           type="button"
                           onClick={importCsvRedirects}
                           disabled={importRunning}
                           className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-gray-300 disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                          {importRunning ? 'Importing...' : 'Import CSV redirects'}
+                          {importRunning ? 'Importing...' : 'Import from files'}
                         </button>
                       </div>
                     </div>
@@ -639,6 +751,7 @@ export default function AdminNotFoundPage() {
                           <th className="px-5 py-3 text-left font-semibold">To</th>
                           <th className="px-5 py-3 text-left font-semibold hidden md:table-cell">Type</th>
                           <th className="px-5 py-3 text-left font-semibold hidden md:table-cell">Status</th>
+                          <th className="px-5 py-3 text-left font-semibold hidden lg:table-cell">Added</th>
                           <th className="px-5 py-3 text-left font-semibold w-40">Actions</th>
                         </tr>
                       </thead>
@@ -689,6 +802,7 @@ export default function AdminNotFoundPage() {
                             </select>
                           </td>
                           <td className="px-5 py-3 text-xs text-gray-500 hidden md:table-cell">new</td>
+                          <td className="px-5 py-3 text-xs text-gray-500 hidden lg:table-cell">—</td>
                           <td className="px-5 py-3 w-40">
                             <button
                               type="button"
@@ -712,6 +826,9 @@ export default function AdminNotFoundPage() {
                                   <div>{row.from_path}</div>
                                   <div className="mt-1 text-[10px] text-gray-400 md:hidden">
                                     {draft.status || 'active'} · {draft.type}
+                                  </div>
+                                  <div className="mt-1 text-[10px] text-gray-400 lg:hidden">
+                                    Added: {new Date(row.created_at).toLocaleDateString()}
                                   </div>
                                 </td>
                                 <td className="px-5 py-3 align-top">
@@ -777,8 +894,11 @@ export default function AdminNotFoundPage() {
                                     <option value="conflict">Conflict</option>
                                   </select>
                                 </td>
-                                <td className="px-5 py-3 w-40">
-                                  <div className="flex flex-col gap-2">
+                                <td className="px-5 py-3 hidden lg:table-cell text-xs text-gray-500">
+                                  {new Date(row.created_at).toLocaleDateString()}
+                                </td>
+                                <td className="px-5 py-3">
+                                  <div className="flex flex-col gap-2 items-start">
                                     <button
                                       type="button"
                                       onClick={() =>
@@ -789,14 +909,14 @@ export default function AdminNotFoundPage() {
                                           row.status || 'active'
                                         )
                                       }
-                                      className="w-full max-w-[120px] rounded-full bg-action px-3 py-1 text-xs font-semibold text-white hover:bg-pink-600"
+                                      className="rounded-full bg-action px-3 py-1 text-xs font-semibold text-white hover:bg-pink-600"
                                     >
                                       Save
                                     </button>
                                     <button
                                       type="button"
                                       onClick={() => deleteManualRedirect(row.id)}
-                                      className="w-full max-w-[120px] rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-gray-300"
+                                      className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-gray-300"
                                     >
                                       Delete
                                     </button>

@@ -78,16 +78,16 @@ export async function listManualRedirects(limit = 50, source?: string) {
   await ensureRedirectTable();
   const result = source
     ? await sql`
-        SELECT id, from_path, to_path, redirect_type, source, status, conflict_target, last_checked, created_at
+        SELECT id, from_path, to_path, redirect_type, source, status, conflict_target, last_checked, created_at, updated_at
         FROM manual_redirects
         WHERE source = ${source}
-        ORDER BY source ASC, from_path ASC
+        ORDER BY updated_at DESC
         LIMIT ${limit}
       `
     : await sql`
-        SELECT id, from_path, to_path, redirect_type, source, status, conflict_target, last_checked, created_at
+        SELECT id, from_path, to_path, redirect_type, source, status, conflict_target, last_checked, created_at, updated_at
         FROM manual_redirects
-        ORDER BY source ASC, from_path ASC
+        ORDER BY updated_at DESC
         LIMIT ${limit}
       `;
   return result.rows;

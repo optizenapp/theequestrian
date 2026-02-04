@@ -59,3 +59,35 @@ export async function importCsvRedirects() {
 
   return { imported, total: all.length };
 }
+
+export async function importCsvFromContent(csvContent: string) {
+  const records = parse(csvContent, {
+    columns: true,
+    skip_empty_lines: true,
+    trim: true,
+  }) as RedirectRow[];
+
+  const redirects = records
+    .filter((row) => row.from && row.to)
+    .map((row) => ({
+      from: normalizePath(row.from),
+      to: normalizePath(row.to),
+    }));
+
+  let imported = 0;
+  for (const redirect of redirects) {
+    await sql`
+      INSERT INTO manual_redirects (from_path, to_path, redirect_type, source, status, updated_at)
+      VALUES (${redirect.from}, ${redirect.to}, ${'301'}, ${'upload'}, ${'active'}, NOW())
+      ON CONFLICT (from_path) DO UPDATE
+      SET to_path = EXCLUDED.to_path,
+          redirect_type = EXCLUDED.redirect_type,
+          source = EXCLUDED.source,
+          status = 'active',
+          updated_at = NOW()
+    `;
+    imported += 1;
+  }
+
+  return { imported, total: redirects.length };
+}
