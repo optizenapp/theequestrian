@@ -17,7 +17,7 @@ export async function POST(request: Request) {
       limit,
       dryRun,
       saveDb: !dryRun,
-      saveCsv: !dryRun,
+      saveCsv: false, // Disabled in production - Vercel has read-only filesystem
     });
 
     return NextResponse.json({

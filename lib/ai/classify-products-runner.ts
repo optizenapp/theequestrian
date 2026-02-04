@@ -353,7 +353,12 @@ export async function runClassification(options: RunOptions = {}) {
       totalSaved += await saveProgressToDatabase(productsToClassify, allResults, false);
     }
     if (saveCsv) {
-      await saveProgressToCSV(productsToClassify, allResults, false);
+      try {
+        await saveProgressToCSV(productsToClassify, allResults, false);
+      } catch (error) {
+        // Ignore CSV save errors in production (read-only filesystem)
+        console.warn('⚠️  Could not save CSV (read-only filesystem):', (error as Error).message);
+      }
     }
   }
 
