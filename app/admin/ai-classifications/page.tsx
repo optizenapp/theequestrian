@@ -106,6 +106,47 @@ export default function AIClassificationsPage() {
     updateStatus(shopifyId, 'approved', manualOverride);
   };
 
+  const handleUpdateAndReapply = async (shopifyId: string, newType: string) => {
+    if (!newType) {
+      setMessage('Please select a product type');
+      return;
+    }
+    
+    setMessage(null);
+    
+    try {
+      // First, update the suggested_type in the database
+      const updateRes = await fetch('/api/admin/ai-classifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          shopify_id: shopifyId, 
+          status: 'approved',
+          manual_override: newType 
+        }),
+      });
+      
+      if (!updateRes.ok) {
+        const error = await updateRes.json();
+        setMessage(error.error || 'Failed to update classification');
+        return;
+      }
+      
+      setMessage(`Updated to: ${newType}. Now applying to Shopify...`);
+      
+      // Then apply to Shopify
+      await applyToShopify(shopifyId, newType);
+      
+      // Close the editor
+      setEditingId(null);
+      setManualOverride('');
+      setSearchTerm('');
+      
+    } catch (error) {
+      setMessage('Failed to update and re-apply');
+    }
+  };
+
   const applyToShopify = async (shopifyId: string, suggestedType: string) => {
     setMessage(null);
     setApplying(prev => new Set(prev).add(shopifyId));
@@ -579,7 +620,7 @@ export default function AIClassificationsPage() {
                                   disabled={!manualOverride}
                                   className="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
-                                  Update & Re-apply
+                                  Save Changes
                                 </button>
                                 <button
                                   onClick={() => {
@@ -619,17 +660,11 @@ export default function AIClassificationsPage() {
                             {editingId === classification.shopify_id ? (
                               <>
                                 <button
-                                  onClick={() => {
-                                    handleManualApprove(classification.shopify_id);
-                                    // After updating, re-apply to Shopify
-                                    setTimeout(() => {
-                                      applyToShopify(classification.shopify_id, manualOverride);
-                                    }, 500);
-                                  }}
-                                  disabled={!manualOverride}
+                                  onClick={() => handleUpdateAndReapply(classification.shopify_id, manualOverride)}
+                                  disabled={!manualOverride || applying.has(classification.shopify_id)}
                                   className="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
-                                  Update & Re-apply
+                                  {applying.has(classification.shopify_id) ? 'Updating...' : 'Update & Re-apply'}
                                 </button>
                                 <button
                                   onClick={() => {
