@@ -50,6 +50,7 @@ export async function GET(request: Request) {
       SELECT COUNT(*)::int as total,
              COALESCE(SUM(hit_count), 0)::int as hits
       FROM not_found_rollup
+      WHERE status NOT IN ('auto_applied', 'manual', 'ignored')
     `;
 
     const rollupRows = await sql`

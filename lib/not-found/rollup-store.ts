@@ -1,5 +1,6 @@
 import { sql } from '@vercel/postgres';
 import { suggestRedirectForPath } from '@/lib/not-found/suggestions';
+import { createManualRedirect } from '@/lib/redirects/manual';
 
 export type NotFoundSource = 'internal' | 'ga4' | 'scan';
 export type RollupStatus = 'pending' | 'auto_applied' | 'manual' | 'ignored';
@@ -21,6 +22,11 @@ const normalizePath = (value: string) => {
 const shouldIgnorePath = (value: string) => {
   if (ignoreExact.has(value)) return true;
   return ignorePrefixes.some((prefix) => value.startsWith(prefix));
+};
+
+const hasPlusInPath = (pathname: string) => {
+  const withoutQuery = pathname.split('?')[0].split('#')[0];
+  return withoutQuery.includes('+');
 };
 
 export const ensureNotFoundRollupTable = async () => {
@@ -84,6 +90,62 @@ export async function upsertNotFoundRollup(params: {
   } = params;
   const normalized = normalizePath(path);
   await ensureNotFoundRollupTable();
+
+  if (hasPlusInPath(normalized)) {
+    await sql`
+      INSERT INTO not_found_rollup (
+        path,
+        source,
+        hit_count,
+        ga4_views,
+        first_seen,
+        last_seen,
+        latest_referrer,
+        suggested_to,
+        suggested_type,
+        confidence,
+        suggested_reason,
+        status,
+        updated_at
+      )
+      VALUES (
+        ${normalized},
+        ${source},
+        ${hitIncrement},
+        ${ga4Views ?? 0},
+        NOW(),
+        NOW(),
+        ${referrer},
+        '/',
+        '301',
+        1,
+        'auto_plus',
+        'auto_applied',
+        NOW()
+      )
+      ON CONFLICT (path) DO UPDATE
+      SET last_seen = NOW(),
+          hit_count = not_found_rollup.hit_count + ${hitIncrement},
+          ga4_views = CASE
+            WHEN ${ga4Views}::int IS NULL THEN not_found_rollup.ga4_views
+            ELSE GREATEST(not_found_rollup.ga4_views, ${ga4Views})
+          END,
+          latest_referrer = COALESCE(${referrer}, not_found_rollup.latest_referrer),
+          source = CASE
+            WHEN not_found_rollup.source = ${source} THEN not_found_rollup.source
+            WHEN not_found_rollup.source = 'mixed' THEN 'mixed'
+            ELSE 'mixed'
+          END,
+          suggested_to = '/',
+          suggested_type = '301',
+          confidence = 1,
+          suggested_reason = 'auto_plus',
+          status = 'auto_applied',
+          updated_at = NOW()
+    `;
+    await createManualRedirect(normalized, '/', '301', 'auto_plus');
+    return;
+  }
 
   const statusOverride: RollupStatus | null = shouldIgnorePath(normalized) ? 'ignored' : null;
   const result = await sql`

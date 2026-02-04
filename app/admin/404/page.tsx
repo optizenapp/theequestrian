@@ -397,7 +397,7 @@ export default function AdminNotFoundPage() {
   };
 
   return (
-    <AdminLayout title="404 Monitor" subtitle="Track missing pages and add manual redirects">
+    <AdminLayout title="404 Monitor" subtitle="Track missing pages and add current redirects">
       {refreshMessage ? (
         <div className="mb-4 rounded-2xl border border-gray-200 bg-white p-4 text-xs text-gray-500 shadow-sm">
           {refreshMessage}
@@ -411,9 +411,9 @@ export default function AdminNotFoundPage() {
         <>
           <div className="grid gap-4 md:grid-cols-2">
             <StatCard
-              label="Unique 404 paths"
+              label="Open 404 paths"
               value={data.rollupTotal.toLocaleString()}
-              helper="Deduped across sources"
+              helper="Not fixed yet (excluding applied redirects)"
             />
             <StatCard
               label="GA4 404 views"
@@ -527,7 +527,7 @@ export default function AdminNotFoundPage() {
                         <option value="open">Open (exclude ignored)</option>
                         <option value="all">All statuses</option>
                         <option value="pending">Pending</option>
-                        <option value="manual">Manual</option>
+                        <option value="manual">Current</option>
                         <option value="ignored">Ignored</option>
                       </select>
                       <select
@@ -734,7 +734,7 @@ export default function AdminNotFoundPage() {
                           className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700"
                         >
                           <option value="all">All sources</option>
-                          <option value="manual">Manual</option>
+                          <option value="manual">Current</option>
                           <option value="csv">CSV</option>
                         </select>
                         <a
@@ -980,7 +980,7 @@ export default function AdminNotFoundPage() {
                         ) : (
                           <tr>
                             <td colSpan={5} className="px-5 py-8 text-center text-sm text-gray-500">
-                              No manual redirects yet.
+                              No current redirects yet.
                             </td>
                           </tr>
                         )}

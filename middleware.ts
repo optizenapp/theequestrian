@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { blogRedirects, collectionRedirects, pageRedirects } from '@/lib/redirects/maps';
 
+const hasPlusInPath = (pathname: string) => {
+  const withoutQuery = pathname.split('?')[0].split('#')[0];
+  return withoutQuery.includes('+');
+};
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -21,6 +26,13 @@ export function middleware(request: NextRequest) {
       redirectUrl.pathname = target;
       return NextResponse.redirect(redirectUrl, 301);
     }
+  }
+
+  // Redirect legacy Shopify tag URLs with '+' in the last segment.
+  if (hasPlusInPath(pathname)) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = '/';
+    return NextResponse.redirect(redirectUrl, 301);
   }
 
   // Redirect legacy blog URLs (specific map, then fallback to strip /blogs).
