@@ -31,6 +31,24 @@ CREATE TABLE IF NOT EXISTS review_images (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Review email settings (singleton row, id = 1)
+CREATE TABLE IF NOT EXISTS review_email_settings (
+  id INTEGER PRIMARY KEY DEFAULT 1,
+  enabled BOOLEAN DEFAULT true,
+  delay_days INTEGER DEFAULT 20,
+  subject_template TEXT NOT NULL,
+  html_template TEXT NOT NULL,
+  from_name TEXT NOT NULL,
+  from_email TEXT NOT NULL,
+  brand_primary TEXT,
+  brand_dark TEXT,
+  logo_url TEXT,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_review_email_settings_singleton
+  ON review_email_settings (id);
+
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_reviews_product_id ON reviews(product_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_product_handle ON reviews(product_handle);

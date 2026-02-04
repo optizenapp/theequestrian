@@ -99,6 +99,18 @@ export default function AdminReviewsPage() {
 
   return (
     <AdminLayout title="Review Management" subtitle="Approve, reject, or remove product reviews">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">Moderation Inbox</h2>
+          <p className="text-sm text-gray-500">Manage customer reviews and approvals.</p>
+        </div>
+        <a
+          href="/admin/reviews/email"
+          className="rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:border-action hover:text-action"
+        >
+          Review Email Settings
+        </a>
+      </div>
       <div className={isLoading ? 'flex items-center justify-center py-24' : ''}>
         {isLoading && (
           <div className="text-center">

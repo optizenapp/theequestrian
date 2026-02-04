@@ -2,24 +2,29 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { Resend } from 'resend';
 import { sql } from '@vercel/postgres';
+import { shopifyAdminFetch } from '@/lib/shopify/admin-client';
+import { getProductCanonicalUrl } from '@/lib/shopify/products';
+import {
+  applyTemplate,
+  getReviewEmailSettings,
+} from '@/lib/reviews/email-settings';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 /**
- * Shopify Webhook Handler: Order Creation
+ * Shopify Webhook Handler: Order Fulfillment
  * 
- * This endpoint receives webhooks from Shopify when an order is created.
+ * This endpoint receives webhooks from Shopify when an order is fulfilled.
  * It tracks GA4 purchase events and can send review request emails.
  * 
  * Setup Instructions:
  * 1. In Shopify Admin, go to Settings > Notifications > Webhooks
- * 2. Create webhook for order creation:
- *    - Event: Order creation (orders/create)
+ * 2. Create webhook for order fulfillment:
+ *    - Event: Order fulfillment (orders/fulfilled)
  *    - Format: JSON
  *    - URL: https://www.theequestrian.com.au/api/webhooks/shopify/orders
  *    - Webhook API version: 2024-01 (or latest)
- * 3. Optionally create webhook for order fulfillment (orders/fulfilled) for review emails
- * 4. Add SHOPIFY_WEBHOOK_SECRET to your environment variables
+ * 3. Add SHOPIFY_WEBHOOK_SECRET to your environment variables
  */
 
 // Verify Shopify webhook signature
@@ -123,25 +128,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ received: true });
     }
 
-    // Schedule review request emails for each product
-    // In production, you'd want to use a job queue (e.g., Vercel Cron, Inngest, or similar)
-    // For now, we'll send immediately (you can add delay logic later)
-    
-    for (const item of lineItems) {
-      const productHandle = item.product_id; // You may need to fetch the handle from Shopify
-      const productTitle = item.title;
-      const productId = `gid://shopify/Product/${item.product_id}`;
+    const settings = await getReviewEmailSettings();
+    if (!settings.enabled) {
+      console.log('⚠️ Review request emails disabled in settings');
+      return NextResponse.json({ received: true });
+    }
 
-      // TODO: In production, schedule this for 7 days after fulfillment
-      // For now, we'll send immediately for testing
+    for (const item of lineItems) {
+      const productGid = item.product_id ? `gid://shopify/Product/${item.product_id}` : null;
+      if (!productGid) {
+        continue;
+      }
+      const productDetails = await fetchProductDetails(productGid);
+      const productHandle = productDetails?.handle;
+      const productTitle = productDetails?.title || item.title;
+      const productUrl = productDetails
+        ? await buildProductReviewUrl(productDetails)
+        : null;
+
       await sendReviewRequestEmail({
         customerEmail,
         customerName,
         orderNumber,
         orderId: order.id.toString(),
-        productId,
-        productHandle: item.product_id.toString(), // You may need to map this
         productTitle,
+        productUrl,
+        productHandle,
+        settings,
       });
     }
 
@@ -160,71 +173,56 @@ async function sendReviewRequestEmail({
   customerName,
   orderNumber,
   orderId,
-  productId,
-  productHandle,
   productTitle,
+  productUrl,
+  productHandle,
+  settings,
 }: {
   customerEmail: string;
   customerName: string;
   orderNumber: string;
   orderId: string;
-  productId: string;
-  productHandle: string;
   productTitle: string;
+  productUrl: string | null;
+  productHandle?: string | null;
+  settings: Awaited<ReturnType<typeof getReviewEmailSettings>>;
 }) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
-  const reviewUrl = `${siteUrl}/review?product=${productHandle}&order=${orderId}`;
+  const reviewUrl = productUrl || `${siteUrl}/review?product=${productHandle || ''}&order=${orderId}`;
+  const logoSection = settings.logoUrl
+    ? `<div style="margin-bottom: 16px;"><img src="${settings.logoUrl}" alt="The Equestrian" style="max-width: 180px; height: auto;" /></div>`
+    : '';
+  const html = applyTemplate(settings.htmlTemplate, {
+    customerName,
+    productTitle,
+    productUrl: reviewUrl,
+    orderNumber,
+    siteUrl,
+    logoSection,
+    brandPrimary: settings.brandPrimary,
+    brandDark: settings.brandDark,
+  });
+  const subject = applyTemplate(settings.subjectTemplate, {
+    customerName,
+    productTitle,
+    productUrl: reviewUrl,
+    orderNumber,
+    siteUrl,
+    logoSection,
+    brandPrimary: settings.brandPrimary,
+    brandDark: settings.brandDark,
+  });
+  const scheduledAt = settings.delayDays > 0
+    ? new Date(Date.now() + settings.delayDays * 24 * 60 * 60 * 1000).toISOString()
+    : undefined;
 
   try {
     await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || 'reviews@theequestrian.com.au',
+      from: `${settings.fromName} <${settings.fromEmail}>`,
       to: customerEmail,
-      subject: `How was your ${productTitle}?`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Review Request</title>
-          </head>
-          <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); padding: 40px 20px; text-align: center; border-radius: 12px 12px 0 0;">
-              <h1 style="color: #ffffff; margin: 0; font-size: 28px;">The Equestrian</h1>
-            </div>
-            
-            <div style="background: #ffffff; padding: 40px 30px; border: 1px solid #e5e5e5; border-top: none; border-radius: 0 0 12px 12px;">
-              <h2 style="color: #1a1a1a; margin-top: 0; font-size: 24px;">Hi ${customerName},</h2>
-              
-              <p style="font-size: 16px; color: #555;">
-                Thank you for your recent purchase from The Equestrian! We hope you're enjoying your new <strong>${productTitle}</strong>.
-              </p>
-              
-              <p style="font-size: 16px; color: #555;">
-                We'd love to hear about your experience. Your feedback helps other equestrians make informed decisions and helps us continue to provide the best products and service.
-              </p>
-              
-              <div style="text-align: center; margin: 35px 0;">
-                <a href="${reviewUrl}" style="display: inline-block; background: #e91e63; color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 50px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px rgba(233, 30, 99, 0.3);">
-                  Write a Review
-                </a>
-              </div>
-              
-              <p style="font-size: 14px; color: #777; text-align: center;">
-                Order #${orderNumber}
-              </p>
-              
-              <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 30px 0;">
-              
-              <p style="font-size: 13px; color: #999; text-align: center; margin-bottom: 0;">
-                The Equestrian<br>
-                Quality equestrian supplies and equipment<br>
-                <a href="${siteUrl}" style="color: #e91e63; text-decoration: none;">theequestrian.com.au</a>
-              </p>
-            </div>
-          </body>
-        </html>
-      `,
+      subject,
+      html,
+      ...(scheduledAt ? { scheduledAt } : {}),
     });
 
     console.log('✅ Review request email sent:', {
@@ -234,6 +232,49 @@ async function sendReviewRequestEmail({
   } catch (error) {
     console.error('❌ Failed to send review request email:', error);
   }
+}
+
+async function fetchProductDetails(productId: string) {
+  try {
+    const query = `
+      query ProductForReviewEmail($id: ID!) {
+        product(id: $id) {
+          title
+          handle
+          productType
+          metafield(namespace: "custom", key: "primary_collection") {
+            value
+          }
+        }
+      }
+    `;
+    const data = await shopifyAdminFetch<{
+      product: {
+        title: string;
+        handle: string;
+        productType: string;
+        metafield: { value: string } | null;
+      } | null;
+    }>({ query, variables: { id: productId } });
+    return data.product;
+  } catch (error) {
+    console.error('❌ Failed to fetch product details:', error);
+    return null;
+  }
+}
+
+async function buildProductReviewUrl(product: {
+  handle: string;
+  productType: string;
+  metafield: { value: string } | null;
+}) {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
+  const canonicalPath = await getProductCanonicalUrl({
+    handle: product.handle,
+    productType: product.productType,
+    metafield: product.metafield,
+  });
+  return `${siteUrl}${canonicalPath}#reviews`;
 }
 
 

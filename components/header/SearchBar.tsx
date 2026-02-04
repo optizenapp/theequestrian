@@ -146,7 +146,7 @@ export function SearchBar() {
                 <Link
                   key={item.id}
                   href={item.urlPath}
-                  className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
+                  className="flex w-full items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
                   <div className="h-10 w-10 rounded-md bg-gray-100 flex items-center justify-center overflow-hidden">
@@ -170,7 +170,7 @@ export function SearchBar() {
                 <Link
                   key={item.id}
                   href={`/products/${item.handle}`}
-                  className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
+                  className="flex w-full items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
                   <div className="h-10 w-10 rounded-md bg-gray-100 flex items-center justify-center overflow-hidden">

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { HeaderNavigation } from './HeaderNavigation';
 import { HeaderTopBar } from './HeaderTopBar';
 import { MobileMenu } from './MobileMenu';
@@ -19,6 +20,7 @@ import { useCart } from '@/components/cart/cart-context';
 export function Header() {
   const { cart } = useCart();
   const itemCount = cart?.totalQuantity || 0;
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 bg-surface shadow-sm">
@@ -38,7 +40,7 @@ export function Header() {
             </div>
 
             {/* 3. Right Actions */}
-            <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-4 lg:space-x-6">
               {/* Help/About - Optional */}
               <Link href="/about" className="hidden lg:block text-sm font-medium text-gray-600 hover:text-action">
                 About us
@@ -56,6 +58,18 @@ export function Header() {
                 </svg>
                 <span className="hidden xl:inline text-sm font-medium">Log in</span>
               </a>
+
+              {/* Mobile Search */}
+              <button
+                type="button"
+                onClick={() => setIsMobileSearchOpen((prev) => !prev)}
+                className="lg:hidden flex items-center text-gray-700 hover:text-action"
+                aria-label="Search"
+              >
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-4.35-4.35m1.35-5.15a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z" />
+                </svg>
+              </button>
 
               {/* Cart */}
               <Link href="/cart" className="flex items-center gap-2 text-gray-700 hover:text-action relative">
@@ -80,6 +94,15 @@ export function Header() {
           </div>
         </div>
       </div>
+
+      {/* Mobile Search Panel */}
+      {isMobileSearchOpen && (
+        <div className="lg:hidden border-b border-gray-100 bg-white">
+          <div className="mx-auto max-w-[1400px] px-4 pb-4">
+            <SearchBar />
+          </div>
+        </div>
+      )}
 
       {/* Secondary Navigation - Categories */}
       <div className="hidden lg:flex border-b border-gray-100 bg-surface py-3">
