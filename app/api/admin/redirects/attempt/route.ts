@@ -61,6 +61,13 @@ export async function POST(request: Request) {
     const from = normalizePath(path);
     const to = normalizePath(canonical);
 
+    if (to.startsWith('/products/')) {
+      return NextResponse.json(
+        { error: 'Product is not mapped to a category yet' },
+        { status: 400 }
+      );
+    }
+
     if (from === to) {
       return NextResponse.json({ error: 'Already canonical' }, { status: 400 });
     }

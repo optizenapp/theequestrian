@@ -1,0 +1,40 @@
+
+    🔍 Validating with Claude (OpenAI: 85%)...
+    ✅ Both AIs agree (85%): Bridle Accessories
+
+  Batch Stats:
+    Both AIs agree: 1
+    Claude validated (total): 1
+    Needs review: 0
+    Avg confidence: 85.0%
+    💾 Progress saved to database: 1 products
+    💾 Progress saved to CSV: 1 products classified
+
+============================================================
+
+📊 FINAL STATISTICS
+
+Total classified: 1
+Both AIs agree: 1 (100.0%)
+Claude validated (total): 1 (100.0%)
+Needs manual review: 0 (0.0%)
+Average confidence: 85.0%
+
+📝 Saving final results...
+
+✅ Saved 1 classifications to database
+✅ Final CSV export: /Users/jonosmmachine/Documents/Cursor/theequestrian/exports/ai-classified-products-2026-02-04.csv
+
+============================================================
+
+📋 NEXT STEPS:
+
+1. Review classifications at: /admin/ai-classifications
+2. Approve or reject each suggestion
+3. Click "Apply to Shopify" to update product types via API
+4. Or use "Apply All Approved" to batch update
+5. Verify products appear on headless frontend
+
+💡 To process more products, run:
+   npm run ai:classify-products -- --start=1 --limit=50
+
