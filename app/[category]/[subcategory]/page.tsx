@@ -88,7 +88,7 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
   
   // Generate canonical URLs for all products (fast with Neon DB)
   // Product cards will link directly to category-based URLs
-  const productUrls = getProductCanonicalUrls(filteredProducts);
+  const productUrls = await getProductCanonicalUrls(filteredProducts);
 
   // Fetch review stats for all products in one batch (server-side)
   const productHandles = filteredProducts.map(p => p.handle);

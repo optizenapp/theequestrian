@@ -309,7 +309,7 @@ async function renderSubSubcategoryPage(
   // Generate canonical URLs for all products (fast with Neon DB)
   // Product cards will link directly to category-based URLs
   const { getProductCanonicalUrls } = await import('@/lib/shopify/products');
-  const productUrls = getProductCanonicalUrls(filteredProducts);
+  const productUrls = await getProductCanonicalUrls(filteredProducts);
   
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
 

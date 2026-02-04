@@ -63,7 +63,7 @@ export default async function OnSalePage({
   
   // Generate canonical URLs for all products (fast with Neon DB)
   // Product cards will link directly to category-based URLs
-  const productUrls = getProductCanonicalUrls(products);
+  const productUrls = await getProductCanonicalUrls(products);
 
   // Fetch review stats for all products in one batch (server-side)
   const productHandles = products.map(p => p.handle);

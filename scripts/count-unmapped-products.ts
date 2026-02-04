@@ -8,7 +8,7 @@ async function run() {
     return;
   }
 
-  const canonicalMap = getProductCanonicalUrls(
+  const canonicalMap = await getProductCanonicalUrls(
     products.map((product) => ({
       id: product.id,
       handle: product.handle,

@@ -176,7 +176,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   
   // Generate canonical URLs for all products (fast with Neon DB)
   // Product cards will link directly to category-based URLs
-  const productUrls = getProductCanonicalUrls(filteredProducts);
+  const productUrls = await getProductCanonicalUrls(filteredProducts);
 
   // Fetch review stats for all products in one batch (server-side)
   // This avoids 36+ client-side API calls
