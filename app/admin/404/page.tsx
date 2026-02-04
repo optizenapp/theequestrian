@@ -83,6 +83,8 @@ export default function AdminNotFoundPage() {
     'all' | 'internal' | 'ga4' | 'scan' | 'mixed'
   >('all');
   const [hideSuggested, setHideSuggested] = useState(true);
+  const [rollupSearch, setRollupSearch] = useState('');
+  const [redirectSearch, setRedirectSearch] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -153,9 +155,27 @@ export default function AdminNotFoundPage() {
         if (hideSuggested && row.suggested_to) {
           return false;
         }
+        // Search filter
+        if (rollupSearch) {
+          const searchLower = rollupSearch.toLowerCase();
+          const matchesPath = row.path.toLowerCase().includes(searchLower);
+          const matchesSuggestion = row.suggested_to?.toLowerCase().includes(searchLower);
+          const matchesReferrer = row.latest_referrer?.toLowerCase().includes(searchLower);
+          if (!matchesPath && !matchesSuggestion && !matchesReferrer) {
+            return false;
+          }
+        }
         return true;
       })
     : [];
+
+  const filteredRedirects = redirects.filter((redirect) => {
+    if (!redirectSearch) return true;
+    const searchLower = redirectSearch.toLowerCase();
+    const matchesFrom = redirect.from_path.toLowerCase().includes(searchLower);
+    const matchesTo = redirect.to_path.toLowerCase().includes(searchLower);
+    return matchesFrom || matchesTo;
+  });
 
   const handleCreateRedirect = async () => {
     setStatusMessage(null);
@@ -436,6 +456,18 @@ export default function AdminNotFoundPage() {
                     <p className="text-xs text-gray-500">
                       Deduped by path with suggestions and status.
                     </p>
+                    <div className="mt-3 mb-3">
+                      <input
+                        type="text"
+                        placeholder="Search URLs, suggestions, or referrers..."
+                        value={rollupSearch}
+                        onChange={(e) => {
+                          setRollupSearch(e.target.value);
+                          setInternalPage(1);
+                        }}
+                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                      />
+                    </div>
                     <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-600">
                       <a
                         href="/api/admin/404/export"
@@ -679,8 +711,21 @@ export default function AdminNotFoundPage() {
                           Manual redirects take precedence when a missing path is requested.
                         </p>
                       </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <select
+                    </div>
+                    <div className="mt-3 mb-3">
+                      <input
+                        type="text"
+                        placeholder="Search from or to paths..."
+                        value={redirectSearch}
+                        onChange={(e) => {
+                          setRedirectSearch(e.target.value);
+                          setRedirectsPage(1);
+                        }}
+                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                      />
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <select
                           value={redirectSourceFilter}
                           onChange={(event) => {
                             const value = event.target.value as 'all' | 'manual' | 'csv';
@@ -813,8 +858,8 @@ export default function AdminNotFoundPage() {
                             </button>
                           </td>
                         </tr>
-                        {redirects.length ? (
-                          paginate(redirects, redirectsPage).map((row) => {
+                        {filteredRedirects.length ? (
+                          paginate(filteredRedirects, redirectsPage).map((row) => {
                             const draft = editRedirects[row.id] ?? {
                               to: row.to_path,
                               type: row.redirect_type || '301',
@@ -949,16 +994,16 @@ export default function AdminNotFoundPage() {
                         Prev
                       </button>
                       <span>
-                        Page {redirectsPage} of {getTotalPages(redirects.length)}
+                        Page {redirectsPage} of {getTotalPages(filteredRedirects.length)}
                       </span>
                       <button
                         type="button"
                         onClick={() =>
                           setRedirectsPage((page) =>
-                            Math.min(getTotalPages(redirects.length), page + 1)
+                            Math.min(getTotalPages(filteredRedirects.length), page + 1)
                           )
                         }
-                        disabled={redirectsPage >= getTotalPages(redirects.length)}
+                        disabled={redirectsPage >= getTotalPages(filteredRedirects.length)}
                         className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         Next
