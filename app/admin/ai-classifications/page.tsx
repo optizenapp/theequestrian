@@ -173,11 +173,11 @@ export default function AIClassificationsPage() {
         setRunMessage(payload?.error || 'Failed to start classifier.');
         return;
       }
-      setRunMessage(payload?.message || 'Classifier started.');
+      setRunMessage(payload?.message || 'Classifier finished.');
       setTimeout(() => {
         setRunRunning(false);
         fetchLogs();
-      }, 2000);
+      }, 500);
     } catch (error) {
       setRunMessage('Failed to start classifier.');
       setRunRunning(false);
