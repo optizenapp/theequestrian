@@ -704,13 +704,11 @@ export default function AdminNotFoundPage() {
               <div className="p-5">
                 <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
                   <div className="border-b border-gray-100 px-5 py-4">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div>
-                        <h3 className="text-sm font-semibold text-gray-900">Current Redirects</h3>
-                        <p className="text-xs text-gray-500">
-                          Manual redirects take precedence when a missing path is requested.
-                        </p>
-                      </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-900">Current Redirects</h3>
+                      <p className="text-xs text-gray-500">
+                        Manual redirects take precedence when a missing path is requested.
+                      </p>
                     </div>
                     <div className="mt-3 mb-3">
                       <input
@@ -777,7 +775,6 @@ export default function AdminNotFoundPage() {
                           {importRunning ? 'Importing...' : 'Import from files'}
                         </button>
                       </div>
-                    </div>
                     {importMessage ? (
                       <p className="mt-2 text-xs text-gray-500">{importMessage}</p>
                     ) : null}
