@@ -35,6 +35,7 @@ export default function AIClassificationsPage() {
   const [showLogs, setShowLogs] = useState(false);
   const [logs, setLogs] = useState('');
   const [lastStats, setLastStats] = useState<any>(null);
+  const [remainingCount, setRemainingCount] = useState<number | null>(null);
   const [availableTypes, setAvailableTypes] = useState<string[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [manualOverride, setManualOverride] = useState<string>('');
@@ -43,6 +44,7 @@ export default function AIClassificationsPage() {
   useEffect(() => {
     fetchClassifications();
     fetchAvailableTypes();
+    fetchRemainingCount();
   }, []);
 
   const fetchClassifications = async () => {
@@ -66,6 +68,18 @@ export default function AIClassificationsPage() {
       setAvailableTypes(data.types || []);
     } catch (error) {
       console.error('Error fetching product types:', error);
+    }
+  };
+
+  const fetchRemainingCount = async () => {
+    try {
+      const res = await fetch('/api/admin/ai-classifications/remaining');
+      const data = await res.json();
+      if (typeof data.remaining === 'number') {
+        setRemainingCount(data.remaining);
+      }
+    } catch (error) {
+      console.error('Error fetching remaining count:', error);
     }
   };
 
@@ -390,7 +404,7 @@ export default function AIClassificationsPage() {
         </p>
       </div>
 
-      <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-5">
         <div className="rounded-lg border border-gray-200 bg-white p-4">
           <div className="text-2xl font-bold text-gray-900">{stats.pending}</div>
           <div className="text-xs text-gray-500">Pending Review</div>
@@ -406,6 +420,12 @@ export default function AIClassificationsPage() {
         <div className="rounded-lg border border-gray-200 bg-white p-4">
           <div className="text-2xl font-bold text-orange-600">{stats.needsReview}</div>
           <div className="text-xs text-gray-500">Needs Review (AIs disagree)</div>
+        </div>
+        <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <div className="text-2xl font-bold text-purple-600">
+            {remainingCount !== null ? remainingCount.toLocaleString() : '—'}
+          </div>
+          <div className="text-xs text-gray-500">Remaining to classify</div>
         </div>
       </div>
 

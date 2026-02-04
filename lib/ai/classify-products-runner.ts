@@ -163,6 +163,12 @@ async function fetchProductsNeedingClassification(
   );
 }
 
+export async function getRemainingToClassifyCount(): Promise<number> {
+  const allowedVendors = await loadAllowedVendors();
+  const products = await fetchProductsNeedingClassification(allowedVendors);
+  return products.length;
+}
+
 async function saveProgressToDatabase(
   products: Product[],
   results: Map<string, any>,
