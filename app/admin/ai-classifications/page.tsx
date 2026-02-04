@@ -571,16 +571,92 @@ export default function AIClassificationsPage() {
                           </>
                         )}
                         {classification.status === 'approved' && (
-                          <button
-                            onClick={() => applyToShopify(classification.shopify_id, classification.suggested_type)}
-                            disabled={applying.has(classification.shopify_id)}
-                            className="rounded-full bg-action px-3 py-1 text-xs font-semibold text-white hover:bg-pink-600 disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            {applying.has(classification.shopify_id) ? 'Applying...' : 'Apply to Shopify'}
-                          </button>
+                          <>
+                            {editingId === classification.shopify_id ? (
+                              <>
+                                <button
+                                  onClick={() => handleManualApprove(classification.shopify_id)}
+                                  disabled={!manualOverride}
+                                  className="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                  Update & Re-apply
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setEditingId(null);
+                                    setManualOverride('');
+                                    setSearchTerm('');
+                                  }}
+                                  className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-gray-300"
+                                >
+                                  Cancel
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={() => applyToShopify(classification.shopify_id, classification.suggested_type)}
+                                  disabled={applying.has(classification.shopify_id)}
+                                  className="rounded-full bg-action px-3 py-1 text-xs font-semibold text-white hover:bg-pink-600 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                  {applying.has(classification.shopify_id) ? 'Applying...' : 'Apply to Shopify'}
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setEditingId(classification.shopify_id);
+                                    setManualOverride(classification.suggested_type);
+                                  }}
+                                  className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-gray-300"
+                                >
+                                  Edit Type
+                                </button>
+                              </>
+                            )}
+                          </>
                         )}
                         {classification.status === 'applied' && (
-                          <span className="text-[10px] text-green-600">✓ Applied</span>
+                          <>
+                            {editingId === classification.shopify_id ? (
+                              <>
+                                <button
+                                  onClick={() => {
+                                    handleManualApprove(classification.shopify_id);
+                                    // After updating, re-apply to Shopify
+                                    setTimeout(() => {
+                                      applyToShopify(classification.shopify_id, manualOverride);
+                                    }, 500);
+                                  }}
+                                  disabled={!manualOverride}
+                                  className="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                  Update & Re-apply
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setEditingId(null);
+                                    setManualOverride('');
+                                    setSearchTerm('');
+                                  }}
+                                  className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-gray-300"
+                                >
+                                  Cancel
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <span className="text-[10px] text-green-600">✓ Applied</span>
+                                <button
+                                  onClick={() => {
+                                    setEditingId(classification.shopify_id);
+                                    setManualOverride(classification.suggested_type);
+                                  }}
+                                  className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-gray-300"
+                                >
+                                  Edit & Re-apply
+                                </button>
+                              </>
+                            )}
+                          </>
                         )}
                         {classification.status === 'rejected' && (
                           <button
