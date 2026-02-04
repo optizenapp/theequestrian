@@ -64,7 +64,7 @@ export async function POST(request: Request) {
     // Get the new canonical URL for the product
     const product = await getProductByHandle(handle);
     if (product) {
-      const canonicalUrl = getProductCanonicalUrl({
+      const canonicalUrl = await getProductCanonicalUrl({
         handle: product.handle,
         productType: product_type,
         metafield: product.metafield,
@@ -96,7 +96,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       product: response.productUpdate?.product,
-      redirect_created: product && getProductCanonicalUrl({
+      redirect_created: product && await getProductCanonicalUrl({
         handle: product.handle,
         productType: product_type,
         metafield: product.metafield,

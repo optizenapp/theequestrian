@@ -57,7 +57,7 @@ export async function POST(request: Request) {
       });
     }
 
-    const canonical = getProductCanonicalUrl(product);
+    const canonical = await getProductCanonicalUrl(product);
     const from = normalizePath(path);
     const to = normalizePath(canonical);
 

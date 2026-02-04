@@ -69,7 +69,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
     // If product has a primary collection, redirect to canonical URL
     if ((product as any).primaryCollection) {
-      const canonicalUrl = getProductCanonicalUrl(product);
+      const canonicalUrl = await getProductCanonicalUrl(product);
       redirect(canonicalUrl);
     }
 

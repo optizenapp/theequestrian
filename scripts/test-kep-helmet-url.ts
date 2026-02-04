@@ -48,7 +48,7 @@ async function testKepHelmetUrl() {
     console.log(`   Available: ${product.availableForSale}\n`);
 
     // Get canonical URL
-    const canonicalUrl = getProductCanonicalUrl(product);
+    const canonicalUrl = await getProductCanonicalUrl(product);
     console.log('📍 Canonical URL Mapping:');
     console.log(`   Product Type: "${product.productType}"`);
     console.log(`   Canonical URL: ${canonicalUrl}`);

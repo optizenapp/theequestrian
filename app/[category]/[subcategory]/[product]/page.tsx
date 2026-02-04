@@ -80,14 +80,14 @@ export default async function Page({ params, searchParams }: PageProps) {
   }
 
   // 2. If not a category, assume it's a product handle
-  const product = await getProductByHandle(thirdSegment);
+  const product = await getProductByHandle(thirdSegment, { cache: 'no-store' });
 
   if (!product) {
     notFound();
   }
 
   // Get the canonical URL for this product
-  const canonicalUrl = getProductCanonicalUrl(product);
+  const canonicalUrl = await getProductCanonicalUrl(product);
   const currentPath = `/${category}/${subcategory}/${thirdSegment}`;
   
   // If we're already at the canonical URL, render the product page
@@ -97,13 +97,13 @@ export default async function Page({ params, searchParams }: PageProps) {
   }
   
   // Render the product page (we're at the canonical URL)
-  return renderProductPage(product);
+  return renderProductPage(product, currentPath);
 }
 
 /**
  * Render a product page
  */
-async function renderProductPage(product: ShopifyProduct) {
+async function renderProductPage(product: ShopifyProduct, canonicalPath?: string) {
   const price = product.priceRange.minVariantPrice;
   
   // Calculate compareAtPrice from variants
@@ -135,7 +135,7 @@ async function renderProductPage(product: ShopifyProduct) {
   const reviewStats = await getReviewStatsWithCache(product.handle);
 
   // Generate unified @graph with BreadcrumbList + Product (including review stats)
-  const canonicalUrl = getProductCanonicalUrl(product);
+  const canonicalUrl = canonicalPath || await getProductCanonicalUrl(product);
   const primaryBreadcrumb = Array.isArray(breadcrumbSchemas) ? breadcrumbSchemas[0] : breadcrumbSchemas;
   const schemaGraph = generateProductSchemaGraph(product, canonicalUrl, primaryBreadcrumb, siteUrl, reviewStats);
 
@@ -454,7 +454,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   // It's a product - fetch and generate full metadata
-  const product = await getProductByHandle(thirdSegment);
+  const product = await getProductByHandle(thirdSegment, { cache: 'no-store' });
   
   if (!product) {
     return {
@@ -462,7 +462,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  const canonicalUrl = `${siteUrl}${getProductCanonicalUrl(product)}`;
+  const canonicalUrl = `${siteUrl}/${category}/${subcategory}/${thirdSegment}`;
   const title = `${product.title} | The Equestrian`;
   const description = product.description || `Shop ${product.title} at The Equestrian. Quality equestrian supplies and equipment.`;
 

@@ -201,12 +201,12 @@ export async function getAllProducts(): Promise<ProductWithPrimaryCollection[]> 
  * Check if a product belongs to a specific category path
  * Uses primary_collection metafield or derives from productType mapping
  */
-function productBelongsToCategory(
+async function productBelongsToCategory(
   product: ProductWithPrimaryCollection,
   category: string,
   subcategory?: string,
   subsubcategory?: string
-): boolean {
+): Promise<boolean> {
   // Priority 1: Check primary_collection metafield
   if (product.metafield?.value) {
     const metafieldPath = product.metafield.value.split('/');
@@ -223,7 +223,7 @@ function productBelongsToCategory(
 
   // Priority 2: Derive from productType mapping
   if (product.productType) {
-    const categoryPath = getPrimaryCategoryPath(product.productType);
+    const categoryPath = await getPrimaryCategoryPath(product.productType);
     if (categoryPath) {
       const pathParts = categoryPath.split('/').filter(p => p);
       if (subsubcategory) {
@@ -834,7 +834,7 @@ const categoryPathCache = new Map<string, string | null>();
  * Returns the deepest (most specific) category path from the mapping
  * OPTIMIZED: Uses module-level cache to avoid repeated CSV parsing
  */
-export function getPrimaryCategoryPath(productType: string): string | null {
+export async function getPrimaryCategoryPath(productType: string): Promise<string | null> {
   if (!productType || !productType.trim()) {
     return null;
   }
@@ -845,8 +845,8 @@ export function getPrimaryCategoryPath(productType: string): string | null {
   }
 
   // Use the same logic as getBreadcrumbsForProduct to find category paths
-  const { getBreadcrumbsForProduct } = require('@/lib/mapping/collection-mapping');
-  const breadcrumbPaths = getBreadcrumbsForProduct(productType);
+  const { getBreadcrumbsForProduct } = await import('@/lib/mapping/collection-mapping');
+  const breadcrumbPaths = await getBreadcrumbsForProduct(productType);
   
   let result: string | null = null;
 
@@ -876,14 +876,14 @@ export function getPrimaryCategoryPath(productType: string): string | null {
  * 2. Derive from productType via mapping
  * 3. Fallback to /products/{handle}
  */
-export function getProductCanonicalUrl(product: Pick<ShopifyProduct, 'handle' | 'productType'> & { metafield?: { value: string } | null }): string {
+export async function getProductCanonicalUrl(product: Pick<ShopifyProduct, 'handle' | 'productType'> & { metafield?: { value: string } | null }): Promise<string> {
   // First priority: Use metafield if set
   if (product.metafield?.value) {
     return `/${product.metafield.value}/${product.handle}`;
   }
   
   // Second priority: Try to get category path from productType
-  const categoryPath = getPrimaryCategoryPath(product.productType);
+  const categoryPath = await getPrimaryCategoryPath(product.productType);
   
   if (categoryPath) {
     // Return category-based URL: /clothing/footwear/boots/product-handle
@@ -904,9 +904,9 @@ export function getProductCanonicalUrl(product: Pick<ShopifyProduct, 'handle' | 
  * 2. Derive from productType via mapping
  * 3. Fallback to /products/{handle}
  */
-export function getProductCanonicalUrls(
+export async function getProductCanonicalUrls(
   products: Array<Pick<ShopifyProduct, 'id' | 'handle' | 'productType'> & { metafield?: { value: string } | null }>
-): Map<string, string> {
+): Promise<Map<string, string>> {
   const urlMap = new Map<string, string>();
   
   // Build a cache of productType -> categoryPath to avoid repeated productType lookups
@@ -924,7 +924,7 @@ export function getProductCanonicalUrls(
       
       // Check cache first
       if (!pathCache.has(productType)) {
-        pathCache.set(productType, getPrimaryCategoryPath(productType));
+        pathCache.set(productType, await getPrimaryCategoryPath(productType));
       }
       
       const categoryPath = pathCache.get(productType);

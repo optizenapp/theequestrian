@@ -70,7 +70,7 @@ export async function suggestRedirectForPath(path: string): Promise<Suggestion |
   if (productHandle) {
     const product = await getProductByHandle(productHandle);
     if (product) {
-      const canonical = getProductCanonicalUrl(product);
+      const canonical = await getProductCanonicalUrl(product);
       if (canonical.startsWith('/products/')) {
         return null;
       }

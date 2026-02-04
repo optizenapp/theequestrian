@@ -495,7 +495,10 @@ export async function getBreadcrumbsForProduct(
   // Find all collection paths that include this product type
   for (const [collectionPath, rows] of mapping.entries()) {
     for (const row of rows) {
-      if (row.product_type && row.product_type.toLowerCase().trim() === normalizedProductType) {
+      const rowProductType = row.product_type?.toLowerCase().trim();
+      
+      // Match if the product_type matches (regardless of action)
+      if (rowProductType === normalizedProductType) {
         // Build breadcrumb path for this collection
         const pathParts = collectionPath.split('/');
         const breadcrumbs: Array<{ label: string; href: string }> = [];

@@ -48,7 +48,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   }
 
   // Get the canonical URL
-  const canonicalUrl = getProductCanonicalUrl(product);
+  const canonicalUrl = await getProductCanonicalUrl(product);
   const currentUrl = `/products/${handle}`;
   
   // Only redirect if canonical URL is different (i.e., product has a category mapping)
@@ -224,7 +224,7 @@ export async function generateMetadata({ params }: ProductPageProps) {
   }
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
-  const canonicalUrl = `${siteUrl}${getProductCanonicalUrl(product)}`;
+  const canonicalUrl = `${siteUrl}${await getProductCanonicalUrl(product)}`;
   
   const title = `${product.title} | The Equestrian`;
   const description = product.description || `Shop ${product.title} at The Equestrian. Quality equestrian supplies and equipment.`;

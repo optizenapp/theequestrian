@@ -39,7 +39,7 @@ export async function auditManualRedirects() {
       if (handle) {
         const product = await getProductByHandle(handle);
         if (product) {
-          const canonical = getProductCanonicalUrl(product);
+          const canonical = await getProductCanonicalUrl(product);
           if (canonical === fromPath) {
             conflictTarget = canonical;
           }
