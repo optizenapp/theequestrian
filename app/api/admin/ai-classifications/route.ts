@@ -157,17 +157,29 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   try {
     const body = await request.json();
-    const { shopify_id, status } = body;
+    const { shopify_id, status, manual_override } = body;
 
     if (!shopify_id || !status) {
       return NextResponse.json({ error: 'Missing shopify_id or status' }, { status: 400 });
     }
 
-    await sql`
-      UPDATE ai_product_classifications
-      SET status = ${status}, updated_at = NOW()
-      WHERE shopify_id = ${shopify_id}
-    `;
+    // If manual override is provided, update the suggested_type as well
+    if (manual_override) {
+      await sql`
+        UPDATE ai_product_classifications
+        SET 
+          status = ${status}, 
+          suggested_type = ${manual_override},
+          updated_at = NOW()
+        WHERE shopify_id = ${shopify_id}
+      `;
+    } else {
+      await sql`
+        UPDATE ai_product_classifications
+        SET status = ${status}, updated_at = NOW()
+        WHERE shopify_id = ${shopify_id}
+      `;
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

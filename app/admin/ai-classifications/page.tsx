@@ -35,9 +35,14 @@ export default function AIClassificationsPage() {
   const [showLogs, setShowLogs] = useState(false);
   const [logs, setLogs] = useState('');
   const [lastStats, setLastStats] = useState<any>(null);
+  const [availableTypes, setAvailableTypes] = useState<string[]>([]);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [manualOverride, setManualOverride] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchClassifications();
+    fetchAvailableTypes();
   }, []);
 
   const fetchClassifications = async () => {
@@ -54,13 +59,27 @@ export default function AIClassificationsPage() {
     }
   };
 
-  const updateStatus = async (shopifyId: string, status: 'approved' | 'rejected' | 'pending') => {
+  const fetchAvailableTypes = async () => {
+    try {
+      const res = await fetch('/api/admin/product-types');
+      const data = await res.json();
+      setAvailableTypes(data.types || []);
+    } catch (error) {
+      console.error('Error fetching product types:', error);
+    }
+  };
+
+  const updateStatus = async (shopifyId: string, status: 'approved' | 'rejected' | 'pending', manualType?: string) => {
     setMessage(null);
     try {
       const res = await fetch('/api/admin/ai-classifications', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ shopify_id: shopifyId, status }),
+        body: JSON.stringify({ 
+          shopify_id: shopifyId, 
+          status,
+          manual_override: manualType 
+        }),
       });
       
       if (!res.ok) {
@@ -69,11 +88,22 @@ export default function AIClassificationsPage() {
         return;
       }
       
-      setMessage(`Classification ${status}`);
+      setMessage(manualType ? `Classification updated with manual type: ${manualType}` : `Classification ${status}`);
+      setEditingId(null);
+      setManualOverride('');
+      setSearchTerm('');
       await fetchClassifications();
     } catch (error) {
       setMessage('Failed to update status');
     }
+  };
+
+  const handleManualApprove = (shopifyId: string) => {
+    if (!manualOverride) {
+      setMessage('Please select a product type');
+      return;
+    }
+    updateStatus(shopifyId, 'approved', manualOverride);
   };
 
   const applyToShopify = async (shopifyId: string, suggestedType: string) => {
@@ -415,10 +445,43 @@ export default function AIClassificationsPage() {
                       {classification.current_type || <span className="text-gray-400">(empty)</span>}
                     </td>
                     <td className="px-5 py-3">
-                      <div className="font-medium text-gray-900">{classification.suggested_type}</div>
-                      <div className="mt-1 text-[10px] text-gray-400">
-                        {classification.confidence}% confidence
-                      </div>
+                      {editingId === classification.shopify_id ? (
+                        <div className="space-y-2">
+                          <input
+                            type="text"
+                            placeholder="Search product types..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full rounded border border-gray-300 px-2 py-1 text-xs"
+                          />
+                          <select
+                            value={manualOverride}
+                            onChange={(e) => setManualOverride(e.target.value)}
+                            className="w-full rounded border border-gray-300 px-2 py-1 text-xs"
+                            size={5}
+                          >
+                            <option value="">-- Select Type --</option>
+                            {availableTypes
+                              .filter((type) =>
+                                searchTerm
+                                  ? type.toLowerCase().includes(searchTerm.toLowerCase())
+                                  : true
+                              )
+                              .map((type) => (
+                                <option key={type} value={type}>
+                                  {type}
+                                </option>
+                              ))}
+                          </select>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="font-medium text-gray-900">{classification.suggested_type}</div>
+                          <div className="mt-1 text-[10px] text-gray-400">
+                            {classification.confidence}% confidence
+                          </div>
+                        </>
+                      )}
                     </td>
                     <td className="px-5 py-3">
                       <div className="space-y-1 text-[10px]">
@@ -452,18 +515,51 @@ export default function AIClassificationsPage() {
                       <div className="flex flex-col gap-2">
                         {classification.status === 'pending' && (
                           <>
-                            <button
-                              onClick={() => updateStatus(classification.shopify_id, 'approved')}
-                              className="rounded-full bg-green-600 px-3 py-1 text-xs font-semibold text-white hover:bg-green-700"
-                            >
-                              Approve
-                            </button>
-                            <button
-                              onClick={() => updateStatus(classification.shopify_id, 'rejected')}
-                              className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-gray-300"
-                            >
-                              Reject
-                            </button>
+                            {editingId === classification.shopify_id ? (
+                              <>
+                                <button
+                                  onClick={() => handleManualApprove(classification.shopify_id)}
+                                  disabled={!manualOverride}
+                                  className="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                  Approve Manual
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setEditingId(null);
+                                    setManualOverride('');
+                                    setSearchTerm('');
+                                  }}
+                                  className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-gray-300"
+                                >
+                                  Cancel
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={() => updateStatus(classification.shopify_id, 'approved')}
+                                  className="rounded-full bg-green-600 px-3 py-1 text-xs font-semibold text-white hover:bg-green-700"
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setEditingId(classification.shopify_id);
+                                    setManualOverride(classification.suggested_type);
+                                  }}
+                                  className="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700"
+                                >
+                                  Edit Type
+                                </button>
+                                <button
+                                  onClick={() => updateStatus(classification.shopify_id, 'rejected')}
+                                  className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-gray-300"
+                                >
+                                  Reject
+                                </button>
+                              </>
+                            )}
                           </>
                         )}
                         {classification.status === 'approved' && (
