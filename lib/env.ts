@@ -24,6 +24,13 @@ const envSchema = z.object({
   NEXT_PUBLIC_GOOGLE_ANALYTICS_ID: z.string().optional(),
   NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
 
+  // Google Merchant Center
+  GOOGLE_OAUTH_CLIENT_ID: z.string().optional(),
+  GOOGLE_OAUTH_CLIENT_SECRET: z.string().optional(),
+  GOOGLE_OAUTH_REDIRECT_URI: z.string().url().optional(),
+  GMC_MERCHANT_ID: z.string().optional(),
+  GMC_BASE_URL: z.string().url().optional(),
+
   // Shopify Inbox
   NEXT_PUBLIC_SHOPIFY_INBOX_SCRIPT_URL: z.string().url().optional(),
   NEXT_PUBLIC_SHOPIFY_INBOX_ENABLED: z.string().optional(),

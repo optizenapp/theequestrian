@@ -199,6 +199,8 @@ export const GET_ALL_PRODUCTS = `
           id
           handle
           title
+          description
+          descriptionHtml
           availableForSale
           productType
           tags

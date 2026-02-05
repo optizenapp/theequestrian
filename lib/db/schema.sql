@@ -103,3 +103,22 @@ COMMENT ON COLUMN products.tags IS 'Array of product tags (sizes, colors, catego
 COMMENT ON COLUMN products.available_for_sale IS 'General availability flag (updated via webhooks). Real inventory checked via API.';
 COMMENT ON TABLE facet_cache IS 'Pre-computed facets for popular filter combinations (optional optimization)';
 COMMENT ON TABLE sync_log IS 'Tracks all sync operations for monitoring and debugging';
+
+-- Google Merchant Center integration (single-row config)
+CREATE TABLE gmc_integration (
+  id INTEGER PRIMARY KEY DEFAULT 1,
+  merchant_id TEXT,
+  access_token TEXT,
+  refresh_token TEXT,
+  token_expiry TIMESTAMP,
+  scope TEXT,
+  feed_id TEXT,
+  feed_name TEXT,
+  feed_fetch_url TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX idx_gmc_integration_singleton ON gmc_integration(id);
+
+COMMENT ON TABLE gmc_integration IS 'Stores GMC OAuth tokens and feed configuration (single row).';
