@@ -3,6 +3,7 @@ import { Resend } from 'resend';
 import { applyTemplate, getReviewEmailSettings } from '@/lib/reviews/email-settings';
 import { getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
 import { renderReviewEmailHtml, type ReviewEmailRenderData } from '@/lib/reviews/email-template';
+import { sql } from '@vercel/postgres';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -61,14 +62,85 @@ export async function POST(request: NextRequest) {
       brandDark: settings.brandDark,
     });
 
-    await resend.emails.send({
-      from: `${settings.fromName} <${settings.fromEmail}>`,
-      to,
-      subject: `[TEST] ${subject}`,
-      html,
-    });
+    // Log test email send attempt to database
+    const testOrderId = `TEST-${Date.now()}`;
+    const testOrderNumber = 'TEST';
+    let emailSendId: string | null = null;
+    
+    try {
+      const result = await sql`
+        INSERT INTO review_email_sends (
+          order_id,
+          order_number,
+          customer_email,
+          customer_name,
+          product_title,
+          product_handle,
+          scheduled_at,
+          status
+        ) VALUES (
+          ${testOrderId},
+          ${testOrderNumber},
+          ${to},
+          ${data.customerName},
+          ${data.productTitle},
+          ${handle || 'sample-product'},
+          NULL,
+          'sent'
+        )
+        RETURNING id;
+      `;
+      emailSendId = result.rows[0]?.id || null;
+    } catch (dbError) {
+      console.error('❌ Failed to log test email send to database:', dbError);
+    }
 
-    return NextResponse.json({ ok: true });
+    try {
+      await resend.emails.send({
+        from: `${settings.fromName} <${settings.fromEmail}>`,
+        to,
+        subject: `[TEST] ${subject}`,
+        html,
+      });
+
+      // Update test email send record to 'sent' status
+      if (emailSendId) {
+        try {
+          await sql`
+            UPDATE review_email_sends
+            SET status = 'sent',
+                sent_at = ${new Date().toISOString()}
+            WHERE id = ${emailSendId};
+          `;
+        } catch (updateError) {
+          console.error('❌ Failed to update test email send status:', updateError);
+        }
+      }
+
+      console.log('✅ Test review email sent:', {
+        to,
+        product: data.productTitle,
+        orderId: testOrderId,
+      });
+
+      return NextResponse.json({ ok: true });
+    } catch (error) {
+      // Update test email send record to 'failed' status
+      if (emailSendId) {
+        try {
+          await sql`
+            UPDATE review_email_sends
+            SET status = 'failed',
+                error_message = ${error instanceof Error ? error.message : String(error)}
+            WHERE id = ${emailSendId};
+          `;
+        } catch (updateError) {
+          console.error('❌ Failed to update test email send status:', updateError);
+        }
+      }
+      console.error('❌ Failed to send test email:', error);
+      return NextResponse.json({ error: 'Failed to send test email' }, { status: 500 });
+    }
   } catch (error) {
     console.error('Failed to send test email:', error);
     return NextResponse.json({ error: 'Failed to send test email' }, { status: 500 });

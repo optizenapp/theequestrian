@@ -231,6 +231,38 @@ async function sendReviewRequestEmail({
       ? new Date(Date.now() + settings.delayDays * 24 * 60 * 60 * 1000).toISOString()
       : undefined;
 
+  // Log email send attempt to database
+  let emailSendId: string | null = null;
+  try {
+    const { sql } = await import('@vercel/postgres');
+    const scheduledAtDate = scheduledAt ? scheduledAt : null;
+    const result = await sql`
+      INSERT INTO review_email_sends (
+        order_id,
+        order_number,
+        customer_email,
+        customer_name,
+        product_title,
+        product_handle,
+        scheduled_at,
+        status
+      ) VALUES (
+        ${orderId},
+        ${orderNumber},
+        ${customerEmail},
+        ${customerName},
+        ${productTitle},
+        ${products[0]?.handle || null},
+        ${scheduledAtDate},
+        ${scheduledAt ? 'scheduled' : 'sent'}
+      )
+      RETURNING id;
+    `;
+    emailSendId = result.rows[0]?.id || null;
+  } catch (dbError) {
+    console.error('❌ Failed to log email send to database:', dbError);
+  }
+
   try {
     await resend.emails.send({
       from: `${settings.fromName} <${settings.fromEmail}>`,
@@ -240,11 +272,40 @@ async function sendReviewRequestEmail({
       ...(scheduledAt ? { scheduledAt } : {}),
     });
 
+    // Update email send record to 'sent' status
+    if (emailSendId && !scheduledAt) {
+      try {
+        const { sql } = await import('@vercel/postgres');
+        await sql`
+          UPDATE review_email_sends
+          SET status = 'sent',
+              sent_at = ${new Date().toISOString()}
+          WHERE id = ${emailSendId};
+        `;
+      } catch (updateError) {
+        console.error('❌ Failed to update email send status:', updateError);
+      }
+    }
+
     console.log('✅ Review request email sent:', {
       to: customerEmail,
       product: productTitle,
     });
   } catch (error) {
+    // Update email send record to 'failed' status
+    if (emailSendId) {
+      try {
+        const { sql } = await import('@vercel/postgres');
+        await sql`
+          UPDATE review_email_sends
+          SET status = 'failed',
+              error_message = ${error instanceof Error ? error.message : String(error)}
+          WHERE id = ${emailSendId};
+        `;
+      } catch (updateError) {
+        console.error('❌ Failed to update email send status:', updateError);
+      }
+    }
     console.error('❌ Failed to send review request email:', error);
   }
 }

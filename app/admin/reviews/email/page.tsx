@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import Link from 'next/link';
 
 type ReviewEmailBlock =
   | { id: string; type: 'heading'; text: string; level?: 1 | 2 | 3; align?: 'left' | 'center' | 'right' }
@@ -298,6 +299,14 @@ export default function AdminReviewEmailSettingsPage() {
 
   return (
     <AdminLayout title="Review Email Settings" subtitle="Customize timing, branding, and template">
+      <div className="mb-6 flex items-center justify-end">
+        <Link
+          href="/admin/reviews/email/stats"
+          className="rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:border-action hover:text-action"
+        >
+          View Email Statistics →
+        </Link>
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-6">
           {/* Delivery Settings */}

@@ -14,7 +14,8 @@ export async function GET(request: Request) {
   const error = searchParams.get('error');
   const code = searchParams.get('code');
   const state = searchParams.get('state');
-  const stateCookie = cookies().get('gmc-oauth-state')?.value;
+  const cookieStore = await cookies();
+  const stateCookie = cookieStore.get('gmc-oauth-state')?.value;
 
   if (error) {
     return NextResponse.redirect(`/admin/feeds?gmc=error&reason=${encodeURIComponent(error)}`);
