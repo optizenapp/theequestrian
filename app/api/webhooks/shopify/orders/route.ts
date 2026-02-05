@@ -8,6 +8,7 @@ import {
   applyTemplate,
   getReviewEmailSettings,
 } from '@/lib/reviews/email-settings';
+import juice from 'juice';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -134,29 +135,46 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ received: true });
     }
 
-    for (const item of lineItems) {
-      const productGid = item.product_id ? `gid://shopify/Product/${item.product_id}` : null;
-      if (!productGid) {
-        continue;
-      }
-      const productDetails = await fetchProductDetails(productGid);
-      const productHandle = productDetails?.handle;
-      const productTitle = productDetails?.title || item.title;
-      const productUrl = productDetails
-        ? await buildProductReviewUrl(productDetails)
-        : null;
+    const products = await Promise.all(
+      lineItems.map(async (item: any) => {
+        const productGid = item.product_id ? `gid://shopify/Product/${item.product_id}` : null;
+        if (!productGid) {
+          return {
+            title: item.title,
+            handle: item.product_id?.toString() || '',
+            imageUrl: null,
+            url: null,
+          };
+        }
+        const productDetails = await fetchProductDetails(productGid);
+        const productTitle = productDetails?.title || item.title;
+        const productHandle = productDetails?.handle || item.product_id?.toString() || '';
+        const productUrl = productDetails
+          ? await buildProductReviewUrl(productDetails)
+          : null;
+        const productImageUrl = productDetails?.featuredImage?.url || null;
+        return {
+          title: productTitle,
+          handle: productHandle,
+          imageUrl: productImageUrl,
+          url: productUrl,
+        };
+      })
+    );
 
-      await sendReviewRequestEmail({
-        customerEmail,
-        customerName,
-        orderNumber,
-        orderId: order.id.toString(),
-        productTitle,
-        productUrl,
-        productHandle,
-        settings,
-      });
-    }
+    const primaryProduct = products[0];
+    await sendReviewRequestEmail({
+      customerEmail,
+      customerName,
+      orderNumber,
+      orderId: order.id.toString(),
+      products,
+      productTitle: primaryProduct?.title || 'Your purchase',
+      productImageUrl: primaryProduct?.imageUrl || null,
+      productUrl: primaryProduct?.url || null,
+      productHandle: primaryProduct?.handle || null,
+      settings,
+    });
 
     return NextResponse.json({ received: true });
   } catch (error) {
@@ -174,8 +192,10 @@ async function sendReviewRequestEmail({
   orderNumber,
   orderId,
   productTitle,
+  productImageUrl,
   productUrl,
   productHandle,
+  products,
   settings,
 }: {
   customerEmail: string;
@@ -183,29 +203,105 @@ async function sendReviewRequestEmail({
   orderNumber: string;
   orderId: string;
   productTitle: string;
+  productImageUrl: string | null;
   productUrl: string | null;
   productHandle?: string | null;
+  products: Array<{
+    title: string;
+    handle: string;
+    imageUrl: string | null;
+    url: string | null;
+  }>;
   settings: Awaited<ReturnType<typeof getReviewEmailSettings>>;
 }) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
   const reviewUrl = productUrl || `${siteUrl}/review?product=${productHandle || ''}&order=${orderId}`;
-  const logoSection = settings.logoUrl
-    ? `<div style="margin-bottom: 16px;"><img src="${settings.logoUrl}" alt="The Equestrian" style="max-width: 180px; height: auto;" /></div>`
+  const cleanImageUrl = productImageUrl
+    ? productImageUrl.split('?')[0].replace(/^\/\//, 'https://')
     : '';
-  const html = applyTemplate(settings.htmlTemplate, {
+  const logoSection =
+    settings.logoUrl && !settings.logoUrl.startsWith('data:')
+      ? `<div style="margin-bottom: 16px;"><img src="${settings.logoUrl}" alt="The Equestrian" style="max-width: 180px; height: auto;" /></div>`
+      : '';
+  const inlineQuillStyles = (html: string) => {
+    return html.replace(/<([a-z][a-z0-9]*)\s+([^>]*?)class="([^"]*)"([^>]*?)>/gi, (fullMatch, tag, before, classValue, after) => {
+      const classes = classValue.split(/\s+/).filter(Boolean);
+      const styles: string[] = [];
+      
+      // Extract alignment
+      if (classes.includes('ql-align-center')) styles.push('text-align:center');
+      if (classes.includes('ql-align-right')) styles.push('text-align:right');
+      if (classes.includes('ql-align-justify')) styles.push('text-align:justify');
+      
+      // Extract indent
+      const indentClass = classes.find((c: string) => c.startsWith('ql-indent-'));
+      if (indentClass) {
+        const level = Number(indentClass.replace('ql-indent-', ''));
+        if (!Number.isNaN(level) && level > 0) {
+          styles.push(`padding-left:${level * 3}em`);
+        }
+      }
+      
+      // Keep non-Quill classes
+      const nonQuillClasses = classes.filter((c: string) => !c.startsWith('ql-')).join(' ');
+      
+      // Extract existing style attribute
+      const existingStyleMatch = (before + after).match(/style="([^"]*)"/);
+      const existingStyles = existingStyleMatch ? existingStyleMatch[1] : '';
+      
+      // Merge styles
+      const allStyles = existingStyles ? `${existingStyles};${styles.join(';')}` : styles.join(';');
+      
+      // Rebuild attributes
+      let newBefore = before.replace(/style="[^"]*"/, '').trim();
+      let newAfter = after.replace(/style="[^"]*"/, '').trim();
+      
+      const classAttr = nonQuillClasses ? ` class="${nonQuillClasses}"` : '';
+      const styleAttr = allStyles ? ` style="${allStyles}"` : '';
+      
+      return `<${tag}${newBefore ? ' ' + newBefore : ''}${classAttr}${styleAttr}${newAfter ? ' ' + newAfter : ''}>`;
+    });
+  };
+  const preserveWhitespace = (html: string) => {
+    // Only convert 2+ consecutive spaces to nbsp, leave single spaces alone
+    return html.replace(/>([^<]+)</g, (match, text) => {
+      const withSpaces = text.replace(/ {2,}/g, (spaces: string) => '&nbsp;'.repeat(spaces.length));
+      return `>${withSpaces}<`;
+    });
+  };
+  const productCards = buildProductCards({
+    products,
+    brandPrimary: settings.brandPrimary,
+    fallbackUrl: reviewUrl,
+  });
+  const productCard = products[0]
+    ? buildProductCards({
+        products: [products[0]],
+        brandPrimary: settings.brandPrimary,
+        fallbackUrl: reviewUrl,
+      })
+    : '';
+  const rawHtml = applyTemplate(settings.htmlTemplate, {
     customerName,
     productTitle,
+    productImageUrl: cleanImageUrl,
     productUrl: reviewUrl,
+    productCard,
+    productCards,
     orderNumber,
     siteUrl,
     logoSection,
     brandPrimary: settings.brandPrimary,
     brandDark: settings.brandDark,
   });
+  const html = juice(preserveWhitespace(inlineQuillStyles(rawHtml)));
   const subject = applyTemplate(settings.subjectTemplate, {
     customerName,
     productTitle,
+    productImageUrl: cleanImageUrl,
     productUrl: reviewUrl,
+    productCard,
+    productCards,
     orderNumber,
     siteUrl,
     logoSection,
@@ -236,12 +332,16 @@ async function sendReviewRequestEmail({
 
 async function fetchProductDetails(productId: string) {
   try {
-    const query = `
+      const query = `
       query ProductForReviewEmail($id: ID!) {
         product(id: $id) {
           title
           handle
           productType
+          featuredImage {
+            url
+            altText
+          }
           metafield(namespace: "custom", key: "primary_collection") {
             value
           }
@@ -253,6 +353,7 @@ async function fetchProductDetails(productId: string) {
         title: string;
         handle: string;
         productType: string;
+        featuredImage: { url: string; altText: string | null } | null;
         metafield: { value: string } | null;
       } | null;
     }>({ query, variables: { id: productId } });
@@ -266,6 +367,7 @@ async function fetchProductDetails(productId: string) {
 async function buildProductReviewUrl(product: {
   handle: string;
   productType: string;
+  featuredImage?: { url: string; altText: string | null } | null;
   metafield: { value: string } | null;
 }) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
@@ -275,6 +377,56 @@ async function buildProductReviewUrl(product: {
     metafield: product.metafield,
   });
   return `${siteUrl}${canonicalPath}#reviews`;
+}
+
+function buildProductCards(params: {
+  products: Array<{
+    title: string;
+    imageUrl: string | null;
+    url: string | null;
+    handle: string;
+  }>;
+  brandPrimary: string;
+  fallbackUrl: string;
+}) {
+  const { products, brandPrimary, fallbackUrl } = params;
+  return products
+    .map((product) => {
+      const productUrl = product.url || fallbackUrl;
+      // Clean Shopify CDN URLs - remove query params that might break in email
+      const cleanImageUrl = product.imageUrl
+        ? product.imageUrl.split('?')[0].replace(/^\/\//, 'https://')
+        : null;
+      const imageBlock = cleanImageUrl
+        ? `<img src="${cleanImageUrl}" alt="${product.title}" width="200" height="200" style="width: 200px; height: 200px; object-fit: cover; border-radius: 10px; display: block; margin: 0 auto; border: 0;" />`
+        : '';
+      return `
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 24px 0;">
+          <tr>
+            <td align="center" style="padding: 12px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="380" style="background: #ffffff; border: 2px solid #e5e7eb; border-radius: 12px; margin: 0 auto;">
+                <tr>
+                  <td align="center" style="padding: 24px 24px 20px;">
+                    ${imageBlock}
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" style="padding: 0 24px 20px; font-size: 18px; font-weight: 600; color: #111827; line-height: 1.4;">
+                    ${product.title}
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" style="padding: 0 24px 24px;">
+                    <a href="${productUrl}" style="display: inline-block; background-color: ${brandPrimary}; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 999px; font-weight: 600; font-size: 15px; white-space: nowrap;">Leave a review</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      `;
+    })
+    .join('');
 }
 
 

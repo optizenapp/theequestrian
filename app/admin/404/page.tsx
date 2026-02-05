@@ -28,10 +28,11 @@ interface NotFoundData {
     hits: number;
   }>;
   ga4Total: number;
-  ga4Top: Array<{
+  ga4Rows: Array<{
     path: string;
     views: number;
     users: number;
+    last_seen: string;
   }>;
 }
 
@@ -56,9 +57,10 @@ export default function AdminNotFoundPage() {
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [conflicts, setConflicts] = useState<ManualRedirect[]>([]);
   const [attempting, setAttempting] = useState<Record<string, boolean>>({});
-  const [activeTab, setActiveTab] = useState<'internal' | 'redirects'>('internal');
+  const [activeTab, setActiveTab] = useState<'internal' | 'redirects' | 'ga4'>('internal');
   const [internalPage, setInternalPage] = useState(1);
   const [redirectsPage, setRedirectsPage] = useState(1);
+  const [ga4Page, setGa4Page] = useState(1);
   const pageSize = 20;
   const [redirectDrafts, setRedirectDrafts] = useState<Record<string, string>>({});
   const [redirectSaving, setRedirectSaving] = useState<Record<string, boolean>>({});
@@ -85,6 +87,7 @@ export default function AdminNotFoundPage() {
   const [hideSuggested, setHideSuggested] = useState(true);
   const [rollupSearch, setRollupSearch] = useState('');
   const [redirectSearch, setRedirectSearch] = useState('');
+  const [ga4Search, setGa4Search] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -176,6 +179,14 @@ export default function AdminNotFoundPage() {
     const matchesTo = redirect.to_path.toLowerCase().includes(searchLower);
     return matchesFrom || matchesTo;
   });
+
+  const filteredGa4Rows = data?.ga4Rows
+    ? data.ga4Rows.filter((row) => {
+        if (!ga4Search) return true;
+        const searchLower = ga4Search.toLowerCase();
+        return row.path.toLowerCase().includes(searchLower);
+      })
+    : [];
 
   const handleCreateRedirect = async () => {
     setStatusMessage(null);
@@ -445,6 +456,17 @@ export default function AdminNotFoundPage() {
                 }`}
               >
                 Current Redirects
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('ga4')}
+                className={`rounded-full px-4 py-2 text-xs font-semibold ${
+                  activeTab === 'ga4'
+                    ? 'bg-action text-white'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                GA4 404s
               </button>
             </div>
 
@@ -1011,6 +1033,103 @@ export default function AdminNotFoundPage() {
                           )
                         }
                         disabled={redirectsPage >= getTotalPages(filteredRedirects.length)}
+                        className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            {activeTab === 'ga4' ? (
+              <div className="p-5">
+                <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+                  <div className="border-b border-gray-100 px-5 py-4">
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-900">GA4 404 table</h3>
+                      <p className="text-xs text-gray-500">
+                        Latest GA4 404 paths synced into a dedicated table.
+                      </p>
+                    </div>
+                    <div className="mt-3 mb-3">
+                      <input
+                        type="text"
+                        placeholder="Search GA4 paths..."
+                        value={ga4Search}
+                        onChange={(e) => {
+                          setGa4Search(e.target.value);
+                          setGa4Page(1);
+                        }}
+                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <table className="w-full table-fixed text-xs">
+                      <colgroup>
+                        <col className="w-[60%]" />
+                        <col className="w-[14%]" />
+                        <col className="w-[14%]" />
+                        <col className="w-[12%]" />
+                      </colgroup>
+                      <thead className="bg-gray-50 text-[10px] uppercase tracking-wide text-gray-500">
+                        <tr>
+                          <th className="px-5 py-3 text-left font-semibold">URL</th>
+                          <th className="px-5 py-3 text-left font-semibold">Views</th>
+                          <th className="px-5 py-3 text-left font-semibold">Users</th>
+                          <th className="px-5 py-3 text-left font-semibold">Last Seen</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 text-gray-700">
+                        {filteredGa4Rows.length ? (
+                          paginate(filteredGa4Rows, ga4Page).map((row) => (
+                            <tr key={row.path} className="hover:bg-gray-50">
+                              <td className="px-5 py-3 break-all font-medium text-gray-900">
+                                {row.path}
+                              </td>
+                              <td className="px-5 py-3">{row.views.toLocaleString()}</td>
+                              <td className="px-5 py-3">{row.users.toLocaleString()}</td>
+                              <td className="px-5 py-3">
+                                {new Date(row.last_seen).toLocaleDateString()}
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan={4} className="px-5 py-8 text-center text-sm text-gray-500">
+                              No GA4 404 rows yet.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="flex items-center justify-between px-5 py-3 text-xs text-gray-500">
+                    <span>
+                      Showing {Math.min(pageSize, filteredGa4Rows.length)} of {filteredGa4Rows.length}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setGa4Page((page) => Math.max(1, page - 1))}
+                        disabled={ga4Page === 1}
+                        className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        Prev
+                      </button>
+                      <span>
+                        Page {ga4Page} of {getTotalPages(filteredGa4Rows.length)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setGa4Page((page) =>
+                            Math.min(getTotalPages(filteredGa4Rows.length), page + 1)
+                          )
+                        }
+                        disabled={ga4Page >= getTotalPages(filteredGa4Rows.length)}
                         className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         Next

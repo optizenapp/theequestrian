@@ -1,7 +1,12 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
+import { useEffect, useMemo, useState } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import juice from 'juice';
+
+const Editor = dynamic(() => import('@tinymce/tinymce-react').then(mod => mod.Editor), { ssr: false });
+
 
 type ReviewEmailSettings = {
   enabled: boolean;
@@ -18,7 +23,10 @@ type ReviewEmailSettings = {
 const tokenOptions = [
   { label: 'Customer name', token: '{{customerName}}' },
   { label: 'Product title', token: '{{productTitle}}' },
+  { label: 'Product image URL', token: '{{productImageUrl}}' },
   { label: 'Product URL', token: '{{productUrl}}' },
+  { label: 'Product card', token: '{{productCard}}' },
+  { label: 'Product cards', token: '{{productCards}}' },
   { label: 'Order number', token: '{{orderNumber}}' },
   { label: 'Site URL', token: '{{siteUrl}}' },
   { label: 'Logo section', token: '{{logoSection}}' },
@@ -35,13 +43,30 @@ function applyTemplate(template: string, variables: Record<string, string>) {
   return output;
 }
 
+
+const preserveWhitespace = (html: string) => {
+  // Only convert 2+ consecutive spaces to nbsp, leave single spaces alone
+  return html.replace(/>([^<]+)</g, (match, text) => {
+    const withSpaces = text.replace(/ {2,}/g, (spaces) => '&nbsp;'.repeat(spaces.length));
+    return `>${withSpaces}<`;
+  });
+};
+
 export default function AdminReviewEmailSettingsPage() {
   const [settings, setSettings] = useState<ReviewEmailSettings | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
-  const editorRef = useRef<HTMLDivElement | null>(null);
-  const sourceRef = useRef<HTMLTextAreaElement | null>(null);
-  const [isEditorFocused, setIsEditorFocused] = useState(false);
+  const [testEmail, setTestEmail] = useState('');
+  const [isSendingTest, setIsSendingTest] = useState(false);
+  const [previewHandle, setPreviewHandle] = useState('');
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState('');
+  const [previewProduct, setPreviewProduct] = useState<{
+    title: string;
+    imageUrl: string | null;
+    url: string;
+  } | null>(null);
+  const [previewKey, setPreviewKey] = useState(0);
 
   useEffect(() => {
     async function loadSettings() {
@@ -56,27 +81,6 @@ export default function AdminReviewEmailSettingsPage() {
     loadSettings();
   }, []);
 
-  useEffect(() => {
-    if (!settings || !editorRef.current || isEditorFocused) return;
-    editorRef.current.innerHTML = settings.htmlTemplate;
-  }, [settings, isEditorFocused]);
-
-  const previewHtml = useMemo(() => {
-    if (!settings) return '';
-    const logoSection = settings.logoUrl
-      ? `<div style="margin-bottom: 16px;"><img src="${settings.logoUrl}" alt="The Equestrian" style="max-width: 180px; height: auto;" /></div>`
-      : '';
-    return applyTemplate(settings.htmlTemplate, {
-      customerName: 'Jono',
-      productTitle: 'Synthetic Combo Horse Rug - Eureka Mini',
-      productUrl: 'https://www.theequestrian.com.au/products/sample-product#reviews',
-      orderNumber: '3599',
-      siteUrl: 'https://www.theequestrian.com.au',
-      logoSection,
-      brandPrimary: settings.brandPrimary,
-      brandDark: settings.brandDark,
-    });
-  }, [settings]);
 
   const updateSetting = <K extends keyof ReviewEmailSettings>(
     key: K,
@@ -85,27 +89,92 @@ export default function AdminReviewEmailSettingsPage() {
     setSettings((prev) => (prev ? { ...prev, [key]: value } : prev));
   };
 
-  const handleEditorInput = () => {
-    if (!editorRef.current) return;
-    updateSetting('htmlTemplate', editorRef.current.innerHTML);
-  };
+  const previewHtml = useMemo(() => {
+    if (!settings) return '';
+    const logoSection = settings.logoUrl
+      ? `<div style="margin-bottom: 16px;"><img src="${settings.logoUrl}" alt="The Equestrian" style="max-width: 180px; height: auto;" /></div>`
+      : '';
+    const siteUrl = 'https://www.theequestrian.com.au';
+    const productImageUrl = previewProduct?.imageUrl || `${siteUrl}/window.svg`;
+    const cleanImageUrl = productImageUrl.split('?')[0].replace(/^\/\//, 'https://');
+    const productUrl = previewProduct?.url || `${siteUrl}/products/sample-product#reviews`;
+    const productTitle = previewProduct?.title || 'Synthetic Combo Horse Rug - Eureka Mini';
+    const buildProductCard = (title: string, imageUrl: string, url: string) => `
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 24px 0;">
+        <tr>
+          <td align="center" style="padding: 12px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="380" style="background: #ffffff; border: 2px solid #e5e7eb; border-radius: 12px; margin: 0 auto;">
+              <tr>
+                <td align="center" style="padding: 24px 24px 20px;">
+                  <img src="${imageUrl}" alt="${title}" width="200" height="200" style="width: 200px; height: 200px; object-fit: cover; border-radius: 10px; display: block; margin: 0 auto; border: 0;" />
+                </td>
+              </tr>
+              <tr>
+                <td align="center" style="padding: 0 24px 20px; font-size: 18px; font-weight: 600; color: #111827; line-height: 1.4;">
+                  ${title}
+                </td>
+              </tr>
+              <tr>
+                <td align="center" style="padding: 0 24px 24px;">
+                  <a href="${url}" style="display: inline-block; background-color: ${settings.brandPrimary}; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 999px; font-weight: 600; font-size: 15px; white-space: nowrap;">Leave a review</a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    `;
+    
+    const productCard = buildProductCard(productTitle, cleanImageUrl, productUrl);
+    const productCards = `${productCard}${buildProductCard(productTitle, cleanImageUrl, productUrl)}`;
+    const rawHtml = applyTemplate(settings.htmlTemplate, {
+      customerName: 'Jono',
+      productTitle,
+      productImageUrl: cleanImageUrl,
+      productUrl,
+      productCard,
+      productCards,
+      orderNumber: '3599',
+      siteUrl,
+      logoSection,
+      brandPrimary: settings.brandPrimary,
+      brandDark: settings.brandDark,
+    });
+    return juice(preserveWhitespace(rawHtml));
+  }, [settings, previewProduct, previewKey]);
 
-  const handleSourceChange = (value: string) => {
-    updateSetting('htmlTemplate', value);
-    if (editorRef.current) {
-      editorRef.current.innerHTML = value;
+  const loadPreviewProduct = async () => {
+    if (!previewHandle) {
+      setPreviewError('Enter a product handle.');
+      return;
+    }
+    setPreviewLoading(true);
+    setPreviewError('');
+    try {
+      const response = await fetch('/api/admin/reviews/email-settings/preview-product', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ handle: previewHandle }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload?.error || 'Failed to load product');
+      }
+      setPreviewProduct(payload.product);
+    } catch (error: any) {
+      setPreviewError(error?.message || 'Failed to load product');
+      setPreviewProduct(null);
+    } finally {
+      setPreviewLoading(false);
     }
   };
 
-  const applyCommand = (command: string, value?: string) => {
-    document.execCommand(command, false, value);
-    handleEditorInput();
+  const insertToken = (token: string) => {
+    if (!settings) return;
+    const currentContent = settings.htmlTemplate || '';
+    updateSetting('htmlTemplate', currentContent + token);
   };
 
-  const insertToken = (token: string) => {
-    document.execCommand('insertText', false, token);
-    handleEditorInput();
-  };
 
   const handleLogoUpload = async (file?: File) => {
     if (!file) return;
@@ -142,6 +211,33 @@ export default function AdminReviewEmailSettingsPage() {
     }
   };
 
+  const sendTestEmail = async () => {
+    if (!testEmail) {
+      setStatusMessage('Enter a test email address.');
+      return;
+    }
+    setIsSendingTest(true);
+    setStatusMessage('');
+    try {
+      const response = await fetch('/api/admin/reviews/email-settings/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: testEmail, handle: previewHandle || null }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload?.error || 'Test email failed');
+      }
+      setStatusMessage('Test email sent.');
+    } catch (error) {
+      console.error('Failed to send test email:', error);
+      setStatusMessage('Failed to send test email.');
+    } finally {
+      setIsSendingTest(false);
+      setTimeout(() => setStatusMessage(''), 3000);
+    }
+  };
+
   if (!settings) {
     return (
       <AdminLayout title="Review Email Settings" subtitle="Customize review email timing and template">
@@ -154,7 +250,7 @@ export default function AdminReviewEmailSettingsPage() {
 
   return (
     <AdminLayout title="Review Email Settings" subtitle="Customize timing, branding, and template">
-      <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+      <div className="flex flex-col gap-6">
         <div className="space-y-6">
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between">
@@ -283,67 +379,36 @@ export default function AdminReviewEmailSettingsPage() {
                   key={token.token}
                   type="button"
                   onClick={() => insertToken(token.token)}
-                  className="rounded-full border border-gray-200 px-3 py-1 text-xs font-medium text-gray-600 hover:border-action hover:text-action"
+                  className="editor-btn"
                 >
                   {token.label}
                 </button>
               ))}
             </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <button type="button" onClick={() => applyCommand('bold')} className="editor-btn">
-                Bold
-              </button>
-              <button type="button" onClick={() => applyCommand('italic')} className="editor-btn">
-                Italic
-              </button>
-              <button type="button" onClick={() => applyCommand('underline')} className="editor-btn">
-                Underline
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const url = prompt('Enter link URL');
-                  if (url) applyCommand('createLink', url);
-                }}
-                className="editor-btn"
-              >
-                Link
-              </button>
-              <button type="button" onClick={() => applyCommand('unlink')} className="editor-btn">
-                Unlink
-              </button>
-              <button
-                type="button"
-                onClick={() => applyCommand('insertUnorderedList')}
-                className="editor-btn"
-              >
-                Bullet list
-              </button>
-              <button
-                type="button"
-                onClick={() => applyCommand('insertOrderedList')}
-                className="editor-btn"
-              >
-                Numbered list
-              </button>
-            </div>
-            <div className="mt-4 grid gap-4 lg:grid-cols-2">
-              <div className="rounded-xl border border-gray-200">
-                <div
-                  ref={editorRef}
-                  contentEditable
-                  onInput={handleEditorInput}
-                  onFocus={() => setIsEditorFocused(true)}
-                  onBlur={() => setIsEditorFocused(false)}
-                  className="min-h-[320px] px-4 py-3 text-sm text-gray-800 focus:outline-none"
-                  suppressContentEditableWarning
-                />
-              </div>
-              <textarea
-                ref={sourceRef}
+            <div className="mt-4">
+              <Editor
+                apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || 'no-api-key'}
                 value={settings.htmlTemplate}
-                onChange={(event) => handleSourceChange(event.target.value)}
-                className="min-h-[320px] w-full rounded-xl border border-gray-200 px-4 py-3 text-xs text-gray-700 focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20"
+                onEditorChange={(content) => updateSetting('htmlTemplate', content)}
+                init={{
+                  height: 400,
+                  menubar: false,
+                  plugins: [
+                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap',
+                    'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                    'insertdatetime', 'media', 'table', 'help', 'wordcount'
+                  ],
+                  toolbar: 'undo redo | blocks | bold italic underline strikethrough | ' +
+                    'forecolor backcolor | alignleft aligncenter alignright alignjustify | ' +
+                    'bullist numlist outdent indent | link image | removeformat | code',
+                  content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+                  image_advtab: true,
+                  image_caption: true,
+                  image_title: true,
+                  automatic_uploads: false,
+                  file_picker_types: 'image',
+                  paste_data_images: true,
+                }}
               />
             </div>
           </div>
@@ -357,6 +422,23 @@ export default function AdminReviewEmailSettingsPage() {
             >
               {isSaving ? 'Saving...' : 'Save settings'}
             </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                type="email"
+                placeholder="Test email"
+                value={testEmail}
+                onChange={(event) => setTestEmail(event.target.value)}
+                className="w-48 rounded-full border border-gray-300 px-4 py-2 text-sm focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20"
+              />
+              <button
+                type="button"
+                onClick={sendTestEmail}
+                disabled={isSendingTest}
+                className="rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:border-action hover:text-action disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isSendingTest ? 'Sending...' : 'Send test'}
+              </button>
+            </div>
             {statusMessage ? <p className="text-sm text-gray-600">{statusMessage}</p> : null}
           </div>
         </div>
@@ -365,8 +447,32 @@ export default function AdminReviewEmailSettingsPage() {
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <h2 className="text-lg font-semibold text-gray-900">Live Preview</h2>
             <p className="text-sm text-gray-500">Preview with sample data.</p>
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="Preview product handle"
+                  value={previewHandle}
+                  onChange={(event) => setPreviewHandle(event.target.value)}
+                  className="w-64 rounded-full border border-gray-300 px-4 py-2 text-sm focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20"
+                />
+                <button
+                  type="button"
+                  onClick={loadPreviewProduct}
+                  disabled={previewLoading}
+                  className="rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:border-action hover:text-action disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {previewLoading ? 'Loading...' : 'Load product'}
+                </button>
+                {previewProduct ? (
+                  <span className="text-xs text-gray-500">
+                    Previewing: {previewProduct.title}
+                  </span>
+                ) : null}
+                {previewError ? <span className="text-xs text-red-600">{previewError}</span> : null}
+              </div>
             <div
-              className="mt-4 overflow-auto rounded-xl border border-gray-100 bg-gray-50 p-4"
+              className="email-preview mt-4 overflow-auto rounded-xl border border-gray-100 bg-white p-8"
+              style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
               dangerouslySetInnerHTML={{ __html: previewHtml }}
             />
           </div>
@@ -384,6 +490,53 @@ export default function AdminReviewEmailSettingsPage() {
       </div>
 
       <style jsx>{`
+        :global(.email-preview ul) {
+          list-style: disc;
+          padding-left: 1.5em;
+        }
+        :global(.email-preview ol) {
+          list-style: decimal;
+          padding-left: 1.5em;
+        }
+        :global(.email-preview) {
+          line-height: 1.6;
+        }
+        :global(.email-preview p) {
+          margin: 0 0 12px;
+        }
+        :global(.email-preview br) {
+          line-height: 1.6;
+        }
+        :global(.email-preview h1) {
+          font-size: 2em;
+          font-weight: bold;
+          margin: 0.67em 0;
+        }
+        :global(.email-preview h2) {
+          font-size: 1.5em;
+          font-weight: bold;
+          margin: 0.75em 0;
+        }
+        :global(.email-preview strong) {
+          font-weight: 600;
+        }
+        :global(.email-preview em) {
+          font-style: italic;
+        }
+        :global(.email-preview u) {
+          text-decoration: underline;
+        }
+        :global(.email-preview a) {
+          color: #3b82f6;
+          text-decoration: underline;
+        }
+        :global(.email-preview table) {
+          border-collapse: collapse;
+        }
+        :global(.email-preview img) {
+          max-width: 100%;
+          height: auto;
+        }
         .editor-btn {
           border: 1px solid #e5e7eb;
           border-radius: 999px;

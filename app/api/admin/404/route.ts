@@ -33,6 +33,19 @@ const ensureNotFoundDailyTable = async () => {
   `;
 };
 
+const ensureGa4RollupTable = async () => {
+  await sql`
+    CREATE TABLE IF NOT EXISTS ga4_404_rollup (
+      path TEXT PRIMARY KEY,
+      views INTEGER NOT NULL DEFAULT 0,
+      users INTEGER NOT NULL DEFAULT 0,
+      first_seen TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      last_seen TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
+};
+
 export async function GET(request: Request) {
   try {
     const today = new Date();
@@ -45,6 +58,7 @@ export async function GET(request: Request) {
     await ensureNotFoundTable();
     await ensureNotFoundDailyTable();
     await ensureNotFoundRollupTable();
+    await ensureGa4RollupTable();
 
     const rollupTotals = await sql`
       SELECT COUNT(*)::int as total,
@@ -88,7 +102,6 @@ export async function GET(request: Request) {
       ORDER BY day ASC
     `;
 
-    let ga4Top: Array<{ path: string; views: number; users: number }> = [];
     let ga4Total = 0;
     const propertyId = process.env.GA4_PROPERTY_ID;
     const serviceAccountKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
@@ -136,7 +149,7 @@ export async function GET(request: Request) {
         limit: 50,
       });
 
-      ga4Top =
+      const ga4Top =
         ga4Report.rows?.map((row) => {
           const path = row.dimensionValues?.[0]?.value || '/';
           const views = Number(row.metricValues?.[0]?.value || 0);
@@ -155,7 +168,47 @@ export async function GET(request: Request) {
           })
         )
       );
+      await Promise.all(
+        ga4Top.map((row) =>
+          sql`
+            INSERT INTO ga4_404_rollup (
+              path,
+              views,
+              users,
+              first_seen,
+              last_seen,
+              updated_at
+            )
+            VALUES (
+              ${row.path},
+              ${row.views},
+              ${row.users},
+              NOW(),
+              NOW(),
+              NOW()
+            )
+            ON CONFLICT (path) DO UPDATE
+            SET views = EXCLUDED.views,
+                users = EXCLUDED.users,
+                last_seen = NOW(),
+                updated_at = NOW()
+          `
+        )
+      );
     }
+
+    const ga4RollupTotals = await sql`
+      SELECT COUNT(*)::int as total,
+             COALESCE(SUM(views), 0)::int as views
+      FROM ga4_404_rollup
+    `;
+    const ga4RollupRows = await sql`
+      SELECT path, views, users, last_seen
+      FROM ga4_404_rollup
+      ORDER BY views DESC
+      LIMIT 500
+    `;
+    ga4Total = ga4RollupTotals.rows[0]?.views ?? ga4Total;
 
     return NextResponse.json({
       rollupTotal: rollupTotals.rows[0]?.total ?? 0,
@@ -163,7 +216,7 @@ export async function GET(request: Request) {
       rollup: rollupRows.rows,
       internalDaily: dailyRollup.rows.length > 0 ? dailyRollup.rows : dailyFromEvents.rows,
       ga4Total,
-      ga4Top,
+      ga4Rows: ga4RollupRows.rows,
     });
   } catch (error) {
     console.error('404 admin error:', error);
