@@ -29,6 +29,7 @@ export async function auditManualRedirects() {
 
   for (const redirect of redirects) {
     const fromPath = redirect.from_path as string;
+    const currentStatus = typeof redirect.status === 'string' ? redirect.status : 'active';
     let conflictTarget: string | null = null;
 
     const categoryMatch = await findCategoryMatch(fromPath);
@@ -48,24 +49,30 @@ export async function auditManualRedirects() {
     }
 
     if (conflictTarget) {
-      conflicts.push({
-        id: redirect.id,
-        from_path: fromPath,
-        to_path: redirect.to_path,
-        conflict_target: conflictTarget,
-      });
+      const statusToKeep =
+        currentStatus === 'override' || currentStatus === 'disabled' ? currentStatus : 'conflict';
+      if (statusToKeep === 'conflict') {
+        conflicts.push({
+          id: redirect.id,
+          from_path: fromPath,
+          to_path: redirect.to_path,
+          conflict_target: conflictTarget,
+        });
+      }
       await sql`
         UPDATE manual_redirects
-        SET status = 'conflict',
+        SET status = ${statusToKeep},
             conflict_target = ${conflictTarget},
             last_checked = NOW(),
             updated_at = NOW()
         WHERE id = ${redirect.id}
       `;
     } else {
+      const statusToSet =
+        currentStatus === 'conflict' || currentStatus === 'override' ? 'active' : currentStatus;
       await sql`
         UPDATE manual_redirects
-        SET status = 'active',
+        SET status = ${statusToSet},
             conflict_target = NULL,
             last_checked = NOW(),
             updated_at = NOW()

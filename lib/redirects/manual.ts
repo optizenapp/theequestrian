@@ -52,7 +52,7 @@ export async function getManualRedirect(pathname: string) {
     SELECT to_path, redirect_type
     FROM manual_redirects
     WHERE from_path = ${fromPath}
-      AND status = 'active'
+      AND status IN ('active', 'override')
     LIMIT 1
   `;
   if (!result.rows[0]) return null;

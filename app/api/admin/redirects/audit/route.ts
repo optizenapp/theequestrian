@@ -15,7 +15,7 @@ export async function POST() {
 export async function GET() {
   try {
     const result = await sql`
-      SELECT id, from_path, to_path, conflict_target, last_checked, updated_at
+      SELECT id, from_path, to_path, redirect_type, status, conflict_target, last_checked, updated_at
       FROM manual_redirects
       WHERE status = 'conflict'
       ORDER BY updated_at DESC

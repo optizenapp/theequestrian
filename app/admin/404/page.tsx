@@ -244,7 +244,7 @@ export default function AdminNotFoundPage() {
     setAttempting((prev) => ({ ...prev, [row.path]: false }));
   };
 
-  const updateRedirectStatus = async (id: number, status: 'active' | 'disabled') => {
+  const updateRedirectStatus = async (id: number, status: 'active' | 'disabled' | 'override') => {
     setActionMessage(null);
     const res = await fetch(`/api/admin/redirects/${id}`, {
       method: 'PATCH',
@@ -267,6 +267,26 @@ export default function AdminNotFoundPage() {
 
   const updateRedirectTypeDraft = (key: string, value: string) => {
     setRedirectTypeDrafts((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const saveConflictRedirect = async (row: ManualRedirect) => {
+    setActionMessage(null);
+    const draft = editRedirects[row.id];
+    const to = draft?.to || row.to_path;
+    const type = draft?.type || row.redirect_type || '301';
+    const res = await fetch(`/api/admin/redirects/${row.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ to, type, status: 'override' }),
+    });
+    const payload = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setActionMessage(payload?.error || 'Failed to update redirect.');
+      return;
+    }
+    setActionMessage('Redirect saved and kept active.');
+    await fetchRedirects(redirectSourceFilter === 'all' ? undefined : redirectSourceFilter);
+    await fetchConflicts();
   };
 
   const saveRedirectFromRow = async (key: string, from: string) => {
@@ -938,6 +958,7 @@ export default function AdminNotFoundPage() {
                                       <option value="active">Active</option>
                                       <option value="disabled">Disabled</option>
                                       <option value="conflict">Conflict</option>
+                                      <option value="override">Override (keep active)</option>
                                     </select>
                                   </div>
                                 </td>
@@ -966,6 +987,7 @@ export default function AdminNotFoundPage() {
                                     <option value="active">Active</option>
                                     <option value="disabled">Disabled</option>
                                     <option value="conflict">Conflict</option>
+                                    <option value="override">Override (keep active)</option>
                                   </select>
                                 </td>
                                 <td className="px-5 py-3 hidden lg:table-cell text-xs text-gray-500">
@@ -1147,7 +1169,8 @@ export default function AdminNotFoundPage() {
         <div className="border-b border-gray-100 px-5 py-4">
           <h3 className="text-sm font-semibold text-gray-900">Redirect conflicts</h3>
           <p className="text-xs text-gray-500">
-            These redirects point to paths that now exist. Review and disable or re-enable.
+            These redirects point to paths that now exist. Disable them or keep them active to force a
+            redirect anyway.
           </p>
         </div>
         <div className="overflow-x-auto">
@@ -1162,33 +1185,48 @@ export default function AdminNotFoundPage() {
             </thead>
             <tbody className="divide-y divide-gray-100 text-gray-700">
               {conflicts.length ? (
-                conflicts.map((row) => (
-                  <tr key={row.id} className="hover:bg-gray-50">
-                    <td className="px-5 py-3">{row.from_path}</td>
-                    <td className="px-5 py-3">{row.to_path}</td>
-                    <td className="px-5 py-3 text-xs text-gray-500">
-                      {row.conflict_target}
-                    </td>
-                    <td className="px-5 py-3">
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          onClick={() => updateRedirectStatus(row.id, 'disabled')}
-                          className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-gray-300"
-                        >
-                          Disable
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => updateRedirectStatus(row.id, 'active')}
-                          className="rounded-full bg-action px-3 py-1 text-xs font-semibold text-white hover:bg-pink-600"
-                        >
-                          Keep active
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                conflicts.map((row) => {
+                  const draft = editRedirects[row.id] ?? {
+                    to: row.to_path,
+                    type: row.redirect_type || '301',
+                    status: row.status || 'conflict',
+                  };
+                  return (
+                    <tr key={row.id} className="hover:bg-gray-50">
+                      <td className="px-5 py-3">{row.from_path}</td>
+                      <td className="px-5 py-3">
+                        <input
+                          value={draft.to}
+                          onChange={(event) =>
+                            updateEditRedirect(row.id, 'to', event.target.value)
+                          }
+                          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                        />
+                      </td>
+                      <td className="px-5 py-3 text-xs text-gray-500">
+                        {row.conflict_target}
+                      </td>
+                      <td className="px-5 py-3">
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() => updateRedirectStatus(row.id, 'disabled')}
+                            className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-gray-300"
+                          >
+                            Disable
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => saveConflictRedirect(row)}
+                            className="rounded-full bg-action px-3 py-1 text-xs font-semibold text-white hover:bg-pink-600"
+                          >
+                            Save & keep active
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td colSpan={4} className="px-5 py-8 text-center text-sm text-gray-500">
