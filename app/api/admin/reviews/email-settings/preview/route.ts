@@ -1,26 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Resend } from 'resend';
-import { applyTemplate, getReviewEmailSettings } from '@/lib/reviews/email-settings';
+import { getReviewEmailSettings } from '@/lib/reviews/email-settings';
 import { getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
 import { renderReviewEmailHtml, type ReviewEmailRenderData } from '@/lib/reviews/email-template';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { defaultReviewEmailBlocks, type ReviewEmailBlock } from '@/lib/reviews/email-types';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const to = typeof body?.to === 'string' ? body.to : '';
-    if (!to) {
-      return NextResponse.json({ error: 'Missing test email address' }, { status: 400 });
-    }
-
-    const settings = await getReviewEmailSettings();
+    const handle = typeof body?.handle === 'string' ? body.handle.trim() : '';
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
 
     let productImageUrl = `${siteUrl}/window.svg`;
     let productUrl = `${siteUrl}/products/sample-product#reviews`;
     let productTitle = 'Synthetic Combo Horse Rug - Eureka Mini';
-    const handle = typeof body?.handle === 'string' ? body.handle.trim() : '';
+
     if (handle) {
       const product = await getProductByHandle(handle);
       if (product) {
@@ -31,6 +24,21 @@ export async function POST(request: NextRequest) {
         productTitle = product.title;
       }
     }
+
+    const savedSettings = await getReviewEmailSettings();
+    const blocks: ReviewEmailBlock[] = Array.isArray(body.blocks)
+      ? (body.blocks as ReviewEmailBlock[])
+      : savedSettings.blocks || defaultReviewEmailBlocks;
+
+    const settings = {
+      ...savedSettings,
+      blocks,
+      brandPrimary: body.brandPrimary || savedSettings.brandPrimary,
+      brandDark: body.brandDark || savedSettings.brandDark,
+      headerBackground: body.headerBackground || savedSettings.headerBackground,
+      logoUrl: body.logoUrl !== undefined ? body.logoUrl : savedSettings.logoUrl,
+      fromName: body.fromName || savedSettings.fromName,
+    };
 
     const data: ReviewEmailRenderData = {
       customerName: 'Jono',
@@ -49,28 +57,11 @@ export async function POST(request: NextRequest) {
       ],
     };
 
-    const html = await renderReviewEmailHtml({ settings, data, mode: 'send' });
-    const subject = applyTemplate(settings.subjectTemplate, {
-      customerName: data.customerName,
-      productTitle: data.productTitle,
-      productImageUrl: data.productImageUrl,
-      productUrl: data.productUrl,
-      orderNumber: data.orderNumber,
-      siteUrl: data.siteUrl,
-      brandPrimary: settings.brandPrimary,
-      brandDark: settings.brandDark,
-    });
+    const html = await renderReviewEmailHtml({ settings, data, mode: 'preview' });
 
-    await resend.emails.send({
-      from: `${settings.fromName} <${settings.fromEmail}>`,
-      to,
-      subject: `[TEST] ${subject}`,
-      html,
-    });
-
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ html });
   } catch (error) {
-    console.error('Failed to send test email:', error);
-    return NextResponse.json({ error: 'Failed to send test email' }, { status: 500 });
+    console.error('Preview render error:', error);
+    return NextResponse.json({ error: 'Failed to render preview' }, { status: 500 });
   }
 }

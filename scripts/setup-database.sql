@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS review_email_settings (
   delay_days INTEGER DEFAULT 20,
   subject_template TEXT NOT NULL,
   html_template TEXT NOT NULL,
+  blocks JSONB DEFAULT '[]'::jsonb,
   from_name TEXT NOT NULL,
   from_email TEXT NOT NULL,
   brand_primary TEXT,

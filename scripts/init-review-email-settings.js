@@ -15,6 +15,7 @@ const sql = neon(process.env.POSTGRES_URL || process.env.DATABASE_URL);
         delay_days INTEGER DEFAULT 20,
         subject_template TEXT NOT NULL,
         html_template TEXT NOT NULL,
+        blocks JSONB,
         from_name TEXT NOT NULL,
         from_email TEXT NOT NULL,
         brand_primary TEXT,

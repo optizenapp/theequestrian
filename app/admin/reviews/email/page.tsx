@@ -1,56 +1,42 @@
 'use client';
 
-import dynamic from 'next/dynamic';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import juice from 'juice';
 
-const Editor = dynamic(() => import('@tinymce/tinymce-react').then(mod => mod.Editor), { ssr: false });
-
+type ReviewEmailBlock =
+  | { id: string; type: 'heading'; text: string; level?: 1 | 2 | 3; align?: 'left' | 'center' | 'right' }
+  | { id: string; type: 'text'; text: string; align?: 'left' | 'center' | 'right' }
+  | { id: string; type: 'cta'; label: string; url: string }
+  | { id: string; type: 'productCards'; mode: 'single' | 'all' }
+  | { id: string; type: 'divider' }
+  | { id: string; type: 'footer'; text: string };
 
 type ReviewEmailSettings = {
   enabled: boolean;
   delayDays: number;
   subjectTemplate: string;
-  htmlTemplate: string;
+  blocks: ReviewEmailBlock[];
   fromName: string;
   fromEmail: string;
   brandPrimary: string;
   brandDark: string;
+  headerBackground: string;
+  linkColor: string;
   logoUrl: string | null;
 };
 
-const tokenOptions = [
-  { label: 'Customer name', token: '{{customerName}}' },
-  { label: 'Product title', token: '{{productTitle}}' },
-  { label: 'Product image URL', token: '{{productImageUrl}}' },
-  { label: 'Product URL', token: '{{productUrl}}' },
-  { label: 'Product card', token: '{{productCard}}' },
-  { label: 'Product cards', token: '{{productCards}}' },
-  { label: 'Order number', token: '{{orderNumber}}' },
-  { label: 'Site URL', token: '{{siteUrl}}' },
-  { label: 'Logo section', token: '{{logoSection}}' },
-  { label: 'Brand primary', token: '{{brandPrimary}}' },
-  { label: 'Brand dark', token: '{{brandDark}}' },
-];
-
-function applyTemplate(template: string, variables: Record<string, string>) {
-  let output = template;
-  Object.entries(variables).forEach(([key, value]) => {
-    const token = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
-    output = output.replace(token, value);
-  });
-  return output;
-}
-
-
-const preserveWhitespace = (html: string) => {
-  // Only convert 2+ consecutive spaces to nbsp, leave single spaces alone
-  return html.replace(/>([^<]+)</g, (match, text) => {
-    const withSpaces = text.replace(/ {2,}/g, (spaces) => '&nbsp;'.repeat(spaces.length));
-    return `>${withSpaces}<`;
-  });
+const blockTypeLabels: Record<ReviewEmailBlock['type'], string> = {
+  heading: 'Heading',
+  text: 'Text',
+  cta: 'Button',
+  productCards: 'Product Cards',
+  divider: 'Divider',
+  footer: 'Footer',
 };
+
+function generateId() {
+  return `block-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+}
 
 export default function AdminReviewEmailSettingsPage() {
   const [settings, setSettings] = useState<ReviewEmailSettings | null>(null);
@@ -66,7 +52,12 @@ export default function AdminReviewEmailSettingsPage() {
     imageUrl: string | null;
     url: string;
   } | null>(null);
-  const [previewKey, setPreviewKey] = useState(0);
+  const [previewHtml, setPreviewHtml] = useState('');
+  const [previewLoaded, setPreviewLoaded] = useState(false);
+  const [lastFocusedInput, setLastFocusedInput] = useState<{
+    blockId: string;
+    field: 'text' | 'label' | 'url';
+  } | null>(null);
 
   useEffect(() => {
     async function loadSettings() {
@@ -81,6 +72,41 @@ export default function AdminReviewEmailSettingsPage() {
     loadSettings();
   }, []);
 
+  const fetchPreviewHtml = useCallback(async () => {
+    if (!settings) return;
+    try {
+      const response = await fetch('/api/admin/reviews/email-settings/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          handle: previewHandle || null,
+          blocks: settings.blocks,
+          brandPrimary: settings.brandPrimary,
+          brandDark: settings.brandDark,
+          headerBackground: settings.headerBackground,
+          logoUrl: settings.logoUrl,
+          fromName: settings.fromName,
+        }),
+      });
+      const data = await response.json();
+      if (response.ok && data.html) {
+        setPreviewHtml(data.html);
+      }
+    } catch (error) {
+      console.error('Failed to fetch preview HTML:', error);
+    } finally {
+      setPreviewLoaded(true);
+    }
+  }, [settings, previewHandle]);
+
+  useEffect(() => {
+    if (settings) {
+      const timeoutId = setTimeout(() => {
+        fetchPreviewHtml();
+      }, 500);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [settings, fetchPreviewHtml]);
 
   const updateSetting = <K extends keyof ReviewEmailSettings>(
     key: K,
@@ -89,59 +115,84 @@ export default function AdminReviewEmailSettingsPage() {
     setSettings((prev) => (prev ? { ...prev, [key]: value } : prev));
   };
 
-  const previewHtml = useMemo(() => {
-    if (!settings) return '';
-    const logoSection = settings.logoUrl
-      ? `<div style="margin-bottom: 16px;"><img src="${settings.logoUrl}" alt="The Equestrian" style="max-width: 180px; height: auto;" /></div>`
-      : '';
-    const siteUrl = 'https://www.theequestrian.com.au';
-    const productImageUrl = previewProduct?.imageUrl || `${siteUrl}/window.svg`;
-    const cleanImageUrl = productImageUrl.split('?')[0].replace(/^\/\//, 'https://');
-    const productUrl = previewProduct?.url || `${siteUrl}/products/sample-product#reviews`;
-    const productTitle = previewProduct?.title || 'Synthetic Combo Horse Rug - Eureka Mini';
-    const buildProductCard = (title: string, imageUrl: string, url: string) => `
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 24px 0;">
-        <tr>
-          <td align="center" style="padding: 12px;">
-            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="380" style="background: #ffffff; border: 2px solid #e5e7eb; border-radius: 12px; margin: 0 auto;">
-              <tr>
-                <td align="center" style="padding: 24px 24px 20px;">
-                  <img src="${imageUrl}" alt="${title}" width="200" height="200" style="width: 200px; height: 200px; object-fit: cover; border-radius: 10px; display: block; margin: 0 auto; border: 0;" />
-                </td>
-              </tr>
-              <tr>
-                <td align="center" style="padding: 0 24px 20px; font-size: 18px; font-weight: 600; color: #111827; line-height: 1.4;">
-                  ${title}
-                </td>
-              </tr>
-              <tr>
-                <td align="center" style="padding: 0 24px 24px;">
-                  <a href="${url}" style="display: inline-block; background-color: ${settings.brandPrimary}; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 999px; font-weight: 600; font-size: 15px; white-space: nowrap;">Leave a review</a>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-      </table>
-    `;
-    
-    const productCard = buildProductCard(productTitle, cleanImageUrl, productUrl);
-    const productCards = `${productCard}${buildProductCard(productTitle, cleanImageUrl, productUrl)}`;
-    const rawHtml = applyTemplate(settings.htmlTemplate, {
-      customerName: 'Jono',
-      productTitle,
-      productImageUrl: cleanImageUrl,
-      productUrl,
-      productCard,
-      productCards,
-      orderNumber: '3599',
-      siteUrl,
-      logoSection,
-      brandPrimary: settings.brandPrimary,
-      brandDark: settings.brandDark,
-    });
-    return juice(preserveWhitespace(rawHtml));
-  }, [settings, previewProduct, previewKey]);
+  const updateBlock = (id: string, patch: Partial<ReviewEmailBlock>) => {
+    if (!settings) return;
+    const updated = settings.blocks.map((block) =>
+      block.id === id ? { ...block, ...patch } : block
+    ) as ReviewEmailBlock[];
+    updateSetting('blocks', updated);
+  };
+
+  const moveBlock = (id: string, direction: 'up' | 'down') => {
+    if (!settings) return;
+    const idx = settings.blocks.findIndex((b) => b.id === id);
+    if (idx < 0) return;
+    const newIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (newIdx < 0 || newIdx >= settings.blocks.length) return;
+    const updated = [...settings.blocks];
+    const [block] = updated.splice(idx, 1);
+    updated.splice(newIdx, 0, block);
+    updateSetting('blocks', updated);
+  };
+
+  const removeBlock = (id: string) => {
+    if (!settings) return;
+    updateSetting(
+      'blocks',
+      settings.blocks.filter((b) => b.id !== id)
+    );
+  };
+
+  const addBlock = (type: ReviewEmailBlock['type']) => {
+    if (!settings) return;
+    let newBlock: ReviewEmailBlock;
+    const id = generateId();
+    switch (type) {
+      case 'heading':
+        newBlock = { id, type, level: 2, text: 'Your heading here' };
+        break;
+      case 'text':
+        newBlock = { id, type, text: 'Your text here' };
+        break;
+      case 'cta':
+        newBlock = { id, type, label: 'Write a Review', url: '{{productUrl}}' };
+        break;
+      case 'productCards':
+        newBlock = { id, type, mode: 'single' };
+        break;
+      case 'divider':
+        newBlock = { id, type };
+        break;
+      case 'footer':
+        newBlock = { id, type, text: 'Footer text here' };
+        break;
+      default:
+        return;
+    }
+    updateSetting('blocks', [...settings.blocks, newBlock]);
+  };
+
+  const resetToDefaults = async () => {
+    if (!confirm('Reset all blocks to default template? This cannot be undone.')) return;
+    try {
+      const response = await fetch('/api/admin/reviews/email-settings/reset-blocks', {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Reset API error:', errorData);
+        throw new Error(errorData.error || 'Reset failed');
+      }
+      const data = await response.json();
+      setSettings(data.settings);
+      setStatusMessage('Reset to defaults.');
+      setTimeout(() => setStatusMessage(''), 3000);
+    } catch (error) {
+      console.error('Failed to reset blocks:', error);
+      setStatusMessage('Failed to reset.');
+      setTimeout(() => setStatusMessage(''), 3000);
+    }
+  };
 
   const loadPreviewProduct = async () => {
     if (!previewHandle) {
@@ -161,20 +212,15 @@ export default function AdminReviewEmailSettingsPage() {
         throw new Error(payload?.error || 'Failed to load product');
       }
       setPreviewProduct(payload.product);
-    } catch (error: any) {
-      setPreviewError(error?.message || 'Failed to load product');
+      fetchPreviewHtml();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to load product';
+      setPreviewError(message);
       setPreviewProduct(null);
     } finally {
       setPreviewLoading(false);
     }
   };
-
-  const insertToken = (token: string) => {
-    if (!settings) return;
-    const currentContent = settings.htmlTemplate || '';
-    updateSetting('htmlTemplate', currentContent + token);
-  };
-
 
   const handleLogoUpload = async (file?: File) => {
     if (!file) return;
@@ -182,6 +228,8 @@ export default function AdminReviewEmailSettingsPage() {
     reader.onload = () => {
       const result = typeof reader.result === 'string' ? reader.result : '';
       updateSetting('logoUrl', result || null);
+      setStatusMessage('⚠️ Warning: Upload logo to a public URL for emails. Data URLs may not work in all email clients.');
+      setTimeout(() => setStatusMessage(''), 5000);
     };
     reader.readAsDataURL(file);
   };
@@ -250,8 +298,9 @@ export default function AdminReviewEmailSettingsPage() {
 
   return (
     <AdminLayout title="Review Email Settings" subtitle="Customize timing, branding, and template">
-      <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-6">
+          {/* Delivery Settings */}
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
@@ -310,12 +359,13 @@ export default function AdminReviewEmailSettingsPage() {
             </div>
           </div>
 
+          {/* Branding */}
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <h2 className="text-lg font-semibold text-gray-900">Branding</h2>
             <p className="text-sm text-gray-500">Upload a logo and set brand colors.</p>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <label className="block text-sm font-medium text-gray-700">
-                Brand primary
+                Brand primary (buttons)
                 <div className="mt-1 flex items-center gap-3">
                   <input
                     type="color"
@@ -332,7 +382,7 @@ export default function AdminReviewEmailSettingsPage() {
                 </div>
               </label>
               <label className="block text-sm font-medium text-gray-700">
-                Brand dark
+                Brand dark (text)
                 <div className="mt-1 flex items-center gap-3">
                   <input
                     type="color"
@@ -344,76 +394,330 @@ export default function AdminReviewEmailSettingsPage() {
                     type="text"
                     value={settings.brandDark}
                     onChange={(event) => updateSetting('brandDark', event.target.value)}
+                    className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20"
+                  />
+                </div>
+              </label>
+              <label className="block text-sm font-medium text-gray-700">
+                Header background
+                <div className="mt-1 flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={settings.headerBackground}
+                    onChange={(event) => updateSetting('headerBackground', event.target.value)}
+                    className="h-10 w-12 rounded border border-gray-300"
+                  />
+                  <input
+                    type="text"
+                    value={settings.headerBackground}
+                    onChange={(event) => updateSetting('headerBackground', event.target.value)}
+                    className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20"
+                  />
+                </div>
+              </label>
+              <label className="block text-sm font-medium text-gray-700">
+                Link color
+                <div className="mt-1 flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={settings.linkColor}
+                    onChange={(event) => updateSetting('linkColor', event.target.value)}
+                    className="h-10 w-12 rounded border border-gray-300"
+                  />
+                  <input
+                    type="text"
+                    value={settings.linkColor}
+                    onChange={(event) => updateSetting('linkColor', event.target.value)}
                     className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20"
                   />
                 </div>
               </label>
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700">
-                  Logo upload
+                  Logo URL (must be publicly accessible)
                   <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(event) => handleLogoUpload(event.target.files?.[0])}
-                    className="mt-1 block w-full text-sm text-gray-600"
+                    type="text"
+                    value={settings.logoUrl || ''}
+                    onChange={(event) => updateSetting('logoUrl', event.target.value || null)}
+                    placeholder="https://yourdomain.com/logo.png"
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20"
                   />
                 </label>
+                <p className="mt-1 text-xs text-gray-500">
+                  Or upload a file (for preview only - won't work in sent emails):
+                </p>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(event) => handleLogoUpload(event.target.files?.[0])}
+                  className="mt-1 block w-full text-sm text-gray-600"
+                />
                 {settings.logoUrl && (
                   <div className="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
                     <p className="text-xs font-medium text-gray-500 mb-2">Logo preview</p>
                     <img src={settings.logoUrl} alt="Logo preview" className="max-h-16" />
+                    {settings.logoUrl.startsWith('data:') && (
+                      <p className="mt-2 text-xs text-amber-600">
+                        ⚠️ Data URL - won't work in sent emails. Upload to a public URL instead.
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
             </div>
           </div>
 
+          {/* Block Editor */}
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-900">Template Editor</h2>
-            <p className="text-sm text-gray-500">
-              Use the visual editor or edit HTML directly. Tokens will be replaced when sending.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {tokenOptions.map((token) => (
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Email Content Blocks</h2>
+                <p className="text-sm text-gray-500">
+                  Reorder, edit, or add blocks. Click tokens below to copy.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={resetToDefaults}
+                className="rounded-full border border-gray-300 px-4 py-2 text-xs font-semibold text-gray-600 hover:border-red-500 hover:text-red-600"
+              >
+                Reset to defaults
+              </button>
+            </div>
+            <div className="mb-4 flex flex-wrap gap-1.5">
+              {[
+                { label: 'Customer name', token: '{{customerName}}' },
+                { label: 'Order number', token: '{{orderNumber}}' },
+                { label: 'Product title', token: '{{productTitle}}' },
+                { label: 'Product URL', token: '{{productUrl}}' },
+                { label: 'Site URL', token: '{{siteUrl}}' },
+              ].map((item) => (
                 <button
-                  key={token.token}
+                  key={item.token}
                   type="button"
-                  onClick={() => insertToken(token.token)}
-                  className="editor-btn"
+                  onClick={() => {
+                    if (!lastFocusedInput) {
+                      navigator.clipboard.writeText(item.token);
+                      setStatusMessage(`Copied ${item.token}`);
+                      setTimeout(() => setStatusMessage(''), 2000);
+                      return;
+                    }
+                    const block = settings?.blocks.find((b) => b.id === lastFocusedInput.blockId);
+                    if (!block) return;
+                    const field = lastFocusedInput.field;
+                    if (block.type === 'heading' || block.type === 'text') {
+                      const currentText = block.text || '';
+                      const input = document.querySelector(
+                        `[data-block-id="${block.id}"][data-field="${field}"]`
+                      ) as HTMLInputElement | HTMLTextAreaElement;
+                      if (input) {
+                        const start = input.selectionStart || currentText.length;
+                        const end = input.selectionEnd || currentText.length;
+                        const newText =
+                          currentText.slice(0, start) + item.token + currentText.slice(end);
+                        updateBlock(block.id, { text: newText });
+                        setTimeout(() => {
+                          input.focus();
+                          input.setSelectionRange(start + item.token.length, start + item.token.length);
+                        }, 0);
+                      }
+                    } else if (block.type === 'cta' && (field === 'label' || field === 'url')) {
+                      const currentValue = block[field] || '';
+                      const input = document.querySelector(
+                        `[data-block-id="${block.id}"][data-field="${field}"]`
+                      ) as HTMLInputElement;
+                      if (input) {
+                        const start = input.selectionStart || currentValue.length;
+                        const end = input.selectionEnd || currentValue.length;
+                        const newValue =
+                          currentValue.slice(0, start) + item.token + currentValue.slice(end);
+                        updateBlock(block.id, { [field]: newValue });
+                        setTimeout(() => {
+                          input.focus();
+                          input.setSelectionRange(start + item.token.length, start + item.token.length);
+                        }, 0);
+                      }
+                    }
+                  }}
+                  className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs font-medium text-gray-600 hover:border-action hover:bg-action/5 hover:text-action"
+                  title={`Click to insert ${item.token}`}
                 >
-                  {token.label}
+                  {item.label}
                 </button>
               ))}
             </div>
-            <div className="mt-4">
-              <Editor
-                apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || 'no-api-key'}
-                value={settings.htmlTemplate}
-                onEditorChange={(content) => updateSetting('htmlTemplate', content)}
-                init={{
-                  height: 400,
-                  menubar: false,
-                  plugins: [
-                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap',
-                    'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                    'insertdatetime', 'media', 'table', 'help', 'wordcount'
-                  ],
-                  toolbar: 'undo redo | blocks | bold italic underline strikethrough | ' +
-                    'forecolor backcolor | alignleft aligncenter alignright alignjustify | ' +
-                    'bullist numlist outdent indent | link image | removeformat | code',
-                  content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-                  image_advtab: true,
-                  image_caption: true,
-                  image_title: true,
-                  automatic_uploads: false,
-                  file_picker_types: 'image',
-                  paste_data_images: true,
-                }}
-              />
+            <div className="space-y-3">
+              {settings.blocks.map((block, idx) => (
+                <div
+                  key={block.id}
+                  className="border border-gray-200 rounded-lg p-4 bg-gray-50"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold text-gray-500 uppercase">
+                      {blockTypeLabels[block.type]}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => moveBlock(block.id, 'up')}
+                        disabled={idx === 0}
+                        className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                        title="Move up"
+                      >
+                        ↑
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveBlock(block.id, 'down')}
+                        disabled={idx === settings.blocks.length - 1}
+                        className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                        title="Move down"
+                      >
+                        ↓
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeBlock(block.id)}
+                        className="p-1 text-red-400 hover:text-red-600"
+                        title="Remove"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                  {block.type === 'heading' && (
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <select
+                          value={block.level || 2}
+                          onChange={(e) =>
+                            updateBlock(block.id, { level: Number(e.target.value) as 1 | 2 | 3 })
+                          }
+                          className="w-24 rounded border border-gray-300 px-2 py-1 text-sm"
+                        >
+                          <option value={1}>H1</option>
+                          <option value={2}>H2</option>
+                          <option value={3}>H3</option>
+                        </select>
+                        <select
+                          value={block.align || 'left'}
+                          onChange={(e) =>
+                            updateBlock(block.id, {
+                              align: e.target.value as 'left' | 'center' | 'right',
+                            })
+                          }
+                          className="w-28 rounded border border-gray-300 px-2 py-1 text-sm"
+                        >
+                          <option value="left">Left</option>
+                          <option value="center">Center</option>
+                          <option value="right">Right</option>
+                        </select>
+                      </div>
+                      <input
+                        type="text"
+                        value={block.text}
+                        onChange={(e) => updateBlock(block.id, { text: e.target.value })}
+                        onFocus={() => setLastFocusedInput({ blockId: block.id, field: 'text' })}
+                        data-block-id={block.id}
+                        data-field="text"
+                        className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                      />
+                    </div>
+                  )}
+                  {block.type === 'text' && (
+                    <div className="space-y-2">
+                      <select
+                        value={block.align || 'left'}
+                        onChange={(e) =>
+                          updateBlock(block.id, {
+                            align: e.target.value as 'left' | 'center' | 'right',
+                          })
+                        }
+                        className="w-28 rounded border border-gray-300 px-2 py-1 text-sm"
+                      >
+                        <option value="left">Left</option>
+                        <option value="center">Center</option>
+                        <option value="right">Right</option>
+                      </select>
+                      <textarea
+                        value={block.text}
+                        onChange={(e) => updateBlock(block.id, { text: e.target.value })}
+                        onFocus={() => setLastFocusedInput({ blockId: block.id, field: 'text' })}
+                        data-block-id={block.id}
+                        data-field="text"
+                        rows={3}
+                        className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                      />
+                    </div>
+                  )}
+                  {block.type === 'cta' && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="text"
+                        value={block.label}
+                        onChange={(e) => updateBlock(block.id, { label: e.target.value })}
+                        onFocus={() => setLastFocusedInput({ blockId: block.id, field: 'label' })}
+                        data-block-id={block.id}
+                        data-field="label"
+                        placeholder="Button label"
+                        className="rounded border border-gray-300 px-3 py-2 text-sm"
+                      />
+                      <input
+                        type="text"
+                        value={block.url}
+                        onChange={(e) => updateBlock(block.id, { url: e.target.value })}
+                        onFocus={() => setLastFocusedInput({ blockId: block.id, field: 'url' })}
+                        data-block-id={block.id}
+                        data-field="url"
+                        placeholder="URL or {{productUrl}}"
+                        className="rounded border border-gray-300 px-3 py-2 text-sm"
+                      />
+                    </div>
+                  )}
+                  {block.type === 'productCards' && (
+                    <select
+                      value={block.mode}
+                      onChange={(e) =>
+                        updateBlock(block.id, { mode: e.target.value as 'single' | 'all' })
+                      }
+                      className="rounded border border-gray-300 px-3 py-2 text-sm"
+                    >
+                      <option value="single">Single product</option>
+                      <option value="all">All products</option>
+                    </select>
+                  )}
+                  {block.type === 'divider' && (
+                    <p className="text-xs text-gray-400 italic">Horizontal line</p>
+                  )}
+                  {block.type === 'footer' && (
+                    <textarea
+                      value={block.text}
+                      onChange={(e) => updateBlock(block.id, { text: e.target.value })}
+                      rows={2}
+                      className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {(['heading', 'text', 'cta', 'productCards', 'divider', 'footer'] as const).map(
+                (type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => addBlock(type)}
+                    className="rounded-full border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:border-action hover:text-action"
+                  >
+                    + {blockTypeLabels[type]}
+                  </button>
+                )
+              )}
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          {/* Save / Test */}
+          <div className="flex flex-wrap items-center gap-4">
             <button
               type="button"
               onClick={saveSettings}
@@ -443,114 +747,65 @@ export default function AdminReviewEmailSettingsPage() {
           </div>
         </div>
 
+        {/* Preview */}
         <div className="space-y-6">
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <h2 className="text-lg font-semibold text-gray-900">Live Preview</h2>
             <p className="text-sm text-gray-500">Preview with sample data.</p>
-              <div className="mt-4 flex flex-wrap items-center gap-2">
-                <input
-                  type="text"
-                  placeholder="Preview product handle"
-                  value={previewHandle}
-                  onChange={(event) => setPreviewHandle(event.target.value)}
-                  className="w-64 rounded-full border border-gray-300 px-4 py-2 text-sm focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20"
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <input
+                type="text"
+                placeholder="Preview product handle"
+                value={previewHandle}
+                onChange={(event) => setPreviewHandle(event.target.value)}
+                className="w-64 rounded-full border border-gray-300 px-4 py-2 text-sm focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20"
+              />
+              <button
+                type="button"
+                onClick={loadPreviewProduct}
+                disabled={previewLoading}
+                className="rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:border-action hover:text-action disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {previewLoading ? 'Loading...' : 'Load product'}
+              </button>
+              <button
+                type="button"
+                onClick={fetchPreviewHtml}
+                className="rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:border-action hover:text-action"
+              >
+                Refresh preview
+              </button>
+              {previewProduct ? (
+                <span className="text-xs text-gray-500">Previewing: {previewProduct.title}</span>
+              ) : null}
+              {previewError ? <span className="text-xs text-red-600">{previewError}</span> : null}
+            </div>
+            {previewLoaded ? (
+              <div
+                className="mt-4 overflow-auto rounded-xl border border-gray-100 bg-gray-50 p-4"
+                style={{ maxHeight: '70vh' }}
+              >
+                <iframe
+                  srcDoc={previewHtml}
+                  title="Email preview"
+                  className="w-full border-0"
+                  style={{ minHeight: '600px' }}
                 />
-                <button
-                  type="button"
-                  onClick={loadPreviewProduct}
-                  disabled={previewLoading}
-                  className="rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:border-action hover:text-action disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {previewLoading ? 'Loading...' : 'Load product'}
-                </button>
-                {previewProduct ? (
-                  <span className="text-xs text-gray-500">
-                    Previewing: {previewProduct.title}
-                  </span>
-                ) : null}
-                {previewError ? <span className="text-xs text-red-600">{previewError}</span> : null}
               </div>
-            <div
-              className="email-preview mt-4 overflow-auto rounded-xl border border-gray-100 bg-white p-8"
-              style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-              dangerouslySetInnerHTML={{ __html: previewHtml }}
-            />
+            ) : (
+              <div className="mt-4 text-center text-gray-400 py-12">Loading preview...</div>
+            )}
           </div>
           <div className="rounded-2xl border border-gray-200 bg-white p-6 text-sm text-gray-600 shadow-sm">
             <h3 className="text-sm font-semibold text-gray-900 mb-2">Quick tips</h3>
             <ul className="space-y-2">
-              <li>Use inline styles for best email client support.</li>
-              <li>
-                Use tokens like {'{{productTitle}}'} and {'{{productUrl}}'} to personalize.
-              </li>
-              <li>Keep layouts under 600px wide for best rendering.</li>
+              <li>React Email guarantees cross-client rendering.</li>
+              <li>Use tokens like {'{{productTitle}}'} and {'{{productUrl}}'} to personalize.</li>
+              <li>Add, reorder, or remove blocks to customize the email.</li>
             </ul>
           </div>
         </div>
       </div>
-
-      <style jsx>{`
-        :global(.email-preview ul) {
-          list-style: disc;
-          padding-left: 1.5em;
-        }
-        :global(.email-preview ol) {
-          list-style: decimal;
-          padding-left: 1.5em;
-        }
-        :global(.email-preview) {
-          line-height: 1.6;
-        }
-        :global(.email-preview p) {
-          margin: 0 0 12px;
-        }
-        :global(.email-preview br) {
-          line-height: 1.6;
-        }
-        :global(.email-preview h1) {
-          font-size: 2em;
-          font-weight: bold;
-          margin: 0.67em 0;
-        }
-        :global(.email-preview h2) {
-          font-size: 1.5em;
-          font-weight: bold;
-          margin: 0.75em 0;
-        }
-        :global(.email-preview strong) {
-          font-weight: 600;
-        }
-        :global(.email-preview em) {
-          font-style: italic;
-        }
-        :global(.email-preview u) {
-          text-decoration: underline;
-        }
-        :global(.email-preview a) {
-          color: #3b82f6;
-          text-decoration: underline;
-        }
-        :global(.email-preview table) {
-          border-collapse: collapse;
-        }
-        :global(.email-preview img) {
-          max-width: 100%;
-          height: auto;
-        }
-        .editor-btn {
-          border: 1px solid #e5e7eb;
-          border-radius: 999px;
-          padding: 6px 12px;
-          font-size: 12px;
-          font-weight: 600;
-          color: #4b5563;
-          background: #fff;
-        }
-        .editor-btn:hover {
-          color: #e91e63;
-          border-color: #e91e63;
-        }
-      `}</style>
     </AdminLayout>
   );
 }
