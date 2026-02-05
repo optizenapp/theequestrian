@@ -5,7 +5,7 @@ import { getDatabaseStats } from '@/lib/db/client';
 import { getGmcBaseUrl } from '@/lib/gmc/content';
 
 export async function GET() {
-  if (!isAdminRequest()) {
+  if (!(await isAdminRequest())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

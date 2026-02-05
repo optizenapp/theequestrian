@@ -6,7 +6,7 @@ import { getGmcIntegration, saveGmcIntegration } from '@/lib/db/gmc';
 import { ensureGmcDatafeed } from '@/lib/gmc/content';
 
 export async function GET(request: Request) {
-  if (!isAdminRequest()) {
+  if (!(await isAdminRequest())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

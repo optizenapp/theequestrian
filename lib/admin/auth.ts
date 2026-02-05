@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 
-export function isAdminRequest(): boolean {
-  return cookies().get('admin-auth')?.value === 'true';
+export async function isAdminRequest(): Promise<boolean> {
+  const cookieStore = await cookies();
+  return cookieStore.get('admin-auth')?.value === 'true';
 }

@@ -3,7 +3,7 @@ import { isAdminRequest } from '@/lib/admin/auth';
 import { clearGmcIntegration } from '@/lib/db/gmc';
 
 export async function POST() {
-  if (!isAdminRequest()) {
+  if (!(await isAdminRequest())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

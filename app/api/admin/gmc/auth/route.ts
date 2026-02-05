@@ -3,7 +3,7 @@ import { isAdminRequest } from '@/lib/admin/auth';
 import { buildGmcAuthUrl } from '@/lib/gmc/oauth';
 
 export async function GET() {
-  if (!isAdminRequest()) {
+  if (!(await isAdminRequest())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
     const days = parseInt(searchParams.get('days') || '30', 10);
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
+    const startDateIso = startDate.toISOString();
 
     // Get total stats
     const totalStats = await sql`
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
         COUNT(*) FILTER (WHERE status = 'failed') as failed_count,
         COUNT(DISTINCT customer_email) as unique_recipients
       FROM review_email_sends
-      WHERE created_at >= ${startDate}
+      WHERE created_at >= ${startDateIso}
     `;
 
     // Get recent sends (last 50)
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
         error_message,
         created_at
       FROM review_email_sends
-      WHERE created_at >= ${startDate}
+      WHERE created_at >= ${startDateIso}
       ORDER BY created_at DESC
       LIMIT 50
     `;
@@ -50,7 +51,7 @@ export async function GET(request: NextRequest) {
         COUNT(*) FILTER (WHERE status = 'scheduled') as scheduled,
         COUNT(*) FILTER (WHERE status = 'failed') as failed
       FROM review_email_sends
-      WHERE created_at >= ${startDate}
+      WHERE created_at >= ${startDateIso}
       GROUP BY DATE(created_at)
       ORDER BY date DESC
     `;

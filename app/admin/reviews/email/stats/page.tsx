@@ -56,7 +56,10 @@ export default function AdminReviewEmailStatsPage() {
   }, [statsDays]);
 
   return (
-    <AdminLayout>
+    <AdminLayout
+      title="Review Email Stats"
+      subtitle="Track review request emails and delivery status"
+    >
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">

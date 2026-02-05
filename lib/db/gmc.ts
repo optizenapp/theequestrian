@@ -15,12 +15,12 @@ export interface GmcIntegration {
 }
 
 export async function getGmcIntegration(): Promise<GmcIntegration | null> {
-  const result = await sql<GmcIntegration[]>`
+  const result = (await sql`
     SELECT *
     FROM gmc_integration
     WHERE id = 1
     LIMIT 1
-  `;
+  `) as GmcIntegration[];
   return result[0] ?? null;
 }
 
