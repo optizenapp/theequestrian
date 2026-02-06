@@ -77,7 +77,7 @@ interface AnalyticsData {
 interface RealtimeData {
   activeUsers: number;
   topPages: Array<{ page: string; activeUsers: number }>;
-  topSources: Array<{ source: string; activeUsers: number }>;
+  activeUsersByMinute: Array<{ minutesAgo: number; activeUsers: number }>;
 }
 
 export default function AdminAnalyticsPage() {
@@ -240,14 +240,14 @@ export default function AdminAnalyticsPage() {
               emptyState="No realtime data yet."
             />
             <DataTable
-              title="Top sources (realtime)"
+              title="Active users by minute"
               columns={[
-                { key: 'source', header: 'Source' },
+                { key: 'label', header: 'Minute' },
                 { key: 'activeUsers', header: 'Users' },
               ]}
-              rows={(realtime?.topSources ?? []).map((row, index) => ({
+              rows={(realtime?.activeUsersByMinute ?? []).map((row, index) => ({
                 id: String(index),
-                source: row.source,
+                label: `${row.minutesAgo}m ago`,
                 activeUsers: row.activeUsers.toLocaleString(),
               }))}
               emptyState="No realtime data yet."

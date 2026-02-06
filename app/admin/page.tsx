@@ -60,7 +60,7 @@ type DashboardData = {
 type RealtimeData = {
   activeUsers: number;
   topPages: Array<{ page: string; activeUsers: number }>;
-  topSources: Array<{ source: string; activeUsers: number }>;
+  activeUsersByMinute: Array<{ minutesAgo: number; activeUsers: number }>;
 };
 
 const formatNumber = (value: number, digits = 0) =>
@@ -260,14 +260,14 @@ export default function AdminDashboardPage() {
               emptyState="No realtime data."
             />
             <DataTable
-              title="Top sources"
+              title="Active users by minute"
               columns={[
-                { key: 'source', header: 'Source' },
+                { key: 'label', header: 'Minute' },
                 { key: 'activeUsers', header: 'Users' },
               ]}
-              rows={(realtime?.topSources ?? []).map((row, index) => ({
+              rows={(realtime?.activeUsersByMinute ?? []).map((row, index) => ({
                 id: String(index),
-                source: row.source,
+                label: `${row.minutesAgo}m ago`,
                 activeUsers: formatNumber(row.activeUsers),
               }))}
               emptyState="No realtime data."

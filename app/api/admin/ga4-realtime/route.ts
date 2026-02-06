@@ -38,12 +38,12 @@ export async function GET() {
       limit: 10,
     });
 
-    const [sourcesReport] = await client.runRealtimeReport({
+    const [minutesReport] = await client.runRealtimeReport({
       property,
-      dimensions: [{ name: 'sessionSourceMedium' }],
+      dimensions: [{ name: 'minutesAgo' }],
       metrics: [{ name: 'activeUsers' }],
-      orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
-      limit: 8,
+      orderBys: [{ dimension: { dimensionName: 'minutesAgo' } }],
+      limit: 30,
     });
 
     return NextResponse.json({
@@ -53,9 +53,9 @@ export async function GET() {
           page: row.dimensionValues?.[0]?.value || '/',
           activeUsers: toNumber(row.metricValues?.[0]?.value),
         })) ?? [],
-      topSources:
-        sourcesReport.rows?.map((row) => ({
-          source: row.dimensionValues?.[0]?.value || 'unknown',
+      activeUsersByMinute:
+        minutesReport.rows?.map((row) => ({
+          minutesAgo: Number(row.dimensionValues?.[0]?.value ?? 0),
           activeUsers: toNumber(row.metricValues?.[0]?.value),
         })) ?? [],
     });
