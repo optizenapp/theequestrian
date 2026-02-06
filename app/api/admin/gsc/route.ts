@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAdminRequest } from '@/lib/admin/auth';
-import { getGscOverview } from '@/lib/gsc/search-console';
+import { getGscOverview, getGscTotals } from '@/lib/gsc/search-console';
 
 const getDateRange = (days: number) => {
   const end = new Date();
@@ -10,6 +10,26 @@ const getDateRange = (days: number) => {
     startDate: start.toISOString().slice(0, 10),
     endDate: end.toISOString().slice(0, 10),
   };
+};
+
+const getPreviousDateRange = (startDate: string, days: number) => {
+  const start = new Date(startDate);
+  const prevEnd = new Date(start);
+  prevEnd.setDate(prevEnd.getDate() - 1);
+  const prevStart = new Date(prevEnd);
+  prevStart.setDate(prevStart.getDate() - (days - 1));
+  return {
+    startDate: prevStart.toISOString().slice(0, 10),
+    endDate: prevEnd.toISOString().slice(0, 10),
+  };
+};
+
+const computeDelta = (current: number, previous: number) => {
+  const diff = current - previous;
+  if (!previous) {
+    return { diff, pct: current ? 1 : 0 };
+  }
+  return { diff, pct: diff / previous };
 };
 
 export async function GET(request: NextRequest) {
@@ -28,8 +48,10 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const daysParam = Number(searchParams.get('days') || 28);
+  const compareParam = searchParams.get('compare');
   const days = Number.isFinite(daysParam) ? Math.min(Math.max(daysParam, 1), 180) : 28;
   const { startDate, endDate } = getDateRange(days);
+  const includeCompare = compareParam === '1' || compareParam === 'true';
 
   try {
     const overview = await getGscOverview({
@@ -39,10 +61,27 @@ export async function GET(request: NextRequest) {
       rowLimit: 10,
     });
 
+    const compareRange = includeCompare
+      ? getPreviousDateRange(startDate, days)
+      : null;
+    const compareTotals = includeCompare && compareRange
+      ? await getGscTotals({ siteUrl, ...compareRange })
+      : null;
+
     return NextResponse.json({
       status: 'ok',
       siteUrl,
       range: { startDate, endDate, days },
+      compare: includeCompare && compareRange && compareTotals ? {
+        range: compareRange,
+        totals: compareTotals,
+        delta: {
+          clicks: computeDelta(overview.totals.clicks, compareTotals.clicks),
+          impressions: computeDelta(overview.totals.impressions, compareTotals.impressions),
+          ctr: computeDelta(overview.totals.ctr, compareTotals.ctr),
+          position: computeDelta(overview.totals.position, compareTotals.position),
+        },
+      } : null,
       data: overview,
     });
   } catch (error) {

@@ -151,3 +151,16 @@ export async function getGscOverview(params: {
 
   return { totals, byDate, topPages, topQueries };
 }
+
+export async function getGscTotals(params: {
+  siteUrl: string;
+  startDate: string;
+  endDate: string;
+}) {
+  const totalsRes = await fetchSearchAnalytics({
+    siteUrl: params.siteUrl,
+    startDate: params.startDate,
+    endDate: params.endDate,
+  });
+  return normalizeRow(totalsRes.rows?.[0]);
+}

@@ -74,10 +74,18 @@ interface AnalyticsData {
   }>;
 }
 
+interface RealtimeData {
+  activeUsers: number;
+  topPages: Array<{ page: string; activeUsers: number }>;
+  topSources: Array<{ source: string; activeUsers: number }>;
+}
+
 export default function AdminAnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [realtime, setRealtime] = useState<RealtimeData | null>(null);
+  const [realtimeError, setRealtimeError] = useState<string | null>(null);
   const [compareEnabled, setCompareEnabled] = useState(false);
   const [startDate, setStartDate] = useState(() => {
     const date = new Date();
@@ -88,6 +96,37 @@ export default function AdminAnalyticsPage() {
 
   useEffect(() => {
     fetchAnalytics(undefined, compareEnabled);
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchRealtime = async () => {
+      try {
+        const res = await fetch('/api/admin/ga4-realtime');
+        if (!res.ok) {
+          const payload = await res.json().catch(() => ({}));
+          if (isMounted) {
+            setRealtimeError(payload?.error || 'Realtime GA4 not connected');
+          }
+          return;
+        }
+        const payload = (await res.json()) as RealtimeData;
+        if (isMounted) {
+          setRealtime(payload);
+          setRealtimeError(null);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setRealtimeError('Failed to fetch realtime data.');
+        }
+      }
+    };
+    fetchRealtime();
+    const interval = setInterval(fetchRealtime, 30000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   const fetchAnalytics = async (
@@ -172,6 +211,50 @@ export default function AdminAnalyticsPage() {
 
   return (
     <AdminLayout title="GA4 Analytics" subtitle="Real-time analytics from Google Analytics 4">
+      <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+        <h3 className="text-sm font-semibold text-gray-900">Realtime</h3>
+        <p className="mt-1 text-xs text-gray-500">Active users and top pages right now.</p>
+        {realtimeError ? (
+          <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+            {realtimeError}
+          </div>
+        ) : null}
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
+          <StatCard
+            label="Active users"
+            value={realtime ? realtime.activeUsers.toLocaleString() : '—'}
+            helper="GA4 realtime"
+          />
+          <div className="md:col-span-2 grid gap-4 md:grid-cols-2">
+            <DataTable
+              title="Top pages (realtime)"
+              columns={[
+                { key: 'page', header: 'Page' },
+                { key: 'activeUsers', header: 'Users' },
+              ]}
+              rows={(realtime?.topPages ?? []).map((row, index) => ({
+                id: String(index),
+                page: row.page,
+                activeUsers: row.activeUsers.toLocaleString(),
+              }))}
+              emptyState="No realtime data yet."
+            />
+            <DataTable
+              title="Top sources (realtime)"
+              columns={[
+                { key: 'source', header: 'Source' },
+                { key: 'activeUsers', header: 'Users' },
+              ]}
+              rows={(realtime?.topSources ?? []).map((row, index) => ({
+                id: String(index),
+                source: row.source,
+                activeUsers: row.activeUsers.toLocaleString(),
+              }))}
+              emptyState="No realtime data yet."
+            />
+          </div>
+        </div>
+      </div>
       <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
