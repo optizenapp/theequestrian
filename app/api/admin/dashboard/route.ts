@@ -317,6 +317,7 @@ export async function GET(request: NextRequest) {
 
     let shopifyCounts: any = null;
     let abandonedCheckouts = 0;
+    let shopifyError: string | null = null;
     let orderSummary: {
       topProducts: Array<{ product: string; quantity: number; revenue: number }>;
       topVendors: Array<{ vendor: string; quantity: number; revenue: number }>;
@@ -328,6 +329,8 @@ export async function GET(request: NextRequest) {
       abandonedCheckouts = await getAbandonedCheckoutsCount(range.startDate, range.endDate);
       orderSummary = await getOrderLineItemSummary(range.startDate, range.endDate);
     } catch (error) {
+      shopifyError =
+        error instanceof Error ? error.message : 'Failed to load Shopify summary.';
       console.error('Shopify summary error:', error);
     }
 
@@ -470,6 +473,7 @@ export async function GET(request: NextRequest) {
         totalOrders: orderSummary.ordersCount,
         topProducts: orderSummary.topProducts,
       },
+      shopifyError,
     });
   } catch (error) {
     console.error('Dashboard API error:', error);

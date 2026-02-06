@@ -55,6 +55,7 @@ type DashboardData = {
     totalOrders: number;
     topProducts: Array<{ product: string; revenue: number; quantity: number }>;
   };
+  shopifyError?: string | null;
 };
 
 type RealtimeData = {
@@ -234,6 +235,11 @@ export default function AdminDashboardPage() {
             {errorMessage}
           </div>
         ) : null}
+      {data?.shopifyError ? (
+        <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          Shopify data error: {data.shopifyError}
+        </div>
+      ) : null}
       </div>
 
       <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
