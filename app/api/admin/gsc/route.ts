@@ -45,6 +45,13 @@ export async function GET(request: NextRequest) {
       data: null,
     });
   }
+  if (!process.env.GSC_SERVICE_ACCOUNT_JSON) {
+    return NextResponse.json({
+      status: 'not_configured',
+      message: 'Missing GSC_SERVICE_ACCOUNT_JSON environment variable.',
+      data: null,
+    });
+  }
 
   const { searchParams } = new URL(request.url);
   const daysParam = Number(searchParams.get('days') || 28);

@@ -33,7 +33,7 @@ async function ensureClassificationsTable() {
       title TEXT NOT NULL,
       vendor TEXT,
       current_type TEXT,
-      suggested_type TEXT NOT NULL,
+      suggested_type TEXT,
       confidence INTEGER NOT NULL,
       openai_type TEXT NOT NULL,
       openai_confidence INTEGER NOT NULL,
@@ -45,6 +45,11 @@ async function ensureClassificationsTable() {
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
     )
+  `;
+
+  await sql`
+    ALTER TABLE ai_product_classifications
+    ALTER COLUMN suggested_type DROP NOT NULL
   `;
 }
 
@@ -213,7 +218,7 @@ async function saveProgressToDatabase(
         ${product.title},
         ${product.vendor || null},
         ${product.productType || null},
-        ${result.suggestedType},
+        ${result.suggestedType || null},
         ${result.confidence},
         ${openaiType},
         ${openaiConfidence},
@@ -315,6 +320,9 @@ export async function runClassification(options: RunOptions = {}) {
   const { start = 0, limit, dryRun = false, saveCsv = true, saveDb = true } = options;
 
   const validProductTypes = loadValidProductTypes();
+  const validTypeMap = new Map(
+    validProductTypes.map((type) => [type.toLowerCase(), type])
+  );
   const allowedVendors = await loadAllowedVendors();
   const allProducts = await fetchProductsNeedingClassification(allowedVendors);
 
@@ -341,6 +349,24 @@ export async function runClassification(options: RunOptions = {}) {
     );
 
     for (const [id, result] of batchResults.entries()) {
+      const suggestedRaw = (result?.suggestedType || '').trim();
+      const suggested = validTypeMap.get(suggestedRaw.toLowerCase());
+      let finalSuggested = suggested || null;
+
+      if (!finalSuggested && Array.isArray(result?.alternativeTypes)) {
+        const alt = result.alternativeTypes.find((type: string) =>
+          validTypeMap.has(type.toLowerCase())
+        );
+        finalSuggested = alt ? validTypeMap.get(alt.toLowerCase()) || null : null;
+      }
+
+      if (!finalSuggested) {
+        result.suggestedType = null;
+        result.validationStatus = 'needs-review';
+        result.confidence = 0;
+      } else {
+        result.suggestedType = finalSuggested;
+      }
       allResults.set(id, result);
     }
 

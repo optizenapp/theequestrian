@@ -20,10 +20,7 @@ type SearchAnalyticsResponse = {
 };
 
 const parseServiceAccount = (): ServiceAccount | null => {
-  const raw =
-    process.env.GSC_SERVICE_ACCOUNT_JSON ||
-    process.env.GOOGLE_SERVICE_ACCOUNT_JSON ||
-    process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
+  const raw = process.env.GSC_SERVICE_ACCOUNT_JSON;
   if (!raw) return null;
 
   const trimmed = raw.trim();
@@ -62,7 +59,7 @@ const fetchSearchAnalytics = async (params: {
 }) => {
   const token = await getAccessToken();
   if (!token) {
-    throw new Error('GSC service account credentials are missing.');
+    throw new Error('Missing GSC_SERVICE_ACCOUNT_JSON service account credentials.');
   }
   const url = `https://searchconsole.googleapis.com/webmasters/v3/sites/${encodeURIComponent(
     params.siteUrl

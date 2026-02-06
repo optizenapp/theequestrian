@@ -40,6 +40,8 @@ export default function AIClassificationsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [manualOverride, setManualOverride] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkRunning, setBulkRunning] = useState(false);
 
   useEffect(() => {
     fetchClassifications();
@@ -53,6 +55,7 @@ export default function AIClassificationsPage() {
       const res = await fetch('/api/admin/ai-classifications');
       const data = await res.json();
       setClassifications(data.classifications || []);
+      setSelectedIds(new Set());
     } catch (error) {
       console.error('Error fetching classifications:', error);
       setMessage('Failed to load classifications');
@@ -83,7 +86,11 @@ export default function AIClassificationsPage() {
     }
   };
 
-  const updateStatus = async (shopifyId: string, status: 'approved' | 'rejected' | 'pending', manualType?: string) => {
+  const patchStatus = async (
+    shopifyId: string,
+    status: 'approved' | 'rejected' | 'pending',
+    manualType?: string
+  ) => {
     setMessage(null);
     try {
       const res = await fetch('/api/admin/ai-classifications', {
@@ -101,15 +108,22 @@ export default function AIClassificationsPage() {
         setMessage(error.error || 'Failed to update status');
         return;
       }
-      
-      setMessage(manualType ? `Classification updated with manual type: ${manualType}` : `Classification ${status}`);
-      setEditingId(null);
-      setManualOverride('');
-      setSearchTerm('');
-      await fetchClassifications();
     } catch (error) {
       setMessage('Failed to update status');
     }
+  };
+
+  const updateStatus = async (
+    shopifyId: string,
+    status: 'approved' | 'rejected' | 'pending',
+    manualType?: string
+  ) => {
+    await patchStatus(shopifyId, status, manualType);
+    setMessage(manualType ? `Classification updated with manual type: ${manualType}` : `Classification ${status}`);
+    setEditingId(null);
+    setManualOverride('');
+    setSearchTerm('');
+    await fetchClassifications();
   };
 
   const handleManualApprove = (shopifyId: string) => {
@@ -161,7 +175,11 @@ export default function AIClassificationsPage() {
     }
   };
 
-  const applyToShopify = async (shopifyId: string, suggestedType: string) => {
+  const applyToShopify = async (
+    shopifyId: string,
+    suggestedType: string,
+    refresh = true
+  ) => {
     setMessage(null);
     setApplying(prev => new Set(prev).add(shopifyId));
     
@@ -179,7 +197,9 @@ export default function AIClassificationsPage() {
       }
       
       setMessage('Product type updated in Shopify');
-      await fetchClassifications();
+      if (refresh) {
+        await fetchClassifications();
+      }
     } catch (error) {
       setMessage('Failed to apply to Shopify');
     } finally {
@@ -237,6 +257,69 @@ export default function AIClassificationsPage() {
     }
 
     setMessage(`Applied ${success} classifications. ${failed > 0 ? `${failed} failed.` : ''}`);
+    await fetchClassifications();
+  };
+
+  const toggleSelect = (shopifyId: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(shopifyId)) {
+        next.delete(shopifyId);
+      } else {
+        next.add(shopifyId);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    setSelectedIds((prev) => {
+      if (prev.size === filteredClassifications.length) {
+        return new Set();
+      }
+      return new Set(filteredClassifications.map((c) => c.shopify_id));
+    });
+  };
+
+  const bulkUpdateStatus = async (status: 'approved' | 'rejected') => {
+    if (selectedIds.size === 0) return;
+    setBulkRunning(true);
+    let success = 0;
+    let skipped = 0;
+    for (const id of selectedIds) {
+      const item = classifications.find((c) => c.shopify_id === id);
+      if (!item || item.status !== 'pending') {
+        skipped++;
+        continue;
+      }
+      if (status === 'approved' && !item.suggested_type) {
+        skipped++;
+        continue;
+      }
+      await patchStatus(id, status);
+      success++;
+    }
+    setMessage(`Bulk ${status}: ${success} updated, ${skipped} skipped.`);
+    setBulkRunning(false);
+    await fetchClassifications();
+  };
+
+  const bulkApplyToShopify = async () => {
+    if (selectedIds.size === 0) return;
+    setBulkRunning(true);
+    let success = 0;
+    let skipped = 0;
+    for (const id of selectedIds) {
+      const item = classifications.find((c) => c.shopify_id === id);
+      if (!item || item.status !== 'approved' || !item.suggested_type) {
+        skipped++;
+        continue;
+      }
+      await applyToShopify(id, item.suggested_type, false);
+      success++;
+    }
+    setMessage(`Bulk apply: ${success} applied, ${skipped} skipped.`);
+    setBulkRunning(false);
     await fetchClassifications();
   };
 
@@ -466,12 +549,52 @@ export default function AIClassificationsPage() {
               </button>
             </div>
           </div>
+          {selectedIds.size > 0 && (
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-600">
+              <span>{selectedIds.size} selected</span>
+              <button
+                type="button"
+                onClick={() => bulkUpdateStatus('approved')}
+                disabled={bulkRunning}
+                className="rounded-full bg-green-600 px-3 py-1 text-xs font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Approve selected
+              </button>
+              <button
+                type="button"
+                onClick={() => bulkUpdateStatus('rejected')}
+                disabled={bulkRunning}
+                className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-gray-300 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Reject selected
+              </button>
+              <button
+                type="button"
+                onClick={bulkApplyToShopify}
+                disabled={bulkRunning}
+                className="rounded-full bg-action px-3 py-1 text-xs font-semibold text-white hover:bg-pink-600 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Apply selected to Shopify
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead className="bg-gray-50 text-[10px] uppercase tracking-wide text-gray-500">
               <tr>
+                <th className="px-5 py-3 text-left font-semibold">
+                  <input
+                    type="checkbox"
+                    checked={
+                      filteredClassifications.length > 0 &&
+                      selectedIds.size === filteredClassifications.length
+                    }
+                    onChange={toggleSelectAll}
+                    className="h-3 w-3"
+                  />
+                </th>
                 <th className="px-5 py-3 text-left font-semibold">Product</th>
                 <th className="px-5 py-3 text-left font-semibold">Current Type</th>
                 <th className="px-5 py-3 text-left font-semibold">Suggested Type</th>
@@ -483,19 +606,27 @@ export default function AIClassificationsPage() {
             <tbody className="divide-y divide-gray-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="px-5 py-8 text-center text-gray-500">
+                  <td colSpan={7} className="px-5 py-8 text-center text-gray-500">
                     Loading classifications...
                   </td>
                 </tr>
               ) : filteredClassifications.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-5 py-8 text-center text-gray-500">
+                  <td colSpan={7} className="px-5 py-8 text-center text-gray-500">
                     No classifications found. Run the classifier with dry run off to save results.
                   </td>
                 </tr>
               ) : (
                 filteredClassifications.map((classification) => (
                   <tr key={classification.shopify_id} className="hover:bg-gray-50">
+                    <td className="px-5 py-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(classification.shopify_id)}
+                        onChange={() => toggleSelect(classification.shopify_id)}
+                        className="h-3 w-3"
+                      />
+                    </td>
                     <td className="px-5 py-3">
                       <div className="font-medium text-gray-900">{classification.title}</div>
                       <div className="mt-1 text-[10px] text-gray-400">
@@ -545,10 +676,18 @@ export default function AIClassificationsPage() {
                         </div>
                       ) : (
                         <>
-                          <div className="font-medium text-gray-900">{classification.suggested_type}</div>
-                          <div className="mt-1 text-[10px] text-gray-400">
-                            {classification.confidence}% confidence
-                          </div>
+                          {classification.suggested_type ? (
+                            <>
+                              <div className="font-medium text-gray-900">{classification.suggested_type}</div>
+                              <div className="mt-1 text-[10px] text-gray-400">
+                                {classification.confidence}% confidence
+                              </div>
+                            </>
+                          ) : (
+                            <div className="text-[10px] text-rose-600">
+                              No valid type found. Select manually.
+                            </div>
+                          )}
                         </>
                       )}
                     </td>
@@ -608,6 +747,7 @@ export default function AIClassificationsPage() {
                               <>
                                 <button
                                   onClick={() => updateStatus(classification.shopify_id, 'approved')}
+                                  disabled={!classification.suggested_type}
                                   className="rounded-full bg-green-600 px-3 py-1 text-xs font-semibold text-white hover:bg-green-700"
                                 >
                                   Approve
@@ -615,7 +755,7 @@ export default function AIClassificationsPage() {
                                 <button
                                   onClick={() => {
                                     setEditingId(classification.shopify_id);
-                                    setManualOverride(classification.suggested_type);
+                                    setManualOverride(classification.suggested_type || '');
                                   }}
                                   className="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700"
                                 >
@@ -665,7 +805,7 @@ export default function AIClassificationsPage() {
                                 <button
                                   onClick={() => {
                                     setEditingId(classification.shopify_id);
-                                    setManualOverride(classification.suggested_type);
+                                    setManualOverride(classification.suggested_type || '');
                                   }}
                                   className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-gray-300"
                                 >
@@ -703,7 +843,7 @@ export default function AIClassificationsPage() {
                                 <button
                                   onClick={() => {
                                     setEditingId(classification.shopify_id);
-                                    setManualOverride(classification.suggested_type);
+                                    setManualOverride(classification.suggested_type || '');
                                   }}
                                   className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-gray-300"
                                 >

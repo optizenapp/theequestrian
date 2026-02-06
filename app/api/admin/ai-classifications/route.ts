@@ -10,7 +10,7 @@ async function ensureClassificationsTable() {
       title TEXT NOT NULL,
       vendor TEXT,
       current_type TEXT,
-      suggested_type TEXT NOT NULL,
+      suggested_type TEXT,
       confidence INTEGER NOT NULL,
       openai_type TEXT NOT NULL,
       openai_confidence INTEGER NOT NULL,
@@ -28,6 +28,11 @@ async function ensureClassificationsTable() {
   await sql`
     CREATE INDEX IF NOT EXISTS idx_ai_classifications_status 
     ON ai_product_classifications(status)
+  `;
+
+  await sql`
+    ALTER TABLE ai_product_classifications
+    ALTER COLUMN suggested_type DROP NOT NULL
   `;
 }
 

@@ -257,8 +257,9 @@ export async function GET(request: NextRequest) {
     };
 
     const gscSiteUrl = process.env.GSC_SITE_URL;
+    const gscKey = process.env.GSC_SERVICE_ACCOUNT_JSON;
     let gsc: Awaited<ReturnType<typeof getGscOverview>> | null = null;
-    if (gscSiteUrl) {
+    if (gscSiteUrl && gscKey) {
       try {
         gsc = await getGscOverview({
           siteUrl: gscSiteUrl,
@@ -322,7 +323,7 @@ export async function GET(request: NextRequest) {
       const compareMetrics = compareReport.rows?.[0]?.metricValues ?? [];
 
       const compareGscTotals =
-        gscSiteUrl && compareRange
+        gscSiteUrl && gscKey && compareRange
           ? await getGscTotals({
               siteUrl: gscSiteUrl,
               startDate: compareRange.startDate,
