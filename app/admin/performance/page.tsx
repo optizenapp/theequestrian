@@ -73,6 +73,7 @@ const PAGE_TYPES = [
 ];
 
 export default function PerformancePage() {
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au';
   const [pageType, setPageType] = useState('homepage');
   const [customUrl, setCustomUrl] = useState('');
   const [isScanning, setIsScanning] = useState(false);
@@ -102,6 +103,38 @@ export default function PerformancePage() {
     } catch (err) {
       console.error('Failed to fetch history:', err);
     }
+  };
+
+  const resolveTargetUrl = (type: string, custom?: string) => {
+    if (custom) return custom;
+    switch (type) {
+      case 'homepage':
+        return SITE_URL;
+      case 'collection':
+        return `${SITE_URL}/horse`;
+      case 'subcollection':
+        return `${SITE_URL}/horse/boots`;
+      case 'product':
+        return `${SITE_URL}/horse/boots/bell-boots`;
+      case 'brand':
+        return `${SITE_URL}/brands/weatherbeeta`;
+      case 'on-sale':
+        return `${SITE_URL}/on-sale`;
+      default:
+        return SITE_URL;
+    }
+  };
+
+  const buildPageSpeedUrl = (url: string, strategy: 'mobile' | 'desktop') => {
+    const pagespeedUrl = new URL('https://pagespeed.web.dev/analysis');
+    pagespeedUrl.searchParams.set('url', url);
+    pagespeedUrl.searchParams.set('form_factor', strategy);
+    return pagespeedUrl.toString();
+  };
+
+  const openOriginalScan = (strategy: 'mobile' | 'desktop') => {
+    const targetUrl = resolveTargetUrl(pageType, pageType === 'custom' ? customUrl : undefined);
+    window.open(buildPageSpeedUrl(targetUrl, strategy), '_blank', 'noopener,noreferrer');
   };
 
   const runScan = async () => {
@@ -281,6 +314,51 @@ export default function PerformancePage() {
     return colors[priority as keyof typeof colors] || colors.low;
   };
 
+  const buildImplementationPrompt = (recommendations: AIRecommendations | null) => {
+    if (!recommendations) return '';
+    const priorityIssues = recommendations.priority_issues?.length
+      ? recommendations.priority_issues
+          .map((issue, index) => (
+            `${index + 1}. ${issue.title} (${issue.severity})\n` +
+            `   Impact: ${issue.impact}\n` +
+            `   Metric: ${issue.metric}`
+          ))
+          .join('\n\n')
+      : 'None';
+    const recs = recommendations.recommendations?.length
+      ? recommendations.recommendations
+          .map((rec, index) => (
+            `${index + 1}. ${rec.title} (${rec.priority})\n` +
+            `   Category: ${rec.category}\n` +
+            `   Description: ${rec.description}\n` +
+            `   File: ${rec.file_location || 'N/A'}\n` +
+            `   Expected impact: ${rec.expected_impact}\n` +
+            `   Notes: ${rec.implementation_notes || 'N/A'}\n` +
+            `   Code:\n${rec.code_example || 'N/A'}`
+          ))
+          .join('\n\n')
+      : 'None';
+
+    return (
+      `Role: You are an expert Next.js 16 engineer.\n` +
+      `Task: Implement the performance improvements below in this codebase.\n` +
+      `Constraints:\n` +
+      `- Make safe, targeted changes only.\n` +
+      `- Do not remove existing functionality.\n` +
+      `- Explain tradeoffs or risks.\n` +
+      `- Provide a clear test/verification plan.\n\n` +
+      `Summary:\n${recommendations.summary}\n\n` +
+      `Priority issues:\n${priorityIssues}\n\n` +
+      `Implementation Plan:\n` +
+      `1) Identify where each recommendation applies.\n` +
+      `2) Make minimal code changes to address each issue.\n` +
+      `3) Document files modified and why.\n\n` +
+      `Changes (Actionable):\n${recs}\n\n` +
+      `Files Changed:\n- (List each file you edit with a brief reason)\n\n` +
+      `Test Plan:\n- (List steps or commands to verify)\n`
+    );
+  };
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
   };
@@ -329,6 +407,22 @@ export default function PerformancePage() {
             >
               {isScanning ? 'Scanning...' : 'Run Scan'}
             </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => openOriginalScan('mobile')}
+                disabled={pageType === 'custom' && !customUrl}
+                className="h-10 rounded-lg border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Open Mobile Scan
+              </button>
+              <button
+                onClick={() => openOriginalScan('desktop')}
+                disabled={pageType === 'custom' && !customUrl}
+                className="h-10 rounded-lg border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Open Desktop Scan
+              </button>
+            </div>
           </div>
 
           {error && (
@@ -592,6 +686,22 @@ export default function PerformancePage() {
 
               {aiRecommendations && (
                 <div className="mt-6 space-y-6">
+                  {/* AI Prompt Format */}
+                  <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                    <div className="mb-3 flex items-center justify-between">
+                      <h4 className="text-sm font-semibold text-gray-900">AI Prompt (Copy & Paste)</h4>
+                      <button
+                        onClick={() => copyToClipboard(buildImplementationPrompt(aiRecommendations))}
+                        className="text-xs font-medium text-action hover:underline"
+                      >
+                        Copy All
+                      </button>
+                    </div>
+                    <pre className="overflow-x-auto whitespace-pre-wrap rounded-lg bg-white p-4 text-xs text-gray-800">
+                      <code>{buildImplementationPrompt(aiRecommendations)}</code>
+                    </pre>
+                  </div>
+
                   {/* Summary */}
                   <div className="rounded-lg bg-blue-50 p-4">
                     <h4 className="mb-2 text-sm font-semibold text-blue-900">Summary</h4>
@@ -687,12 +797,22 @@ export default function PerformancePage() {
             accessibility: scan.accessibility_score.toString(),
             seo: scan.seo_score.toString(),
             actions: (
-              <button
-                onClick={() => loadScan(scan.id)}
-                className="text-sm font-medium text-action hover:underline"
-              >
-                View
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => loadScan(scan.id)}
+                  className="text-sm font-medium text-action hover:underline"
+                >
+                  View
+                </button>
+                <a
+                  href={buildPageSpeedUrl(scan.page_url, scan.strategy === 'mobile' ? 'mobile' : 'desktop')}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-sm font-medium text-gray-600 hover:text-action"
+                >
+                  Open
+                </a>
+              </div>
             ),
           }))}
           emptyState="No scans yet"

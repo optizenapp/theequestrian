@@ -1,14 +1,39 @@
 import { Hero } from '@/components/Hero';
 import { TrustSignals } from '@/components/TrustSignals';
-import { BestDealsSliderContainer } from '@/components/home/BestDealsSliderContainer';
-import { MostWantedCarousel } from '@/components/MostWantedCarousel';
-import { HomeRecentArticles } from '@/components/home/HomeRecentArticles';
-import { HomeFAQ } from '@/components/home/HomeFAQ';
+import dynamic from 'next/dynamic';
 import { getHomeSections } from '@/lib/content/home';
 import { getProductsByHandlesAlt } from '@/lib/shopify/products-by-handles';
 import { ReviewStars } from '@/components/reviews/ReviewStars';
 import type { ShopifyProductCard } from '@/types/shopify';
 import Link from 'next/link';
+
+const MostWantedCarousel = dynamic(
+  () => import('@/components/MostWantedCarousel').then((mod) => mod.MostWantedCarousel),
+  {
+    loading: () => <div className="h-96 bg-white animate-pulse" />,
+  }
+);
+
+const BestDealsSliderContainer = dynamic(
+  () => import('@/components/home/BestDealsSliderContainer').then((mod) => mod.BestDealsSliderContainer),
+  {
+    loading: () => <div className="h-80 bg-gray-50 animate-pulse" />,
+  }
+);
+
+const HomeRecentArticles = dynamic(
+  () => import('@/components/home/HomeRecentArticles').then((mod) => mod.HomeRecentArticles),
+  {
+    loading: () => <div className="h-80 bg-white animate-pulse" />,
+  }
+);
+
+const HomeFAQ = dynamic(
+  () => import('@/components/home/HomeFAQ').then((mod) => mod.HomeFAQ),
+  {
+    loading: () => <div className="h-64 bg-gray-50 animate-pulse" />,
+  }
+);
 
 // Helper to check if product is ShopifyProductCard (duplicated from MostWantedCarousel for now)
 function isShopifyProduct(product: any): product is ShopifyProductCard {
