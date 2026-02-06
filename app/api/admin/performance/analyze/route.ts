@@ -7,7 +7,7 @@ const anthropic = new Anthropic({
 });
 
 export async function POST(req: NextRequest) {
-  let scanId: number;
+  let scanId: number | undefined = undefined;
   
   try {
     const body = await req.json();
