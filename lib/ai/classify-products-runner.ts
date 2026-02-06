@@ -361,7 +361,7 @@ export async function runClassification(options: RunOptions = {}) {
       }
 
       if (!finalSuggested) {
-        result.suggestedType = null;
+        result.suggestedType = '';
         result.validationStatus = 'needs-review';
         result.confidence = 0;
       } else {
