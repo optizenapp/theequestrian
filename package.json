@@ -71,9 +71,11 @@
     "mapping:fix": "tsx scripts/fix-mapping-merge-rules.ts",
     "redirects:audit": "tsx scripts/audit-manual-redirects.ts",
     "404s:rollup": "tsx scripts/rollup-404s.ts",
-    "404s:scan": "tsx scripts/scan-404s.ts"
+    "404s:scan": "tsx scripts/scan-404s.ts",
+    "performance:init": "tsx scripts/init-performance-table.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.73.0",
     "@google-analytics/data": "^5.2.1",
     "@neondatabase/serverless": "^1.0.2",
     "@react-email/components": "^1.0.7",
