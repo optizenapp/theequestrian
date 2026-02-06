@@ -7,8 +7,11 @@ const anthropic = new Anthropic({
 });
 
 export async function POST(req: NextRequest) {
+  let scanId: number;
+  
   try {
-    const { scanId } = await req.json();
+    const body = await req.json();
+    scanId = body.scanId;
 
     if (!scanId) {
       return NextResponse.json({ error: 'Scan ID is required' }, { status: 400 });
@@ -46,7 +49,7 @@ export async function POST(req: NextRequest) {
 
     // Call Claude API
     const message = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
+      model: 'claude-opus-4-20250514',
       max_tokens: 4000,
       messages: [
         {
@@ -89,9 +92,8 @@ export async function POST(req: NextRequest) {
     console.error('Analysis error:', error);
     
     // Update status to failed
-    if (req.json) {
-      const { scanId } = await req.json();
-      if (scanId) {
+    if (scanId) {
+      try {
         await sql`
           UPDATE performance_scans
           SET status = 'failed',
@@ -99,6 +101,8 @@ export async function POST(req: NextRequest) {
               updated_at = NOW()
           WHERE id = ${scanId}
         `;
+      } catch (dbError) {
+        console.error('Failed to update scan status:', dbError);
       }
     }
 

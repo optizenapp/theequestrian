@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     let query;
     if (pageType && pageType !== 'all') {
       query = sql`
-        SELECT id, page_type, page_url, scan_date, performance_score, 
+        SELECT id, page_type, page_url, scan_date, strategy, performance_score, 
                accessibility_score, best_practices_score, seo_score,
                fcp, lcp, cls, tbt, si, status, ai_analyzed_at
         FROM performance_scans
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
       `;
     } else {
       query = sql`
-        SELECT id, page_type, page_url, scan_date, performance_score, 
+        SELECT id, page_type, page_url, scan_date, strategy, performance_score, 
                accessibility_score, best_practices_score, seo_score,
                fcp, lcp, cls, tbt, si, status, ai_analyzed_at
         FROM performance_scans

@@ -9,7 +9,7 @@ export async function GET(
     const { id } = await params;
 
     const result = await sql`
-      SELECT id, page_type, page_url, scan_date, performance_score, 
+      SELECT id, page_type, page_url, scan_date, strategy, performance_score, 
              accessibility_score, best_practices_score, seo_score,
              fcp, lcp, cls, tbt, si, raw_data, ai_recommendations,
              ai_analyzed_at, status, error_message

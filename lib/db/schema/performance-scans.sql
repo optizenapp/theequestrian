@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS performance_scans (
   page_type VARCHAR(100) NOT NULL,
   page_url TEXT NOT NULL,
   scan_date TIMESTAMP DEFAULT NOW(),
+  strategy VARCHAR(20) DEFAULT 'mobile', -- 'mobile' or 'desktop'
   
   -- PageSpeed Insights scores (0-100)
   performance_score INT,

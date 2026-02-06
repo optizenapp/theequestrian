@@ -58,93 +58,37 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Call PageSpeed Insights API
-    const apiUrl = new URL('https://www.googleapis.com/pagespeedonline/v5/runPagespeed');
-    apiUrl.searchParams.set('url', targetUrl);
-    apiUrl.searchParams.set('strategy', 'mobile');
-    apiUrl.searchParams.set('category', 'performance');
-    apiUrl.searchParams.set('category', 'accessibility');
-    apiUrl.searchParams.set('category', 'best-practices');
-    apiUrl.searchParams.set('category', 'seo');
-    if (PAGESPEED_API_KEY) {
-      apiUrl.searchParams.set('key', PAGESPEED_API_KEY);
-    }
-
     console.log('[PageSpeed] Scanning URL:', targetUrl);
-    console.log('[PageSpeed] API URL:', apiUrl.toString());
 
-    const response = await fetch(apiUrl.toString(), {
-      headers: {
-        'Accept': 'application/json',
-      },
-    });
+    // Run both mobile and desktop scans in parallel
+    const [mobileData, desktopData] = await Promise.all([
+      runPageSpeedScan(targetUrl, 'mobile'),
+      runPageSpeedScan(targetUrl, 'desktop'),
+    ]);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('[PageSpeed] API error:', errorText);
+    if (!mobileData || !desktopData) {
       return NextResponse.json(
-        { error: `PageSpeed API error: ${response.statusText}` },
-        { status: response.status }
+        { error: 'Failed to complete scans' },
+        { status: 500 }
       );
     }
 
-    const data: PageSpeedResponse = await response.json();
-    console.log('[PageSpeed] Scan completed successfully');
-    const { lighthouseResult } = data;
-
-    // Extract scores
-    const performanceScore = Math.round((lighthouseResult.categories.performance?.score || 0) * 100);
-    const accessibilityScore = Math.round((lighthouseResult.categories.accessibility?.score || 0) * 100);
-    const bestPracticesScore = Math.round((lighthouseResult.categories['best-practices']?.score || 0) * 100);
-    const seoScore = Math.round((lighthouseResult.categories.seo?.score || 0) * 100);
-
-    // Extract Core Web Vitals
-    const fcp = (lighthouseResult.audits['first-contentful-paint']?.numericValue || 0) / 1000;
-    const lcp = (lighthouseResult.audits['largest-contentful-paint']?.numericValue || 0) / 1000;
-    const cls = lighthouseResult.audits['cumulative-layout-shift']?.numericValue || 0;
-    const tbt = lighthouseResult.audits['total-blocking-time']?.numericValue || 0;
-    const si = (lighthouseResult.audits['speed-index']?.numericValue || 0) / 1000;
-
-    // Store in database
-    const result = await sql`
-      INSERT INTO performance_scans (
-        page_type,
-        page_url,
-        performance_score,
-        accessibility_score,
-        best_practices_score,
-        seo_score,
-        fcp,
-        lcp,
-        cls,
-        tbt,
-        si,
-        raw_data,
-        status
-      ) VALUES (
-        ${pageType},
-        ${targetUrl},
-        ${performanceScore},
-        ${accessibilityScore},
-        ${bestPracticesScore},
-        ${seoScore},
-        ${fcp},
-        ${lcp},
-        ${cls},
-        ${tbt},
-        ${si},
-        ${JSON.stringify(data)},
-        'completed'
-      )
-      RETURNING id, page_type, page_url, scan_date, performance_score, accessibility_score, 
-                best_practices_score, seo_score, fcp, lcp, cls, tbt, si
-    `;
+    // Store both scans in database
+    const mobileResult = await storeScan(pageType, targetUrl, 'mobile', mobileData);
+    const desktopResult = await storeScan(pageType, targetUrl, 'desktop', desktopData);
 
     return NextResponse.json({
       success: true,
-      scan: result.rows[0],
-      opportunities: extractOpportunities(lighthouseResult),
-      diagnostics: extractDiagnostics(lighthouseResult),
+      mobile: {
+        scan: mobileResult.rows[0],
+        opportunities: extractOpportunities(mobileData.lighthouseResult),
+        diagnostics: extractDiagnostics(mobileData.lighthouseResult),
+      },
+      desktop: {
+        scan: desktopResult.rows[0],
+        opportunities: extractOpportunities(desktopData.lighthouseResult),
+        diagnostics: extractDiagnostics(desktopData.lighthouseResult),
+      },
     });
   } catch (error) {
     console.error('Scan error:', error);
@@ -153,6 +97,104 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+async function runPageSpeedScan(targetUrl: string, strategy: 'mobile' | 'desktop') {
+  const apiUrl = new URL('https://www.googleapis.com/pagespeedonline/v5/runPagespeed');
+  apiUrl.searchParams.set('url', targetUrl);
+  apiUrl.searchParams.set('strategy', strategy);
+  // Add multiple categories by appending them
+  apiUrl.searchParams.append('category', 'performance');
+  apiUrl.searchParams.append('category', 'accessibility');
+  apiUrl.searchParams.append('category', 'best-practices');
+  apiUrl.searchParams.append('category', 'seo');
+  if (PAGESPEED_API_KEY) {
+    apiUrl.searchParams.set('key', PAGESPEED_API_KEY);
+  }
+
+  console.log(`[PageSpeed] Scanning ${strategy}:`, targetUrl);
+
+  const response = await fetch(apiUrl.toString(), {
+    headers: {
+      'Accept': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error(`[PageSpeed] ${strategy} API error:`, errorText);
+    return null;
+  }
+
+  const data: PageSpeedResponse = await response.json();
+  console.log(`[PageSpeed] ${strategy} scan completed successfully`);
+  
+  if (!data.lighthouseResult) {
+    console.error(`[PageSpeed] No lighthouseResult in ${strategy} response`);
+    return null;
+  }
+
+  return data;
+}
+
+async function storeScan(pageType: string, targetUrl: string, strategy: string, data: PageSpeedResponse) {
+  const { lighthouseResult } = data;
+
+  // Extract scores
+  const performanceScore = Math.round((lighthouseResult.categories.performance?.score || 0) * 100);
+  const accessibilityScore = Math.round((lighthouseResult.categories.accessibility?.score || 0) * 100);
+  const bestPracticesScore = Math.round((lighthouseResult.categories['best-practices']?.score || 0) * 100);
+  const seoScore = Math.round((lighthouseResult.categories.seo?.score || 0) * 100);
+
+  console.log(`[PageSpeed] ${strategy} scores:`, { performanceScore, accessibilityScore, bestPracticesScore, seoScore });
+
+  // Extract Core Web Vitals
+  const fcp = (lighthouseResult.audits['first-contentful-paint']?.numericValue || 0) / 1000;
+  const lcp = (lighthouseResult.audits['largest-contentful-paint']?.numericValue || 0) / 1000;
+  const cls = lighthouseResult.audits['cumulative-layout-shift']?.numericValue || 0;
+  const tbt = lighthouseResult.audits['total-blocking-time']?.numericValue || 0;
+  const si = (lighthouseResult.audits['speed-index']?.numericValue || 0) / 1000;
+
+  console.log(`[PageSpeed] ${strategy} Core Web Vitals:`, { fcp, lcp, cls, tbt, si });
+
+  // Store in database
+  const result = await sql`
+    INSERT INTO performance_scans (
+      page_type,
+      page_url,
+      strategy,
+      performance_score,
+      accessibility_score,
+      best_practices_score,
+      seo_score,
+      fcp,
+      lcp,
+      cls,
+      tbt,
+      si,
+      raw_data,
+      status
+    ) VALUES (
+      ${pageType},
+      ${targetUrl},
+      ${strategy},
+      ${performanceScore},
+      ${accessibilityScore},
+      ${bestPracticesScore},
+      ${seoScore},
+      ${fcp},
+      ${lcp},
+      ${cls},
+      ${tbt},
+      ${si},
+      ${JSON.stringify(data)},
+      'completed'
+    )
+    RETURNING id, page_type, page_url, strategy, scan_date, performance_score, accessibility_score, 
+              best_practices_score, seo_score, fcp, lcp, cls, tbt, si
+  `;
+
+  return result;
 }
 
 function extractOpportunities(lighthouseResult: PageSpeedResponse['lighthouseResult']) {

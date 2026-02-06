@@ -10,6 +10,7 @@ type Scan = {
   page_type: string;
   page_url: string;
   scan_date: string;
+  strategy: string;
   performance_score: number;
   accessibility_score: number;
   best_practices_score: number;
@@ -76,9 +77,12 @@ export default function PerformancePage() {
   const [customUrl, setCustomUrl] = useState('');
   const [isScanning, setIsScanning] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [currentScan, setCurrentScan] = useState<Scan | null>(null);
-  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
-  const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([]);
+  const [mobileScan, setMobileScan] = useState<Scan | null>(null);
+  const [desktopScan, setDesktopScan] = useState<Scan | null>(null);
+  const [mobileOpportunities, setMobileOpportunities] = useState<Opportunity[]>([]);
+  const [desktopOpportunities, setDesktopOpportunities] = useState<Opportunity[]>([]);
+  const [mobileDiagnostics, setMobileDiagnostics] = useState<Diagnostic[]>([]);
+  const [desktopDiagnostics, setDesktopDiagnostics] = useState<Diagnostic[]>([]);
   const [aiRecommendations, setAiRecommendations] = useState<AIRecommendations | null>(null);
   const [history, setHistory] = useState<Scan[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -103,9 +107,12 @@ export default function PerformancePage() {
   const runScan = async () => {
     setIsScanning(true);
     setError(null);
-    setCurrentScan(null);
-    setOpportunities([]);
-    setDiagnostics([]);
+    setMobileScan(null);
+    setDesktopScan(null);
+    setMobileOpportunities([]);
+    setDesktopOpportunities([]);
+    setMobileDiagnostics([]);
+    setDesktopDiagnostics([]);
     setAiRecommendations(null);
 
     try {
@@ -124,9 +131,12 @@ export default function PerformancePage() {
         throw new Error(data.error || 'Scan failed');
       }
 
-      setCurrentScan(data.scan);
-      setOpportunities(data.opportunities || []);
-      setDiagnostics(data.diagnostics || []);
+      setMobileScan(data.mobile.scan);
+      setDesktopScan(data.desktop.scan);
+      setMobileOpportunities(data.mobile.opportunities || []);
+      setDesktopOpportunities(data.desktop.opportunities || []);
+      setMobileDiagnostics(data.mobile.diagnostics || []);
+      setDesktopDiagnostics(data.desktop.diagnostics || []);
       fetchHistory();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to run scan');
@@ -136,16 +146,17 @@ export default function PerformancePage() {
   };
 
   const analyzeWithAI = async () => {
-    if (!currentScan) return;
+    if (!mobileScan) return;
 
     setIsAnalyzing(true);
     setError(null);
 
     try {
+      // Analyze mobile scan (primary)
       const res = await fetch('/api/admin/performance/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ scanId: currentScan.id }),
+        body: JSON.stringify({ scanId: mobileScan.id }),
       });
 
       const data = await res.json();
@@ -168,19 +179,32 @@ export default function PerformancePage() {
       const data = await res.json();
 
       if (data.success) {
-        setCurrentScan(data.scan);
+        const scan = data.scan;
+        
+        // Set the scan based on strategy
+        if (scan.strategy === 'mobile') {
+          setMobileScan(scan);
+        } else {
+          setDesktopScan(scan);
+        }
         
         // Extract opportunities and diagnostics from raw_data
-        const rawData = data.scan.raw_data;
+        const rawData = scan.raw_data;
         if (rawData?.lighthouseResult) {
           const opps = extractOpportunities(rawData.lighthouseResult);
           const diags = extractDiagnostics(rawData.lighthouseResult);
-          setOpportunities(opps);
-          setDiagnostics(diags);
+          
+          if (scan.strategy === 'mobile') {
+            setMobileOpportunities(opps);
+            setMobileDiagnostics(diags);
+          } else {
+            setDesktopOpportunities(opps);
+            setDesktopDiagnostics(diags);
+          }
         }
 
-        if (data.scan.ai_recommendations) {
-          setAiRecommendations(data.scan.ai_recommendations);
+        if (scan.ai_recommendations) {
+          setAiRecommendations(scan.ai_recommendations);
         }
       }
     } catch (err) {
@@ -315,115 +339,239 @@ export default function PerformancePage() {
 
           {isScanning && (
             <div className="mt-4 text-sm text-gray-500">
-              Running PageSpeed Insights scan... This may take 30-60 seconds.
+              Running PageSpeed Insights scans for mobile and desktop... This may take 60-90 seconds.
             </div>
           )}
         </div>
 
         {/* Scan Results */}
-        {currentScan && (
+        {mobileScan && desktopScan && (
           <>
-            {/* Score Cards */}
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Performance</p>
-                <div className="mt-3 flex items-baseline gap-2">
-                  <span className={`text-2xl font-semibold ${getScoreColor(currentScan.performance_score)}`}>
-                    {currentScan.performance_score}
-                  </span>
-                </div>
-                <p className="mt-2 text-xs text-gray-500">Scanned: {new Date(currentScan.scan_date).toLocaleString()}</p>
-              </div>
-              <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Accessibility</p>
-                <div className="mt-3 flex items-baseline gap-2">
-                  <span className={`text-2xl font-semibold ${getScoreColor(currentScan.accessibility_score)}`}>
-                    {currentScan.accessibility_score}
-                  </span>
-                </div>
-                <p className="mt-2 text-xs text-gray-500">WCAG compliance</p>
-              </div>
-              <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Best Practices</p>
-                <div className="mt-3 flex items-baseline gap-2">
-                  <span className={`text-2xl font-semibold ${getScoreColor(currentScan.best_practices_score)}`}>
-                    {currentScan.best_practices_score}
-                  </span>
-                </div>
-                <p className="mt-2 text-xs text-gray-500">Web standards</p>
-              </div>
-              <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">SEO</p>
-                <div className="mt-3 flex items-baseline gap-2">
-                  <span className={`text-2xl font-semibold ${getScoreColor(currentScan.seo_score)}`}>
-                    {currentScan.seo_score}
-                  </span>
-                </div>
-                <p className="mt-2 text-xs text-gray-500">Search optimization</p>
+            {/* Mobile vs Desktop Toggle */}
+            <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+              <div className="flex items-center justify-center gap-4">
+                <span className="text-sm font-semibold text-gray-900">📱 Mobile</span>
+                <span className="text-gray-400">|</span>
+                <span className="text-sm font-semibold text-gray-900">🖥️ Desktop</span>
               </div>
             </div>
 
-            {/* Core Web Vitals */}
+            {/* Mobile Score Cards */}
+            <div>
+              <h3 className="mb-3 text-lg font-semibold text-gray-900">📱 Mobile Performance</h3>
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Performance</p>
+                <div className="mt-3 flex items-baseline gap-2">
+                  <span className={`text-2xl font-semibold ${getScoreColor(mobileScan.performance_score)}`}>
+                    {mobileScan.performance_score}
+                  </span>
+                </div>
+                <p className="mt-2 text-xs text-gray-500">Scanned: {new Date(mobileScan.scan_date).toLocaleString()}</p>
+                </div>
+                <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Accessibility</p>
+                <div className="mt-3 flex items-baseline gap-2">
+                  <span className={`text-2xl font-semibold ${getScoreColor(mobileScan.accessibility_score)}`}>
+                    {mobileScan.accessibility_score}
+                  </span>
+                </div>
+                <p className="mt-2 text-xs text-gray-500">WCAG compliance</p>
+                </div>
+                <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Best Practices</p>
+                <div className="mt-3 flex items-baseline gap-2">
+                  <span className={`text-2xl font-semibold ${getScoreColor(mobileScan.best_practices_score)}`}>
+                    {mobileScan.best_practices_score}
+                  </span>
+                </div>
+                <p className="mt-2 text-xs text-gray-500">Web standards</p>
+                </div>
+                <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">SEO</p>
+                <div className="mt-3 flex items-baseline gap-2">
+                  <span className={`text-2xl font-semibold ${getScoreColor(mobileScan.seo_score)}`}>
+                    {mobileScan.seo_score}
+                  </span>
+                </div>
+                <p className="mt-2 text-xs text-gray-500">Search optimization</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile Core Web Vitals */}
             <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-              <h3 className="mb-4 text-lg font-semibold text-gray-900">Core Web Vitals</h3>
+              <h3 className="mb-4 text-lg font-semibold text-gray-900">📱 Mobile Core Web Vitals</h3>
               <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-5">
                 <div>
                   <p className="text-xs text-gray-500">FCP</p>
-                  <p className="text-2xl font-semibold text-gray-900">{Number(currentScan.fcp).toFixed(2)}s</p>
+                  <p className="text-2xl font-semibold text-gray-900">{Number(mobileScan.fcp).toFixed(2)}s</p>
                   <p className="text-xs text-gray-400">First Contentful Paint</p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">LCP</p>
-                  <p className="text-2xl font-semibold text-gray-900">{Number(currentScan.lcp).toFixed(2)}s</p>
+                  <p className="text-2xl font-semibold text-gray-900">{Number(mobileScan.lcp).toFixed(2)}s</p>
                   <p className="text-xs text-gray-400">Largest Contentful Paint</p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">CLS</p>
-                  <p className="text-2xl font-semibold text-gray-900">{Number(currentScan.cls).toFixed(3)}</p>
+                  <p className="text-2xl font-semibold text-gray-900">{Number(mobileScan.cls).toFixed(3)}</p>
                   <p className="text-xs text-gray-400">Cumulative Layout Shift</p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">TBT</p>
-                  <p className="text-2xl font-semibold text-gray-900">{Number(currentScan.tbt).toFixed(0)}ms</p>
+                  <p className="text-2xl font-semibold text-gray-900">{Number(mobileScan.tbt).toFixed(0)}ms</p>
                   <p className="text-xs text-gray-400">Total Blocking Time</p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">SI</p>
-                  <p className="text-2xl font-semibold text-gray-900">{Number(currentScan.si).toFixed(2)}s</p>
+                  <p className="text-2xl font-semibold text-gray-900">{Number(mobileScan.si).toFixed(2)}s</p>
                   <p className="text-xs text-gray-400">Speed Index</p>
                 </div>
               </div>
             </div>
 
-            {/* Opportunities & Diagnostics */}
-            <div className="grid gap-6 lg:grid-cols-2">
-              <DataTable
-                title="Opportunities"
-                columns={[
-                  { key: 'title', header: 'Issue' },
-                  { key: 'score', header: 'Score' },
-                ]}
-                rows={opportunities.map((opp, index) => ({
-                  id: String(index),
-                  title: opp.title,
-                  score: `${opp.score}/100`,
-                }))}
-                emptyState="No opportunities found"
-              />
+            {/* Desktop Score Cards */}
+            <div>
+              <h3 className="mb-3 text-lg font-semibold text-gray-900">🖥️ Desktop Performance</h3>
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Performance</p>
+                  <div className="mt-3 flex items-baseline gap-2">
+                    <span className={`text-2xl font-semibold ${getScoreColor(desktopScan.performance_score)}`}>
+                      {desktopScan.performance_score}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-xs text-gray-500">Desktop</p>
+                </div>
+                <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Accessibility</p>
+                  <div className="mt-3 flex items-baseline gap-2">
+                    <span className={`text-2xl font-semibold ${getScoreColor(desktopScan.accessibility_score)}`}>
+                      {desktopScan.accessibility_score}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-xs text-gray-500">WCAG compliance</p>
+                </div>
+                <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Best Practices</p>
+                  <div className="mt-3 flex items-baseline gap-2">
+                    <span className={`text-2xl font-semibold ${getScoreColor(desktopScan.best_practices_score)}`}>
+                      {desktopScan.best_practices_score}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-xs text-gray-500">Web standards</p>
+                </div>
+                <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">SEO</p>
+                  <div className="mt-3 flex items-baseline gap-2">
+                    <span className={`text-2xl font-semibold ${getScoreColor(desktopScan.seo_score)}`}>
+                      {desktopScan.seo_score}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-xs text-gray-500">Search optimization</p>
+                </div>
+              </div>
+            </div>
 
-              <DataTable
-                title="Diagnostics"
-                columns={[
-                  { key: 'title', header: 'Diagnostic' },
-                  { key: 'value', header: 'Info' },
-                ]}
-                rows={diagnostics.map((diag, index) => ({
-                  id: String(index),
-                  title: diag.title,
-                  value: diag.displayValue || '—',
-                }))}
-                emptyState="No diagnostics found"
-              />
+            {/* Desktop Core Web Vitals */}
+            <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+              <h3 className="mb-4 text-lg font-semibold text-gray-900">🖥️ Desktop Core Web Vitals</h3>
+              <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-5">
+                <div>
+                  <p className="text-xs text-gray-500">FCP</p>
+                  <p className="text-2xl font-semibold text-gray-900">{Number(desktopScan.fcp).toFixed(2)}s</p>
+                  <p className="text-xs text-gray-400">First Contentful Paint</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">LCP</p>
+                  <p className="text-2xl font-semibold text-gray-900">{Number(desktopScan.lcp).toFixed(2)}s</p>
+                  <p className="text-xs text-gray-400">Largest Contentful Paint</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">CLS</p>
+                  <p className="text-2xl font-semibold text-gray-900">{Number(desktopScan.cls).toFixed(3)}</p>
+                  <p className="text-xs text-gray-400">Cumulative Layout Shift</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">TBT</p>
+                  <p className="text-2xl font-semibold text-gray-900">{Number(desktopScan.tbt).toFixed(0)}ms</p>
+                  <p className="text-xs text-gray-400">Total Blocking Time</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">SI</p>
+                  <p className="text-2xl font-semibold text-gray-900">{Number(desktopScan.si).toFixed(2)}s</p>
+                  <p className="text-xs text-gray-400">Speed Index</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile Opportunities & Diagnostics */}
+            <div>
+              <h3 className="mb-3 text-lg font-semibold text-gray-900">📱 Mobile Issues</h3>
+              <div className="grid gap-6 lg:grid-cols-2">
+                <DataTable
+                  title="Opportunities"
+                  columns={[
+                    { key: 'title', header: 'Issue' },
+                    { key: 'score', header: 'Score' },
+                  ]}
+                  rows={mobileOpportunities.map((opp, index) => ({
+                    id: String(index),
+                    title: opp.title,
+                    score: `${opp.score}/100`,
+                  }))}
+                  emptyState="No opportunities found"
+                />
+
+                <DataTable
+                  title="Diagnostics"
+                  columns={[
+                    { key: 'title', header: 'Diagnostic' },
+                    { key: 'value', header: 'Info' },
+                  ]}
+                  rows={mobileDiagnostics.map((diag, index) => ({
+                    id: String(index),
+                    title: diag.title,
+                    value: diag.displayValue || '—',
+                  }))}
+                  emptyState="No diagnostics found"
+                />
+              </div>
+            </div>
+
+            {/* Desktop Opportunities & Diagnostics */}
+            <div>
+              <h3 className="mb-3 text-lg font-semibold text-gray-900">🖥️ Desktop Issues</h3>
+              <div className="grid gap-6 lg:grid-cols-2">
+                <DataTable
+                  title="Opportunities"
+                  columns={[
+                    { key: 'title', header: 'Issue' },
+                    { key: 'score', header: 'Score' },
+                  ]}
+                  rows={desktopOpportunities.map((opp, index) => ({
+                    id: String(index),
+                    title: opp.title,
+                    score: `${opp.score}/100`,
+                  }))}
+                  emptyState="No opportunities found"
+                />
+
+                <DataTable
+                  title="Diagnostics"
+                  columns={[
+                    { key: 'title', header: 'Diagnostic' },
+                    { key: 'value', header: 'Info' },
+                  ]}
+                  rows={desktopDiagnostics.map((diag, index) => ({
+                    id: String(index),
+                    title: diag.title,
+                    value: diag.displayValue || '—',
+                  }))}
+                  emptyState="No diagnostics found"
+                />
+              </div>
             </div>
 
             {/* AI Analysis */}
@@ -431,11 +579,11 @@ export default function PerformancePage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">AI Recommendations</h3>
-                  <p className="text-sm text-gray-500">Get actionable code suggestions from Claude</p>
+                  <p className="text-sm text-gray-500">Get actionable code suggestions from Claude (based on mobile scan)</p>
                 </div>
                 <button
                   onClick={analyzeWithAI}
-                  disabled={isAnalyzing || !currentScan}
+                  disabled={isAnalyzing || !mobileScan}
                   className="rounded-lg bg-action px-4 py-2 text-sm font-semibold text-white hover:bg-pink-600 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isAnalyzing ? 'Analyzing...' : 'Analyze with AI'}
@@ -524,6 +672,7 @@ export default function PerformancePage() {
           columns={[
             { key: 'date', header: 'Date' },
             { key: 'type', header: 'Page Type' },
+            { key: 'strategy', header: 'Device' },
             { key: 'performance', header: 'Performance' },
             { key: 'accessibility', header: 'A11y' },
             { key: 'seo', header: 'SEO' },
@@ -533,6 +682,7 @@ export default function PerformancePage() {
             id: String(scan.id),
             date: new Date(scan.scan_date).toLocaleString(),
             type: scan.page_type,
+            strategy: scan.strategy === 'mobile' ? '📱' : '🖥️',
             performance: scan.performance_score.toString(),
             accessibility: scan.accessibility_score.toString(),
             seo: scan.seo_score.toString(),
