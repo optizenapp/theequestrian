@@ -209,15 +209,30 @@ export async function GET(request: NextRequest) {
     const [ga4SummaryReport] = await client.runReport({
       property,
       dateRanges: [range],
-      metrics: [
-        { name: 'sessions' },
-        { name: 'purchases' },
-        { name: 'addToCarts' },
-        { name: 'sessionConversionRate' },
-        { name: 'totalRevenue' },
-      ],
+      metrics: [{ name: 'sessions' }, { name: 'totalRevenue' }],
     });
     const ga4SummaryMetrics = ga4SummaryReport.rows?.[0]?.metricValues ?? [];
+
+    const [ga4EventReport] = await client.runReport({
+      property,
+      dateRanges: [range],
+      dimensions: [{ name: 'eventName' }],
+      metrics: [{ name: 'eventCount' }],
+      dimensionFilter: {
+        filter: {
+          fieldName: 'eventName',
+          inListFilter: {
+            values: ['add_to_cart', 'purchase'],
+            caseSensitive: false,
+          },
+        },
+      },
+    });
+    const eventCounts = ga4EventReport.rows?.reduce<Record<string, number>>((acc, row) => {
+      const name = row.dimensionValues?.[0]?.value || '';
+      acc[name] = toNumber(row.metricValues?.[0]?.value);
+      return acc;
+    }, {}) ?? {};
 
     const [ga4TrafficReport] = await client.runReport({
       property,
@@ -228,28 +243,37 @@ export async function GET(request: NextRequest) {
       limit: 8,
     });
 
-    const [ga4TopProductsReport] = await client.runReport({
-      property,
-      dateRanges: [range],
-      dimensions: [{ name: 'itemName' }],
-      metrics: [{ name: 'itemPurchaseQuantity' }, { name: 'itemRevenue' }],
-      orderBys: [{ metric: { metricName: 'itemPurchaseQuantity' }, desc: true }],
-      limit: 10,
-    });
+    let ga4TopProductsReport: any = null;
+    try {
+      [ga4TopProductsReport] = await client.runReport({
+        property,
+        dateRanges: [range],
+        dimensions: [{ name: 'itemName' }],
+        metrics: [{ name: 'itemPurchaseQuantity' }, { name: 'itemRevenue' }],
+        orderBys: [{ metric: { metricName: 'itemPurchaseQuantity' }, desc: true }],
+        limit: 10,
+      });
+    } catch (error) {
+      console.error('[Dashboard] GA4 top products error:', error);
+    }
 
+    const sessions = toNumber(ga4SummaryMetrics[0]?.value);
+    const purchases = eventCounts.purchase ?? 0;
+    const addToCarts = eventCounts.add_to_cart ?? 0;
+    const conversionRate = sessions > 0 ? purchases / sessions : 0;
     const ga4 = {
-      sessions: toNumber(ga4SummaryMetrics[0]?.value),
-      purchases: toNumber(ga4SummaryMetrics[1]?.value),
-      addToCarts: toNumber(ga4SummaryMetrics[2]?.value),
-      conversionRate: toNumber(ga4SummaryMetrics[3]?.value),
-      revenue: toNumber(ga4SummaryMetrics[4]?.value),
+      sessions,
+      purchases,
+      addToCarts,
+      conversionRate,
+      revenue: toNumber(ga4SummaryMetrics[1]?.value),
       trafficBySource:
         ga4TrafficReport.rows?.map((row) => ({
           source: row.dimensionValues?.[0]?.value || 'unknown',
           sessions: toNumber(row.metricValues?.[0]?.value),
         })) ?? [],
       topProducts:
-        ga4TopProductsReport.rows?.map((row) => ({
+        ga4TopProductsReport?.rows?.map((row: any) => ({
           product: row.dimensionValues?.[0]?.value || 'Unknown',
           quantity: toNumber(row.metricValues?.[0]?.value),
           revenue: toNumber(row.metricValues?.[1]?.value),
@@ -312,15 +336,38 @@ export async function GET(request: NextRequest) {
       const [compareReport] = await client.runReport({
         property,
         dateRanges: [compareRange],
-        metrics: [
-          { name: 'sessions' },
-          { name: 'purchases' },
-          { name: 'addToCarts' },
-          { name: 'sessionConversionRate' },
-          { name: 'totalRevenue' },
-        ],
+        metrics: [{ name: 'sessions' }, { name: 'totalRevenue' }],
       });
       const compareMetrics = compareReport.rows?.[0]?.metricValues ?? [];
+
+      const [compareEventReport] = await client.runReport({
+        property,
+        dateRanges: [compareRange],
+        dimensions: [{ name: 'eventName' }],
+        metrics: [{ name: 'eventCount' }],
+        dimensionFilter: {
+          filter: {
+            fieldName: 'eventName',
+            inListFilter: {
+              values: ['add_to_cart', 'purchase'],
+              caseSensitive: false,
+            },
+          },
+        },
+      });
+      const compareEventCounts = compareEventReport.rows?.reduce<Record<string, number>>(
+        (acc, row) => {
+          const name = row.dimensionValues?.[0]?.value || '';
+          acc[name] = toNumber(row.metricValues?.[0]?.value);
+          return acc;
+        },
+        {}
+      ) ?? {};
+
+      const compareSessions = toNumber(compareMetrics[0]?.value);
+      const comparePurchases = compareEventCounts.purchase ?? 0;
+      const compareAddToCarts = compareEventCounts.add_to_cart ?? 0;
+      const compareConversionRate = compareSessions > 0 ? comparePurchases / compareSessions : 0;
 
       const compareGscTotals =
         gscSiteUrl && gscKey && compareRange
@@ -349,11 +396,11 @@ export async function GET(request: NextRequest) {
 
       compare = {
         ga4: {
-          sessions: calcDelta(ga4.sessions, toNumber(compareMetrics[0]?.value)),
-          purchases: calcDelta(ga4.purchases, toNumber(compareMetrics[1]?.value)),
-          addToCarts: calcDelta(ga4.addToCarts, toNumber(compareMetrics[2]?.value)),
-          conversionRate: calcDelta(ga4.conversionRate, toNumber(compareMetrics[3]?.value)),
-          revenue: calcDelta(ga4.revenue, toNumber(compareMetrics[4]?.value)),
+          sessions: calcDelta(ga4.sessions, compareSessions),
+          purchases: calcDelta(ga4.purchases, comparePurchases),
+          addToCarts: calcDelta(ga4.addToCarts, compareAddToCarts),
+          conversionRate: calcDelta(ga4.conversionRate, compareConversionRate),
+          revenue: calcDelta(ga4.revenue, toNumber(compareMetrics[1]?.value)),
         },
         gsc: compareGscTotals
           ? {

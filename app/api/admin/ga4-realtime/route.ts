@@ -30,31 +30,41 @@ export async function GET() {
       metrics: [{ name: 'activeUsers' }],
     });
 
-    const [pagesReport] = await client.runRealtimeReport({
-      property,
-      dimensions: [{ name: 'pagePath' }],
-      metrics: [{ name: 'activeUsers' }],
-      orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
-      limit: 10,
-    });
+    let pagesReport: any = null;
+    let minutesReport: any = null;
+    try {
+      [pagesReport] = await client.runRealtimeReport({
+        property,
+        dimensions: [{ name: 'pagePath' }],
+        metrics: [{ name: 'activeUsers' }],
+        orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
+        limit: 10,
+      });
+    } catch (error) {
+      console.error('GA4 realtime pages error:', error);
+    }
 
-    const [minutesReport] = await client.runRealtimeReport({
-      property,
-      dimensions: [{ name: 'minutesAgo' }],
-      metrics: [{ name: 'activeUsers' }],
-      orderBys: [{ dimension: { dimensionName: 'minutesAgo' } }],
-      limit: 30,
-    });
+    try {
+      [minutesReport] = await client.runRealtimeReport({
+        property,
+        dimensions: [{ name: 'minutesAgo' }],
+        metrics: [{ name: 'activeUsers' }],
+        orderBys: [{ dimension: { dimensionName: 'minutesAgo' } }],
+        limit: 30,
+      });
+    } catch (error) {
+      console.error('GA4 realtime minutes error:', error);
+    }
 
     return NextResponse.json({
       activeUsers: toNumber(totalReport.rows?.[0]?.metricValues?.[0]?.value),
       topPages:
-        pagesReport.rows?.map((row) => ({
+        pagesReport?.rows?.map((row: any) => ({
           page: row.dimensionValues?.[0]?.value || '/',
           activeUsers: toNumber(row.metricValues?.[0]?.value),
         })) ?? [],
       activeUsersByMinute:
-        minutesReport.rows?.map((row) => ({
+        minutesReport?.rows?.map((row: any) => ({
           minutesAgo: Number(row.dimensionValues?.[0]?.value ?? 0),
           activeUsers: toNumber(row.metricValues?.[0]?.value),
         })) ?? [],
