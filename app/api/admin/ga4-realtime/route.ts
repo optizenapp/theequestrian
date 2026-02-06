@@ -35,7 +35,7 @@ export async function GET() {
     try {
       [pagesReport] = await client.runRealtimeReport({
         property,
-        dimensions: [{ name: 'pagePath' }],
+        dimensions: [{ name: 'pageTitle' }],
         metrics: [{ name: 'activeUsers' }],
         orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
         limit: 10,
@@ -60,7 +60,7 @@ export async function GET() {
       activeUsers: toNumber(totalReport.rows?.[0]?.metricValues?.[0]?.value),
       topPages:
         pagesReport?.rows?.map((row: any) => ({
-          page: row.dimensionValues?.[0]?.value || '/',
+          page: row.dimensionValues?.[0]?.value || 'Unknown',
           activeUsers: toNumber(row.metricValues?.[0]?.value),
         })) ?? [],
       activeUsersByMinute:

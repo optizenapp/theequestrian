@@ -21,6 +21,26 @@ const getDefaultRange = () => {
   return { startDate: formatIsoDate(start), endDate: formatIsoDate(end) };
 };
 
+const normalizeDate = (value?: string | null) => {
+  if (!value) return '';
+  if (value.length === 8) {
+    return `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}`;
+  }
+  return value;
+};
+
+const buildRateSeries = (
+  sessions: Array<{ date: string; value: number }>,
+  purchases: Array<{ date: string; value: number }>
+) => {
+  const purchaseMap = new Map(purchases.map((row) => [row.date, row.value]));
+  return sessions.map((row) => {
+    const purchaseCount = purchaseMap.get(row.date) ?? 0;
+    const rate = row.value > 0 ? purchaseCount / row.value : 0;
+    return { date: row.date, value: rate };
+  });
+};
+
 const calcDelta = (current: number, previous: number) => {
   const diff = current - previous;
   if (!previous) {
@@ -32,19 +52,29 @@ const calcDelta = (current: number, previous: number) => {
 const getShopifyCountMetrics = async () => {
   const query = `
     query Counts($inStock: String!, $outStock: String!, $returning: String!) {
-      productsTotal: productsCount
-      productsInStock: productsCount(query: $inStock)
-      productsOutOfStock: productsCount(query: $outStock)
-      customersTotal: customersCount
-      customersReturning: customersCount(query: $returning)
+      productsTotal: productsCount {
+        count
+      }
+      productsInStock: productsCount(query: $inStock) {
+        count
+      }
+      productsOutOfStock: productsCount(query: $outStock) {
+        count
+      }
+      customersTotal: customersCount {
+        count
+      }
+      customersReturning: customersCount(query: $returning) {
+        count
+      }
     }
   `;
   return shopifyAdminFetch<{
-    productsTotal: number;
-    productsInStock: number;
-    productsOutOfStock: number;
-    customersTotal: number;
-    customersReturning: number;
+    productsTotal: { count: number };
+    productsInStock: { count: number };
+    productsOutOfStock: { count: number };
+    customersTotal: { count: number };
+    customersReturning: { count: number };
   }>({
     query,
     variables: {
@@ -172,6 +202,56 @@ const getOrderLineItemSummary = async (startDate: string, endDate: string) => {
   return { topProducts, topVendors, totalRevenue, ordersCount };
 };
 
+const getOrderDailySummary = async (startDate: string, endDate: string) => {
+  const query = `
+    query OrdersDaily($first: Int!, $after: String, $query: String!) {
+      orders(first: $first, after: $after, query: $query, sortKey: CREATED_AT) {
+        edges {
+          node {
+            createdAt
+            totalPriceSet { shopMoney { amount } }
+          }
+        }
+        pageInfo { hasNextPage endCursor }
+      }
+    }
+  `;
+
+  const dateQuery = `created_at:>=${startDate} created_at:<=${endDate}`;
+  let cursor: string | null = null;
+  let page = 0;
+  const maxPages = 5;
+  const dailyMap = new Map<string, { orders: number; revenue: number }>();
+
+  while (page < maxPages) {
+    const result: any = await shopifyAdminFetch<any>({
+      query,
+      variables: { first: 100, after: cursor, query: dateQuery },
+    });
+    const edges = result.orders?.edges ?? [];
+    for (const edge of edges) {
+      const node = edge.node;
+      const date = normalizeDate(node.createdAt?.slice(0, 10));
+      const revenue = Number(node.totalPriceSet?.shopMoney?.amount ?? 0);
+      const current = dailyMap.get(date) ?? { orders: 0, revenue: 0 };
+      dailyMap.set(date, {
+        orders: current.orders + 1,
+        revenue: current.revenue + revenue,
+      });
+    }
+    const pageInfo = result.orders?.pageInfo;
+    if (!pageInfo?.hasNextPage) break;
+    cursor = pageInfo.endCursor;
+    page += 1;
+  }
+
+  return Array.from(dailyMap.entries()).map(([date, stats]) => ({
+    date,
+    orders: stats.orders,
+    revenue: stats.revenue,
+  }));
+};
+
 export async function GET(request: NextRequest) {
   try {
     if (!(await isAdminRequest())) {
@@ -206,12 +286,46 @@ export async function GET(request: NextRequest) {
     });
     const property = `properties/${propertyId}`;
 
-    const [ga4SummaryReport] = await client.runReport({
+    const transactionalPathFilter = {
+      orGroup: {
+        expressions: [
+          {
+            filter: {
+              fieldName: 'landingPagePlusQueryString',
+              stringFilter: { matchType: 'EXACT' as const, value: '/' },
+            },
+          },
+          {
+            filter: {
+              fieldName: 'landingPagePlusQueryString',
+              stringFilter: { matchType: 'BEGINS_WITH' as const, value: '/?' },
+            },
+          },
+          {
+            filter: {
+              fieldName: 'landingPagePlusQueryString',
+              stringFilter: { matchType: 'BEGINS_WITH' as const, value: '/collections' },
+            },
+          },
+          {
+            filter: {
+              fieldName: 'landingPagePlusQueryString',
+              stringFilter: { matchType: 'BEGINS_WITH' as const, value: '/products' },
+            },
+          },
+        ],
+      },
+    };
+
+    const ga4SessionsByDateResponse = await client.runReport({
       property,
       dateRanges: [range],
-      metrics: [{ name: 'sessions' }, { name: 'totalRevenue' }],
+      dimensions: [{ name: 'date' }, { name: 'landingPagePlusQueryString' }],
+      metrics: [{ name: 'sessions' }],
+      dimensionFilter: transactionalPathFilter,
+      orderBys: [{ dimension: { dimensionName: 'date' } }],
     });
-    const ga4SummaryMetrics = ga4SummaryReport.rows?.[0]?.metricValues ?? [];
+    const ga4SessionsByDate = ga4SessionsByDateResponse[0];
 
     const [ga4EventReport] = await client.runReport({
       property,
@@ -233,6 +347,7 @@ export async function GET(request: NextRequest) {
       acc[name] = toNumber(row.metricValues?.[0]?.value);
       return acc;
     }, {}) ?? {};
+
 
     const [ga4TrafficReport] = await client.runReport({
       property,
@@ -256,29 +371,6 @@ export async function GET(request: NextRequest) {
     } catch (error) {
       console.error('[Dashboard] GA4 top products error:', error);
     }
-
-    const sessions = toNumber(ga4SummaryMetrics[0]?.value);
-    const purchases = eventCounts.purchase ?? 0;
-    const addToCarts = eventCounts.add_to_cart ?? 0;
-    const conversionRate = sessions > 0 ? purchases / sessions : 0;
-    const ga4 = {
-      sessions,
-      purchases,
-      addToCarts,
-      conversionRate,
-      revenue: toNumber(ga4SummaryMetrics[1]?.value),
-      trafficBySource:
-        ga4TrafficReport.rows?.map((row) => ({
-          source: row.dimensionValues?.[0]?.value || 'unknown',
-          sessions: toNumber(row.metricValues?.[0]?.value),
-        })) ?? [],
-      topProducts:
-        ga4TopProductsReport?.rows?.map((row: any) => ({
-          product: row.dimensionValues?.[0]?.value || 'Unknown',
-          quantity: toNumber(row.metricValues?.[0]?.value),
-          revenue: toNumber(row.metricValues?.[1]?.value),
-        })) ?? [],
-    };
 
     const gscSiteUrl = process.env.GSC_SITE_URL;
     const gscKey = process.env.GSC_SERVICE_ACCOUNT_JSON;
@@ -318,6 +410,8 @@ export async function GET(request: NextRequest) {
     let shopifyCounts: any = null;
     let abandonedCheckouts = 0;
     let shopifyError: string | null = null;
+    let headlessCounts: { total: number; inStock: number; outOfStock: number } | null = null;
+    let orderDaily: Array<{ date: string; orders: number; revenue: number }> = [];
     let orderSummary: {
       topProducts: Array<{ product: string; quantity: number; revenue: number }>;
       topVendors: Array<{ vendor: string; quantity: number; revenue: number }>;
@@ -325,23 +419,80 @@ export async function GET(request: NextRequest) {
       ordersCount: number;
     } = { topProducts: [], topVendors: [], totalRevenue: 0, ordersCount: 0 };
     try {
+      const headlessResult = await sql`
+        SELECT
+          COUNT(*) as total,
+          COUNT(*) FILTER (WHERE available_for_sale = TRUE) as in_stock,
+          COUNT(*) FILTER (WHERE available_for_sale = FALSE) as out_of_stock
+        FROM products
+      `;
+      headlessCounts = {
+        total: parseInt(headlessResult.rows[0]?.total || '0'),
+        inStock: parseInt(headlessResult.rows[0]?.in_stock || '0'),
+        outOfStock: parseInt(headlessResult.rows[0]?.out_of_stock || '0'),
+      };
+    } catch (error) {
+      console.error('Headless inventory error:', error);
+    }
+
+    try {
       shopifyCounts = await getShopifyCountMetrics();
       abandonedCheckouts = await getAbandonedCheckoutsCount(range.startDate, range.endDate);
       orderSummary = await getOrderLineItemSummary(range.startDate, range.endDate);
+      orderDaily = await getOrderDailySummary(range.startDate, range.endDate);
     } catch (error) {
       shopifyError =
         error instanceof Error ? error.message : 'Failed to load Shopify summary.';
       console.error('Shopify summary error:', error);
     }
 
+    const ga4SessionsSeries = ga4SessionsByDate.rows?.reduce<
+      Record<string, number>
+    >((acc, row) => {
+      const date = normalizeDate(row.dimensionValues?.[0]?.value);
+      acc[date] = (acc[date] ?? 0) + toNumber(row.metricValues?.[0]?.value);
+      return acc;
+    }, {}) ?? {};
+    const sessions = Object.values(ga4SessionsSeries).reduce((sum, value) => sum + value, 0);
+    const purchases = orderSummary.ordersCount;
+    const addToCarts = eventCounts.add_to_cart ?? 0;
+    const conversionRate = sessions > 0 ? purchases / sessions : 0;
+    const ga4SessionsSeriesRows = Object.entries(ga4SessionsSeries)
+      .map(([date, value]) => ({ date, value }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+    const ga4 = {
+      sessions,
+      addToCarts,
+      conversionRate,
+      revenue: 0,
+      trafficBySource:
+        ga4TrafficReport.rows?.map((row) => ({
+          source: row.dimensionValues?.[0]?.value || 'unknown',
+          sessions: toNumber(row.metricValues?.[0]?.value),
+        })) ?? [],
+      topProducts:
+        ga4TopProductsReport?.rows?.map((row: any) => ({
+          product: row.dimensionValues?.[0]?.value || 'Unknown',
+          quantity: toNumber(row.metricValues?.[0]?.value),
+          revenue: toNumber(row.metricValues?.[1]?.value),
+        })) ?? [],
+      series: {
+        sessions: ga4SessionsSeriesRows,
+      },
+    };
+
     let compare: any = null;
+    let compareSeries: any = null;
     if (compareRange) {
-      const [compareReport] = await client.runReport({
+      const compareSessionsByDateResponse = await client.runReport({
         property,
         dateRanges: [compareRange],
-        metrics: [{ name: 'sessions' }, { name: 'totalRevenue' }],
+        dimensions: [{ name: 'date' }, { name: 'landingPagePlusQueryString' }],
+        metrics: [{ name: 'sessions' }],
+        dimensionFilter: transactionalPathFilter,
+        orderBys: [{ dimension: { dimensionName: 'date' } }],
       });
-      const compareMetrics = compareReport.rows?.[0]?.metricValues ?? [];
+      const compareSessionsByDate = compareSessionsByDateResponse[0];
 
       const [compareEventReport] = await client.runReport({
         property,
@@ -352,7 +503,7 @@ export async function GET(request: NextRequest) {
           filter: {
             fieldName: 'eventName',
             inListFilter: {
-              values: ['add_to_cart', 'purchase'],
+              values: ['add_to_cart'],
               caseSensitive: false,
             },
           },
@@ -367,10 +518,26 @@ export async function GET(request: NextRequest) {
         {}
       ) ?? {};
 
-      const compareSessions = toNumber(compareMetrics[0]?.value);
-      const comparePurchases = compareEventCounts.purchase ?? 0;
+      const compareSessionsSeriesMap = compareSessionsByDate.rows?.reduce<
+        Record<string, number>
+      >((acc, row) => {
+        const date = normalizeDate(row.dimensionValues?.[0]?.value);
+        acc[date] = (acc[date] ?? 0) + toNumber(row.metricValues?.[0]?.value);
+        return acc;
+      }, {}) ?? {};
+      const compareSessions = Object.values(compareSessionsSeriesMap).reduce(
+        (sum, value) => sum + value,
+        0
+      );
       const compareAddToCarts = compareEventCounts.add_to_cart ?? 0;
-      const compareConversionRate = compareSessions > 0 ? comparePurchases / compareSessions : 0;
+      const compareOrderDaily = await getOrderDailySummary(
+        compareRange.startDate,
+        compareRange.endDate
+      );
+      const compareOrdersCount = compareOrderDaily.reduce((sum, row) => sum + row.orders, 0);
+      const compareRevenue = compareOrderDaily.reduce((sum, row) => sum + row.revenue, 0);
+      const compareConversionRate =
+        compareSessions > 0 ? compareOrdersCount / compareSessions : 0;
 
       const compareGscTotals =
         gscSiteUrl && gscKey && compareRange
@@ -380,6 +547,19 @@ export async function GET(request: NextRequest) {
               endDate: compareRange.endDate,
             }).catch((error) => {
               console.error('[Dashboard] GSC compare fetch failed:', error);
+              return null;
+            })
+          : null;
+
+      const compareGscOverview =
+        gscSiteUrl && gscKey && compareRange
+          ? await getGscOverview({
+              siteUrl: gscSiteUrl,
+              startDate: compareRange.startDate,
+              endDate: compareRange.endDate,
+              rowLimit: 10,
+            }).catch((error) => {
+              console.error('[Dashboard] GSC compare overview failed:', error);
               return null;
             })
           : null;
@@ -400,10 +580,12 @@ export async function GET(request: NextRequest) {
       compare = {
         ga4: {
           sessions: calcDelta(ga4.sessions, compareSessions),
-          purchases: calcDelta(ga4.purchases, comparePurchases),
           addToCarts: calcDelta(ga4.addToCarts, compareAddToCarts),
-          conversionRate: calcDelta(ga4.conversionRate, compareConversionRate),
-          revenue: calcDelta(ga4.revenue, toNumber(compareMetrics[1]?.value)),
+        },
+        orders: {
+          totalOrders: calcDelta(orderSummary.ordersCount, compareOrdersCount),
+          totalRevenue: calcDelta(orderSummary.totalRevenue, compareRevenue),
+          conversionRate: calcDelta(conversionRate, compareConversionRate),
         },
         gsc: compareGscTotals
           ? {
@@ -424,6 +606,26 @@ export async function GET(request: NextRequest) {
           ),
         },
       };
+
+      const compareSessionsSeries = Object.entries(compareSessionsSeriesMap)
+        .map(([date, value]) => ({ date, value }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+      const comparePurchasesSeries = compareOrderDaily.map((row) => ({
+        date: row.date,
+        value: row.orders,
+      }));
+
+      compareSeries = {
+        orders: compareOrderDaily.map((row) => ({ date: row.date, value: row.orders })),
+        revenue: compareOrderDaily.map((row) => ({ date: row.date, value: row.revenue })),
+        sessions: compareSessionsSeries,
+        purchases: comparePurchasesSeries,
+        conversionRate: buildRateSeries(compareSessionsSeries, comparePurchasesSeries),
+        gscClicks: compareGscOverview?.byDate?.map((row) => ({
+          date: row.date,
+          value: row.clicks,
+        })) ?? [],
+      };
     }
 
     return NextResponse.json({
@@ -436,6 +638,7 @@ export async function GET(request: NextRequest) {
             clicks: gsc.totals.clicks,
             impressions: gsc.totals.impressions,
             topQueries: gsc.topQueries,
+            byDate: gsc.byDate,
           }
         : null,
       reviews: {
@@ -457,14 +660,17 @@ export async function GET(request: NextRequest) {
         ],
       },
       customers: {
-        total: shopifyCounts?.customersTotal ?? null,
-        returning: shopifyCounts?.customersReturning ?? null,
+        total: shopifyCounts?.customersTotal?.count ?? null,
+        returning: shopifyCounts?.customersReturning?.count ?? null,
         abandonedCarts: abandonedCheckouts,
       },
       inventory: {
-        totalProducts: shopifyCounts?.productsTotal ?? null,
-        inStock: shopifyCounts?.productsInStock ?? null,
-        outOfStock: shopifyCounts?.productsOutOfStock ?? null,
+        headless: headlessCounts,
+        shopifyCatalog: {
+          totalProducts: shopifyCounts?.productsTotal?.count ?? null,
+          inStock: shopifyCounts?.productsInStock?.count ?? null,
+          outOfStock: shopifyCounts?.productsOutOfStock?.count ?? null,
+        },
         topVendors: orderSummary.topVendors,
         revenueByVendor: orderSummary.topVendors,
       },
@@ -473,6 +679,18 @@ export async function GET(request: NextRequest) {
         totalOrders: orderSummary.ordersCount,
         topProducts: orderSummary.topProducts,
       },
+      series: {
+        orders: orderDaily.map((row) => ({ date: row.date, value: row.orders })),
+        revenue: orderDaily.map((row) => ({ date: row.date, value: row.revenue })),
+        sessions: ga4.series.sessions,
+        purchases: orderDaily.map((row) => ({ date: row.date, value: row.orders })),
+        conversionRate: buildRateSeries(
+          ga4.series.sessions,
+          orderDaily.map((row) => ({ date: row.date, value: row.orders }))
+        ),
+        gscClicks: gsc?.byDate?.map((row) => ({ date: row.date, value: row.clicks })) ?? [],
+      },
+      compareSeries,
       shopifyError,
     });
   } catch (error) {
