@@ -314,6 +314,24 @@ export default function PerformancePage() {
     return colors[priority as keyof typeof colors] || colors.low;
   };
 
+  const getCwvStatus = (scan: Scan) => {
+    const fcp = Number(scan.fcp);
+    const lcp = Number(scan.lcp);
+    const cls = Number(scan.cls);
+    const tbt = Number(scan.tbt);
+    const si = Number(scan.si);
+    const pass =
+      fcp <= 1.8 &&
+      lcp <= 2.5 &&
+      cls <= 0.1 &&
+      tbt <= 200 &&
+      si <= 3.4;
+    return {
+      text: pass ? 'Pass' : 'Fail',
+      tone: pass ? 'positive' : 'negative',
+    };
+  };
+
   const buildImplementationPrompt = (recommendations: AIRecommendations | null) => {
     if (!recommendations) return '';
     const priorityIssues = recommendations.priority_issues?.length
@@ -786,6 +804,12 @@ export default function PerformancePage() {
             { key: 'performance', header: 'Performance' },
             { key: 'accessibility', header: 'A11y' },
             { key: 'seo', header: 'SEO' },
+            { key: 'fcp', header: 'FCP' },
+            { key: 'lcp', header: 'LCP' },
+            { key: 'cls', header: 'CLS' },
+            { key: 'tbt', header: 'TBT' },
+            { key: 'si', header: 'SI' },
+            { key: 'cwv', header: 'CWV' },
             { key: 'actions', header: '' },
           ]}
           rows={history.map((scan) => ({
@@ -796,6 +820,12 @@ export default function PerformancePage() {
             performance: scan.performance_score.toString(),
             accessibility: scan.accessibility_score.toString(),
             seo: scan.seo_score.toString(),
+            fcp: `${Number(scan.fcp).toFixed(2)}s`,
+            lcp: `${Number(scan.lcp).toFixed(2)}s`,
+            cls: Number(scan.cls).toFixed(3),
+            tbt: `${Number(scan.tbt).toFixed(0)}ms`,
+            si: `${Number(scan.si).toFixed(2)}s`,
+            cwv: getCwvStatus(scan),
             actions: (
               <div className="flex items-center gap-3">
                 <button

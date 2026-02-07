@@ -38,14 +38,24 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={manrope.variable}>
+      <head>
+        {/* Resource hints for Shopify domains - reduces connection time by 200-400ms */}
+        <link rel="dns-prefetch" href="https://theequestrian.myshopify.com" />
+        <link rel="preconnect" href="https://theequestrian.myshopify.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://cdn.shopify.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://monorail-edge.shopifysvc.com" />
+        {/* Preload hero image for faster LCP */}
+        <link rel="preload" as="image" href="/hero-image-v2.jpg" fetchPriority="high" />
+      </head>
       <body className={manrope.className}>
         {gaMeasurementId ? (
           <>
+            {/* Defer GA4 to idle for better initial load performance */}
             <Script
               src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}
-              strategy="afterInteractive"
+              strategy="idle"
             />
-            <Script id="ga4-init" strategy="afterInteractive">
+            <Script id="ga4-init" strategy="idle">
               {`
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){dataLayer.push(arguments);}

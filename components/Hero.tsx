@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface HeroProps {
   title?: React.ReactNode;
@@ -17,7 +18,7 @@ interface HeroProps {
  * Design:
  * - Full-width visually striking hero
  * - Reduced overlay opacity for better image visibility
- * - Direct image URL to ensure loading
+ * - Optimized with Next.js Image component for LCP improvement
  */
 export function Hero({
   title = 'Premium Equestrian Equipment',
@@ -31,12 +32,16 @@ export function Hero({
 }: HeroProps) {
   return (
     <section className="relative h-[600px] w-full overflow-hidden bg-gray-900">
-      {/* Background Image - Centered to balance rider position */}
+      {/* Background Image - Optimized for LCP */}
       <div className="absolute inset-0 w-full h-full">
-        <img 
+        <Image 
           src={backgroundImageSrc}
           alt={backgroundImageAlt}
-          className="h-full w-full object-cover object-center"
+          fill
+          priority
+          quality={85}
+          sizes="100vw"
+          className="object-cover object-center"
         />
         {/* Gradient Overlay: Dark opacity on left for text, transparent on right for image clarity */}
         <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-900/50 to-transparent" />
