@@ -11,6 +11,7 @@ const SEARCH_PRODUCTS_QUERY = `
           id
           handle
           title
+          availableForSale
           priceRange {
             minVariantPrice {
               amount
@@ -73,6 +74,7 @@ export async function GET(request: Request) {
             id: string;
             handle: string;
             title: string;
+            availableForSale: boolean;
             priceRange: {
               minVariantPrice: {
                 amount: string;
@@ -115,7 +117,13 @@ export async function GET(request: Request) {
       ),
     ]);
 
-    const productResults = productData.products.edges.map(({ node }) => ({
+    // Sort products: In-stock first, out-of-stock last
+    const sortedProducts = productData.products.edges.sort((a, b) => {
+      if (a.node.availableForSale === b.node.availableForSale) return 0;
+      return a.node.availableForSale ? -1 : 1;
+    });
+
+    const productResults = sortedProducts.map(({ node }) => ({
       type: 'product' as const,
       id: node.id,
       handle: node.handle,

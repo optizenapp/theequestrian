@@ -113,6 +113,7 @@ export async function searchProducts(
     const totalCount = parseInt(countResult[0].total);
     
     // Get products with pagination
+    // Sort by: 1) In-stock first, 2) Created date (newest first)
     let productsResult: any[];
     if (conditions.length === 0) {
       productsResult = await sql`
@@ -120,7 +121,7 @@ export async function searchProducts(
           id, handle, title, description, vendor, product_type,
           tags, image_url, image_alt, available_for_sale, shopify_created_at
         FROM products
-        ORDER BY shopify_created_at DESC
+        ORDER BY available_for_sale DESC, shopify_created_at DESC
         LIMIT ${limit} OFFSET ${offset}
       ` as unknown as any[];
     } else {
@@ -130,7 +131,7 @@ export async function searchProducts(
           tags, image_url, image_alt, available_for_sale, shopify_created_at
         FROM products
         ${whereClause}
-        ORDER BY shopify_created_at DESC
+        ORDER BY available_for_sale DESC, shopify_created_at DESC
         LIMIT ${limit} OFFSET ${offset}
       `;
       productsResult = await sql.unsafe(productsQuery) as unknown as any[];

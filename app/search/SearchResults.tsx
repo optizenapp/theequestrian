@@ -62,6 +62,12 @@ export async function SearchResults({ query }: SearchResultsProps) {
 
     const products = data.products.edges.map(({ node }) => node);
 
+    // Sort products: In-stock first, out-of-stock last
+    products.sort((a, b) => {
+      if (a.availableForSale === b.availableForSale) return 0;
+      return a.availableForSale ? -1 : 1;
+    });
+
     if (products.length === 0) {
       return (
         <div className="text-center py-20">

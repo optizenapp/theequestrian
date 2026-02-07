@@ -104,12 +104,18 @@ export function ProductGridWithFilters({
   }, [hydratedProducts, filters]);
   
   // Apply sorting to filtered products
+  // IMPORTANT: Always keep in-stock products before out-of-stock products
   const sortedProducts = useMemo(() => {
     const productsToSort = [...filteredProducts];
     
     switch (sortBy) {
       case 'price-asc':
         return productsToSort.sort((a, b) => {
+          // First: Sort by availability (in-stock first)
+          if (a.availableForSale !== b.availableForSale) {
+            return a.availableForSale ? -1 : 1;
+          }
+          // Second: Sort by price
           const priceA = parseFloat(a.priceRange?.minVariantPrice?.amount || '0');
           const priceB = parseFloat(b.priceRange?.minVariantPrice?.amount || '0');
           return priceA - priceB;
@@ -117,6 +123,11 @@ export function ProductGridWithFilters({
       
       case 'price-desc':
         return productsToSort.sort((a, b) => {
+          // First: Sort by availability (in-stock first)
+          if (a.availableForSale !== b.availableForSale) {
+            return a.availableForSale ? -1 : 1;
+          }
+          // Second: Sort by price
           const priceA = parseFloat(a.priceRange?.minVariantPrice?.amount || '0');
           const priceB = parseFloat(b.priceRange?.minVariantPrice?.amount || '0');
           return priceB - priceA;
@@ -124,6 +135,11 @@ export function ProductGridWithFilters({
       
       case 'newest':
         return productsToSort.sort((a, b) => {
+          // First: Sort by availability (in-stock first)
+          if (a.availableForSale !== b.availableForSale) {
+            return a.availableForSale ? -1 : 1;
+          }
+          // Second: Sort by date
           const dateA = new Date(a.createdAt || 0).getTime();
           const dateB = new Date(b.createdAt || 0).getTime();
           return dateB - dateA; // Newest first
@@ -131,6 +147,11 @@ export function ProductGridWithFilters({
       
       case 'oldest':
         return productsToSort.sort((a, b) => {
+          // First: Sort by availability (in-stock first)
+          if (a.availableForSale !== b.availableForSale) {
+            return a.availableForSale ? -1 : 1;
+          }
+          // Second: Sort by date
           const dateA = new Date(a.createdAt || 0).getTime();
           const dateB = new Date(b.createdAt || 0).getTime();
           return dateA - dateB; // Oldest first
@@ -138,6 +159,11 @@ export function ProductGridWithFilters({
       
       case 'on-sale':
         return productsToSort.sort((a, b) => {
+          // First: Sort by availability (in-stock first)
+          if (a.availableForSale !== b.availableForSale) {
+            return a.availableForSale ? -1 : 1;
+          }
+          // Second: Sort by sale status
           const aOnSale = a.compareAtPriceRange?.minVariantPrice && 
             parseFloat(a.compareAtPriceRange.minVariantPrice.amount) > parseFloat(a.priceRange?.minVariantPrice?.amount || '0');
           const bOnSale = b.compareAtPriceRange?.minVariantPrice && 
@@ -149,7 +175,13 @@ export function ProductGridWithFilters({
       
       case 'featured':
       default:
-        return productsToSort; // Keep original order
+        // For featured, still maintain in-stock first
+        return productsToSort.sort((a, b) => {
+          if (a.availableForSale !== b.availableForSale) {
+            return a.availableForSale ? -1 : 1;
+          }
+          return 0; // Keep original order for same availability
+        });
     }
   }, [filteredProducts, sortBy]);
 
