@@ -115,7 +115,7 @@ export function TrustSignals() {
         </div>
 
         {/* Mobile/Tablet: Carousel */}
-        <div className="lg:hidden relative -mx-4">
+        <div className="lg:hidden relative">
           <div 
             ref={scrollContainerRef}
             className="flex gap-6 overflow-x-auto scroll-smooth scrollbar-hide pb-4"
