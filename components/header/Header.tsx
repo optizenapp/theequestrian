@@ -23,10 +23,10 @@ export function Header() {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 bg-surface shadow-sm">
+    <header className="sticky top-0 z-50 bg-surface shadow-sm overflow-x-hidden">
       <div className="border-b border-gray-100 py-4">
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center gap-4">
+          <div className="flex h-16 items-center gap-2 lg:gap-4">
             {/* 1. Logo */}
             <div className="flex-shrink-0">
               <Logo variant="full" className="h-8 w-auto" />

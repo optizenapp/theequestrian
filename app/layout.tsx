@@ -74,7 +74,7 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
       </head>
-      <body className={manrope.className}>
+      <body className={`${manrope.className} overflow-x-hidden`}>
         {gaMeasurementId ? (
           <>
             {/* Defer GA4 to lazyOnload for better initial load performance */}
@@ -98,7 +98,7 @@ export default function RootLayout({
           <NavigationProgress />
           <FreeShippingBanner />
           <Header />
-          <main className="min-h-screen">
+          <main className="min-h-screen overflow-x-hidden">
             {children}
           </main>
           <Footer />
