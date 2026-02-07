@@ -72,7 +72,10 @@
     "redirects:audit": "tsx scripts/audit-manual-redirects.ts",
     "404s:rollup": "tsx scripts/rollup-404s.ts",
     "404s:scan": "tsx scripts/scan-404s.ts",
-    "performance:init": "tsx scripts/init-performance-table.ts"
+    "performance:init": "tsx scripts/init-performance-table.ts",
+    "feed:export": "tsx scripts/export-gmc-feed.ts",
+    "feed:audit": "tsx scripts/audit-gmc-feed.ts --feed exports/gmc-feed-latest.xml",
+    "feed:validate-taxonomy": "tsx scripts/validate-gmc-taxonomy.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.73.0",

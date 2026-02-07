@@ -106,6 +106,8 @@ export interface ShopifyVariant {
     amount: string;
     currencyCode: string;
   } | null;
+  sku?: string | null;
+  barcode?: string | null;
   selectedOptions: Array<{
     name: string;
     value: string;

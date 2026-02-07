@@ -55,6 +55,8 @@ export const PRODUCT_FRAGMENT = `
             amount
             currencyCode
           }
+          sku
+          barcode
           selectedOptions {
             name
             value
@@ -224,7 +226,7 @@ export const GET_ALL_PRODUCTS = `
               currencyCode
             }
           }
-          images(first: 1) {
+          images(first: 10) {
             edges {
               node {
                 url
@@ -248,9 +250,17 @@ export const GET_ALL_PRODUCTS = `
                   amount
                   currencyCode
                 }
+                sku
+                barcode
                 selectedOptions {
                   name
                   value
+                }
+                image {
+                  url
+                  altText
+                  width
+                  height
                 }
               }
             }
