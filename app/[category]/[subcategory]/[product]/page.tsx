@@ -368,20 +368,22 @@ async function renderSubSubcategoryPage(
           <CollectionDescription 
             description={description}
           />
-          
-          {/* Sibling Sub-subcategories Pills */}
-          {siblingSubSubcategories.length > 0 && (
-            <CategoryPills 
-              categories={siblingSubSubcategories.map(s => ({ handle: s.handle, label: s.label }))}
-              basePath={`/${category}/${subcategory}`}
-            />
-          )}
         </div>
 
         {/* Trust Signals */}
         <div className="mb-8 -mx-4">
           <TrustSignals />
         </div>
+
+        {/* Sibling Sub-subcategories Pills */}
+        {siblingSubSubcategories.length > 0 && (
+          <div className="mb-8">
+            <CategoryPills 
+              categories={siblingSubSubcategories.map(s => ({ handle: s.handle, label: s.label }))}
+              basePath={`/${category}/${subcategory}`}
+            />
+          </div>
+        )}
 
         {/* Products Grid with Filters */}
         <Suspense fallback={<div className="text-center py-12">Loading products...</div>}>

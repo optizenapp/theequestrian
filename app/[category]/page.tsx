@@ -264,17 +264,19 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
           <CollectionDescription 
             description={description}
           />
-          
-          {/* Subcategories as Pills */}
-          <CategoryPills 
-            categories={subcategories.map(s => ({ handle: s.handle, label: s.label }))}
-            basePath={`/${category}`}
-          />
         </div>
 
         {/* Trust Signals */}
         <div className="mb-8 -mx-4">
           <TrustSignals />
+        </div>
+
+        {/* Subcategories as Pills */}
+        <div className="mb-8">
+          <CategoryPills 
+            categories={subcategories.map(s => ({ handle: s.handle, label: s.label }))}
+            basePath={`/${category}`}
+          />
         </div>
 
         {/* Products Grid with Filters */}

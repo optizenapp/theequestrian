@@ -175,17 +175,19 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
           <CollectionDescription 
             description={description}
           />
-          
-          {/* Sub-subcategories as Pills (3rd level) */}
-          <CategoryPills 
-            categories={subSubcategories.map(s => ({ handle: s.handle, label: s.label }))}
-            basePath={`/${category}/${subcategory}`}
-          />
         </div>
 
         {/* Trust Signals */}
         <div className="mb-8 -mx-4">
           <TrustSignals />
+        </div>
+
+        {/* Sub-subcategories as Pills (3rd level) */}
+        <div className="mb-8">
+          <CategoryPills 
+            categories={subSubcategories.map(s => ({ handle: s.handle, label: s.label }))}
+            basePath={`/${category}/${subcategory}`}
+          />
         </div>
 
         {/* Products Grid with Filters */}
