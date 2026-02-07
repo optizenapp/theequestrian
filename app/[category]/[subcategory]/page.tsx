@@ -168,11 +168,6 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
         {/* Breadcrumb */}
         <CollectionBreadcrumbs breadcrumbs={breadcrumbs} />
 
-        {/* Trust Signals */}
-        <div className="mb-8 -mx-4">
-          <TrustSignals />
-        </div>
-
         {/* Collection Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-6">{pageTitle}</h1>
@@ -186,6 +181,11 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
             categories={subSubcategories.map(s => ({ handle: s.handle, label: s.label }))}
             basePath={`/${category}/${subcategory}`}
           />
+        </div>
+
+        {/* Trust Signals */}
+        <div className="mb-8 -mx-4">
+          <TrustSignals />
         </div>
 
         {/* Products Grid with Filters */}

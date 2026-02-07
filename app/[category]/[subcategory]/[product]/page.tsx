@@ -360,11 +360,6 @@ async function renderSubSubcategoryPage(
         {/* Breadcrumb */}
         <CollectionBreadcrumbs breadcrumbs={breadcrumbs} />
 
-        {/* Trust Signals */}
-        <div className="mb-8 -mx-4">
-          <TrustSignals />
-        </div>
-
         {/* Collection Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-6">{pageTitle}</h1>
@@ -381,6 +376,11 @@ async function renderSubSubcategoryPage(
               basePath={`/${category}/${subcategory}`}
             />
           )}
+        </div>
+
+        {/* Trust Signals */}
+        <div className="mb-8 -mx-4">
+          <TrustSignals />
         </div>
 
         {/* Products Grid with Filters */}

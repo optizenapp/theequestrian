@@ -256,11 +256,6 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         {/* Breadcrumb */}
         <CollectionBreadcrumbs breadcrumbs={breadcrumbs} />
 
-        {/* Trust Signals */}
-        <div className="mb-8 -mx-4">
-          <TrustSignals />
-        </div>
-
         {/* Collection Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-6">{pageTitle}</h1>
@@ -275,6 +270,11 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             categories={subcategories.map(s => ({ handle: s.handle, label: s.label }))}
             basePath={`/${category}`}
           />
+        </div>
+
+        {/* Trust Signals */}
+        <div className="mb-8 -mx-4">
+          <TrustSignals />
         </div>
 
         {/* Products Grid with Filters */}
