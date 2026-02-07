@@ -17,7 +17,12 @@ const nextConfig: NextConfig = {
   },
   // Optimize package imports to reduce bundle size
   experimental: {
-    optimizePackageImports: ['react-icons', 'recharts'],
+    optimizePackageImports: [
+      'react-icons', 
+      'recharts',
+      '@react-email/components',
+      '@react-email/render',
+    ],
   },
   // Production optimizations
   compiler: {
@@ -27,11 +32,12 @@ const nextConfig: NextConfig = {
     } : false,
   },
   // Modularize imports to enable tree-shaking
-  modularizeImports: {
-    'react-icons': {
-      transform: 'react-icons/{{member}}',
-    },
-  },
+  // Note: Removed react-icons modularization as it conflicts with Turbopack
+  // optimizePackageImports handles this automatically
+  modularizeImports: {},
+  // Turbopack configuration (Next.js 16 default)
+  // Empty config to silence the webpack warning
+  turbopack: {},
 };
 
 export default nextConfig;

@@ -50,12 +50,12 @@ export default function RootLayout({
       <body className={manrope.className}>
         {gaMeasurementId ? (
           <>
-            {/* Defer GA4 to idle for better initial load performance */}
+            {/* Defer GA4 to lazyOnload for better initial load performance */}
             <Script
               src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}
-              strategy="idle"
+              strategy="lazyOnload"
             />
-            <Script id="ga4-init" strategy="idle">
+            <Script id="ga4-init" strategy="lazyOnload">
               {`
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){dataLayer.push(arguments);}

@@ -1,8 +1,8 @@
 import { notFound, permanentRedirect, redirect } from 'next/navigation';
 import { Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import { getProductsByTypes, getProductCanonicalUrls } from '@/lib/shopify/products';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
-import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
 import { 
   getProductTypesForCollection, 
@@ -14,14 +14,40 @@ import { TrustSignals } from '@/components/TrustSignals';
 import { CategoryPills } from '@/components/CategoryPills';
 import { CollectionDescription } from '@/components/CollectionDescription';
 import { CollectionBreadcrumbs } from '@/components/CollectionBreadcrumbs';
-import { FAQSection } from '@/components/collection/FAQSection';
-import { RelatedCategories } from '@/components/collection/RelatedCategories';
-import { RichContent } from '@/components/collection/RichContent';
 import { getCategoryContent } from '@/lib/content/collections';
 import { getAllowedBrandVendors } from '@/lib/filters/brand-filter-helper';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { getManualRedirect } from '@/lib/redirects/manual';
+
+// Lazy load below-the-fold components for better Speed Index
+const ProductGridWithFilters = dynamic(
+  () => import('@/components/filters/ProductGridWithFilters').then((mod) => ({ default: mod.ProductGridWithFilters })),
+  {
+    loading: () => <div className="text-center py-12 min-h-[400px] bg-gray-50 animate-pulse rounded-lg">Loading products...</div>,
+  }
+);
+
+const FAQSection = dynamic(
+  () => import('@/components/collection/FAQSection').then((mod) => ({ default: mod.FAQSection })),
+  {
+    loading: () => <div className="h-64 bg-gray-50 animate-pulse rounded-lg" />,
+  }
+);
+
+const RelatedCategories = dynamic(
+  () => import('@/components/collection/RelatedCategories').then((mod) => ({ default: mod.RelatedCategories })),
+  {
+    loading: () => <div className="h-48 bg-gray-50 animate-pulse rounded-lg" />,
+  }
+);
+
+const RichContent = dynamic(
+  () => import('@/components/collection/RichContent').then((mod) => ({ default: mod.RichContent })),
+  {
+    loading: () => <div className="h-64 bg-gray-50 animate-pulse rounded-lg" />,
+  }
+);
 
 // ISR Configuration: Revalidate every 15 minutes
 export const revalidate = 900;
