@@ -39,6 +39,12 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -51,6 +57,10 @@ export default function RootLayout({
         <link rel="preconnect" href="https://theequestrian.myshopify.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://cdn.shopify.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://monorail-edge.shopifysvc.com" />
+        
+        {/* Analytics and tracking domains */}
+        <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         
         {/* Preload critical assets for faster LCP */}
         <link rel="preload" as="image" href="/hero-image-v2.jpg" fetchPriority="high" />

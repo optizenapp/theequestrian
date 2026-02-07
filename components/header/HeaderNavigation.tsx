@@ -110,7 +110,7 @@ export function HeaderNavigation() {
           }}
           onMouseLeave={handleMouseLeave}
         >
-          <div className="w-[calc(100vw-2rem)] max-w-6xl">
+          <div className="w-full max-w-6xl px-4">
             <MegaMenuWrapper 
               categoryLabel={activeMenu} 
               onClose={() => setActiveMenu(null)}

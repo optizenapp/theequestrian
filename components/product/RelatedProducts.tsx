@@ -1,6 +1,9 @@
+'use client';
+
 import { ProductCard } from '@/components/ProductCard';
 import type { ShopifyProduct } from '@/types/shopify';
 import type { ReviewStats } from '@/lib/reviews/stats';
+import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
 
 interface RelatedProductsProps {
   products: ShopifyProduct[];
@@ -8,27 +11,40 @@ interface RelatedProductsProps {
 }
 
 export function RelatedProducts({ products, reviewStatsMap }: RelatedProductsProps) {
+  const { ref, isVisible } = useIntersectionObserver({ rootMargin: '200px' });
+
   if (!products || products.length === 0) {
     return null;
   }
 
   return (
-    <section className="py-16 border-t border-gray-100">
+    <section ref={ref} className="py-16 border-t border-gray-100">
       <div className="flex items-center justify-between mb-8">
         <h2 className="text-2xl font-bold text-gray-900">You might also like</h2>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {products.map((product) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            // Use fallback URL for related products as they might be from different categories
-            canonicalUrl={`/products/${product.handle}`}
-            reviewStats={reviewStatsMap?.get(product.handle)}
-          />
-        ))}
-      </div>
+      {isVisible ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {products.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              // Use fallback URL for related products as they might be from different categories
+              canonicalUrl={`/products/${product.handle}`}
+              reviewStats={reviewStatsMap?.get(product.handle)}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {products.map((product) => (
+            <div 
+              key={product.id}
+              className="h-80 bg-gray-100 animate-pulse rounded-lg"
+            />
+          ))}
+        </div>
+      )}
     </section>
   );
 }

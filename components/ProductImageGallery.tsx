@@ -108,9 +108,10 @@ export function ProductImageGallery({ images, productTitle }: ProductImageGaller
                 src={getShopifyImageUrl(image.url, '160x160')}
                 alt={image.altText || `${productTitle} - Image ${index + 1}`}
                 className="w-full h-full object-cover"
-                loading="lazy"
+                loading={index < 4 ? 'eager' : 'lazy'}
                 width="80"
                 height="80"
+                decoding={index < 4 ? 'sync' : 'async'}
               />
             </button>
           ))}

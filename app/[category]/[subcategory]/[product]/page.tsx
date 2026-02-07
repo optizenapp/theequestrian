@@ -1,5 +1,6 @@
 import { notFound, permanentRedirect, redirect } from 'next/navigation';
 import { Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import { getProductsByTypes, getProductByHandle, getProductCanonicalUrl, getRecommendedProducts } from '@/lib/shopify/products';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
@@ -28,13 +29,21 @@ import { generateBreadcrumbSchema } from '@/lib/utils/breadcrumb-schema';
 import { generateProductSchemaGraph } from '@/lib/utils/product-schema';
 import { getReviewStatsWithCache } from '@/lib/reviews/get-review-stats';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
-import ProductReviewSection from '@/components/reviews/ProductReviewSection';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
+import { LazySection } from '@/components/LazySection';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import type { ShopifyProduct } from '@/types/shopify';
 import { getManualRedirect } from '@/lib/redirects/manual';
+
+// Lazy load heavy below-the-fold components to improve LCP
+const ProductReviewSection = dynamic(
+  () => import('@/components/reviews/ProductReviewSection'),
+  {
+    loading: () => <div className="h-96 bg-gray-50 animate-pulse rounded-lg" />,
+  }
+);
 
 // ISR Configuration: Revalidate every 15 minutes
 export const revalidate = 900;
@@ -240,13 +249,19 @@ async function renderProductPage(product: ShopifyProduct, canonicalPath?: string
         />
         
         {/* Reviews Section - Full Width Below Product */}
-        <ProductReviewSection
-          productId={product.id}
-          productHandle={product.handle}
-          productTitle={product.title}
-        />
+        <LazySection
+          fallback={<div className="h-96 bg-gray-50 animate-pulse rounded-lg" />}
+          minHeight="24rem"
+          rootMargin="300px"
+        >
+          <ProductReviewSection
+            productId={product.id}
+            productHandle={product.handle}
+            productTitle={product.title}
+          />
+        </LazySection>
 
-        {/* Related Products */}
+        {/* Related Products - Already has intersection observer built-in */}
         <RelatedProducts 
           products={relatedProducts} 
           reviewStatsMap={relatedReviewStatsMap}

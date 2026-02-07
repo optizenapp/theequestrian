@@ -81,7 +81,7 @@ export function Hero({
       {/* Wavy Bottom Separator */}
       <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0]">
         <svg 
-          className="relative block w-[calc(100%+1.3px)] h-[50px] text-gray-50" 
+          className="relative block w-full h-[50px] text-gray-50" 
           data-name="Layer 1" 
           xmlns="http://www.w3.org/2000/svg" 
           viewBox="0 0 1200 120" 
