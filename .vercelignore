@@ -1,0 +1,11 @@
+# Exclude large export files from deployment
+exports/
+reports/
+tmp_pdf_textutil.txt
+tmp_pdf_text.txt
+from-discovery-to-influence-a-guide-to-aeo-and-geo.pdf
+
+# Keep git ignored files out
+.env.local
+.env
+node_modules/
