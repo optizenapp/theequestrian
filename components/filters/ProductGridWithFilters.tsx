@@ -250,7 +250,7 @@ export function ProductGridWithFilters({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
-      if (!target.closest('#sort-dropdown')) {
+      if (!target.closest('#sort-dropdown') && !target.closest('#sort-dropdown-mobile')) {
         setIsSortDropdownOpen(false);
       }
     };
@@ -271,11 +271,6 @@ export function ProductGridWithFilters({
           window.location.href = `/${currentCategory}${currentSubcategory ? `/${currentSubcategory}` : ''}`;
         }}
       />
-
-      {/* Mobile Filter Button */}
-      <div className="lg:hidden mb-4">
-        <FilterButton onClick={() => setIsMobileFilterOpen(true)} activeFilterCount={Object.keys(filters).length} />
-      </div>
 
       <div className="flex gap-8">
         {/* Sidebar Filters - Desktop */}
@@ -317,28 +312,69 @@ export function ProductGridWithFilters({
 
         {/* Product Grid */}
         <div className="flex-1">
-          {/* Results count and Sort */}
-          <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <p className="text-gray-600">
-                {totalCount !== undefined ? (
-                  <>Showing {totalCount} {totalCount === 1 ? 'result' : 'results'}</>
-                ) : (
-                  <>
-                    Showing {sortedProducts.length} {sortedProducts.length === 1 ? 'product' : 'products'} on this page
-                    {pageInfo?.hasNextPage && <span className="text-gray-500"> (more available)</span>}
-                  </>
-                )}
-              </p>
-              {/* Prices update silently in background - no indicator needed to prevent CLS */}
-            </div>
+          {/* Mobile: Filter Button and Sort on same line */}
+          <div className="lg:hidden mb-4 flex items-center justify-between gap-3">
+            <FilterButton onClick={() => setIsMobileFilterOpen(true)} activeFilterCount={Object.keys(filters).length} />
             
-            {/* Custom Sort Dropdown */}
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
-                Sort by:
-              </span>
-              <div id="sort-dropdown" className="relative">
+            {/* Sort Dropdown - Mobile */}
+            <div id="sort-dropdown-mobile" className="relative flex-1 max-w-[200px]">
+              <button
+                type="button"
+                onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
+                className="w-full flex items-center justify-between gap-2 bg-white pl-3 pr-2 py-2.5 text-sm font-medium text-gray-900 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all cursor-pointer"
+              >
+                <span className="truncate">{currentSortLabel}</span>
+                <svg 
+                  className={`h-4 w-4 text-gray-400 transition-transform flex-shrink-0 ${isSortDropdownOpen ? 'rotate-180' : ''}`} 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  viewBox="0 0 20 20" 
+                  fill="currentColor"
+                >
+                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+              
+              {isSortDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-full min-w-[200px] bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                  {sortOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => handleSortChange(option.value)}
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                        sortBy === option.value
+                          ? 'bg-primary/5 text-primary font-medium'
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Results count - Centered on mobile */}
+          <div className="mb-6">
+            <p className="text-gray-600 text-center lg:text-left">
+              {totalCount !== undefined ? (
+                <>Showing {totalCount} {totalCount === 1 ? 'result' : 'results'}</>
+              ) : (
+                <>
+                  Showing {sortedProducts.length} {sortedProducts.length === 1 ? 'product' : 'products'} on this page
+                  {pageInfo?.hasNextPage && <span className="text-gray-500"> (more available)</span>}
+                </>
+              )}
+            </p>
+          </div>
+          
+          {/* Desktop: Sort Dropdown */}
+          <div className="hidden lg:flex mb-6 items-center justify-end gap-3">
+            <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
+              Sort by:
+            </span>
+            <div id="sort-dropdown" className="relative">
                 {/* Dropdown Button */}
                 <button
                   type="button"
@@ -377,7 +413,6 @@ export function ProductGridWithFilters({
                 )}
               </div>
             </div>
-          </div>
 
           {sortedProducts.length === 0 ? (
             <div className="text-center py-12">
