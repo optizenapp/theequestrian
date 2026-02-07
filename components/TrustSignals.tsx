@@ -67,7 +67,7 @@ const trustSignals = [
 export function TrustSignals() {
 
   return (
-    <section className="py-4 md:py-6">
+    <section className="py-4 md:py-6 overflow-hidden">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Desktop: Grid Layout (5 columns) */}
         <div className="hidden lg:grid lg:grid-cols-5 gap-4">
