@@ -4,8 +4,16 @@ import './globals.css';
 import { Header } from '@/components/header/Header';
 import { FreeShippingBanner } from '@/components/header/FreeShippingBanner';
 import { Footer } from '@/components/footer/Footer';
+import dynamic from 'next/dynamic';
 import { CartProvider } from '@/components/cart/cart-context';
-import { CartDrawer } from '@/components/cart/CartDrawer';
+
+// Lazy load cart drawer - only loads when user interacts with cart
+const CartDrawer = dynamic(
+  () => import('@/components/cart/CartDrawer').then((mod) => ({ default: mod.CartDrawer })),
+  {
+    loading: () => null,
+  }
+);
 import { NavigationProgress } from '@/components/NavigationProgress';
 import { ConfiguredShopifyInbox } from '@/components/chat/ConfiguredShopifyInbox';
 import Script from 'next/script';
@@ -39,13 +47,22 @@ export default function RootLayout({
   return (
     <html lang="en" className={manrope.variable}>
       <head>
-        {/* Resource hints for Shopify domains - reduces connection time by 200-400ms */}
-        <link rel="dns-prefetch" href="https://theequestrian.myshopify.com" />
+        {/* Critical resource hints - reduces connection time by 200-400ms */}
         <link rel="preconnect" href="https://theequestrian.myshopify.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://cdn.shopify.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://monorail-edge.shopifysvc.com" />
-        {/* Preload hero image for faster LCP */}
+        
+        {/* Preload critical assets for faster LCP */}
         <link rel="preload" as="image" href="/hero-image-v2.jpg" fetchPriority="high" />
+        
+        {/* Preload fonts to prevent layout shift */}
+        <link
+          rel="preload"
+          href="https://fonts.gstatic.com/s/manrope/v15/xn7_YHE41ni1AdIRqAuZuw1Bx9mbZk59FO_F87jxeN7B.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
       </head>
       <body className={manrope.className}>
         {gaMeasurementId ? (

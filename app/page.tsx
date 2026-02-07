@@ -6,32 +6,34 @@ import { getProductsByHandlesAlt } from '@/lib/shopify/products-by-handles';
 import { ReviewStars } from '@/components/reviews/ReviewStars';
 import type { ShopifyProductCard } from '@/types/shopify';
 import Link from 'next/link';
+import { LazySection } from '@/components/LazySection';
 
+// Aggressively lazy load below-the-fold components to improve LCP
 const MostWantedCarousel = dynamic(
   () => import('@/components/MostWantedCarousel').then((mod) => mod.MostWantedCarousel),
   {
-    loading: () => <div className="h-96 bg-white animate-pulse" />,
+    loading: () => <div className="h-96 bg-white animate-pulse rounded-lg" />,
   }
 );
 
 const BestDealsSliderContainer = dynamic(
   () => import('@/components/home/BestDealsSliderContainer').then((mod) => mod.BestDealsSliderContainer),
   {
-    loading: () => <div className="h-80 bg-gray-50 animate-pulse" />,
+    loading: () => <div className="h-80 bg-gray-50 animate-pulse rounded-lg" />,
   }
 );
 
 const HomeRecentArticles = dynamic(
   () => import('@/components/home/HomeRecentArticles').then((mod) => mod.HomeRecentArticles),
   {
-    loading: () => <div className="h-80 bg-white animate-pulse" />,
+    loading: () => <div className="h-80 bg-white animate-pulse rounded-lg" />,
   }
 );
 
 const HomeFAQ = dynamic(
   () => import('@/components/home/HomeFAQ').then((mod) => mod.HomeFAQ),
   {
-    loading: () => <div className="h-64 bg-gray-50 animate-pulse" />,
+    loading: () => <div className="h-64 bg-gray-50 animate-pulse rounded-lg" />,
   }
 );
 
@@ -280,13 +282,18 @@ export default async function Home() {
               : (section.most_wanted_items || []);
             
             return (
-              <MostWantedCarousel
+              <LazySection 
                 key={section.key}
-                products={carouselProducts}
-                eyebrow={section.eyebrow}
-                heading={section.title_html}
-                description={section.body_html}
-              />
+                fallback={<div className="h-96 bg-white animate-pulse rounded-lg" />}
+                minHeight="24rem"
+              >
+                <MostWantedCarousel
+                  products={carouselProducts}
+                  eyebrow={section.eyebrow}
+                  heading={section.title_html}
+                  description={section.body_html}
+                />
+              </LazySection>
             );
 
           case 'most_wanted_grid':
@@ -374,10 +381,15 @@ export default async function Home() {
 
           case 'best_deals_slider':
             return (
-              <BestDealsSliderContainer 
-                key={section.key} 
-                section={section}
-              />
+              <LazySection
+                key={section.key}
+                fallback={<div className="h-80 bg-gray-50 animate-pulse rounded-lg" />}
+                minHeight="20rem"
+              >
+                <BestDealsSliderContainer 
+                  section={section}
+                />
+              </LazySection>
             );
 
           case 'signup':
@@ -412,10 +424,26 @@ export default async function Home() {
             );
 
           case 'recent_articles':
-            return <HomeRecentArticles key={section.key} />;
+            return (
+              <LazySection
+                key={section.key}
+                fallback={<div className="h-80 bg-white animate-pulse rounded-lg" />}
+                minHeight="20rem"
+              >
+                <HomeRecentArticles />
+              </LazySection>
+            );
 
           case 'faqs':
-            return <HomeFAQ key={section.key} section={section} />;
+            return (
+              <LazySection
+                key={section.key}
+                fallback={<div className="h-64 bg-gray-50 animate-pulse rounded-lg" />}
+                minHeight="16rem"
+              >
+                <HomeFAQ section={section} />
+              </LazySection>
+            );
 
           case 'seen_in':
             return (
