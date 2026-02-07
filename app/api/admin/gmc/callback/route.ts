@@ -17,12 +17,22 @@ export async function GET(request: Request) {
   const cookieStore = await cookies();
   const stateCookie = cookieStore.get('gmc-oauth-state')?.value;
 
+  const adminFeedsUrl = (reason?: string) => {
+    const base = new URL(request.url);
+    const url = new URL('/admin/feeds', base);
+    if (reason) {
+      url.searchParams.set('gmc', 'error');
+      url.searchParams.set('reason', reason);
+    }
+    return url;
+  };
+
   if (error) {
-    return NextResponse.redirect(`/admin/feeds?gmc=error&reason=${encodeURIComponent(error)}`);
+    return NextResponse.redirect(adminFeedsUrl(error));
   }
 
   if (!code || !state || !stateCookie || state !== stateCookie) {
-    return NextResponse.redirect('/admin/feeds?gmc=error&reason=invalid_state');
+    return NextResponse.redirect(adminFeedsUrl('invalid_state'));
   }
 
   const tokenResponse = await exchangeCodeForTokens(code);
@@ -37,7 +47,9 @@ export async function GET(request: Request) {
     scope: tokenResponse.scope,
   });
 
-  const response = NextResponse.redirect('/admin/feeds?gmc=connected');
+  const successUrl = adminFeedsUrl();
+  successUrl.searchParams.set('gmc', 'connected');
+  const response = NextResponse.redirect(successUrl);
   response.cookies.set('gmc-oauth-state', '', { maxAge: 0 });
 
   try {
