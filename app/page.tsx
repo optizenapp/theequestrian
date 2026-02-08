@@ -1,6 +1,6 @@
 import { Hero } from '@/components/Hero';
 import { TrustSignals } from '@/components/TrustSignals';
-import dynamic from 'next/dynamic';
+import dynamicImport from 'next/dynamic';
 import { getHomeSections } from '@/lib/content/home';
 import { getProductsByHandlesAlt } from '@/lib/shopify/products-by-handles';
 import { ReviewStars } from '@/components/reviews/ReviewStars';
@@ -8,31 +8,36 @@ import type { ShopifyProductCard } from '@/types/shopify';
 import Link from 'next/link';
 import { LazySection } from '@/components/LazySection';
 
+// TEMPORARY: Force dynamic rendering to verify database migration works
+// TODO: After verification, replace with ISR caching for performance:
+// Remove the line below and uncomment the revalidate line:
+// export const revalidate = 300; // Cache for 5 minutes, then revalidate in background
+// This matches your other dynamic pages (news, products) and balances freshness with performance
 export const dynamic = 'force-dynamic';
 
 // Aggressively lazy load below-the-fold components to improve LCP
-const MostWantedCarousel = dynamic(
+const MostWantedCarousel = dynamicImport(
   () => import('@/components/MostWantedCarousel').then((mod) => mod.MostWantedCarousel),
   {
     loading: () => <div className="h-96 bg-white animate-pulse rounded-lg" />,
   }
 );
 
-const BestDealsSliderContainer = dynamic(
+const BestDealsSliderContainer = dynamicImport(
   () => import('@/components/home/BestDealsSliderContainer').then((mod) => mod.BestDealsSliderContainer),
   {
     loading: () => <div className="h-80 bg-gray-50 animate-pulse rounded-lg" />,
   }
 );
 
-const HomeRecentArticles = dynamic(
+const HomeRecentArticles = dynamicImport(
   () => import('@/components/home/HomeRecentArticles').then((mod) => mod.HomeRecentArticles),
   {
     loading: () => <div className="h-80 bg-white animate-pulse rounded-lg" />,
   }
 );
 
-const HomeFAQ = dynamic(
+const HomeFAQ = dynamicImport(
   () => import('@/components/home/HomeFAQ').then((mod) => mod.HomeFAQ),
   {
     loading: () => <div className="h-64 bg-gray-50 animate-pulse rounded-lg" />,

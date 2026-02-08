@@ -191,7 +191,29 @@ function stripGid(gid: string) {
 }
 
 export async function GET() {
+  // TEMPORARY: GMC feed disabled - moving to S3
+  // This endpoint will be re-enabled once S3 migration is complete
   const baseUrl = getGmcBaseUrl();
+  
+  const xml = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">',
+    '<channel>',
+    '<title>The Equestrian Product Feed</title>',
+    `<link>${escapeXml(baseUrl)}</link>`,
+    '<description>Feed temporarily unavailable - migrating to S3</description>',
+    '</channel>',
+    '</rss>',
+  ].join('');
+
+  return new NextResponse(xml, {
+    headers: {
+      'Content-Type': 'application/xml; charset=utf-8',
+      'Cache-Control': 'public, max-age=60',
+    },
+  });
+  
+  /* ORIGINAL CODE - WILL BE MOVED TO S3 GENERATION SCRIPT
   const products = await getAllProducts();
   const urlMap = await getProductCanonicalUrls(products);
 
@@ -282,4 +304,5 @@ export async function GET() {
       'Cache-Control': 'public, max-age=900',
     },
   });
+  */
 }
