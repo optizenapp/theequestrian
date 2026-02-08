@@ -78,39 +78,39 @@ export interface HomeSection {
 }
  
 interface CsvRow {
-  key: string;
-  type: string;
-  enabled?: string | boolean; // Can be string from CSV or boolean from DB
-  sort_order?: string | number; // Can be string from CSV or number from DB
- 
-  eyebrow?: string;
-  title_html?: string;
-  subtitle_html?: string;
-  body_html?: string;
- 
-  cta_text?: string;
-  cta_link?: string;
-  secondary_cta_text?: string;
-  secondary_cta_link?: string;
- 
-  image_url?: string;
-  image_alt?: string;
-  image_link?: string;
- 
-  most_wanted_items_json?: string;
-  product_handles?: string; // New: Comma-separated product handles
-  faqs_json?: string;
-  seen_in_json?: string;
-  items_json?: string;
+  key: string | null;
+  type: string | null;
+  enabled?: string | boolean | null; // Can be string from CSV or boolean from DB
+  sort_order?: string | number | null; // Can be string from CSV or number from DB
+
+  eyebrow?: string | null;
+  title_html?: string | null;
+  subtitle_html?: string | null;
+  body_html?: string | null;
+
+  cta_text?: string | null;
+  cta_link?: string | null;
+  secondary_cta_text?: string | null;
+  secondary_cta_link?: string | null;
+
+  image_url?: string | null;
+  image_alt?: string | null;
+  image_link?: string | null;
+
+  most_wanted_items_json?: string | null;
+  product_handles?: string | null; // New: Comma-separated product handles
+  faqs_json?: string | null;
+  seen_in_json?: string | null;
+  items_json?: string | null;
 }
  
 let cachedSections: HomeSection[] | null = null;
 let lastModified: number | null = null;
 let lastDbRead: number | null = null;
  
-function safeJsonParse<T>(raw: string | undefined, fallback: T): T {
+function safeJsonParse<T>(raw: string | undefined | null, fallback: T): T {
   if (!raw) return fallback;
-  const trimmed = raw.trim();
+  const trimmed = typeof raw === 'string' ? raw.trim() : '';
   if (!trimmed) return fallback;
   try {
     return JSON.parse(trimmed) as T;
@@ -118,23 +118,32 @@ function safeJsonParse<T>(raw: string | undefined, fallback: T): T {
     return fallback;
   }
 }
+
+function safeTrim(value: string | null | undefined): string | undefined {
+  if (value == null) return undefined;
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  return trimmed || undefined;
+}
  
-function toBool(value: string | boolean | undefined, defaultValue: boolean): boolean {
+function toBool(value: string | boolean | null | undefined, defaultValue: boolean): boolean {
   if (value == null) return defaultValue;
   // Handle boolean values from database
   if (typeof value === 'boolean') return value;
   // Handle string values from CSV
+  if (typeof value !== 'string') return defaultValue;
   const v = value.trim().toLowerCase();
   if (v === '1' || v === 'true' || v === 'yes' || v === 'y') return true;
   if (v === '0' || v === 'false' || v === 'no' || v === 'n') return false;
   return defaultValue;
 }
  
-function toInt(value: string | number | undefined, defaultValue: number): number {
+function toInt(value: string | number | null | undefined, defaultValue: number): number {
   if (value == null) return defaultValue;
   // Handle number values from database
   if (typeof value === 'number') return Number.isFinite(value) ? value : defaultValue;
   // Handle string values from CSV
+  if (typeof value !== 'string') return defaultValue;
   const n = parseInt(value, 10);
   return Number.isFinite(n) ? n : defaultValue;
 }
@@ -191,8 +200,8 @@ function parseRows(records: CsvRow[]): HomeSection[] {
   const sections: HomeSection[] = [];
 
   for (const row of records) {
-    const key = (row.key || '').trim();
-    const type = normalizeSectionType(row.type || '');
+    const key = safeTrim(row.key) || '';
+    const type = normalizeSectionType(safeTrim(row.type) || '');
     if (!key || !type) continue;
 
     const enabled = toBool(row.enabled, true);
@@ -203,21 +212,21 @@ function parseRows(records: CsvRow[]): HomeSection[] {
       type,
       enabled,
       sort_order,
-      eyebrow: row.eyebrow?.trim() || undefined,
-      title_html: row.title_html?.trim() || undefined,
-      subtitle_html: row.subtitle_html?.trim() || undefined,
-      body_html: row.body_html?.trim() || undefined,
-      cta_text: row.cta_text?.trim() || undefined,
-      cta_link: row.cta_link?.trim() || undefined,
-      secondary_cta_text: row.secondary_cta_text?.trim() || undefined,
-      secondary_cta_link: row.secondary_cta_link?.trim() || undefined,
-      image_url: row.image_url?.trim() || undefined,
-      image_alt: row.image_alt?.trim() || undefined,
-      image_link: row.image_link?.trim() || undefined,
+      eyebrow: safeTrim(row.eyebrow),
+      title_html: safeTrim(row.title_html),
+      subtitle_html: safeTrim(row.subtitle_html),
+      body_html: safeTrim(row.body_html),
+      cta_text: safeTrim(row.cta_text),
+      cta_link: safeTrim(row.cta_link),
+      secondary_cta_text: safeTrim(row.secondary_cta_text),
+      secondary_cta_link: safeTrim(row.secondary_cta_link),
+      image_url: safeTrim(row.image_url),
+      image_alt: safeTrim(row.image_alt),
+      image_link: safeTrim(row.image_link),
     };
 
     if (type === 'most_wanted_carousel' || type === 'most_wanted_grid' || type === 'best_deals_slider') {
-      if (row.product_handles) {
+      if (row.product_handles && typeof row.product_handles === 'string') {
         const handles = row.product_handles
           .split(',')
           .map(h => h.trim())
