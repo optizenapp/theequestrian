@@ -8,6 +8,8 @@ import type { ShopifyProductCard } from '@/types/shopify';
 import Link from 'next/link';
 import { LazySection } from '@/components/LazySection';
 
+export const dynamic = 'force-dynamic';
+
 // Aggressively lazy load below-the-fold components to improve LCP
 const MostWantedCarousel = dynamic(
   () => import('@/components/MostWantedCarousel').then((mod) => mod.MostWantedCarousel),
