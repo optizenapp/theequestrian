@@ -80,8 +80,8 @@ export interface HomeSection {
 interface CsvRow {
   key: string;
   type: string;
-  enabled?: string;
-  sort_order?: string;
+  enabled?: string | boolean; // Can be string from CSV or boolean from DB
+  sort_order?: string | number; // Can be string from CSV or number from DB
  
   eyebrow?: string;
   title_html?: string;
@@ -119,16 +119,22 @@ function safeJsonParse<T>(raw: string | undefined, fallback: T): T {
   }
 }
  
-function toBool(value: string | undefined, defaultValue: boolean): boolean {
+function toBool(value: string | boolean | undefined, defaultValue: boolean): boolean {
   if (value == null) return defaultValue;
+  // Handle boolean values from database
+  if (typeof value === 'boolean') return value;
+  // Handle string values from CSV
   const v = value.trim().toLowerCase();
   if (v === '1' || v === 'true' || v === 'yes' || v === 'y') return true;
   if (v === '0' || v === 'false' || v === 'no' || v === 'n') return false;
   return defaultValue;
 }
  
-function toInt(value: string | undefined, defaultValue: number): number {
+function toInt(value: string | number | undefined, defaultValue: number): number {
   if (value == null) return defaultValue;
+  // Handle number values from database
+  if (typeof value === 'number') return Number.isFinite(value) ? value : defaultValue;
+  // Handle string values from CSV
   const n = parseInt(value, 10);
   return Number.isFinite(n) ? n : defaultValue;
 }
