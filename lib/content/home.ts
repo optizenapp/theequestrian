@@ -8,6 +8,9 @@
 import fs from 'fs';
 import path from 'path';
 import { parse } from 'csv-parse/sync';
+import { sql } from '@/lib/db/client';
+
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
  
 export type HomeSectionType =
   | 'hero'
@@ -103,6 +106,7 @@ interface CsvRow {
  
 let cachedSections: HomeSection[] | null = null;
 let lastModified: number | null = null;
+let lastDbRead: number | null = null;
  
 function safeJsonParse<T>(raw: string | undefined, fallback: T): T {
   if (!raw) return fallback;
@@ -147,7 +151,100 @@ function normalizeSectionType(type: string): HomeSectionType | null {
   }
 }
  
-function loadHomeSections(): HomeSection[] {
+async function ensureHomeSectionsTable() {
+  await sql`
+    CREATE TABLE IF NOT EXISTS home_sections (
+      id SERIAL PRIMARY KEY,
+      key TEXT NOT NULL UNIQUE,
+      type TEXT NOT NULL,
+      enabled BOOLEAN DEFAULT true,
+      sort_order INTEGER DEFAULT 0,
+      eyebrow TEXT,
+      title_html TEXT,
+      subtitle_html TEXT,
+      body_html TEXT,
+      cta_text TEXT,
+      cta_link TEXT,
+      secondary_cta_text TEXT,
+      secondary_cta_link TEXT,
+      image_url TEXT,
+      image_alt TEXT,
+      image_link TEXT,
+      most_wanted_items_json JSONB,
+      product_handles TEXT,
+      faqs_json JSONB,
+      seen_in_json JSONB,
+      items_json JSONB,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `;
+}
+
+function parseRows(records: CsvRow[]): HomeSection[] {
+  const sections: HomeSection[] = [];
+
+  for (const row of records) {
+    const key = (row.key || '').trim();
+    const type = normalizeSectionType(row.type || '');
+    if (!key || !type) continue;
+
+    const enabled = toBool(row.enabled, true);
+    const sort_order = toInt(row.sort_order, 0);
+
+    const section: HomeSection = {
+      key,
+      type,
+      enabled,
+      sort_order,
+      eyebrow: row.eyebrow?.trim() || undefined,
+      title_html: row.title_html?.trim() || undefined,
+      subtitle_html: row.subtitle_html?.trim() || undefined,
+      body_html: row.body_html?.trim() || undefined,
+      cta_text: row.cta_text?.trim() || undefined,
+      cta_link: row.cta_link?.trim() || undefined,
+      secondary_cta_text: row.secondary_cta_text?.trim() || undefined,
+      secondary_cta_link: row.secondary_cta_link?.trim() || undefined,
+      image_url: row.image_url?.trim() || undefined,
+      image_alt: row.image_alt?.trim() || undefined,
+      image_link: row.image_link?.trim() || undefined,
+    };
+
+    if (type === 'most_wanted_carousel' || type === 'most_wanted_grid' || type === 'best_deals_slider') {
+      if (row.product_handles) {
+        const handles = row.product_handles
+          .split(',')
+          .map(h => h.trim())
+          .filter(h => h.length > 0);
+        section.product_handles = handles;
+      } else if (row.most_wanted_items_json) {
+        const items = safeJsonParse<HomeMostWantedItem[]>(row.most_wanted_items_json, []);
+        section.most_wanted_items = Array.isArray(items) ? items : [];
+      }
+    }
+
+    if (type === 'faqs') {
+      const faqs = safeJsonParse<HomeFaqItem[]>(row.faqs_json, []);
+      section.faqs = Array.isArray(faqs) ? faqs : [];
+    }
+
+    if (type === 'seen_in') {
+      const seen = safeJsonParse<string[]>(row.seen_in_json, []);
+      section.seen_in = Array.isArray(seen) ? seen : [];
+    }
+
+    if (type === 'best_deals_slider') {
+      const items = safeJsonParse<HomeSliderItem[]>(row.items_json, []);
+      section.items = Array.isArray(items) ? items : [];
+    }
+
+    sections.push(section);
+  }
+
+  return sections;
+}
+
+function loadHomeSectionsFromCsv(): HomeSection[] {
   const csvPath = path.join(process.cwd(), 'exports', 'home-sections.csv');
  
   if (!fs.existsSync(csvPath)) {
@@ -170,67 +267,7 @@ function loadHomeSections(): HomeSection[] {
     trim: true,
   }) as CsvRow[];
  
-  const sections: HomeSection[] = [];
- 
-  for (const row of records) {
-    const key = (row.key || '').trim();
-    const type = normalizeSectionType(row.type || '');
-    if (!key || !type) continue;
- 
-    const enabled = toBool(row.enabled, true);
-    const sort_order = toInt(row.sort_order, 0);
- 
-    const section: HomeSection = {
-      key,
-      type,
-      enabled,
-      sort_order,
-      eyebrow: row.eyebrow?.trim() || undefined,
-      title_html: row.title_html?.trim() || undefined,
-      subtitle_html: row.subtitle_html?.trim() || undefined,
-      body_html: row.body_html?.trim() || undefined,
-      cta_text: row.cta_text?.trim() || undefined,
-      cta_link: row.cta_link?.trim() || undefined,
-      secondary_cta_text: row.secondary_cta_text?.trim() || undefined,
-      secondary_cta_link: row.secondary_cta_link?.trim() || undefined,
-      image_url: row.image_url?.trim() || undefined,
-      image_alt: row.image_alt?.trim() || undefined,
-      image_link: row.image_link?.trim() || undefined,
-    };
- 
-    if (type === 'most_wanted_carousel' || type === 'most_wanted_grid' || type === 'best_deals_slider') {
-      // Support both old JSON format and new product handles format
-      if (row.product_handles) {
-        // New format: comma-separated product handles
-        const handles = row.product_handles
-          .split(',')
-          .map(h => h.trim())
-          .filter(h => h.length > 0);
-        section.product_handles = handles;
-      } else if (row.most_wanted_items_json) {
-        // Old format: JSON array of items (for backwards compatibility)
-        const items = safeJsonParse<HomeMostWantedItem[]>(row.most_wanted_items_json, []);
-        section.most_wanted_items = Array.isArray(items) ? items : [];
-      }
-    }
- 
-    if (type === 'faqs') {
-      const faqs = safeJsonParse<HomeFaqItem[]>(row.faqs_json, []);
-      section.faqs = Array.isArray(faqs) ? faqs : [];
-    }
- 
-    if (type === 'seen_in') {
-      const seen = safeJsonParse<string[]>(row.seen_in_json, []);
-      section.seen_in = Array.isArray(seen) ? seen : [];
-    }
-
-    if (type === 'best_deals_slider') {
-      const items = safeJsonParse<HomeSliderItem[]>(row.items_json, []);
-      section.items = Array.isArray(items) ? items : [];
-    }
- 
-    sections.push(section);
-  }
+  const sections = parseRows(records);
  
   const normalized = sections
     .filter((s) => s.enabled)
@@ -246,7 +283,56 @@ function loadHomeSections(): HomeSection[] {
   return normalized;
 }
  
-export function getHomeSections(): HomeSection[] {
-  return loadHomeSections();
+export async function getHomeSections(): Promise<HomeSection[]> {
+  const now = Date.now();
+  if (cachedSections && lastDbRead && now - lastDbRead < CACHE_TTL_MS) {
+    return cachedSections;
+  }
+
+  try {
+    await ensureHomeSectionsTable();
+    const result = await sql`
+      SELECT
+        key,
+        type,
+        enabled,
+        sort_order,
+        eyebrow,
+        title_html,
+        subtitle_html,
+        body_html,
+        cta_text,
+        cta_link,
+        secondary_cta_text,
+        secondary_cta_link,
+        image_url,
+        image_alt,
+        image_link,
+        most_wanted_items_json,
+        product_handles,
+        faqs_json,
+        seen_in_json,
+        items_json
+      FROM home_sections
+      ORDER BY sort_order ASC
+    `;
+
+    if (result.length > 0) {
+      const sections = parseRows(result as unknown as CsvRow[]);
+      const normalized = sections
+        .filter((s) => s.enabled)
+        .sort((a, b) => a.sort_order - b.sort_order);
+      cachedSections = normalized;
+      lastDbRead = now;
+      return normalized;
+    }
+  } catch (error) {
+    console.error('[Home Sections] DB load error, falling back to CSV:', error);
+  }
+
+  const fallback = loadHomeSectionsFromCsv();
+  cachedSections = fallback;
+  lastDbRead = now;
+  return fallback;
 }
  

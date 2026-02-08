@@ -1,12 +1,29 @@
-import { Metadata } from 'next';
 import { PolicyLayout } from '@/components/policy/PolicyLayout';
+import { getStaticPageContent } from '@/lib/content/static-pages';
 
-export const metadata: Metadata = {
-  title: 'About Us | The Equestrian',
-  description: 'Learn about The Equestrian team and our mission to serve the Australian equestrian community.',
-};
+export async function generateMetadata() {
+  const page = await getStaticPageContent('about');
+  return {
+    title: page?.meta_title || 'About Us | The Equestrian',
+    description:
+      page?.meta_description ||
+      'Learn about The Equestrian team and our mission to serve the Australian equestrian community.',
+  };
+}
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const page = await getStaticPageContent('about');
+  if (page?.body_html || page?.intro_html || page?.bottom_html) {
+    return (
+      <PolicyLayout title={page.title || 'About The Equestrian'}>
+        <div className="space-y-6 text-gray-700">
+          {page.intro_html ? <div dangerouslySetInnerHTML={{ __html: page.intro_html }} /> : null}
+          {page.body_html ? <div dangerouslySetInnerHTML={{ __html: page.body_html }} /> : null}
+          {page.bottom_html ? <div dangerouslySetInnerHTML={{ __html: page.bottom_html }} /> : null}
+        </div>
+      </PolicyLayout>
+    );
+  }
   return (
     <PolicyLayout title="About The Equestrian">
       <div className="space-y-6 text-gray-700">

@@ -91,7 +91,7 @@ function InlineHtml({ html }: { html?: string }) {
 }
 
 export default async function Home() {
-  const sections = getHomeSections();
+  const sections = await getHomeSections();
 
   // Fetch real products for sections that use product handles
   const sectionsWithProducts = await Promise.all(

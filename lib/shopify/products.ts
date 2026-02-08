@@ -2,6 +2,8 @@ import { shopifyFetch } from './client';
 import { shopifyAdminFetch } from './admin-client';
 import { GET_PRODUCT_BY_HANDLE, GET_ALL_PRODUCTS, GET_PRODUCTS_BY_QUERY } from './queries';
 import { normalizeColor, isColorValue } from '@/lib/utils/product-options';
+import { getProductAllocationByHandle, getProductAllocationByProductId, getProductAllocationMapByProductIds } from '@/lib/db/product-allocations';
+import { getProductOverridesByHandles, getProductOverrideByHandle } from '@/lib/content/product-overrides';
 import type { ShopifyProduct, ProductWithPrimaryCollection } from '@/types/shopify';
 
 interface ProductResponse {
@@ -604,7 +606,14 @@ export async function getRecommendedProducts(limit: number = 4, productType?: st
       products = products.filter(p => p.handle !== excludeHandle);
     }
 
-    console.log(`[getRecommendedProducts] Found ${products.length} products (limit: ${limit})`);
+    if (products.length === 0) {
+      console.warn('[getRecommendedProducts] No related products returned', {
+        productType,
+        excludeHandle,
+      });
+    } else {
+      console.log(`[getRecommendedProducts] Found ${products.length} products (limit: ${limit})`);
+    }
     return products.slice(0, limit);
   } catch (error) {
     console.error('Error fetching recommended products:', error);
@@ -872,14 +881,34 @@ export async function getPrimaryCategoryPath(productType: string): Promise<strin
  * Falls back to /products/{handle} if no category mapping found
  * 
  * Priority:
+ * 0. Admin allocation (canonical category override)
  * 1. Use primary_collection metafield if set
  * 2. Derive from productType via mapping
  * 3. Fallback to /products/{handle}
  */
-export async function getProductCanonicalUrl(product: Pick<ShopifyProduct, 'handle' | 'productType'> & { metafield?: { value: string } | null }): Promise<string> {
-  // First priority: Use metafield if set
+export async function getProductCanonicalUrl(
+  product: Pick<ShopifyProduct, 'id' | 'handle' | 'productType'> & { metafield?: { value: string } | null }
+): Promise<string> {
+  const override = await getProductOverrideByHandle(product.handle);
+  const slugOverride = override?.use_headless_slug ? override?.slug_override : null;
+  const resolvedHandle = slugOverride || product.handle;
+
+  // Priority 0: Admin allocation (deepest canonical override)
+  const allocation = product.id
+    ? await getProductAllocationByProductId(product.id)
+    : await getProductAllocationByHandle(product.handle);
+  if (allocation?.canonical_path) {
+    if (slugOverride) {
+      const parts = allocation.canonical_path.split('/');
+      parts[parts.length - 1] = resolvedHandle;
+      return parts.join('/');
+    }
+    return allocation.canonical_path;
+  }
+
+  // Priority 1: Use metafield if set
   if (product.metafield?.value) {
-    return `/${product.metafield.value}/${product.handle}`;
+    return `/${product.metafield.value}/${resolvedHandle}`;
   }
   
   // Second priority: Try to get category path from productType
@@ -887,11 +916,11 @@ export async function getProductCanonicalUrl(product: Pick<ShopifyProduct, 'hand
   
   if (categoryPath) {
     // Return category-based URL: /clothing/footwear/boots/product-handle
-    return `${categoryPath}/${product.handle}`;
+    return `${categoryPath}/${resolvedHandle}`;
   }
   
   // Fallback to /products/{handle} if no mapping found
-  return `/products/${product.handle}`;
+  return `/products/${resolvedHandle}`;
 }
 
 /**
@@ -900,6 +929,7 @@ export async function getProductCanonicalUrl(product: Pick<ShopifyProduct, 'hand
  * Uses caching to avoid repeated productType lookups
  * 
  * Priority:
+ * 0. Admin allocation (canonical category override)
  * 1. Use primary_collection metafield if set
  * 2. Derive from productType via mapping
  * 3. Fallback to /products/{handle}
@@ -908,6 +938,10 @@ export async function getProductCanonicalUrls(
   products: Array<Pick<ShopifyProduct, 'id' | 'handle' | 'productType'> & { metafield?: { value: string } | null }>
 ): Promise<Map<string, string>> {
   const urlMap = new Map<string, string>();
+  const allocationMap = await getProductAllocationMapByProductIds(
+    products.map((product) => product.id)
+  );
+  const overrideMap = await getProductOverridesByHandles(products.map((product) => product.handle));
   
   // Build a cache of productType -> categoryPath to avoid repeated productType lookups
   const pathCache = new Map<string, string | null>();
@@ -915,9 +949,20 @@ export async function getProductCanonicalUrls(
   for (const product of products) {
     let canonicalUrl: string;
     
-    // First priority: Use metafield if set
-    if (product.metafield?.value) {
-      canonicalUrl = `/${product.metafield.value}/${product.handle}`;
+    const override = overrideMap.get(product.handle);
+    const slugOverride = override?.use_headless_slug ? override?.slug_override : null;
+    const resolvedHandle = slugOverride || product.handle;
+    const allocated = allocationMap.get(product.id);
+    if (allocated) {
+      if (slugOverride) {
+        const parts = allocated.split('/');
+        parts[parts.length - 1] = resolvedHandle;
+        canonicalUrl = parts.join('/');
+      } else {
+        canonicalUrl = allocated;
+      }
+    } else if (product.metafield?.value) {
+      canonicalUrl = `/${product.metafield.value}/${resolvedHandle}`;
     } else {
       // Second priority: Try productType mapping
       const productType = product.productType;
@@ -929,8 +974,8 @@ export async function getProductCanonicalUrls(
       
       const categoryPath = pathCache.get(productType);
       canonicalUrl = categoryPath 
-        ? `${categoryPath}/${product.handle}`
-        : `/products/${product.handle}`;
+        ? `${categoryPath}/${resolvedHandle}`
+        : `/products/${resolvedHandle}`;
     }
     
     urlMap.set(product.id, canonicalUrl);

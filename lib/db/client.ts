@@ -109,6 +109,133 @@ export async function initializeSchema(): Promise<void> {
     
     await sql`CREATE INDEX IF NOT EXISTS idx_sync_started ON sync_log(started_at DESC)`;
 
+    // Create product_category_assignments table
+    console.log('[DB] Creating product_category_assignments table...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS product_category_assignments (
+        id SERIAL PRIMARY KEY,
+        product_id TEXT NOT NULL UNIQUE,
+        product_handle TEXT NOT NULL UNIQUE,
+        canonical_path TEXT NOT NULL UNIQUE,
+        category_path TEXT NOT NULL,
+        top_level TEXT NOT NULL,
+        parent_category TEXT,
+        subcategory_handle TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_pca_category_path ON product_category_assignments(category_path)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_pca_top_level ON product_category_assignments(top_level)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_pca_parent_category ON product_category_assignments(parent_category)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_pca_subcategory ON product_category_assignments(subcategory_handle)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_pca_product_handle ON product_category_assignments(product_handle)`;
+
+    // Create product_content_overrides table
+    console.log('[DB] Creating product_content_overrides table...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS product_content_overrides (
+        id SERIAL PRIMARY KEY,
+        product_id TEXT,
+        product_handle TEXT NOT NULL UNIQUE,
+        title_override TEXT,
+        meta_title TEXT,
+        meta_description TEXT,
+        top_description_html TEXT,
+        bottom_description_html TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_pco_product_id ON product_content_overrides(product_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_pco_product_handle ON product_content_overrides(product_handle)`;
+    await sql`ALTER TABLE product_content_overrides ADD COLUMN IF NOT EXISTS use_headless_title BOOLEAN DEFAULT false`;
+    await sql`ALTER TABLE product_content_overrides ADD COLUMN IF NOT EXISTS use_headless_meta_title BOOLEAN DEFAULT false`;
+    await sql`ALTER TABLE product_content_overrides ADD COLUMN IF NOT EXISTS use_headless_meta_description BOOLEAN DEFAULT false`;
+    await sql`ALTER TABLE product_content_overrides ADD COLUMN IF NOT EXISTS use_headless_top_description BOOLEAN DEFAULT false`;
+    await sql`ALTER TABLE product_content_overrides ADD COLUMN IF NOT EXISTS use_headless_bottom_description BOOLEAN DEFAULT false`;
+    await sql`ALTER TABLE product_content_overrides ADD COLUMN IF NOT EXISTS description_html TEXT`;
+    await sql`ALTER TABLE product_content_overrides ADD COLUMN IF NOT EXISTS bullet_points JSONB DEFAULT '[]'::jsonb`;
+    await sql`ALTER TABLE product_content_overrides ADD COLUMN IF NOT EXISTS slug_override TEXT`;
+    await sql`ALTER TABLE product_content_overrides ADD COLUMN IF NOT EXISTS use_headless_description BOOLEAN DEFAULT false`;
+    await sql`ALTER TABLE product_content_overrides ADD COLUMN IF NOT EXISTS use_headless_bullets BOOLEAN DEFAULT false`;
+    await sql`ALTER TABLE product_content_overrides ADD COLUMN IF NOT EXISTS use_headless_slug BOOLEAN DEFAULT false`;
+
+    // Create static_pages table
+    console.log('[DB] Creating static_pages table...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS static_pages (
+        id SERIAL PRIMARY KEY,
+        slug TEXT NOT NULL UNIQUE,
+        title TEXT NOT NULL,
+        meta_title TEXT,
+        meta_description TEXT,
+        intro_html TEXT,
+        body_html TEXT,
+        bottom_html TEXT,
+        status TEXT DEFAULT 'published',
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_static_pages_slug ON static_pages(slug)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_static_pages_status ON static_pages(status)`;
+
+    // Create brand_content table
+    console.log('[DB] Creating brand_content table...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS brand_content (
+        id SERIAL PRIMARY KEY,
+        handle TEXT NOT NULL UNIQUE,
+        title TEXT NOT NULL,
+        h1_title TEXT,
+        meta_title TEXT,
+        meta_description TEXT,
+        short_description TEXT,
+        long_description TEXT,
+        breadcrumb_label TEXT,
+        faq_json TEXT,
+        status TEXT DEFAULT 'published',
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_brand_content_handle ON brand_content(handle)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_brand_content_status ON brand_content(status)`;
+
+    // Create home_sections table
+    console.log('[DB] Creating home_sections table...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS home_sections (
+        id SERIAL PRIMARY KEY,
+        key TEXT NOT NULL UNIQUE,
+        type TEXT NOT NULL,
+        enabled BOOLEAN DEFAULT true,
+        sort_order INTEGER DEFAULT 0,
+        eyebrow TEXT,
+        title_html TEXT,
+        subtitle_html TEXT,
+        body_html TEXT,
+        cta_text TEXT,
+        cta_link TEXT,
+        secondary_cta_text TEXT,
+        secondary_cta_link TEXT,
+        image_url TEXT,
+        image_alt TEXT,
+        image_link TEXT,
+        most_wanted_items_json JSONB,
+        product_handles TEXT,
+        faqs_json JSONB,
+        seen_in_json JSONB,
+        items_json JSONB,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_home_sections_enabled ON home_sections(enabled)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_home_sections_sort_order ON home_sections(sort_order)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_home_sections_type ON home_sections(type)`;
+
     // Create gmc_integration table
     console.log('[DB] Creating gmc_integration table...');
     await sql`

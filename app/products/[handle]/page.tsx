@@ -14,6 +14,7 @@ import ProductReviewSection from '@/components/reviews/ProductReviewSection';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
 import { createManualRedirect, getManualRedirect } from '@/lib/redirects/manual';
+import { getProductOverrideByHandle, resolveProductHandleFromSlug } from '@/lib/content/product-overrides';
 
 export const revalidate = 300;
 
@@ -33,23 +34,29 @@ interface ProductPageProps {
  * Example redirect: /products/ariat-boot → /clothing/footwear/boots/ariat-boot
  */
 export default async function ProductPage({ params }: ProductPageProps) {
-  const { handle } = await params;
-  const manualRedirect = await getManualRedirect(`/products/${handle}`);
+  const { handle: rawHandle } = await params;
+  const resolvedHandle = await resolveProductHandleFromSlug(rawHandle);
+  const manualRedirect = await getManualRedirect(`/products/${rawHandle}`);
   if (manualRedirect) {
     if (manualRedirect.type === '301' || manualRedirect.type === '308') {
       permanentRedirect(manualRedirect.to);
     }
     redirect(manualRedirect.to);
   }
-  const product = await getProductByHandle(handle, { cache: 'no-store' });
+  const product = await getProductByHandle(resolvedHandle, { cache: 'no-store' });
 
   if (!product) {
     notFound();
   }
+  const override = await getProductOverrideByHandle(resolvedHandle);
+  const displayTitle = override?.use_headless_title ? (override?.title_override || product.title) : product.title;
+  const descriptionHtml = override?.use_headless_description
+    ? (override?.description_html || product.descriptionHtml)
+    : product.descriptionHtml;
 
   // Get the canonical URL
   const canonicalUrl = await getProductCanonicalUrl(product);
-  const currentUrl = `/products/${handle}`;
+  const currentUrl = `/products/${rawHandle}`;
   
   // Only redirect if canonical URL is different (i.e., product has a category mapping)
   if (canonicalUrl !== currentUrl) {
@@ -95,7 +102,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
   // Generate unified @graph with BreadcrumbList + Product (including review stats)
   // This creates a single knowledge graph entity for better entity resolution
   const primaryBreadcrumb = Array.isArray(breadcrumbSchemas) ? breadcrumbSchemas[0] : breadcrumbSchemas;
-  const schemaGraph = generateProductSchemaGraph(product, currentUrl, primaryBreadcrumb, siteUrl, reviewStats);
+  const schemaGraph = generateProductSchemaGraph(
+    { ...product, title: displayTitle },
+    currentUrl,
+    primaryBreadcrumb,
+    siteUrl,
+    reviewStats
+  );
 
   // Fetch related products (limit 4)
   const relatedProducts = await getRecommendedProducts(4, product.productType, product.handle);
@@ -105,7 +118,19 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const relatedReviewStatsMap = await getReviewStatsForProducts(relatedHandles);
 
   // Get product-specific bullet points
-  const featureHighlights = getProductBulletPoints(product.id);
+  let overrideBullets: string[] = [];
+  if (Array.isArray(override?.bullet_points)) {
+    overrideBullets = override.bullet_points as string[];
+  } else if (typeof override?.bullet_points === 'string') {
+    try {
+      overrideBullets = JSON.parse(override.bullet_points || '[]') as string[];
+    } catch {
+      overrideBullets = [];
+    }
+  }
+  const featureHighlights = override?.use_headless_bullets && overrideBullets.length > 0
+    ? overrideBullets
+    : getProductBulletPoints(product.id);
 
   return (
     <div className="bg-background min-h-screen pb-20">
@@ -133,9 +158,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
           additionalPaths={additionalPaths}
         />
 
-        {/* Mobile title & rating (between breadcrumbs & image) */}
+      {/* Mobile title & rating (between breadcrumbs & image) */}
         <div className="lg:hidden mt-4 mb-8 space-y-2">
-          <h1 className="text-3xl font-bold text-gray-900">{product.title}</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{displayTitle}</h1>
           <ProductPageReviewBadge productId={product.id} />
           <div className="space-y-2 mt-4">
             {featureHighlights.map((feature) => (
@@ -159,7 +184,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             />
 
             {/* Full Width Description Section */}
-            <ProductDescription html={product.descriptionHtml} productTitle={product.title} />
+            <ProductDescription html={descriptionHtml} productTitle={displayTitle} />
           </div>
 
           {/* Right Column: Product Info & Buy Box (Sticky) */}
@@ -167,7 +192,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             
               {/* Title & Rating */}
               <div className="hidden lg:block">
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">{product.title}</h2>
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">{displayTitle}</h2>
                 <div className="mb-4">
                   <ProductPageReviewBadge productId={product.id} productHandle={product.handle} />
                 </div>
@@ -195,7 +220,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         {/* Reviews Section - Full Width Below Product */}
         <ProductReviewSection
           productId={product.id}
-          productHandle={handle}
+          productHandle={product.handle}
           productTitle={product.title}
         />
 
@@ -213,9 +238,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
  * Generate metadata for SEO
  */
 export async function generateMetadata({ params }: ProductPageProps) {
-  const { handle } = await params;
+  const { handle: rawHandle } = await params;
+  const resolvedHandle = await resolveProductHandleFromSlug(rawHandle);
   
-  const product = await getProductByHandle(handle, { cache: 'no-store' });
+  const product = await getProductByHandle(resolvedHandle, { cache: 'no-store' });
   
   if (!product) {
     return {
@@ -223,11 +249,18 @@ export async function generateMetadata({ params }: ProductPageProps) {
     };
   }
 
+  const override = await getProductOverrideByHandle(resolvedHandle);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
   const canonicalUrl = `${siteUrl}${await getProductCanonicalUrl(product)}`;
   
-  const title = `${product.title} | The Equestrian`;
-  const description = product.description || `Shop ${product.title} at The Equestrian. Quality equestrian supplies and equipment.`;
+  const displayTitle = override?.use_headless_title ? (override?.title_override || product.title) : product.title;
+  const title = override?.use_headless_meta_title
+    ? (override?.meta_title || `${displayTitle} | The Equestrian`)
+    : `${displayTitle} | The Equestrian`;
+  const description =
+    override?.use_headless_meta_description
+      ? (override?.meta_description || product.description || `Shop ${displayTitle} at The Equestrian. Quality equestrian supplies and equipment.`)
+      : (product.description || `Shop ${displayTitle} at The Equestrian. Quality equestrian supplies and equipment.`);
 
   return {
     title,
@@ -245,7 +278,7 @@ export async function generateMetadata({ params }: ProductPageProps) {
           url: product.images.edges[0].node.url,
           width: product.images.edges[0].node.width || 1200,
           height: product.images.edges[0].node.height || 1200,
-          alt: product.images.edges[0].node.altText || product.title,
+          alt: product.images.edges[0].node.altText || displayTitle,
         },
       ] : [],
     },

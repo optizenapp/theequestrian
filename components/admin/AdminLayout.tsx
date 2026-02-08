@@ -29,6 +29,10 @@
       { href: '/admin/sms', label: 'SMS Campaigns', icon: 'sms' },
       { href: '/admin/ads', label: 'Ad Optimization', icon: 'ads' },
       { href: '/admin/reviews', label: 'Reviews', icon: 'reviews' },
+      { href: '/admin/categories', label: 'Categories', icon: 'chart' },
+      { href: '/admin/allocations', label: 'Product Allocation', icon: 'chart' },
+      { href: '/admin/products', label: 'Product Content', icon: 'chart' },
+      { href: '/admin/pages', label: 'Static Pages', icon: 'chart' },
     ],
     []
   );

@@ -5,6 +5,7 @@ import { getProductCanonicalUrls } from '@/lib/shopify/products';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { getBrandByHandle } from '@/lib/mapping/brand-mapping';
+import { getBrandContentByHandle } from '@/lib/content/brand-content';
 import { RichContent } from '@/components/collection/RichContent';
 import { FAQSection } from '@/components/collection/FAQSection';
 import { CollectionDescription } from '@/components/CollectionDescription';
@@ -24,7 +25,7 @@ interface BrandPageProps {
 
 export async function generateMetadata({ params }: BrandPageProps): Promise<Metadata> {
   const { handle } = await params;
-  const brand = getBrandByHandle(handle);
+  const brand = await getBrandContentByHandle(handle);
 
   if (!brand) {
     return {
@@ -58,7 +59,7 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
   const afterCursor = typeof cursor === 'string' ? cursor : null;
 
   // 1. Verify Brand Exists in Mapping
-  const brand = getBrandByHandle(handle);
+  const brand = await getBrandContentByHandle(handle);
   if (!brand) {
     notFound();
   }

@@ -315,6 +315,7 @@ async function fetchProductDetails(productId: string) {
     const query = `
       query ProductForReviewEmail($id: ID!) {
         product(id: $id) {
+          id
           title
           handle
           productType
@@ -330,6 +331,7 @@ async function fetchProductDetails(productId: string) {
     `;
     const data = await shopifyAdminFetch<{
       product: {
+        id: string;
         title: string;
         handle: string;
         productType: string;
@@ -345,6 +347,7 @@ async function fetchProductDetails(productId: string) {
 }
 
 async function buildProductReviewUrl(product: {
+  id: string;
   handle: string;
   productType: string;
   featuredImage?: { url: string; altText: string | null } | null;
@@ -352,6 +355,7 @@ async function buildProductReviewUrl(product: {
 }) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
   const canonicalPath = await getProductCanonicalUrl({
+    id: product.id,
     handle: product.handle,
     productType: product.productType,
     metafield: product.metafield,
