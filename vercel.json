@@ -11,6 +11,10 @@
     {
       "path": "/api/cron/redirect-audit",
       "schedule": "20 2 * * *"
+    },
+    {
+      "path": "/api/cron/gmc-feed",
+      "schedule": "0 3 * * *"
     }
   ]
 }
