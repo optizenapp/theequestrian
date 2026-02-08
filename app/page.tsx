@@ -8,12 +8,9 @@ import type { ShopifyProductCard } from '@/types/shopify';
 import Link from 'next/link';
 import { LazySection } from '@/components/LazySection';
 
-// TEMPORARY: Force dynamic rendering to verify database migration works
-// TODO: After verification, replace with ISR caching for performance:
-// Remove the line below and uncomment the revalidate line:
-// export const revalidate = 300; // Cache for 5 minutes, then revalidate in background
-// This matches your other dynamic pages (news, products) and balances freshness with performance
-export const dynamic = 'force-dynamic';
+// ISR: Cache page for 5 minutes, then revalidate in background
+// This matches other dynamic pages (news, products) and balances freshness with performance
+export const revalidate = 300;
 
 // Aggressively lazy load below-the-fold components to improve LCP
 const MostWantedCarousel = dynamicImport(

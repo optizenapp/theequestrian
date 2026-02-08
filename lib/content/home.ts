@@ -300,13 +300,11 @@ function loadHomeSectionsFromCsv(): HomeSection[] {
  
 export async function getHomeSections(): Promise<HomeSection[]> {
   const now = Date.now();
-  // TEMPORARY: Disable cache to verify database is working
-  // if (cachedSections && lastDbRead && now - lastDbRead < CACHE_TTL_MS) {
-  //   console.log('[Home Sections] Returning cached sections:', cachedSections.length);
-  //   return cachedSections;
-  // }
+  // Return cached sections if still fresh (5 minute TTL)
+  if (cachedSections && lastDbRead && now - lastDbRead < CACHE_TTL_MS) {
+    return cachedSections;
+  }
 
-  console.log('[Home Sections] Fetching from database...');
   try {
     await ensureHomeSectionsTable();
     const result = await sql`
@@ -335,26 +333,21 @@ export async function getHomeSections(): Promise<HomeSection[]> {
       ORDER BY sort_order ASC
     `;
 
-    console.log('[Home Sections] DB returned', result.length, 'rows');
     if (result.length > 0) {
       const sections = parseRows(result as unknown as CsvRow[]);
-      console.log('[Home Sections] Parsed', sections.length, 'sections');
       const normalized = sections
         .filter((s) => s.enabled)
         .sort((a, b) => a.sort_order - b.sort_order);
-      console.log('[Home Sections] Returning', normalized.length, 'enabled sections');
       cachedSections = normalized;
       lastDbRead = now;
       return normalized;
     }
-    console.log('[Home Sections] No rows in database, falling back to CSV');
   } catch (error) {
     console.error('[Home Sections] DB load error, falling back to CSV:', error);
   }
 
-  console.log('[Home Sections] Loading from CSV fallback');
+  // Fallback to CSV if database fails or returns no rows
   const fallback = loadHomeSectionsFromCsv();
-  console.log('[Home Sections] CSV returned', fallback.length, 'sections');
   cachedSections = fallback;
   lastDbRead = now;
   return fallback;
