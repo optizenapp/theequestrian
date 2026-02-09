@@ -6,6 +6,7 @@ export const runtime = 'nodejs';
 
 export async function GET() {
   try {
+    console.log('[cron:gmc-feed] Start');
     const { xml, itemCount } = await buildGmcFeedXml();
     const result = await uploadGmcFeedToS3(xml);
     console.log('[cron:gmc-feed] Upload succeeded', {
