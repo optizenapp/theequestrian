@@ -50,8 +50,39 @@ export function validateEnv(): Env {
   return parsed.data;
 }
 
-// Export validated env
-export const env = validateEnv();
+// Lazy validation - only validate when env is first accessed
+// This allows dotenv to load vars before validation runs
+let _env: Env | null = null;
+
+function getEnv(): Env {
+  if (!_env) {
+    _env = validateEnv();
+  }
+  return _env;
+}
+
+// Export env object with lazy validation
+export const env = new Proxy({} as Env, {
+  get(_target, prop: string | symbol) {
+    return getEnv()[prop as keyof Env];
+  },
+  ownKeys() {
+    return Object.keys(getEnv());
+  },
+  has(_target, prop: string | symbol) {
+    return prop in getEnv();
+  },
+  getOwnPropertyDescriptor(_target, prop: string | symbol) {
+    const env = getEnv();
+    return prop in env
+      ? {
+          enumerable: true,
+          configurable: true,
+          value: env[prop as keyof Env],
+        }
+      : undefined;
+  },
+});
 
 
 

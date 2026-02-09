@@ -6,13 +6,29 @@
 
 import { neon } from '@neondatabase/serverless';
 
-// Use POSTGRES_URL or DATABASE_URL (same connection as reviews)
-// In production, these are set as environment variables by Vercel
-const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
-if (!connectionString) {
-  throw new Error('Missing database connection string. Set POSTGRES_URL or DATABASE_URL');
+// Lazy connection - only initialize when sql is accessed
+// This allows dotenv to load vars before database connection is created
+let _sql: ReturnType<typeof neon> | null = null;
+
+function getSql(): ReturnType<typeof neon> {
+  if (!_sql) {
+    const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+    if (!connectionString) {
+      throw new Error('Missing database connection string. Set POSTGRES_URL or DATABASE_URL');
+    }
+    _sql = neon(connectionString);
+  }
+  return _sql;
 }
-const sql = neon(connectionString);
+
+// Export sql as a template tag function with lazy initialization
+// Usage: sql`SELECT * FROM table`
+// Create a function that acts as the template tag
+function sqlTemplateTag(strings: TemplateStringsArray, ...values: any[]) {
+  return getSql()(strings, ...values);
+}
+
+export const sql = sqlTemplateTag as ReturnType<typeof neon>;
 
 /**
  * Test database connection
@@ -20,7 +36,13 @@ const sql = neon(connectionString);
 export async function testConnection(): Promise<boolean> {
   try {
     const result = await sql`SELECT NOW() as current_time`;
-    console.log('[DB] Connection successful:', result[0].current_time);
+    const row = Array.isArray(result)
+      ? (result[0] as Record<string, unknown> | undefined)
+      : undefined;
+    console.log(
+      '[DB] Connection successful:',
+      (row?.current_time as string | Date | undefined) ?? 'unknown'
+    );
     return true;
   } catch (error) {
     console.error('[DB] Connection failed:', error);
@@ -276,9 +298,19 @@ export async function getDatabaseStats() {
       LIMIT 1
     `;
     
+    const countRow = Array.isArray(productCount)
+      ? (productCount[0] as Record<string, unknown> | undefined)
+      : undefined;
+    const syncRow = Array.isArray(lastSync)
+      ? (lastSync[0] as Record<string, unknown> | undefined)
+      : undefined;
+    
     return {
-      totalProducts: parseInt(productCount[0].count),
-      lastSync: lastSync[0] || null,
+      totalProducts: countRow ? parseInt(countRow.count as string) : 0,
+      lastSync: syncRow ? {
+        completed_at: syncRow.completed_at as Date,
+        products_synced: syncRow.products_synced as number,
+      } : null,
     };
   } catch (error) {
     console.error('[DB] Error getting stats:', error);
@@ -300,4 +332,3 @@ export async function clearProducts(): Promise<void> {
   }
 }
 
-export { sql };

@@ -333,7 +333,7 @@ export async function getHomeSections(): Promise<HomeSection[]> {
       ORDER BY sort_order ASC
     `;
 
-    if (result.length > 0) {
+    if (Array.isArray(result) && result.length > 0) {
       const sections = parseRows(result as unknown as CsvRow[]);
       const normalized = sections
         .filter((s) => s.enabled)

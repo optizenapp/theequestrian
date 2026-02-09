@@ -272,7 +272,8 @@ export async function getProductByHandle(handle: string): Promise<ProductQueryRe
       LIMIT 1
     `;
     
-    return result[0] as ProductQueryResult || null;
+    const row = Array.isArray(result) ? result[0] : undefined;
+    return (row as ProductQueryResult) || null;
   } catch (error) {
     console.error('[getProductByHandle] Error:', error);
     return null;

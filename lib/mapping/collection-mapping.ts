@@ -112,7 +112,9 @@ async function loadMapping(): Promise<Map<string, MappingRow[]>> {
     // Build Map structure (same as CSV version)
     const mappingByPath = new Map<string, MappingRow[]>();
     
-    for (const row of rows) {
+    const rowsArray = Array.isArray(rows) ? rows : [];
+    for (const rowRaw of rowsArray) {
+      const row = rowRaw as MappingRow;
       const pathParts: string[] = [];
       if (row.top_level && row.top_level.trim()) {
         pathParts.push(row.top_level.trim());
@@ -139,7 +141,7 @@ async function loadMapping(): Promise<Map<string, MappingRow[]>> {
     cachedMapping = mappingByPath;
     lastCacheTime = Date.now();
     
-    console.log(`[loadMapping] Loaded ${rows.length} mapping rows from Postgres`);
+    console.log(`[loadMapping] Loaded ${rowsArray.length} mapping rows from Postgres`);
     return mappingByPath;
     
   } catch (error) {

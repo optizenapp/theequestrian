@@ -41,7 +41,7 @@ export function getGmcS3Config() {
 }
 
 export async function uploadGmcFeedToS3(xml: string): Promise<GmcS3UploadResult> {
-  const { bucket, region, key, publicRead } = getGmcS3Config();
+  const { bucket, region, key } = getGmcS3Config();
   const client = new S3Client({ region });
 
   const command = new PutObjectCommand({
@@ -50,7 +50,7 @@ export async function uploadGmcFeedToS3(xml: string): Promise<GmcS3UploadResult>
     Body: xml,
     ContentType: 'application/xml; charset=utf-8',
     CacheControl: 'public, max-age=900',
-    ...(publicRead ? { ACL: 'public-read' } : {}),
+    // Note: ACL removed - bucket should use bucket policy for public access instead
   });
 
   const result = await client.send(command);

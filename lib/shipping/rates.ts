@@ -48,7 +48,9 @@ export async function loadShippingRates(): Promise<ShippingRates> {
     WHERE active = true
   `;
 
-  for (const row of vendors) {
+  const vendorsArray = Array.isArray(vendors) ? vendors : [];
+  for (const rowRaw of vendorsArray) {
+    const row = rowRaw as any;
     vendorRates.set(row.vendor_name, {
       vendor: row.vendor_name,
       baseRate: parseFloat(row.base_rate),
@@ -64,7 +66,9 @@ export async function loadShippingRates(): Promise<ShippingRates> {
     WHERE active = true
   `;
 
-  for (const row of tags) {
+  const tagsArray = Array.isArray(tags) ? tags : [];
+  for (const rowRaw of tagsArray) {
+    const row = rowRaw as any;
     tagRates.set(row.tag, parseFloat(row.rate));
   }
 
