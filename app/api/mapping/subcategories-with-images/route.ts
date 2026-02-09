@@ -26,12 +26,6 @@ export async function GET(request: NextRequest) {
     // Check for custom content from CSV
     const customContent = getMegaMenuContent(category);
     
-    console.log(`[API] Mega menu for ${category}:`, {
-      hasCustomContent: !!customContent,
-      hasFeaturedImage: !!customContent?.featuredImage,
-      featuredImageUrl: customContent?.featuredImage?.url
-    });
-    
     // Featured image (from CSV or fallback to auto-generated)
     let featuredImage = null;
     let customQuickLinks = null;
@@ -48,9 +42,6 @@ export async function GET(request: NextRequest) {
         subtitle: customContent.featuredImage.subtitle,
         link: customContent.featuredImage.link,
       };
-      console.log(`[API] Featured image set for ${category}:`, featuredImage.url);
-    } else {
-      console.log(`[API] No featured image found for ${category}`);
     }
     
     if (customContent?.quickLinks) {

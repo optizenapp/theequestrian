@@ -65,15 +65,6 @@ export function MegaMenu({
 }: MegaMenuProps) {
   const categoryHandle = categoryLabel.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and');
   
-  // Debug: Log featured image data
-  if (typeof window !== 'undefined') {
-    console.log('[MegaMenu] Rendering for:', categoryLabel, {
-      hasFeaturedImage: !!featuredImage,
-      featuredImageUrl: featuredImage?.url,
-      subcategoriesCount: subcategories.length
-    });
-  }
-  
   // Use custom subcategory cards if provided, otherwise use auto-generated from mapping
   const cardsToShow: Array<{
     title: string;
