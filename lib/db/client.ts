@@ -276,6 +276,25 @@ export async function initializeSchema(): Promise<void> {
       )
     `;
     await sql`CREATE UNIQUE INDEX IF NOT EXISTS idx_gmc_integration_singleton ON gmc_integration(id)`;
+
+    // Create gmc_feed_uploads table
+    console.log('[DB] Creating gmc_feed_uploads table...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS gmc_feed_uploads (
+        id SERIAL PRIMARY KEY,
+        item_count INTEGER NOT NULL,
+        file_size_bytes BIGINT,
+        s3_url TEXT NOT NULL,
+        s3_bucket TEXT NOT NULL,
+        s3_key TEXT NOT NULL,
+        source TEXT DEFAULT 'cron',
+        success BOOLEAN DEFAULT true,
+        error_message TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_gmc_feed_uploads_created ON gmc_feed_uploads(created_at DESC)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_gmc_feed_uploads_source ON gmc_feed_uploads(source)`;
     
     console.log('[DB] ✅ Schema initialized successfully');
   } catch (error) {

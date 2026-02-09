@@ -27,6 +27,7 @@ if (!process.env.SHOPIFY_STORE_DOMAIN || !process.env.SHOPIFY_STOREFRONT_ACCESS_
 
 import { buildGmcFeedXml } from '@/lib/gmc/feed';
 import { uploadGmcFeedToS3 } from '@/lib/gmc/s3';
+import { logGmcFeedUpload } from '@/lib/db/gmc-feed-log';
 
 async function uploadGmcFeed() {
   console.log('📡 Building GMC feed from Shopify inventory...');
@@ -34,6 +35,16 @@ async function uploadGmcFeed() {
 
   console.log('☁️ Uploading GMC feed to S3...');
   const result = await uploadGmcFeedToS3(xml);
+
+  // Log upload to database
+  await logGmcFeedUpload({
+    itemCount,
+    fileSizeBytes: Buffer.byteLength(xml, 'utf8'),
+    s3Url: result.url,
+    s3Bucket: result.bucket,
+    s3Key: result.key,
+    source: 'script',
+  });
 
   console.log(`✅ Items exported: ${itemCount}`);
   console.log(`✅ Uploaded to: ${result.url}`);

@@ -76,7 +76,8 @@
     "feed:export": "tsx scripts/export-gmc-feed.ts",
     "feed:upload": "tsx scripts/upload-gmc-feed.ts",
     "feed:audit": "tsx scripts/audit-gmc-feed.ts --feed exports/gmc-feed-latest.xml",
-    "feed:validate-taxonomy": "tsx scripts/validate-gmc-taxonomy.ts"
+    "feed:validate-taxonomy": "tsx scripts/validate-gmc-taxonomy.ts",
+    "feed:logs": "tsx scripts/check-gmc-logs.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.73.0",
