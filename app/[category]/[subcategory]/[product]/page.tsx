@@ -82,6 +82,16 @@ export default async function Page({ params, searchParams }: PageProps) {
   }
 
   // 1. Check if this is a valid sub-subcategory
+  // First check if it exists in the database (collection_content table)
+  const { categoryExists } = await import('@/lib/content/collections');
+  const existsInDatabase = await categoryExists(category, subcategory, thirdSegment);
+  
+  if (existsInDatabase) {
+    // Category exists in database, render it (will redirect if empty)
+    return renderSubSubcategoryPage(category, subcategory, thirdSegment, afterCursor, filterBrands, filterSizes, filterColors);
+  }
+  
+  // Check if it has product types mapped (for categories not in database yet)
   const allowedProductTypes = await getProductTypesForCollection(category, subcategory, thirdSegment);
   
   // If it maps to a collection, render the collection page

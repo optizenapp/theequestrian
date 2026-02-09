@@ -136,6 +136,19 @@ export async function getCategoryContent(
 }
 
 /**
+ * Check if a category exists in the database
+ * Returns true if the category exists and is published
+ */
+export async function categoryExists(
+  category: string,
+  subcategory?: string,
+  subsubcategory?: string
+): Promise<boolean> {
+  const content = await getCategoryContent(category, subcategory, subsubcategory);
+  return content !== null && content.status === 'published';
+}
+
+/**
  * Invalidate cache (useful after content updates)
  */
 export function invalidateCache(): void {
