@@ -8,6 +8,12 @@ export async function GET() {
   try {
     const { xml, itemCount } = await buildGmcFeedXml();
     const result = await uploadGmcFeedToS3(xml);
+    console.log('[cron:gmc-feed] Upload succeeded', {
+      itemCount,
+      url: result.url,
+      bucket: result.bucket,
+      key: result.key,
+    });
     return NextResponse.json({
       ok: true,
       itemCount,
