@@ -101,20 +101,7 @@ function loadMegaMenuContentFromCSV(): Map<string, MegaMenuContent> {
     return new Map();
   }
   
-  // Check if file has been modified
-  const stats = fs.statSync(csvPath);
-  const currentModified = stats.mtimeMs;
-  
-  // In development, always reload to see changes immediately
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  
-  // Return cached content if file hasn't changed (skip cache in dev)
-  if (!isDevelopment && cachedContent && lastModified === currentModified) {
-    console.log('[MegaMenu] Using cached content');
-    return cachedContent;
-  }
-  
-  console.log('[MegaMenu] Loading CSV from:', csvPath, 'isDev:', isDevelopment);
+  console.log('[MegaMenu] Loading CSV from:', csvPath);
   
   try {
     const fileContent = fs.readFileSync(csvPath, 'utf-8');
@@ -196,10 +183,6 @@ function loadMegaMenuContentFromCSV(): Map<string, MegaMenuContent> {
         cardsCount: content.subcategoryCards?.length || 0
       });
     }
-    
-    // Update cache
-    cachedContent = contentMap;
-    lastModified = currentModified;
     
     console.log(`[MegaMenu] Loaded content for ${contentMap.size} categories:`, Array.from(contentMap.keys()));
     return contentMap;
