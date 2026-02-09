@@ -125,13 +125,15 @@ export function MegaMenu({
             {featuredImage ? (
               <Link
                 href={featuredImage.link || `/${categoryHandle}`}
-                className="group block rounded-3xl overflow-hidden h-[220px] relative"
+                className="group block rounded-3xl overflow-hidden h-[220px] relative bg-gray-100"
                 onClick={onClose}
               >
                 <img
                   src={featuredImage.url}
                   alt={featuredImage.altText}
                   className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                  loading="eager"
+                  decoding="async"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
@@ -165,6 +167,8 @@ export function MegaMenu({
                         src={quickLink.imageUrl}
                         alt={quickLink.title}
                         className="w-full h-full object-cover"
+                        loading="eager"
+                        decoding="async"
                       />
                     </div>
                   ) : (
@@ -198,7 +202,8 @@ export function MegaMenu({
                         src={card.imageUrl}
                         alt={card.title}
                         className="w-full h-full object-cover"
-                        loading="lazy"
+                        loading="eager"
+                        decoding="async"
                       />
                     </div>
                   ) : (

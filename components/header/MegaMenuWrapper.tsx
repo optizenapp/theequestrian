@@ -54,6 +54,17 @@ interface MegaMenuData {
 const menuCache = new Map<string, MegaMenuData>();
 
 /**
+ * Preload an image by creating a new Image object
+ * This tells the browser to fetch and cache the image
+ */
+function preloadImage(url: string) {
+  if (typeof window === 'undefined') return;
+  
+  const img = new Image();
+  img.src = url;
+}
+
+/**
  * Prefetch mega menu data for a category
  * Call this on hover to load data before menu opens
  */
@@ -82,6 +93,38 @@ export async function prefetchMegaMenuData(categoryLabel: string) {
       customQuickLinks: data.customQuickLinks || null,
       customSubcategoryCards: data.customSubcategoryCards || null,
     });
+    
+    // Preload featured image for instant display
+    if (data.featuredImage?.url) {
+      preloadImage(data.featuredImage.url);
+    }
+    
+    // Preload subcategory images
+    if (data.subcategories) {
+      data.subcategories.forEach((sub: any) => {
+        if (sub.image?.url) {
+          preloadImage(sub.image.url);
+        }
+      });
+    }
+    
+    // Preload custom quick link images
+    if (data.customQuickLinks) {
+      data.customQuickLinks.forEach((link: any) => {
+        if (link.imageUrl) {
+          preloadImage(link.imageUrl);
+        }
+      });
+    }
+    
+    // Preload custom subcategory card images
+    if (data.customSubcategoryCards) {
+      data.customSubcategoryCards.forEach((card: any) => {
+        if (card.imageUrl) {
+          preloadImage(card.imageUrl);
+        }
+      });
+    }
   } catch (err) {
     // Silently fail - prefetch is optional
     console.debug('Prefetch failed for', categoryLabel, err);
