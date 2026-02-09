@@ -6,6 +6,7 @@ import { useRef, useState, useEffect } from 'react';
 interface CategoryPill {
   handle: string;
   label: string;
+  count?: number; // Optional product count
 }
 
 interface CategoryPillsProps {
@@ -14,6 +15,12 @@ interface CategoryPillsProps {
 }
 
 export function CategoryPills({ categories, basePath }: CategoryPillsProps) {
+  // Filter out categories with 0 products (only show categories that have products)
+  const visibleCategories = categories.filter(cat => {
+    // If count is not provided, assume it has products (backward compatibility)
+    // If count is provided and is 0, hide it
+    return cat.count === undefined || cat.count > 0;
+  });
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(false);
@@ -30,7 +37,7 @@ export function CategoryPills({ categories, basePath }: CategoryPillsProps) {
     checkScroll();
     window.addEventListener('resize', checkScroll);
     return () => window.removeEventListener('resize', checkScroll);
-  }, [categories]);
+  }, [visibleCategories]);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
@@ -46,7 +53,8 @@ export function CategoryPills({ categories, basePath }: CategoryPillsProps) {
     }
   };
 
-  if (categories.length === 0) return null;
+  // Don't render if no visible categories
+  if (visibleCategories.length === 0) return null;
 
   return (
     <div className="relative mb-6 flex items-center gap-3">
@@ -70,7 +78,7 @@ export function CategoryPills({ categories, basePath }: CategoryPillsProps) {
         className="flex-1 overflow-x-auto scrollbar-hide"
       >
         <div className="flex gap-3 pb-2">
-          {categories.map((category) => (
+          {visibleCategories.map((category) => (
             <Link
               key={category.handle}
               href={`${basePath}/${category.handle}`}

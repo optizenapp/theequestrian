@@ -1,0 +1,31 @@
+from,to,method,confidence,reasoning,is_new_category
+/collections/saddles,/horse/saddles,exact-match,high,Already in redirects CSV,no
+/collections/horse-rugs,/horse/rugs,exact-match,high,Already in redirects CSV,no
+/collections/footwear,/clothing/footwear,exact-match,high,Already in redirects CSV,no
+/collections/horse-boots,/horse/boots,exact-match,high,Already in redirects CSV,no
+/collections/horse-bandages,/horse/boots/bandages,exact-match,high,Already in redirects CSV,no
+/collections/horse-grooming-supplies,/horse/grooming,exact-match,high,Already in redirects CSV,no
+/collections/horse-health,/horse/veterinary,exact-match,high,Already in redirects CSV,no
+/collections/saddle-pads,/horse/pads,exact-match,high,Already in redirects CSV,no
+/collections/horse-riding-apparel,/clothing,exact-match,high,Already in redirects CSV,no
+/collections/horse-riding-helmets,/rider/helmets,exact-match,high,Already in redirects CSV,no
+/collections/strapping,/,ai-suggested,low,"AI mapping failed, defaulting to home",no
+/collections/horse-halters,/horse/halters,exact-match,high,Already in redirects CSV,no
+/collections/horse-toys,/horse/stable/treats,exact-match,high,Already in redirects CSV,no
+/collections/horse-jewellery,/rider/jewellery,exact-match,high,Already in redirects CSV,no
+/collections/pets,/pet,exact-match,high,Already in redirects CSV,no
+/collections/horse-riding-accessories,/rider/accessories,exact-match,high,Already in redirects CSV,no
+/collections/feed,/horse/stable/feed,exact-match,high,Already in redirects CSV,no
+/collections/stable-and-yard,/horse/stable,exact-match,high,Already in redirects CSV,no
+/collections/clippers,/horse/stable/clippers,exact-match,high,Already in redirects CSV,no
+/collections/body-protectors,/rider/body-protectors,exact-match,high,Already in redirects CSV,no
+/collections/horse-bits,/horse/bits,exact-match,high,Already in redirects CSV,no
+/collections/trailrace-equestrian-outfitters,/,ai-suggested,low,"AI mapping failed, defaulting to home",no
+/collections/thinline-global-australia,/brands/thinline-global-australia,brand-match,high,Matches existing brand handle,no
+/collections/southern-sport-horses,/,ai-suggested,low,"AI mapping failed, defaulting to home",no
+/collections/dapple-eq,/,ai-suggested,low,"AI mapping failed, defaulting to home",no
+/collections/ascot-saddlery,/,ai-suggested,low,"AI mapping failed, defaulting to home",no
+/collections/fly-veils-and-hoods,/,ai-suggested,low,"AI mapping failed, defaulting to home",no
+/collections/luggage,/rider/luggage,exact-match,high,Already in redirects CSV,no
+/collections/horse-books,/accessories/books,exact-match,high,Already in redirects CSV,no
+/collections/eac-animal-care,/horse/veterinary,exact-match,high,Already in redirects CSV,no

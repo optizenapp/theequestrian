@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { MegaMenuWrapper } from './MegaMenuWrapper';
+import { MegaMenuWrapper, prefetchMegaMenuData } from './MegaMenuWrapper';
 import { TOP_LEVEL_MENU, getShopifyCollectionHandle, shouldShowMegaMenu } from '@/lib/navigation/menu-structure';
 import type { CollectionWithParent } from '@/types/shopify';
 
@@ -31,6 +31,11 @@ export function HeaderNavigation() {
     }
     isHoveringRef.current = true;
     
+    // Prefetch data immediately on hover for instant display
+    if (shouldShowMegaMenu(label)) {
+      prefetchMegaMenuData(label);
+    }
+    
     // Add delay before opening to prevent accidental triggers and allow immediate clicks
     timeoutRef.current = setTimeout(() => {
       if (isHoveringRef.current && shouldShowMegaMenu(label)) {
@@ -49,7 +54,21 @@ export function HeaderNavigation() {
   };
 
   useEffect(() => {
+    // Prefetch all mega menu data on mount for instant display
+    // This runs after initial page load to not block rendering
+    const prefetchAll = async () => {
+      for (const item of TOP_LEVEL_MENU) {
+        if (shouldShowMegaMenu(item.label)) {
+          await prefetchMegaMenuData(item.label);
+        }
+      }
+    };
+    
+    // Delay prefetch slightly to not interfere with page load
+    const timer = setTimeout(prefetchAll, 100);
+    
     return () => {
+      clearTimeout(timer);
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
@@ -110,7 +129,7 @@ export function HeaderNavigation() {
           }}
           onMouseLeave={handleMouseLeave}
         >
-          <div className="w-full max-w-6xl px-4">
+          <div className="w-[calc(100vw-2rem)] max-w-6xl">
             <MegaMenuWrapper 
               categoryLabel={activeMenu} 
               onClose={() => setActiveMenu(null)}

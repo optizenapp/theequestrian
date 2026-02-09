@@ -77,7 +77,14 @@
     "feed:upload": "tsx scripts/upload-gmc-feed.ts",
     "feed:audit": "tsx scripts/audit-gmc-feed.ts --feed exports/gmc-feed-latest.xml",
     "feed:validate-taxonomy": "tsx scripts/validate-gmc-taxonomy.ts",
-    "feed:logs": "tsx scripts/check-gmc-logs.ts"
+    "feed:logs": "tsx scripts/check-gmc-logs.ts",
+    "audit:categories": "tsx scripts/audit-and-map-categories.ts",
+    "audit:categories:full": "tsx scripts/audit-and-map-categories.ts --full",
+    "audit:categories:apply": "tsx scripts/audit-and-map-categories.ts --apply",
+    "apply:categories": "tsx scripts/apply-category-changes.ts",
+    "apply:categories:dry": "tsx scripts/apply-category-changes.ts --dry-run",
+    "verify:redirects": "tsx scripts/verify-redirect-coverage.ts",
+    "test:empty-categories": "tsx scripts/test-empty-category-behavior.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.73.0",

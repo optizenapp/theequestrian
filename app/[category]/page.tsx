@@ -199,6 +199,13 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
   // Total count is now returned from getProductsByTypes (no separate API call needed)
   const totalProductCount = totalCount;
+
+  // EMPTY CATEGORY REDIRECT: If this category has no products and no filters are applied,
+  // redirect to the homepage or a parent category (if applicable)
+  if (totalProductCount === 0 && !filterBrands && !filterSizes && !filterColors && !afterCursor) {
+    // For top-level categories with no products, redirect to homepage
+    redirect('/');
+  }
   
   // Generate canonical URLs for all products (fast with Neon DB)
   // Product cards will link directly to category-based URLs

@@ -23,7 +23,7 @@ export function Header() {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 bg-surface shadow-sm overflow-x-hidden">
+    <header className="sticky top-0 z-50 bg-surface shadow-sm">
       <div className="border-b border-gray-100 py-4">
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
           {/* Mobile Layout */}
@@ -129,7 +129,7 @@ export function Header() {
       )}
 
       {/* Secondary Navigation - Categories */}
-      <div className="hidden lg:flex border-b border-gray-100 bg-surface py-3">
+      <div className="hidden lg:flex border-b border-gray-100 bg-surface py-3 relative z-50">
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 flex justify-center">
           <HeaderNavigation />
         </div>

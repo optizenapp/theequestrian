@@ -1,0 +1,3543 @@
+{
+  "summary": {
+    "totalOldUrls": 369,
+    "alreadyMapped": 101,
+    "newMappings": 268,
+    "unmappable": 1,
+    "missingCategories": 71
+  },
+  "redirectMappings": [
+    {
+      "from": "/collections/saddles",
+      "to": "/horse/saddles",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-rugs",
+      "to": "/horse/rugs",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/footwear",
+      "to": "/clothing/footwear",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-boots",
+      "to": "/horse/boots",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-bandages",
+      "to": "/horse/boots/bandages",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-grooming-supplies",
+      "to": "/horse/grooming",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-health",
+      "to": "/horse/veterinary",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/saddle-pads",
+      "to": "/horse/pads",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-riding-apparel",
+      "to": "/clothing",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-riding-helmets",
+      "to": "/rider/helmets",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/strapping",
+      "to": "/horse/grooming/products",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Strapping is a traditional horse grooming term referring to muscle massaging/toning with a grooming pad or strapping cloth. This fits best under horse grooming products as it's a grooming technique and associated equipment.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-halters",
+      "to": "/horse/halters",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-toys",
+      "to": "/horse/stable/treats",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-jewellery",
+      "to": "/rider/jewellery",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/pets",
+      "to": "/pet",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-riding-accessories",
+      "to": "/rider/accessories",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/feed",
+      "to": "/horse/stable/feed",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/stable-and-yard",
+      "to": "/horse/stable",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/clippers",
+      "to": "/horse/stable/clippers",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/body-protectors",
+      "to": "/rider/body-protectors",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-bits",
+      "to": "/horse/bits",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/trailrace-equestrian-outfitters",
+      "to": "/accessories/gifts",
+      "method": "ai-suggested",
+      "confidence": "medium",
+      "reasoning": "Trailrace Equestrian Outfitters appears to be a brand or general store collection rather than a specific product category. Without more context about the products, mapping to gifts/general accessories is most appropriate, as it's the catch-all for miscellaneous equestrian items. Alternatively, this could be a vendor/brand collection that doesn't map to a product category structure.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/thinline-global-australia",
+      "to": "/brands/thinline-global-australia",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/southern-sport-horses",
+      "to": "/horse/brands/southern-sport-horses",
+      "method": "ai-suggested",
+      "confidence": "medium",
+      "reasoning": "Southern Sport Horses appears to be a brand name. Since there's no existing brands section under /horse (only under /accessories/brands), creating /horse/brands/southern-sport-horses would be appropriate for brand-specific horse products. Alternative would be to use /accessories/brands/southern-sport-horses if this is a general brand collection.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/dapple-eq",
+      "to": "/horse/tack",
+      "method": "ai-suggested",
+      "confidence": "medium",
+      "reasoning": "Dapple EQ appears to be a brand that primarily produces horse tack and equipment. Without more specific product information, the general /horse/tack category is the best fit as it encompasses bridles, reins, and other tack items that brands like Dapple EQ typically manufacture.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/ascot-saddlery",
+      "to": "/horse/saddles",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Ascot Saddlery is a brand/store name specializing in horse saddles and saddlery equipment. Maps to the existing saddles category which is the most appropriate category for general saddlery products.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/fly-veils-and-hoods",
+      "to": "/horse/bonnets",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Fly veils and hoods are types of horse bonnets worn to protect from flies and insects. The existing /horse/bonnets category is the perfect match for this product type.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/luggage",
+      "to": "/rider/luggage",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-books",
+      "to": "/accessories/books",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/eac-animal-care",
+      "to": "/horse/veterinary",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/ps-of-sweden",
+      "to": "/brands/ps-of-sweden",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/samshield",
+      "to": "/brands/samshield",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/living-horse-tales-jewellery-by-monika",
+      "to": "/brands/living-horse-tales-jewellery-by-monika",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/vivarchie-equestrian",
+      "to": "/clothing/womens",
+      "method": "ai-suggested",
+      "confidence": "medium",
+      "reasoning": "Vivarchie Equestrian is a brand that produces equestrian apparel, primarily women's riding wear including breeches, tops, and jackets. Maps to existing women's clothing category as the most appropriate general destination for this brand's products.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horseware-australia",
+      "to": "/accessories/brands/horseware",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/bare-equestrian",
+      "to": "/brands/bare-equestrian",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/premier-equine",
+      "to": "/horse/premier-equine",
+      "method": "ai-suggested",
+      "confidence": "medium",
+      "reasoning": "Premier Equine is a major equestrian brand that produces a wide range of horse products including boots, rugs, pads, and other horse equipment. Since this is a brand collection rather than a product category, and no brand-specific paths exist in the horse section (unlike /accessories/brands/horseware), creating a brand subcategory at /horse/premier-equine would be the most logical mapping to preserve the brand-based navigation.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/hitchley-harrow",
+      "to": "/accessories/brands/hitchley-harrow",
+      "method": "ai-suggested",
+      "confidence": "medium",
+      "reasoning": "Hitchley & Harrow appears to be a brand name. The existing structure has /accessories/brands/horseware, suggesting brand collections are housed under accessories. This follows the established pattern for brand-specific collections.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/diamond-deluxe-horsewear",
+      "to": "/brands/diamond-deluxe-horsewear",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/bucas-australia",
+      "to": "/horse/rugs",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Bucas is a well-known Australian horse rug manufacturer. The collection would contain their range of horse rugs and blankets, which maps directly to the existing /horse/rugs category.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/cavalor-equicare",
+      "to": "/brands/cavalor-equicare",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/lemieux",
+      "to": "/horse/lemieux",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "LeMieux is a premium equestrian brand that produces saddle pads, boots, grooming products, fly hoods, and other horse equipment. Since it's a brand collection rather than a product type, creating a brand subcategory under /horse is appropriate, similar to the existing /accessories/brands/horseware structure.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/zilco",
+      "to": "/brands/zilco",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/penelope-leprovost",
+      "to": "/brands/penelope-leprovost",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/can-animal-care",
+      "to": "/brands/can-animal-care",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/helmet-brims",
+      "to": "/rider/helmets",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/kentucky",
+      "to": "/brands/kentucky",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/freejump",
+      "to": "/brands/freejump",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/cavalleria-toscana",
+      "to": "/brands/cavalleria-toscana",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/animo",
+      "to": "/brands/animo",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/equiline",
+      "to": "/brands/equiline",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/little-equine-co",
+      "to": "/accessories/gifts",
+      "method": "ai-suggested",
+      "confidence": "medium",
+      "reasoning": "Little Equine Co appears to be a brand that offers equestrian-themed gifts and accessories. Without more specific product information, the existing /accessories/gifts path is the most appropriate match for branded gift items.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/cavallo",
+      "to": "/brands/cavallo",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/equipe",
+      "to": "/brands/equipe",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/sterling-essentials",
+      "to": "/brands/sterling-essentials",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/southern-sport-horses-1",
+      "to": "/horse/stable",
+      "method": "ai-suggested",
+      "confidence": "medium",
+      "reasoning": "Southern Sport Horses appears to be a brand or vendor collection. Without more context about the specific products, mapping to /horse/stable as a general catch-all for horse-related stable/barn products. This could alternatively be a brand-specific collection that doesn't map well to product categories.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/emcee-apparel",
+      "to": "/brands/emcee-apparel",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/top-brands",
+      "to": "/",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/aza-equestrian",
+      "to": "/clothing/brands/aza-equestrian",
+      "method": "ai-suggested",
+      "confidence": "medium",
+      "reasoning": "Aza Equestrian is a brand that primarily produces equestrian clothing and apparel. Since there's no existing brands subcategory under clothing (only under accessories), suggesting a new brands path. Alternatively could map to /accessories/brands if product mix is unclear, but clothing is more likely given the brand focus.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/black-friday-deals-for-equestrians",
+      "to": "/accessories/gifts",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Black Friday deals for equestrians is a promotional collection that would contain gift items and various equestrian products. The /accessories/gifts category is the most appropriate existing path for promotional and gift-oriented collections that span multiple product types.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/farrier-tools",
+      "to": "/horse/stable/farrier",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/vibrant-equestrian",
+      "to": "/horse/tack/accessories",
+      "method": "ai-suggested",
+      "confidence": "medium",
+      "reasoning": "Vibrant Equestrian is likely a brand or collection name rather than a specific product category. Without more context about what products were in this collection, /horse/tack/accessories is a reasonable general catch-all for branded equestrian equipment. If more information shows this was specifically rider clothing or other products, the mapping should be updated accordingly.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/on-sale",
+      "to": "/accessories/on-sale",
+      "method": "ai-suggested",
+      "confidence": "medium",
+      "reasoning": "The 'on-sale' collection is a promotional/filtering category that doesn't fit into product-specific hierarchies. While it could span all top-level categories, placing it under accessories as a cross-category sale section is the least disruptive option. However, this type of URL typically represents a filter/tag rather than a true category hierarchy and may be better handled through query parameters or a dedicated sales landing page outside the main category structure.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/peter-williams",
+      "to": "/brands/peter-williams",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/jp-equestrian-fashion",
+      "to": "/brands/jp-equestrian-fashion",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/plum-tack",
+      "to": "/brands/plum-tack",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/breeches",
+      "to": "/clothing/womens/breeches",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/base-layers",
+      "to": "/clothing/activewear/base-layers",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Base layers are thermal/compression garments worn by riders under their clothing. The existing /clothing/activewear category is the perfect parent for this subcategory, as base layers are performance activewear designed for riding comfort.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/hygieia-san",
+      "to": "/horse/stable/feed",
+      "method": "ai-suggested",
+      "confidence": "medium",
+      "reasoning": "Hygieia-san appears to be a brand name, likely related to horse feed or supplements. The existing /horse/stable/feed category is the most appropriate match for feed-related products. Could also fit under /horse/supplements if the products are nutritional supplements rather than feed.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/dyon",
+      "to": "/brands/dyon",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/westerns-saddles-usa",
+      "to": "/horse/saddles/stock-western",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/hairy-pony",
+      "to": "/brands/hairy-pony",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/ariat",
+      "to": "/brands/ariat",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/multidomain-chek",
+      "to": "/accessories/gift-cards",
+      "method": "ai-suggested",
+      "confidence": "medium",
+      "reasoning": "The segment 'multidomain-chek' appears to be a technical or administrative collection name, possibly related to gift cards or vouchers that can be used across multiple domains. Gift cards are the closest existing match for cross-domain payment instruments.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/globo_basis_collection",
+      "to": "/accessories/gifts",
+      "method": "ai-suggested",
+      "confidence": "low",
+      "reasoning": "globo_basis_collection appears to be a technical/system collection name without clear product category indicators. Mapping to /accessories/gifts as a generic catch-all, but this likely needs manual review to determine actual product content.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/mochara",
+      "to": "/accessories/gifts",
+      "method": "ai-suggested",
+      "confidence": "low",
+      "reasoning": "Mochara appears to be a brand name with no clear product category indicators. Without additional context about what products this collection contains, mapping to /accessories/gifts as a general catch-all for branded merchandise. This may need refinement once the actual product types are known.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/toklat",
+      "to": "/horse/pads",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Toklat is a well-known brand specializing in saddle pads and accessories. The existing /horse/pads category is the most appropriate match for this brand collection.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/wintec",
+      "to": "/brands/wintec",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/martin-saddlery",
+      "to": "/horse/saddles/accessories",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Martin Saddlery is a well-known western saddle and tack manufacturer. Their products include saddles, saddle accessories, and western tack items. The existing /horse/saddles/accessories category is the most appropriate match for this brand's product range.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/weaver-leather",
+      "to": "/horse/stable/leather-care",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/leather-brothers",
+      "to": "/horse/stable/leather-care",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/run-away-equestrian-co",
+      "to": "/brands/run-away-equestrian-co",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/noble-outfitters",
+      "to": "/brands/noble-outfitters",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/ippico-equestrian",
+      "to": "/brands/ippico-equestrian",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/qj-riding-wear",
+      "to": "/brands/qj-riding-wear",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/jnk-collective",
+      "to": "/brands/jnk-collective",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/accessories",
+      "to": "/horse/rugs/accessories",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/ponyjet",
+      "to": "/brands/ponyjet",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/the-equestrian",
+      "to": "/brands/the-equestrian",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/eurohunter",
+      "to": "/brands/eurohunter",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/prestige",
+      "to": "/brands/prestige",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/the-barbie-collection",
+      "to": "/brands/the-barbie-collection",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/acavallo",
+      "to": "/brands/acavallo",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/anky",
+      "to": "/brands/anky",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/birds",
+      "to": "/pet/bird",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/elt",
+      "to": "/brands/elt",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/stirrups",
+      "to": "/horse/tack/stirrups",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/test-imports",
+      "to": "/accessories/gifts",
+      "method": "ai-suggested",
+      "confidence": "low",
+      "reasoning": "The URL 'test-imports' appears to be a technical/administrative collection used for testing product imports rather than a customer-facing category. Without additional context about what products it contains, mapping to /accessories/gifts as a general catch-all, but this should be reviewed and products reassigned to appropriate categories based on their actual type.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/anna-scarpati",
+      "to": "/brands/anna-scarpati",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/precision-microbes",
+      "to": "/horse/supplements",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Precision Microbes is a brand that produces equine probiotic and microbial supplements for horses. The existing /horse/supplements category is the appropriate destination for this product line.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/visentin-equestrian",
+      "to": "/accessories/brands/visentin",
+      "method": "ai-suggested",
+      "confidence": "medium",
+      "reasoning": "Visentin Equestrian appears to be a brand name. Following the existing pattern of /accessories/brands/horseware, creating a brand-specific path for Visentin makes sense for brand landing pages or collections.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/paddock-blade",
+      "to": "/horse/stable/paddock",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/ego-7",
+      "to": "/brands/ego-7",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/exclusively-equine",
+      "to": "/horse/exclusively-equine",
+      "method": "ai-suggested",
+      "confidence": "medium",
+      "reasoning": "Exclusively Equine appears to be a brand name. Without more context about what products they offer, creating a brand-specific subcategory under horse seems most appropriate, similar to the existing /accessories/brands/horseware pattern. However, if this is a general collection, it may need to map to multiple existing categories based on actual product types.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/gifts",
+      "to": "/accessories/gifts",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/homeware",
+      "to": "/accessories/homeware",
+      "method": "ai-suggested",
+      "confidence": "medium",
+      "reasoning": "Homeware products (decorative items, household goods with equestrian themes) fit best under accessories alongside gifts and collectibles. This is a new subcategory as homeware items don't fit cleanly into existing categories like books, collectibles, or gifts, though they share similar characteristics as lifestyle/gift items.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/tacklet",
+      "to": "/horse/tack/accessories",
+      "method": "ai-suggested",
+      "confidence": "medium",
+      "reasoning": "Tacklet appears to be a diminutive form of 'tack', suggesting small tack items or tack accessories. The existing /horse/tack/accessories category is the best match for miscellaneous or smaller tack-related items.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/shire-saddleworld",
+      "to": "/accessories/gifts",
+      "method": "ai-suggested",
+      "confidence": "medium",
+      "reasoning": "Shire Saddleworld appears to be a brand/store name rather than a product category. Without more context about what products were in this collection, mapping to gifts as a general merchandise category is most appropriate. Could also be a landing page for a specific store location's products.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-queened",
+      "to": "/brands/horse-queened",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/zilco/hind-fetlock",
+      "to": "/brands/zilco",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/zilco/cryochaps",
+      "to": "/brands/zilco",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/zilco/ice",
+      "to": "/brands/zilco",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/zilco/bell",
+      "to": "/brands/zilco",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/zilco/exercise",
+      "to": "/horse/boots/exercise",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/wintec/jumping",
+      "to": "/horse/boots/jumping",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/wintec/dressage",
+      "to": "/horse/pads/dressage",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/stirrups/leathers",
+      "to": "/horse/tack/stirrup-leathers",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL segments 'stirrups/leathers' clearly refers to stirrup leathers, which is horse tack. An exact match exists at /horse/tack/stirrup-leathers in the existing category structure.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/stirrups/freejump",
+      "to": "/horse/tack/stirrups/freejump",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Stirrups are already categorized under /horse/tack/stirrups. FreeJump is a premium stirrup brand that warrants its own subcategory under stirrups for brand-specific browsing, similar to how other brands are organized in the structure.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/kentucky/white",
+      "to": "/brands/kentucky",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/kentucky/dressage",
+      "to": "/brands/kentucky",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/kentucky/black",
+      "to": "/brands/kentucky",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/hairy-pony/equinade-shampoo",
+      "to": "/brands/hairy-pony",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/dyon/bridles",
+      "to": "/horse/tack/bridles",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/birds/poultry",
+      "to": "/pet/poultry",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/birds/toys",
+      "to": "hirt",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/base-layers/grey",
+      "to": "/clothing/tops/base-layers",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Base layers are rider apparel worn under riding clothing. The 'grey' segment indicates a color filter. Base layers fit best under clothing/tops as a new subcategory for thermal/compression underlayers.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/base-layers/white",
+      "to": "/clothing/tops/base-layers",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Base layers are thermal underwear/performance wear worn by riders under their riding clothing. They belong in the clothing category as tops/underlayers. While there's no existing base-layers subcategory, this fits logically under /clothing/tops alongside other shirt categories. The 'white' segment indicates a color filter, not a category level.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/base-layers/navy",
+      "to": "/clothing/activewear/base-layers",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Base layers are clothing items worn as a foundational layer, typically for riding. The 'navy' segment indicates a color filter. The existing /clothing/activewear category is the most appropriate parent for base layers as they serve athletic/active purposes.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/base-layers/black",
+      "to": "/clothing/tops/base-layers",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Base layers are a specific type of clothing top worn as underlayers for riding. The color 'black' is a product filter. While no exact base-layers category exists, it fits logically under /clothing/tops/ alongside other top types like long-sleeve, tanks, and tshirts.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/ariat/hats",
+      "to": "/clothing/accessories/hats",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/ariat/western-spurs",
+      "to": "/brands/ariat",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/ariat/ego-7",
+      "to": "/brands/ariat",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/ariat/baxter-boots",
+      "to": "/brands/ariat",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/ariat/roper-boots",
+      "to": "/brands/ariat",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/ariat/bags",
+      "to": "/rider/luggage/bags",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/ariat/cavallo",
+      "to": "/brands/ariat",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/ariat/mens",
+      "to": "/brands/ariat",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/ariat/spurs-and-straps",
+      "to": "/brands/ariat",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/ariat/stirrups-and-leathers",
+      "to": "/horse/tack/stirrups",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/ariat/womens",
+      "to": "/clothing/womens",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/ariat/jeans",
+      "to": "/clothing/mens/jeans",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/ariat/ariat",
+      "to": "/brands/ariat",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/peter-williams/harcour",
+      "to": "/brands/peter-williams",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/peter-williams/high-waisted",
+      "to": "/brands/peter-williams",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/peter-williams/grey",
+      "to": "/brands/peter-williams",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/peter-williams/brown",
+      "to": "/brands/peter-williams",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/peter-williams/black",
+      "to": "/brands/peter-williams",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/breeches/harcour",
+      "to": "/clothing/womens/breeches",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Breeches are equestrian apparel that belong under clothing. While 'harcour' is a brand name, the product type 'breeches' is the primary category. The existing /clothing/womens/breeches path is the best match, as most breeches collections default to women's unless specifically marked as mens or kids.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/breeches/samshield",
+      "to": "/clothing/womens/breeches",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Breeches are equestrian apparel items. The segment 'samshield' is a brand name. The existing path /clothing/womens/breeches is the best match as breeches are typically gender-specific clothing items, and womens is the most common category for breeches in equestrian retail.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/breeches/high-waisted",
+      "to": "/clothing/womens/breeches",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "High-waisted breeches are a style variation of women's breeches. The existing /clothing/womens/breeches path is the appropriate category for all women's breech styles including high-waisted variants.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/breeches/grey",
+      "to": "/clothing/womens/breeches",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Breeches are equestrian riding pants that belong under clothing. Grey is a color filter, not a category. The existing /clothing/womens/breeches path is the appropriate destination for general breeches collections.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/breeches/brown",
+      "to": "/clothing/womens/breeches",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Breeches are equestrian apparel that belong in the clothing category. The brown segment is a color filter, not a structural category. The existing /clothing/womens/breeches path is the best match, as breeches are typically browsed by gender and women's is the most common category.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/breeches/black",
+      "to": "/clothing/womens/breeches",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Breeches are equestrian riding pants, which belong in the clothing category. The color 'black' is a product attribute/filter, not a category. The existing /clothing/womens/breeches path is the appropriate match for general breeches collections.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/accessories/water-bottles",
+      "to": "/rider/accessories/water-bottles",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Water bottles are rider accessories carried by equestrians during riding/training. The /rider/accessories category already exists and handles personal rider items like hair accessories, headbands, and keychains, making it the logical parent for water bottles.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/test-imports/blue",
+      "to": "/accessories/gifts",
+      "method": "ai-suggested",
+      "confidence": "low",
+      "reasoning": "The segments 'test-imports' and 'blue' appear to be testing/administrative categories rather than meaningful product categories. 'Blue' could be a color filter. Without more context, mapping to a general gifts category as this seems like non-product data that may have been used for testing purposes.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/stable-and-yard/feeder",
+      "to": "/horse/stable/feeding",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Feeders are stable equipment used for feeding horses. The existing /horse/stable/feeding category is the perfect match for feeder products, which are essential yard and stable equipment.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/stable-and-yard/hay-feeders",
+      "to": "/horse/stable/hay-feeders",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Hay feeders are stable/yard equipment used for feeding horses. The /horse/stable category already contains related feeding items like 'feeding', 'feed', and 'hay-nets', making hay-feeders a logical addition to this structure.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-toys/the-trail-of-the-painted-pony",
+      "to": "/accessories/collectibles",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Trail of Painted Ponies is a collectible figurine line featuring decorated horse sculptures. This fits perfectly under accessories/collectibles as decorative items rather than functional horse equipment or toys.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-toys/breyer",
+      "to": "/accessories/collectibles/breyer",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Breyer is a collectible model horse brand. Horse toys/collectibles belong in accessories category where collectibles already exist. Adding breyer as a sub-subcategory under collectibles makes sense as Breyer is a major collectible horse brand.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-halters/breakaway",
+      "to": "/horse/halters/breakaway",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Breakaway halters are a specific safety type of horse halter. The existing /horse/halters category structure already has subcategories (lead-ropes, leads), so adding /breakaway as a parallel subcategory follows the established pattern and semantic organization.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-halters/rope",
+      "to": "/horse/training/ropes",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-halters/lemieux",
+      "to": "/horse/halters/lemieux",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL contains 'horse-halters' which maps to the existing /horse/halters category. 'lemieux' is a brand name (LeMieux), so creating a brand subcategory under halters follows the pattern seen elsewhere in the structure (e.g., /accessories/brands/horseware). This allows filtering halters by the LeMieux brand.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/saddles/equipe",
+      "to": "/horse/saddles/equipe",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Equipe is a saddle brand. The URL structure suggests a brand-specific saddle collection. Since /horse/saddles exists and has other subcategories for saddle types, adding /equipe as a brand subcategory follows the existing pattern seen in accessories/brands/horseware.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/saddles/arena",
+      "to": "/horse/saddles/arena",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Arena saddles are a specific type of saddle used for arena riding. The existing /horse/saddles category has subcategories for different saddle types (all-purpose, dressage, jumping, stock-western), so adding 'arena' as a parallel subcategory maintains the structure and semantic consistency.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/saddles/jumping",
+      "to": "/horse/saddles/jumping",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/saddles/all-purpose",
+      "to": "/horse/saddles/all-purpose",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/saddles/dressage",
+      "to": "/horse/saddles/dressage",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/saddle-pads/fig",
+      "to": "/horse/pads",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Saddle pads belong under /horse/pads which is the existing category for all saddle pad types. The 'fig' segment likely refers to a brand or color/pattern and should be handled as a filter rather than a category level.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/saddle-pads/bluebell",
+      "to": "/horse/pads/bluebell",
+      "method": "ai-suggested",
+      "confidence": "medium",
+      "reasoning": "Saddle pads clearly map to existing /horse/pads category. 'Bluebell' appears to be a brand, color, or collection name. Since there's no existing brand/color subcategory under pads, suggesting new path. Alternative would be generic /horse/pads if bluebell is just a filter/tag rather than a distinct category.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/saddle-pads/ps-of-sweden",
+      "to": "/horse/pads",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Saddle pads are horse equipment that go under saddles. The existing /horse/pads category is the perfect match. PS of Sweden is a brand that makes saddle pads, so this collection should map to the general pads category where all saddle pad products belong.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/saddle-pads/mattes",
+      "to": "/horse/pads/mattes",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Saddle pads belong under /horse/pads which already exists. Mattes is a premium brand of saddle pads, so creating /horse/pads/mattes as a brand-specific subcategory follows the existing structure pattern and makes semantic sense.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/saddle-pads/bareback",
+      "to": "/horse/pads/bareback",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Saddle pads belong under /horse/pads which already exists with multiple subcategories. Bareback pads are a specific type of saddle pad used for bareback riding, fitting logically alongside existing pad types like dressage, jumping, and western.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/saddle-pads/red",
+      "to": "/horse/pads",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Saddle pads are equipment that goes under saddles. The existing /horse/pads category is the perfect match. The 'red' segment is a color filter, not a category level, so the base /horse/pads path is appropriate.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/saddle-pads/pink",
+      "to": "/horse/pads",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Saddle pads are horse equipment used under saddles. The existing /horse/pads category is the perfect match. The 'pink' segment is a color filter, not a category level, so it should be handled as a product filter rather than a URL path segment.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/saddle-pads/jumping",
+      "to": "/horse/pads/jumping",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/saddle-pads/matchy-horse-sets",
+      "to": "/horse/pads/matchy-sets",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Matchy horse sets are coordinated saddle pads with matching items like bonnets and boots. Since /horse/pads already exists for saddle pads, adding a matchy-sets subcategory makes semantic sense for these coordinated equipment sets.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/saddle-pads/lemieux",
+      "to": "/horse/pads/lemieux",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Saddle pads map to existing /horse/pads category. LeMieux is a premium saddle pad brand that warrants its own subcategory given the brand-specific URL structure.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/saddle-pads/blue",
+      "to": "/horse/pads",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Saddle pads are horse equipment that go under saddles. The existing /horse/pads category is the perfect match. The 'blue' segment is a color filter, not a category level, so it should be handled as a product filter rather than part of the URL structure.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/saddle-pads/sheepskin",
+      "to": "/horse/pads/sheepskin",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Saddle pads belong under /horse/pads which already exists with subcategories like all-purpose, dressage, etc. Sheepskin is a material type used for saddle pads and half-pads, making it a logical subcategory alongside existing pad types.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/saddle-pads/all-purpose",
+      "to": "/horse/saddles/all-purpose",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/saddle-pads/half-pad",
+      "to": "/horse/pads/half-pads",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/saddle-pads/gel",
+      "to": "/horse/pads/gel-pads",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL /collections/saddle-pads/gel directly maps to the existing category /horse/pads/gel-pads. Saddle pads fall under horse equipment, and there's already a dedicated gel-pads subcategory.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/saddle-pads/eurohunter",
+      "to": "/horse/pads",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Saddle pads are horse equipment used under saddles. The existing /horse/pads category is the exact match for saddle pads. The 'eurohunter' segment is a brand name and doesn't require a separate category path.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/saddle-pads/white",
+      "to": "/horse/pads/white",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Saddle pads belong under /horse/pads which exists. The 'white' segment represents a color filter for saddle pads, following the existing pattern where /horse/pads has subcategories. This new path would organize white-colored saddle pads specifically.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/saddle-pads/dressage",
+      "to": "/horse/pads/dressage",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/saddle-pads/burgundy",
+      "to": "/horse/pads",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Saddle pads are horse equipment used under saddles. The existing /horse/pads category is the perfect match. The 'burgundy' segment is a color filter, not a structural category, so it should be handled as a product filter rather than a URL path component.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/saddle-pads/navy",
+      "to": "/horse/pads",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Saddle pads are already mapped under /horse/pads with multiple subcategories. The 'navy' segment is a color filter, not a structural category. The base /horse/pads path is the correct mapping for saddle pad collections.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/saddle-pads/black",
+      "to": "/horse/pads",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Saddle pads are a core horse equipment category. The existing /horse/pads category is the perfect match. The 'black' segment is a color filter, not a category level, so the base /horse/pads path is appropriate.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/saddle-pads/bare",
+      "to": "/horse/pads/bare",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Saddle pads belong under /horse/pads which already exists with various subcategories (all-purpose, dressage, jumping, etc.). 'Bare' appears to be a brand name (Bare Performance) for saddle pads, warranting a new brand-specific subcategory similar to existing structure.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/saddle-pads/western",
+      "to": "/horse/pads/western",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/pets/hills-science-diet",
+      "to": "/pet/dog/food",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Hill's Science Diet is a premium pet food brand primarily known for dog and cat food. Since the existing structure has /pet/dog/food and /pet/cat/food, and dog products are more prominent in the category structure, mapping to dog food is most appropriate. If brand-specific organization is needed, this could alternatively be a new path like /pet/food/hills-science-diet, but the existing dog food category is the best match.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/petlife-dog-beds",
+      "to": "/pet/dog/bedding",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL contains 'petlife-dog-beds' which clearly indicates dog beds/bedding products. The existing /pet/dog/bedding category is a perfect match for this product line.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/melanie-newman-shampoo",
+      "to": "/pet/dog/grooming",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Melanie Newman is a pet grooming brand, primarily known for dog shampoos and grooming products. The existing /pet/dog/grooming category is the perfect match for this collection.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/kazoo-dog-bed",
+      "to": "/pet/dog/bedding",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL contains 'kazoo-dog-bed' which clearly indicates a dog bed product. The existing '/pet/dog/bedding' category is the perfect match for this product type.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/pawz-dog-bed",
+      "to": "/pet/dog/bedding",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL contains 'pawz-dog-bed' which clearly indicates a dog bed product. The existing category '/pet/dog/bedding' is the perfect match for this product type.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/earthborn-dog-food",
+      "to": "/pet/dog/food",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Earthborn is a dog food brand. The URL segment 'earthborn-dog-food' clearly indicates dog food products, which maps directly to the existing /pet/dog/food category.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/dog-constipation",
+      "to": "/pet/dog/supplements",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Dog constipation products would be health/digestive supplements. The existing /pet/dog/supplements path is the most appropriate category for digestive health products.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/msm-for-dogs",
+      "to": "/pet/dog/supplements",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "MSM (Methylsulfonylmethane) is a dietary supplement commonly given to dogs for joint health. The existing path /pet/dog/supplements is the perfect match for this product category.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/dog-poop-bag-holder",
+      "to": "/pet/dog/accessories",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Dog poop bag holders are dog accessories. The existing /pet/dog/accessories category is the appropriate place for this item as it's a practical accessory for dog walking and care.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/credelio-plus",
+      "to": "/pet/dog/veterinary",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Credelio Plus is a veterinary flea, tick and worm treatment for dogs. The existing /pet/dog/veterinary category is the most appropriate match for this pharmaceutical product.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/hemp-oil-for-dogs",
+      "to": "/pet/dog/supplements",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Hemp oil for dogs is a dietary supplement product. The existing /pet/dog/supplements category is the perfect match for this product type.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/dog-tags",
+      "to": "/pet/dog/accessories",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Dog tags are pet accessories for dogs. The existing '/pet/dog/accessories' category is the appropriate match for dog identification tags and similar items.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/bravecto-for-dogs",
+      "to": "/pet/dog/veterinary",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Bravecto is a veterinary flea and tick treatment for dogs. The existing /pet/dog/veterinary path is the most appropriate category for this product.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/zippy-paws",
+      "to": "/pet/dog/toys",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "ZippyPaws is a well-known brand that manufactures dog toys and pet accessories. The existing /pet/dog/toys category is the most appropriate match for this brand's products.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/black-dog-wear",
+      "to": "/pet/dog/coats-and-rugs",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Black Dog Wear is a brand that produces dog coats and apparel. The existing /pet/dog/coats-and-rugs category is the perfect match for dog wear products.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/rogz-harness",
+      "to": "/pet/dog/collars-and-leads",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Rogz is a well-known pet brand specializing in dog harnesses, collars, and leads. The existing /pet/dog/collars-and-leads category is the perfect match as harnesses are a type of lead/restraint system for dogs.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/aristopet-all-wormer",
+      "to": "/pet/supplements",
+      "method": "ai-suggested",
+      "confidence": "medium",
+      "reasoning": "Aristopet all wormer is a pet deworming product. While there's a /pet/supplements category that could fit, this is more specifically a veterinary/health product. Could also map to /pet/cat or /pet/dog with a new /veterinary subcategory, but /pet/supplements is the closest existing match for health/wellness products.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/dog-collars",
+      "to": "/pet/dog/collars-and-leads",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The old URL /collections/pets/dog-collars maps directly to the existing category /pet/dog/collars-and-leads which encompasses both collars and leads for dogs",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/anipal",
+      "to": "/pet/dog/supplements",
+      "method": "ai-suggested",
+      "confidence": "medium",
+      "reasoning": "Anipal is a brand that produces pet supplements and health products, primarily for dogs. The existing /pet/dog/supplements path is the most appropriate match for this product line.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/vitamins-and-supplements",
+      "to": "/pet/supplements",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL /collections/pets/vitamins-and-supplements clearly indicates pet vitamins and supplements. The existing /pet/supplements category is a perfect match for this content.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/advance-cat-food",
+      "to": "/pet/cat/food",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL segment 'advance-cat-food' clearly indicates cat food products. The existing category '/pet/cat/food' is the perfect match for this product type.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/advance-pet-food",
+      "to": "/pet/food",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Advance pet food is a general pet food product. While specific animal food categories exist (e.g., /pet/dog/food, /pet/cat/food), a general /pet/food category is needed for multi-animal or general pet food brands like Advance that serve multiple pet types.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/pets/zamipet",
+      "to": "/pet/supplements",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Zamipet is a pet supplement brand. The existing /pet/supplements category is the perfect match for this brand's products which include probiotics and other pet health supplements.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/supplements-and-medicine",
+      "to": "/pet/supplements",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The old URL 'pets/supplements-and-medicine' maps to the existing '/pet/supplements' category. While medicine could also fall under veterinary care, supplements is the most direct match for the combined supplements-and-medicine collection.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/dog-flea-treatment",
+      "to": "/pet/dog/veterinary",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Flea treatment is a veterinary/health care product for dogs. The existing /pet/dog/veterinary path is the appropriate category for medical treatments including flea control products.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/aristopet",
+      "to": "/pet/aristopet",
+      "method": "ai-suggested",
+      "confidence": "medium",
+      "reasoning": "Aristopet is a pet care brand that produces products for multiple pet types (dogs, cats, birds, small animals). Since the URL structure indicates a brand-level collection under pets, and there's no existing brand category in the pet section (unlike accessories which has /accessories/brands/horseware), creating /pet/aristopet as a brand subcategory is appropriate for organizing all Aristopet products across pet categories.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/pets/blackdog-treats",
+      "to": "/pet/dog/treats",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL segment 'blackdog-treats' clearly indicates dog treats. Black Dog is a well-known brand of dog treats in the pet industry. The existing path /pet/dog/treats is a perfect match for this product category.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/kong-dog-toys-and-treats",
+      "to": "/pet/dog/toys",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "KONG is a well-known dog toy and treat brand. The existing category /pet/dog/toys perfectly matches this product collection, and there's also /pet/dog/treats available for treat products.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/kazoo-dog-coat",
+      "to": "/pet/dog/coats-and-rugs",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL contains 'kazoo-dog-coat' which clearly indicates a dog coat product. The existing category '/pet/dog/coats-and-rugs' is the perfect match for this product type.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/dog-coats",
+      "to": "/pet/dog/coats-and-rugs",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The old URL /collections/pets/dog-coats maps directly to the existing category for dog coats and rugs under the pet section",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/dog-beds",
+      "to": "/pet/dog/bedding",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The old URL '/collections/pets/dog-beds' clearly refers to dog beds, which maps perfectly to the existing '/pet/dog/bedding' category path.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/kangaroo-dog-treats",
+      "to": "/pet/dog/treats",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Kangaroo dog treats are pet products specifically for dogs. The existing category /pet/dog/treats is a perfect match for this product type.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/pets/dog-treats",
+      "to": "/pet/dog/treats",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/fly-veils-and-hoods/bonnets",
+      "to": "/horse/bonnets",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Bonnets are fly veils/hoods worn by horses. The existing /horse/bonnets category is a direct match for this product type.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/luggage/saddle-bags",
+      "to": "/rider/luggage/saddle-bags",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Saddle bags for luggage/storage purposes belong under rider luggage. The existing /rider/luggage category has bags, handbags, and wallets, so saddle-bags fits naturally as a subcategory for carrying personal items while riding.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/luggage/backpacks",
+      "to": "/rider/luggage/backpacks",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Backpacks are rider luggage items. The existing /rider/luggage category already has bags, handbags, and wallets, making backpacks a natural addition as a subcategory.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/luggage/ariat",
+      "to": "/rider/luggage",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL segments 'luggage' and 'ariat' indicate rider luggage products. Ariat is a brand that makes equestrian luggage, bags, and accessories for riders. The existing /rider/luggage category is the perfect match for this collection.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-bandages/white",
+      "to": "/horse/boots/bandages",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Horse bandages are leg protection equipment that fall under the existing /horse/boots/bandages category. The 'white' segment is a color filter, not a category level, so it maps directly to the bandages subcategory.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-bandages/dressage",
+      "to": "/horse/boots/bandages",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-bandages/black",
+      "to": "/horse/boots/bandages",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Horse bandages are a type of leg protection/boot product. The existing category /horse/boots/bandages is a perfect match for this product type. The 'black' segment is a color filter, not a category level.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-rugs/50-125cm",
+      "to": "/horse/rugs",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL is for horse rugs filtered by size (50-125cm). The size filter is a product attribute, not a category structure element. Maps to existing /horse/rugs which is the appropriate parent category for all horse rug products regardless of size.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-rugs/hoods",
+      "to": "/horse/rugs/hoods",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-rugs/woolen",
+      "to": "/horse/rugs/woolen",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL clearly indicates woolen horse rugs. While /horse/rugs exists with various rug types (cotton, mesh, winter, summer), there is no specific 'woolen' subcategory. Woolen rugs are a distinct material type similar to the existing cotton category, warranting a new subcategory under /horse/rugs.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-rugs/canvas",
+      "to": "/horse/rugs/canvas",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL clearly refers to canvas horse rugs. While /horse/rugs exists with many subcategories (cotton, mesh, rain, etc.), there is no canvas subcategory. Canvas is a specific material type for horse rugs, similar to the existing cotton and mesh categories, so /horse/rugs/canvas is the logical path.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-rugs/winter",
+      "to": "/horse/rugs/winter",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-rugs/summer",
+      "to": "/horse/rugs/summer",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-rugs/show",
+      "to": "/horse/rugs/show",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL '/collections/horse-rugs/show' clearly refers to show rugs for horses. While '/horse/rugs' exists with many subcategories (accessories, cotton, flag, hoods, mesh, rain, riding, summer, tail-protectors, travel, winter), there is no 'show' subcategory. Show rugs are a specific type of competition/presentation rug, making this a logical new subcategory under /horse/rugs.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-rugs/cotton",
+      "to": "/horse/rugs/cotton",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-rugs/46",
+      "to": "/horse/rugs",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Direct match - 'horse-rugs' maps to existing /horse/rugs category which is the main category for all horse rugs and blankets",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-rugs/eurohunter",
+      "to": "/horse/rugs/eurohunter",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL clearly indicates horse rugs with Eurohunter as a brand/subcategory. While /horse/rugs exists, there's no brand-specific subcategory. Creating /horse/rugs/eurohunter follows the pattern seen in accessories (e.g., /accessories/brands/horseware) and allows for brand-specific rug filtering.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-rugs/kentucky",
+      "to": "/horse/rugs/kentucky",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Kentucky is a brand name for horse rugs. The old URL structure was /horse-rugs/kentucky, clearly indicating Kentucky-branded rugs under the horse rugs category. Creating a brand-specific subcategory under /horse/rugs follows the pattern seen elsewhere in the structure (e.g., /accessories/brands/horseware).",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-rugs/stable",
+      "to": "/horse/rugs",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-riding-helmets/resistol",
+      "to": "/rider/helmets",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Horse riding helmets are rider safety equipment. The existing /rider/helmets category is the correct match. The 'resistol' segment appears to be a brand name and should be handled via filtering/attributes rather than URL structure.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-riding-helmets/uvex",
+      "to": "/rider/helmets",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Horse riding helmets are rider safety equipment. The existing /rider/helmets category is the perfect match. The 'uvex' segment is a brand name that would be handled via filtering rather than URL structure.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-riding-helmets/brims",
+      "to": "/rider/helmets/brims",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Horse riding helmets are rider equipment. The existing structure has /rider/helmets and /rider/helmets/accessories. 'Brims' are helmet accessories/components that attach to riding helmets, making /rider/helmets/brims a logical subcategory alongside accessories.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-riding-helmets/kask",
+      "to": "/rider/helmets",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Horse riding helmets are rider safety equipment. The existing /rider/helmets category is the perfect match. The 'kask' segment is a brand name and would typically be handled via filtering rather than URL structure.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-riding-helmets/charles-owen",
+      "to": "/rider/helmets",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Horse riding helmets are rider safety equipment. The existing /rider/helmets category is the perfect match. Charles-owen is a brand name which would typically be handled via filtering/faceting rather than URL structure.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-riding-helmets/kep",
+      "to": "/rider/helmets",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Horse riding helmets are rider safety equipment. The existing /rider/helmets category is the perfect match. The 'kep' segment is a brand name (KEP Italia) which would be handled via filtering/faceting rather than URL structure.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-riding-helmets/samshield",
+      "to": "/rider/helmets",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Horse riding helmets are rider safety equipment. The existing /rider/helmets category is the perfect match. The brand 'samshield' is a helmet manufacturer, confirming this is helmet-related.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-riding-helmets/black",
+      "to": "/rider/helmets",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Horse riding helmets are rider safety equipment. The existing /rider/helmets category is the perfect match. The 'black' segment is a color filter, not a category level.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/footwear/tucci",
+      "to": "/clothing/footwear/tucci",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Tucci is a premium equestrian footwear brand. The URL segments 'footwear/tucci' indicate a brand-specific footwear collection. While /clothing/footwear exists, adding /tucci as a brand subcategory allows for organized brand-specific browsing within the footwear category.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/footwear/top-boots",
+      "to": "/clothing/footwear/tall-boots",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Top boots are tall riding boots worn by riders, which belongs under clothing/footwear. The existing '/clothing/footwear/tall-boots' category is the perfect match for this product type.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/footwear/western-spurs",
+      "to": "/rider/spurs",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Western spurs are rider equipment worn by the rider. The existing /rider/spurs category is the appropriate match, as spurs are personal rider gear regardless of riding discipline (western vs english).",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/footwear/ego-7",
+      "to": "/clothing/footwear/ego-7",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "EGO7 is a premium equestrian footwear brand. The old URL is /collections/footwear/ego-7, indicating a brand-specific footwear collection. While /clothing/footwear exists, adding a brand subcategory follows the pattern seen in /accessories/brands/horseware and allows proper organization of this specific footwear brand.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/footwear/baxter-boots",
+      "to": "/clothing/footwear/boots",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Baxter is a well-known equestrian footwear brand. The URL segments 'footwear/baxter-boots' clearly indicate rider footwear, which belongs under /clothing/footwear/boots rather than /horse/boots which is for horse leg protection.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/footwear/childrens",
+      "to": "/clothing/kids/footwear",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL segments 'footwear' and 'childrens' clearly indicate children's footwear. An existing category '/clothing/kids/footwear' already exists that perfectly matches this intent.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/footwear/cavallo",
+      "to": "/clothing/footwear/cavallo",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Cavallo is a premium equestrian footwear brand. The URL segments 'footwear/cavallo' indicate this is a brand-specific footwear collection. While /clothing/footwear exists, adding a Cavallo brand subcategory makes sense for organizing this specific brand's products, similar to how accessories has brand-specific paths like /accessories/brands/horseware.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/footwear/mens",
+      "to": "/clothing/footwear/mens",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/footwear/spurs-and-straps",
+      "to": "/rider/spurs/accessories",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Spurs and straps are rider equipment worn on footwear. The existing /rider/spurs/accessories path is the perfect match, as spur straps are accessories for spurs.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/footwear/stirrups-and-leathers",
+      "to": "/horse/tack/stirrups",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/footwear/womens",
+      "to": "/clothing/footwear/womens",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/footwear/ariat",
+      "to": "/clothing/footwear/ariat",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Ariat is a major equestrian footwear brand. The old URL segments 'footwear/ariat' indicate this is a brand-specific footwear collection. While /clothing/footwear exists with various subcategories by style, adding a brand-level subcategory for Ariat makes sense given its prominence in equestrian footwear.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-jewellery/pendants",
+      "to": "/rider/jewellery/pendants",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-jewellery/sabona-bracelets",
+      "to": "/rider/jewellery/bracelets",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Horse jewellery refers to jewellery for riders with equestrian themes, not jewellery for horses. Sabona bracelets are therapeutic/magnetic bracelets worn by riders. The existing /rider/jewellery/bracelets path is the perfect match.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-jewellery/necklaces",
+      "to": "/rider/jewellery/necklaces",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-jewellery/kelly-herd",
+      "to": "/rider/jewellery",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Kelly Herd is a well-known equestrian jewellery brand. The URL segments 'horse-jewellery' and 'kelly-herd' indicate jewellery products. While the original collection was named 'horse-jewellery', jewellery is worn by riders, not horses, so it belongs under /rider/jewellery which already exists in the structure.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-jewellery/earrings",
+      "to": "/rider/jewellery/earrings",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-jewellery/rings",
+      "to": "/rider/jewellery/rings",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-jewellery/bracelets",
+      "to": "/rider/jewellery/bracelets",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-health/likit-horse-treats",
+      "to": "/horse/stable/treats",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Likit is a well-known brand of horse treats. The existing category /horse/stable/treats is the perfect match for horse treats products, regardless of brand. This aligns with the stable/feeding section of horse care products.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-health/horse-treats",
+      "to": "/horse/stable/treats",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Horse treats are stable supplies and an exact match exists at /horse/stable/treats. The 'horse-health' parent category is broad but treats fit naturally under stable management items.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-health/equimax",
+      "to": "/horse/stable/wormers",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Equimax is a horse worming product brand. The existing category /horse/stable/wormers is the perfect match for horse health products related to parasite control and deworming treatments.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-health/psyllium-husk",
+      "to": "/horse/supplements/psyllium-husk",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Psyllium husk is a dietary supplement for horses, commonly used for digestive health and sand colic prevention. The /horse/supplements category exists but needs a subcategory for this specific supplement type.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-health/msm",
+      "to": "/horse/supplements/msm",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "MSM (methylsulfonylmethane) is a common horse supplement for joint health. The old URL indicates horse-health/msm, and while /horse/supplements exists, there's no MSM subcategory. Creating /horse/supplements/msm follows the existing structure and accurately categorizes this supplement type.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-health/dynavyte",
+      "to": "/horse/supplements/dynavyte",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Dynavyte is a specific brand of horse health supplements and probiotics. The URL segments 'horse-health' and 'dynavyte' indicate this is a brand collection under horse health/supplements. While /horse/supplements exists, creating a brand-specific subcategory follows the pattern seen in /accessories/brands/horseware and allows for organized brand collections.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-health/anti-inflammatory",
+      "to": "/horse/supplements/anti-inflammatory",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Anti-inflammatory products are health supplements for horses. The existing /horse/supplements category is the logical parent. Creating a sub-category for anti-inflammatory supplements provides clear organization for this specific type of horse health product.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-health/biotin",
+      "to": "/horse/supplements/biotin",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Biotin is a horse health supplement commonly used for hoof and coat health. The existing /horse/supplements category is the appropriate parent, and biotin as a specific supplement type warrants its own subcategory for proper product organization.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-health/electrolytes",
+      "to": "/horse/supplements/electrolytes",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Electrolytes are a type of horse health supplement. The existing /horse/supplements category is the perfect parent, and adding /electrolytes as a subcategory follows the established pattern and provides clear categorization for this product type.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-health/betavet",
+      "to": "/horse/veterinary/first-aid",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Betavet is a veterinary/health brand. The existing /horse/veterinary/first-aid category is the best match for horse health products, as it covers medical and health-related items for horses.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-health/calming-supplements",
+      "to": "/horse/supplements/calming",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Calming supplements are horse health products that fall under supplements. The existing /horse/supplements category exists but lacks a calming subcategory, which is a common and distinct supplement type in equestrian products.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-health/b-quiet",
+      "to": "/horse/supplements/calming",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "B-Quiet is a calming supplement for horses. While /horse/supplements exists, there's no calming-specific subcategory. Creating /horse/supplements/calming provides a logical home for calming products under the existing supplements category structure.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-health/arcequine",
+      "to": "/horse/veterinary/therapy-equipment",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Arcequine is a brand specializing in veterinary therapy equipment (ArcEquine microcurrent therapy devices). While /horse/veterinary/first-aid exists, therapy equipment like electromagnetic/microcurrent devices warrant a dedicated category. This falls under veterinary care but is distinct from basic first aid supplies.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-health/wormers",
+      "to": "/horse/stable/wormers",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-health/fly-veils-and-hoods",
+      "to": "/horse/bonnets/fly-veils",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Fly veils and hoods are protective headwear for horses that prevent flies from bothering them. The existing /horse/bonnets category already has /horse/bonnets/fly-masks for similar fly protection gear. Adding /horse/bonnets/fly-veils as a parallel category makes semantic sense since fly veils/hoods are similar protective gear worn on the horse's head, just with different coverage than fly masks.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-health/ranvet",
+      "to": "/horse/supplements/ranvet",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Ranvet is a well-known equine supplement and health product brand. The old URL 'horse-health/ranvet' indicates brand-filtered health products. While /horse/supplements exists, creating /horse/supplements/ranvet provides a logical brand subcategory for Ranvet supplement products.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-health/kelato",
+      "to": "/horse/supplements/kelato",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Kelato is a well-known brand specializing in horse health supplements and treatments. The existing /horse/supplements category is the perfect parent, and adding a brand-specific subcategory follows the pattern seen elsewhere (e.g., /accessories/brands/horseware). This makes products easily discoverable for customers loyal to the Kelato brand.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-health/bonnets",
+      "to": "/horse/bonnets",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Exact match exists. Bonnets are horse equipment items (fly bonnets/ear bonnets) and there is already an established /horse/bonnets category that matches perfectly.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-health/vitamins-and-supplements",
+      "to": "/horse/supplements",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL contains 'vitamins-and-supplements' which directly maps to the existing /horse/supplements category. This is a perfect semantic match for horse health supplements and vitamins.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-health/joint-supplements",
+      "to": "/horse/supplements/joint",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Joint supplements are horse health products that fall under supplements. The existing /horse/supplements category is the best match, and adding a /joint subcategory follows the established pattern for organizing supplement types.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-health/toys",
+      "to": "/horse/supplements",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-health/wound-care",
+      "to": "/horse/veterinary/wound-care",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Wound care is a veterinary/medical product category. The existing /horse/veterinary/first-aid path exists, and wound-care is a logical sibling category for more specific wound treatment products.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-health/zamipet",
+      "to": "/pet/supplements",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Zamipet is a pet supplement brand, and the URL segments 'horse-health/zamipet' indicates this is a pet health/supplement product. The existing /pet/supplements category is the appropriate destination.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-health/hoof-care",
+      "to": "/horse/stable/hoof-care",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-grooming-supplies/equinade-shampoo",
+      "to": "/horse/grooming/shampoo",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL segments 'horse-grooming-supplies' and 'equinade-shampoo' clearly indicate this is a horse grooming shampoo product. The existing category /horse/grooming/shampoo is a perfect match for this product type.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-grooming-supplies/equibuff",
+      "to": "/horse/grooming/products",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Equibuff is a grooming product brand. The URL segments 'horse-grooming-supplies' and 'equibuff' indicate this is a grooming product, which maps perfectly to the existing /horse/grooming/products category.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-grooming-supplies/equinade",
+      "to": "/horse/grooming/products",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Equinade is a brand that produces horse grooming supplies and products. The existing /horse/grooming/products category is the most appropriate match for this brand's product range, which includes shampoos, coat care, and general grooming products.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-grooming-supplies/brushes",
+      "to": "/horse/grooming/brushes",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-grooming-supplies/absorbine",
+      "to": "/horse/grooming/products",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Absorbine is a well-known brand of horse grooming and care products. The URL segment 'horse-grooming-supplies' maps directly to the existing /horse/grooming category, and 'absorbine' as a brand of grooming products fits within the existing /horse/grooming/products subcategory.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-grooming-supplies/shampoo",
+      "to": "/horse/grooming/shampoo",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-boots/veredus-jumping-boots",
+      "to": "/horse/boots/jumping",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Veredus jumping boots are specialized horse boots designed for jumping activities. The existing /horse/boots/jumping category is the perfect match for this product type.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-boots/hind-fetlock",
+      "to": "/horse/boots/fetlock",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL segment 'hind-fetlock' refers to fetlock boots for hind legs. The existing '/horse/boots/fetlock' category is the appropriate match as it covers fetlock boots generally, including both front and hind options.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-boots/lami-cell",
+      "to": "/horse/boots",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Lami-cell is a brand that makes horse boots. The URL segments indicate this is a brand-filtered view of horse boots. The general /horse/boots category is the appropriate destination, as the existing structure doesn't include brand-specific subcategories.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-boots/magnetic",
+      "to": "/horse/boots/magnetic",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-boots/zandona",
+      "to": "/horse/boots/zandona",
+      "method": "ai-suggested",
+      "confidence": "medium",
+      "reasoning": "Zandona is a brand name that manufactures horse boots and protective equipment. While brand-specific subcategories don't exist in the current structure, creating /horse/boots/zandona would allow brand-specific filtering. Alternatively, could map to /horse/boots as the general category, but the brand segment suggests a need for brand-level organization.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-boots/cryochaps",
+      "to": "/horse/boots/ice-boots",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Cryochaps are therapeutic cooling/ice boots for horses. The existing /horse/boots/ice-boots category is the perfect match for cryotherapy products.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-boots/ice",
+      "to": "/horse/boots/ice-boots",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL segments 'horse-boots' and 'ice' map directly to the existing category '/horse/boots/ice-boots', which is specifically for ice boots used in horse therapy and recovery.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-boots/floating-transport",
+      "to": "/horse/boots/float",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The segment 'floating-transport' refers to horse float/transport boots. The existing category '/horse/boots/float' is the perfect match for boots used during horse transportation in floats/trailers.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-boots/fly-boots-for-horses",
+      "to": "/horse/boots/fly-boots",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL segment 'fly-boots-for-horses' directly maps to the existing category '/horse/boots/fly-boots'. This is an exact semantic match for fly boots used on horses.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-boots/bell",
+      "to": "/horse/boots/bell-boots",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL segment 'bell' refers to bell boots, which are a type of horse boot. An exact match exists at /horse/boots/bell-boots in the existing structure.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-boots/woof-wear",
+      "to": "/horse/boots/woof-wear",
+      "method": "ai-suggested",
+      "confidence": "medium",
+      "reasoning": "Woof Wear is a brand specializing in horse boots and protection products. While /horse/boots exists, creating a brand-specific subcategory allows filtering by this popular manufacturer. Alternative would be mapping to /horse/boots as the parent category, but brand segmentation provides better user navigation for Woof Wear products.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-boots/tendon",
+      "to": "/horse/boots/tendon-boots",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL segments 'horse-boots' and 'tendon' directly map to the existing category '/horse/boots/tendon-boots'. Tendon boots are a specific type of horse boot designed to protect the tendons during riding.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-boots/jumping",
+      "to": "/horse/boots/jumping",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-boots/exercise",
+      "to": "/horse/boots/exercise",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-boots/kentucky",
+      "to": "/horse/boots/kentucky",
+      "method": "ai-suggested",
+      "confidence": "medium",
+      "reasoning": "Kentucky is a brand name that specializes in horse boots and protective equipment. While the existing structure has specific boot type categories, a brand-specific category makes sense for filtering Kentucky products within the boots section, similar to the /accessories/brands/horseware pattern.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-bits/myler",
+      "to": "/horse/bits/myler",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL segments 'horse-bits' and 'myler' clearly indicate horse bits, with 'myler' being a well-known bit brand. The category /horse/bits already exists for general bits, and adding /horse/bits/myler as a brand-specific subcategory follows a logical structure similar to existing brand paths like /accessories/brands/horseware.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-bits/kk-horse-bits",
+      "to": "/horse/bits",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL contains 'horse-bits' and 'kk-horse-bits' where KK likely refers to a brand (Korsteel/KK). The existing category /horse/bits is the perfect match for horse bits products.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-bits/dr-bristol",
+      "to": "/horse/bits/dr-bristol",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Dr Bristol is a specific type of horse bit. The parent category /horse/bits exists, and creating a subcategory for this common bit type follows the established pattern of categorizing equipment by specific type (similar to /horse/boots/bell-boots or /horse/pads/gel-pads).",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-bits/pelham-bits",
+      "to": "/horse/bits/pelham-bits",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Pelham bits are a specific type of horse bit. The existing /horse/bits category is the logical parent, and adding /pelham-bits as a subcategory follows the same pattern as other equipment subcategories like /horse/boots/bell-boots.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-bits/sprenger",
+      "to": "/horse/bits/sprenger",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Sprenger is a major bit manufacturer. The existing /horse/bits category exists but lacks brand-specific subcategories. Creating /horse/bits/sprenger follows the pattern seen in accessories/brands/horseware and makes sense for organizing bits by manufacturer.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-bits/gag",
+      "to": "/horse/bits/gag",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Gag bits are a specific type of horse bit. The existing /horse/bits category covers general bits, so adding /horse/bits/gag as a subcategory follows the established pattern (similar to how /horse/boots has multiple specific subtypes like bell-boots, jumping, etc.)",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-bits/snaffle",
+      "to": "/horse/bits/snaffle",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Snaffle is a specific type of horse bit. The existing /horse/bits category is the perfect parent, and adding /horse/bits/snaffle as a subcategory follows the established pattern of categorizing equipment by type (similar to how boots are broken down into bell-boots, jumping, etc.)",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-bits/trust",
+      "to": "/horse/bits/trust",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Trust is a brand that manufactures horse bits. The URL structure suggests a brand-specific collection within bits. Creating /horse/bits/trust as a brand subcategory under the existing /horse/bits category maintains logical hierarchy and matches common e-commerce patterns for brand filtering.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-bits/bit",
+      "to": "/horse/bits",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL segments 'horse-bits/bit' clearly indicate horse bits/bridle bits. The existing category '/horse/bits' is a perfect match for this product type.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-bits/bombers-bits",
+      "to": "/horse/bits/bombers",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Bombers is a well-known brand specializing in horse bits. The existing /horse/bits category covers horse bits generally, and adding a brand-specific subcategory /bombers follows logical product hierarchy for organizing bits by manufacturer.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-riding-apparel/hats-and-caps",
+      "to": "/clothing/accessories/caps",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The old URL 'horse-riding-apparel/hats-and-caps' refers to rider apparel worn by people. The existing path /clothing/accessories/caps already exists and is the perfect match for hats and caps worn by riders. While /clothing/accessories/hats also exists, caps is more specific to the original URL segment.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-riding-apparel/kunkle-gloves",
+      "to": "/rider/gloves",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Kunkle is a brand that makes riding gloves. The old URL segment 'horse-riding-apparel' combined with 'kunkle-gloves' indicates riding gloves worn by riders. The existing /rider/gloves category is the perfect match for this product type.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-riding-apparel/roeckl-gloves",
+      "to": "/rider/gloves",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Roeckl is a well-known riding gloves brand. The URL contains 'horse-riding-apparel' and 'roeckl-gloves', which maps to rider gloves. Rider gloves are already an existing category and are worn by the rider, not the horse.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-riding-apparel/stetson-hats",
+      "to": "/clothing/accessories/hats",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Stetson hats are riding apparel accessories. The existing path /clothing/accessories/hats is the perfect match for branded hats worn by riders.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-riding-apparel/equiline-breeches",
+      "to": "/clothing/womens/breeches",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Equiline breeches are riding apparel (breeches). The existing path /clothing/womens/breeches is the perfect match for this product category, as breeches are a core equestrian clothing item and Equiline is a popular brand. The 'horse-riding-apparel' segment confirms this is clothing for riders.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-riding-apparel/gloves",
+      "to": "/rider/gloves",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-riding-apparel/childrens-breeches",
+      "to": "/clothing/kids/breeches",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL contains 'childrens-breeches' which directly maps to the existing '/clothing/kids/breeches' category. Children's riding apparel belongs under the clothing top-level category, and there is already an established kids/breeches subcategory.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-riding-apparel/ariat-breeches",
+      "to": "/clothing/womens/breeches",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Ariat breeches are riding apparel. The URL segment 'horse-riding-apparel' indicates clothing for riders, not horse equipment. Breeches fall under clothing/womens/breeches, which already exists and is the most appropriate category for Ariat brand breeches.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-riding-apparel/children",
+      "to": "/clothing/kids",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Horse riding apparel for children maps to the existing /clothing/kids category, which already contains riding-specific items like breeches, show jackets, and show shirts for children",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-riding-apparel/unisex",
+      "to": "/clothing/unisex",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Horse riding apparel with unisex specification clearly belongs under /clothing. While /clothing has /mens, /womens, and /kids subdivisions, there is no existing /unisex category. Creating /clothing/unisex provides a logical parallel category for gender-neutral equestrian apparel.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-riding-apparel/childrens",
+      "to": "/clothing/kids",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Horse riding apparel for children maps directly to the existing /clothing/kids category, which already contains subcategories for children's riding wear including breeches, show jackets, and show shirts",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-riding-apparel/beanies-and-headbands",
+      "to": "/clothing/accessories/beanies",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Beanies and headbands are rider apparel accessories. While /rider/accessories/headbands exists, beanies are clothing items worn casually or while riding. The /clothing/accessories category already includes hats, caps, and scarves, making it the most appropriate location for beanies.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-riding-apparel/base-layer",
+      "to": "/clothing/activewear/base-layer",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Base layers are equestrian riding apparel worn under other clothing. The top-level 'clothing' category is correct for rider apparel. An existing '/clothing/activewear' category exists, and base-layer fits naturally as a subcategory since base layers are performance activewear items.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-riding-apparel/denim-breeches",
+      "to": "/clothing/womens/breeches",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Denim breeches are riding apparel worn by riders. The existing /clothing/womens/breeches category is the appropriate destination as it encompasses all types of breeches including denim variants. Breeches are categorized under clothing rather than rider gear.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-riding-apparel/womens-breeches",
+      "to": "/clothing/womens/breeches",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The URL segments 'horse-riding-apparel' and 'womens-breeches' clearly indicate women's riding breeches, which are apparel items. The existing path /clothing/womens/breeches is a perfect match for this product category.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-riding-apparel/mens-breeches",
+      "to": "/clothing/mens/breeches",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-riding-apparel/belts",
+      "to": "/clothing/accessories/belts",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-riding-apparel/mens-tops",
+      "to": "/clothing/mens/tops",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Horse riding apparel for men's tops clearly belongs in the clothing category. While /clothing/mens and /clothing/tops exist separately, mens tops specifically should be nested under mens for better categorization consistency with the existing structure (mens/breeches, mens/casual, etc.)",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/horse-riding-apparel/horse-riding-and-casual-shirts",
+      "to": "/clothing/tops/shirts",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Horse riding and casual shirts are apparel items that fit under clothing/tops/shirts. The existing category structure already has /clothing/tops/shirts which encompasses both riding and casual shirts worn by riders.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-riding-apparel/polo-tops",
+      "to": "/clothing/tops/polo-shirts",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Polo tops are equestrian apparel items worn by riders. The existing path /clothing/tops/polo-shirts is a perfect match for this product category.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-riding-apparel/casual-jackets",
+      "to": "/clothing/outerwear/jackets",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Horse riding apparel casual jackets are rider clothing items. The existing /clothing/outerwear/jackets path covers casual jackets worn by riders, as opposed to show-specific jackets which have their own category at /clothing/outerwear/show-jackets",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-riding-apparel/socks",
+      "to": "/clothing/accessories/socks",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-riding-apparel/show-jackets",
+      "to": "/clothing/kids/show-jackets",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-riding-apparel/mens",
+      "to": "/clothing/mens",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-riding-apparel/womens",
+      "to": "/clothing/womens",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-riding-apparel/stock",
+      "to": "/rider/accessories/stocks",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-riding-apparel/riding-tights",
+      "to": "/clothing/womens/tights",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-riding-apparel/women",
+      "to": "/clothing/womens",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Horse riding apparel for women belongs in the clothing category. The existing /clothing/womens path is the perfect match for women's equestrian apparel.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-riding-apparel/horse-riding-jeans",
+      "to": "/clothing/mens/jeans",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Horse riding jeans are equestrian apparel worn by riders. The existing /clothing/mens/jeans path is appropriate as riding jeans are a specialized type of jeans for equestrian activities. There's also /clothing/womens/jeans for women's riding jeans.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/westerns-saddles-usa/jumping",
+      "to": "/horse/saddles/jumping",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/westerns-saddles-usa/dressage",
+      "to": "/horse/saddles/dressage",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/strapping/grackle-bridles",
+      "to": "/horse/tack/bridles",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Grackle bridles are a type of bridle (distinguished by their figure-8 or crossed noseband). The existing /horse/tack/bridles category is the appropriate match for all bridle types including grackle bridles.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/strapping/equipe-bridles",
+      "to": "/horse/tack/bridles",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Equipe is a brand that makes bridles. The 'strapping' segment refers to leather strapping/tack, and 'equipe-bridles' clearly indicates this is a bridle product. The existing /horse/tack/bridles path is the perfect match for this product category.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/strapping/bridle",
+      "to": "/horse/tack/bridles",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/strapping/browbands-for-horses",
+      "to": "/horse/tack/browbands",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Browbands are horse tack components that attach to bridles. While bridles exist under /horse/tack/bridles, browbands deserve their own subcategory as a distinct tack accessory. The 'strapping' segment refers to decorative leather work, which aligns with tack equipment.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/strapping/bridles",
+      "to": "/horse/tack/bridles",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/strapping/dressage-bridles",
+      "to": "/horse/tack/bridles",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Dressage bridles are a type of bridle, which is horse tack. The existing /horse/tack/bridles path is the appropriate category for all bridle types including dressage-specific ones. 'Strapping' appears to be a brand or collection name rather than a product category.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/strapping/western-breastplates",
+      "to": "/horse/tack/breastplates",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Western breastplates are a type of breastplate tack. The existing /horse/tack/breastplates category is the perfect match, as it would encompass both English and Western style breastplates.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/strapping/breastplates-martingales",
+      "to": "/horse/tack/breastplates-martingales",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Breastplates and martingales are closely related tack items that are often sold together. While /horse/tack/breastplates and /horse/tack/martingales exist separately, the old URL explicitly combines them, suggesting a combined category would better serve users looking for either item type.",
+      "isNewCategory": true
+    },
+    {
+      "from": "/collections/strapping/showjumping-bridles",
+      "to": "/horse/tack/bridles",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Showjumping bridles are a type of bridle, which is tack equipment for horses. The existing /horse/tack/bridles category is the perfect match for this product type. The 'strapping' segment likely refers to bridle straps/leather work, and 'showjumping-bridles' are specialized bridles used in jumping disciplines.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/strapping/reins",
+      "to": "/horse/tack/reins",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/strapping/showjumping-girths",
+      "to": "/horse/tack/girths",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "Showjumping girths are a type of girth (tack item that secures the saddle). The existing /horse/tack/girths category is the perfect match, as it covers all girth types including those used for showjumping.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/strapping/all-purpose-girths",
+      "to": "/horse/tack/girths",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "All-purpose girths are tack equipment used to secure saddles. The existing /horse/tack/girths category is the perfect match for this product type, as girths (including all-purpose variants) are fundamental tack items.",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/black-friday-deals-for-equestrians/jumping",
+      "to": "/horse/boots/jumping",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/black-friday-deals-for-equestrians/bit",
+      "to": "/horse/bits",
+      "method": "ai-suggested",
+      "confidence": "high",
+      "reasoning": "The segment 'bit' clearly refers to horse bits, which is tack equipment used in the horse's mouth. The existing category '/horse/bits' is a perfect match for this product type.",
+      "isNewCategory": false
+    }
+  ],
+  "missingCategories": [
+    {
+      "url_path": "/horse/brands/southern-sport-horses",
+      "parent_url": "/horse/brands",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Southern Sport Horses",
+      "created_for": [
+        "/collections/southern-sport-horses"
+      ]
+    },
+    {
+      "url_path": "/horse/premier-equine",
+      "parent_url": "/horse",
+      "category_level": 2,
+      "top_level": "horse",
+      "suggested_label": "Premier Equine",
+      "created_for": [
+        "/collections/premier-equine"
+      ]
+    },
+    {
+      "url_path": "/accessories/brands/hitchley-harrow",
+      "parent_url": "/accessories/brands",
+      "category_level": 3,
+      "top_level": "accessories",
+      "suggested_label": "Hitchley Harrow",
+      "created_for": [
+        "/collections/hitchley-harrow"
+      ]
+    },
+    {
+      "url_path": "/horse/lemieux",
+      "parent_url": "/horse",
+      "category_level": 2,
+      "top_level": "horse",
+      "suggested_label": "Lemieux",
+      "created_for": [
+        "/collections/lemieux"
+      ]
+    },
+    {
+      "url_path": "/clothing/brands/aza-equestrian",
+      "parent_url": "/clothing/brands",
+      "category_level": 3,
+      "top_level": "clothing",
+      "suggested_label": "Aza Equestrian",
+      "created_for": [
+        "/collections/aza-equestrian"
+      ]
+    },
+    {
+      "url_path": "/accessories/on-sale",
+      "parent_url": "/accessories",
+      "category_level": 2,
+      "top_level": "accessories",
+      "suggested_label": "On Sale",
+      "created_for": [
+        "/collections/on-sale"
+      ]
+    },
+    {
+      "url_path": "/clothing/activewear/base-layers",
+      "parent_url": "/clothing/activewear",
+      "category_level": 3,
+      "top_level": "clothing",
+      "suggested_label": "Base Layers",
+      "created_for": [
+        "/collections/base-layers",
+        "/collections/base-layers/navy"
+      ]
+    },
+    {
+      "url_path": "/accessories/brands/visentin",
+      "parent_url": "/accessories/brands",
+      "category_level": 3,
+      "top_level": "accessories",
+      "suggested_label": "Visentin",
+      "created_for": [
+        "/collections/visentin-equestrian"
+      ]
+    },
+    {
+      "url_path": "/horse/exclusively-equine",
+      "parent_url": "/horse",
+      "category_level": 2,
+      "top_level": "horse",
+      "suggested_label": "Exclusively Equine",
+      "created_for": [
+        "/collections/exclusively-equine"
+      ]
+    },
+    {
+      "url_path": "/accessories/homeware",
+      "parent_url": "/accessories",
+      "category_level": 2,
+      "top_level": "accessories",
+      "suggested_label": "Homeware",
+      "created_for": [
+        "/collections/homeware"
+      ]
+    },
+    {
+      "url_path": "/horse/tack/stirrups/freejump",
+      "parent_url": "/horse/tack/stirrups",
+      "category_level": 4,
+      "top_level": "horse",
+      "suggested_label": "Freejump",
+      "created_for": [
+        "/collections/stirrups/freejump"
+      ]
+    },
+    {
+      "url_path": "/clothing/tops/base-layers",
+      "parent_url": "/clothing/tops",
+      "category_level": 3,
+      "top_level": "clothing",
+      "suggested_label": "Base Layers",
+      "created_for": [
+        "/collections/base-layers/grey",
+        "/collections/base-layers/white",
+        "/collections/base-layers/black"
+      ]
+    },
+    {
+      "url_path": "/rider/accessories/water-bottles",
+      "parent_url": "/rider/accessories",
+      "category_level": 3,
+      "top_level": "rider",
+      "suggested_label": "Water Bottles",
+      "created_for": [
+        "/collections/accessories/water-bottles"
+      ]
+    },
+    {
+      "url_path": "/horse/stable/hay-feeders",
+      "parent_url": "/horse/stable",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Hay Feeders",
+      "created_for": [
+        "/collections/stable-and-yard/hay-feeders"
+      ]
+    },
+    {
+      "url_path": "/accessories/collectibles/breyer",
+      "parent_url": "/accessories/collectibles",
+      "category_level": 3,
+      "top_level": "accessories",
+      "suggested_label": "Breyer",
+      "created_for": [
+        "/collections/horse-toys/breyer"
+      ]
+    },
+    {
+      "url_path": "/horse/halters/breakaway",
+      "parent_url": "/horse/halters",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Breakaway",
+      "created_for": [
+        "/collections/horse-halters/breakaway"
+      ]
+    },
+    {
+      "url_path": "/horse/halters/lemieux",
+      "parent_url": "/horse/halters",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Lemieux",
+      "created_for": [
+        "/collections/horse-halters/lemieux"
+      ]
+    },
+    {
+      "url_path": "/horse/saddles/equipe",
+      "parent_url": "/horse/saddles",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Equipe",
+      "created_for": [
+        "/collections/saddles/equipe"
+      ]
+    },
+    {
+      "url_path": "/horse/saddles/arena",
+      "parent_url": "/horse/saddles",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Arena",
+      "created_for": [
+        "/collections/saddles/arena"
+      ]
+    },
+    {
+      "url_path": "/horse/pads/bluebell",
+      "parent_url": "/horse/pads",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Bluebell",
+      "created_for": [
+        "/collections/saddle-pads/bluebell"
+      ]
+    },
+    {
+      "url_path": "/horse/pads/mattes",
+      "parent_url": "/horse/pads",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Mattes",
+      "created_for": [
+        "/collections/saddle-pads/mattes"
+      ]
+    },
+    {
+      "url_path": "/horse/pads/bareback",
+      "parent_url": "/horse/pads",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Bareback",
+      "created_for": [
+        "/collections/saddle-pads/bareback"
+      ]
+    },
+    {
+      "url_path": "/horse/pads/matchy-sets",
+      "parent_url": "/horse/pads",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Matchy Sets",
+      "created_for": [
+        "/collections/saddle-pads/matchy-horse-sets"
+      ]
+    },
+    {
+      "url_path": "/horse/pads/lemieux",
+      "parent_url": "/horse/pads",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Lemieux",
+      "created_for": [
+        "/collections/saddle-pads/lemieux"
+      ]
+    },
+    {
+      "url_path": "/horse/pads/sheepskin",
+      "parent_url": "/horse/pads",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Sheepskin",
+      "created_for": [
+        "/collections/saddle-pads/sheepskin"
+      ]
+    },
+    {
+      "url_path": "/horse/pads/white",
+      "parent_url": "/horse/pads",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "White",
+      "created_for": [
+        "/collections/saddle-pads/white"
+      ]
+    },
+    {
+      "url_path": "/horse/pads/bare",
+      "parent_url": "/horse/pads",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Bare",
+      "created_for": [
+        "/collections/saddle-pads/bare"
+      ]
+    },
+    {
+      "url_path": "/pet/food",
+      "parent_url": "/pet",
+      "category_level": 2,
+      "top_level": "pet",
+      "suggested_label": "Food",
+      "created_for": [
+        "/collections/pets/advance-pet-food"
+      ]
+    },
+    {
+      "url_path": "/pet/aristopet",
+      "parent_url": "/pet",
+      "category_level": 2,
+      "top_level": "pet",
+      "suggested_label": "Aristopet",
+      "created_for": [
+        "/collections/pets/aristopet"
+      ]
+    },
+    {
+      "url_path": "/rider/luggage/saddle-bags",
+      "parent_url": "/rider/luggage",
+      "category_level": 3,
+      "top_level": "rider",
+      "suggested_label": "Saddle Bags",
+      "created_for": [
+        "/collections/luggage/saddle-bags"
+      ]
+    },
+    {
+      "url_path": "/rider/luggage/backpacks",
+      "parent_url": "/rider/luggage",
+      "category_level": 3,
+      "top_level": "rider",
+      "suggested_label": "Backpacks",
+      "created_for": [
+        "/collections/luggage/backpacks"
+      ]
+    },
+    {
+      "url_path": "/horse/rugs/woolen",
+      "parent_url": "/horse/rugs",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Woolen",
+      "created_for": [
+        "/collections/horse-rugs/woolen"
+      ]
+    },
+    {
+      "url_path": "/horse/rugs/canvas",
+      "parent_url": "/horse/rugs",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Canvas",
+      "created_for": [
+        "/collections/horse-rugs/canvas"
+      ]
+    },
+    {
+      "url_path": "/horse/rugs/show",
+      "parent_url": "/horse/rugs",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Show",
+      "created_for": [
+        "/collections/horse-rugs/show"
+      ]
+    },
+    {
+      "url_path": "/horse/rugs/eurohunter",
+      "parent_url": "/horse/rugs",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Eurohunter",
+      "created_for": [
+        "/collections/horse-rugs/eurohunter"
+      ]
+    },
+    {
+      "url_path": "/horse/rugs/kentucky",
+      "parent_url": "/horse/rugs",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Kentucky",
+      "created_for": [
+        "/collections/horse-rugs/kentucky"
+      ]
+    },
+    {
+      "url_path": "/rider/helmets/brims",
+      "parent_url": "/rider/helmets",
+      "category_level": 3,
+      "top_level": "rider",
+      "suggested_label": "Brims",
+      "created_for": [
+        "/collections/horse-riding-helmets/brims"
+      ]
+    },
+    {
+      "url_path": "/clothing/footwear/tucci",
+      "parent_url": "/clothing/footwear",
+      "category_level": 3,
+      "top_level": "clothing",
+      "suggested_label": "Tucci",
+      "created_for": [
+        "/collections/footwear/tucci"
+      ]
+    },
+    {
+      "url_path": "/clothing/footwear/ego-7",
+      "parent_url": "/clothing/footwear",
+      "category_level": 3,
+      "top_level": "clothing",
+      "suggested_label": "Ego 7",
+      "created_for": [
+        "/collections/footwear/ego-7"
+      ]
+    },
+    {
+      "url_path": "/clothing/footwear/cavallo",
+      "parent_url": "/clothing/footwear",
+      "category_level": 3,
+      "top_level": "clothing",
+      "suggested_label": "Cavallo",
+      "created_for": [
+        "/collections/footwear/cavallo"
+      ]
+    },
+    {
+      "url_path": "/clothing/footwear/ariat",
+      "parent_url": "/clothing/footwear",
+      "category_level": 3,
+      "top_level": "clothing",
+      "suggested_label": "Ariat",
+      "created_for": [
+        "/collections/footwear/ariat"
+      ]
+    },
+    {
+      "url_path": "/horse/supplements/psyllium-husk",
+      "parent_url": "/horse/supplements",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Psyllium Husk",
+      "created_for": [
+        "/collections/horse-health/psyllium-husk"
+      ]
+    },
+    {
+      "url_path": "/horse/supplements/msm",
+      "parent_url": "/horse/supplements",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Msm",
+      "created_for": [
+        "/collections/horse-health/msm"
+      ]
+    },
+    {
+      "url_path": "/horse/supplements/dynavyte",
+      "parent_url": "/horse/supplements",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Dynavyte",
+      "created_for": [
+        "/collections/horse-health/dynavyte"
+      ]
+    },
+    {
+      "url_path": "/horse/supplements/anti-inflammatory",
+      "parent_url": "/horse/supplements",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Anti Inflammatory",
+      "created_for": [
+        "/collections/horse-health/anti-inflammatory"
+      ]
+    },
+    {
+      "url_path": "/horse/supplements/biotin",
+      "parent_url": "/horse/supplements",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Biotin",
+      "created_for": [
+        "/collections/horse-health/biotin"
+      ]
+    },
+    {
+      "url_path": "/horse/supplements/electrolytes",
+      "parent_url": "/horse/supplements",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Electrolytes",
+      "created_for": [
+        "/collections/horse-health/electrolytes"
+      ]
+    },
+    {
+      "url_path": "/horse/supplements/calming",
+      "parent_url": "/horse/supplements",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Calming",
+      "created_for": [
+        "/collections/horse-health/calming-supplements",
+        "/collections/horse-health/b-quiet"
+      ]
+    },
+    {
+      "url_path": "/horse/veterinary/therapy-equipment",
+      "parent_url": "/horse/veterinary",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Therapy Equipment",
+      "created_for": [
+        "/collections/horse-health/arcequine"
+      ]
+    },
+    {
+      "url_path": "/horse/bonnets/fly-veils",
+      "parent_url": "/horse/bonnets",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Fly Veils",
+      "created_for": [
+        "/collections/horse-health/fly-veils-and-hoods"
+      ]
+    },
+    {
+      "url_path": "/horse/supplements/ranvet",
+      "parent_url": "/horse/supplements",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Ranvet",
+      "created_for": [
+        "/collections/horse-health/ranvet"
+      ]
+    },
+    {
+      "url_path": "/horse/supplements/kelato",
+      "parent_url": "/horse/supplements",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Kelato",
+      "created_for": [
+        "/collections/horse-health/kelato"
+      ]
+    },
+    {
+      "url_path": "/horse/supplements/joint",
+      "parent_url": "/horse/supplements",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Joint",
+      "created_for": [
+        "/collections/horse-health/joint-supplements"
+      ]
+    },
+    {
+      "url_path": "/horse/veterinary/wound-care",
+      "parent_url": "/horse/veterinary",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Wound Care",
+      "created_for": [
+        "/collections/horse-health/wound-care"
+      ]
+    },
+    {
+      "url_path": "/horse/boots/zandona",
+      "parent_url": "/horse/boots",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Zandona",
+      "created_for": [
+        "/collections/horse-boots/zandona"
+      ]
+    },
+    {
+      "url_path": "/horse/boots/woof-wear",
+      "parent_url": "/horse/boots",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Woof Wear",
+      "created_for": [
+        "/collections/horse-boots/woof-wear"
+      ]
+    },
+    {
+      "url_path": "/horse/boots/kentucky",
+      "parent_url": "/horse/boots",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Kentucky",
+      "created_for": [
+        "/collections/horse-boots/kentucky"
+      ]
+    },
+    {
+      "url_path": "/horse/bits/myler",
+      "parent_url": "/horse/bits",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Myler",
+      "created_for": [
+        "/collections/horse-bits/myler"
+      ]
+    },
+    {
+      "url_path": "/horse/bits/dr-bristol",
+      "parent_url": "/horse/bits",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Dr Bristol",
+      "created_for": [
+        "/collections/horse-bits/dr-bristol"
+      ]
+    },
+    {
+      "url_path": "/horse/bits/pelham-bits",
+      "parent_url": "/horse/bits",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Pelham Bits",
+      "created_for": [
+        "/collections/horse-bits/pelham-bits"
+      ]
+    },
+    {
+      "url_path": "/horse/bits/sprenger",
+      "parent_url": "/horse/bits",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Sprenger",
+      "created_for": [
+        "/collections/horse-bits/sprenger"
+      ]
+    },
+    {
+      "url_path": "/horse/bits/gag",
+      "parent_url": "/horse/bits",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Gag",
+      "created_for": [
+        "/collections/horse-bits/gag"
+      ]
+    },
+    {
+      "url_path": "/horse/bits/snaffle",
+      "parent_url": "/horse/bits",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Snaffle",
+      "created_for": [
+        "/collections/horse-bits/snaffle"
+      ]
+    },
+    {
+      "url_path": "/horse/bits/trust",
+      "parent_url": "/horse/bits",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Trust",
+      "created_for": [
+        "/collections/horse-bits/trust"
+      ]
+    },
+    {
+      "url_path": "/horse/bits/bombers",
+      "parent_url": "/horse/bits",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Bombers",
+      "created_for": [
+        "/collections/horse-bits/bombers-bits"
+      ]
+    },
+    {
+      "url_path": "/clothing/unisex",
+      "parent_url": "/clothing",
+      "category_level": 2,
+      "top_level": "clothing",
+      "suggested_label": "Unisex",
+      "created_for": [
+        "/collections/horse-riding-apparel/unisex"
+      ]
+    },
+    {
+      "url_path": "/clothing/accessories/beanies",
+      "parent_url": "/clothing/accessories",
+      "category_level": 3,
+      "top_level": "clothing",
+      "suggested_label": "Beanies",
+      "created_for": [
+        "/collections/horse-riding-apparel/beanies-and-headbands"
+      ]
+    },
+    {
+      "url_path": "/clothing/activewear/base-layer",
+      "parent_url": "/clothing/activewear",
+      "category_level": 3,
+      "top_level": "clothing",
+      "suggested_label": "Base Layer",
+      "created_for": [
+        "/collections/horse-riding-apparel/base-layer"
+      ]
+    },
+    {
+      "url_path": "/clothing/mens/tops",
+      "parent_url": "/clothing/mens",
+      "category_level": 3,
+      "top_level": "clothing",
+      "suggested_label": "Tops",
+      "created_for": [
+        "/collections/horse-riding-apparel/mens-tops"
+      ]
+    },
+    {
+      "url_path": "/horse/tack/browbands",
+      "parent_url": "/horse/tack",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Browbands",
+      "created_for": [
+        "/collections/strapping/browbands-for-horses"
+      ]
+    },
+    {
+      "url_path": "/horse/tack/breastplates-martingales",
+      "parent_url": "/horse/tack",
+      "category_level": 3,
+      "top_level": "horse",
+      "suggested_label": "Breastplates Martingales",
+      "created_for": [
+        "/collections/strapping/breastplates-martingales"
+      ]
+    }
+  ],
+  "stats": {
+    "byMethod": {
+      "exact-match": 101,
+      "ai-suggested": 212,
+      "brand-match": 56
+    },
+    "byConfidence": {
+      "high": 340,
+      "medium": 25,
+      "low": 4
+    },
+    "byTopLevel": {
+      "horse": 164,
+      "clothing": 53,
+      "rider": 32,
+      "pet": 37,
+      "accessories": 18,
+      "brands": 63,
+      "root": 2
+    }
+  }
+}

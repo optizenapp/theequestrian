@@ -1,0 +1,31 @@
+from,to,method,confidence,reasoning,is_new_category
+/collections/saddles,/horse/saddles,exact-match,high,Already in redirects CSV,no
+/collections/horse-rugs,/horse/rugs,exact-match,high,Already in redirects CSV,no
+/collections/footwear,/clothing/footwear,exact-match,high,Already in redirects CSV,no
+/collections/horse-boots,/horse/boots,exact-match,high,Already in redirects CSV,no
+/collections/horse-bandages,/horse/boots/bandages,exact-match,high,Already in redirects CSV,no
+/collections/horse-grooming-supplies,/horse/grooming,exact-match,high,Already in redirects CSV,no
+/collections/horse-health,/horse/veterinary,exact-match,high,Already in redirects CSV,no
+/collections/saddle-pads,/horse/pads,exact-match,high,Already in redirects CSV,no
+/collections/horse-riding-apparel,/clothing,exact-match,high,Already in redirects CSV,no
+/collections/horse-riding-helmets,/rider/helmets,exact-match,high,Already in redirects CSV,no
+/collections/strapping,/horse/grooming/products,ai-suggested,high,Strapping is a traditional horse grooming term referring to the practice of vigorous massage/grooming to tone muscles and improve circulation. This belongs under grooming products as it relates to grooming techniques and associated products like strapping pads or massage tools.,no
+/collections/horse-halters,/horse/halters,exact-match,high,Already in redirects CSV,no
+/collections/horse-toys,/horse/stable/treats,exact-match,high,Already in redirects CSV,no
+/collections/horse-jewellery,/rider/jewellery,exact-match,high,Already in redirects CSV,no
+/collections/pets,/pet,exact-match,high,Already in redirects CSV,no
+/collections/horse-riding-accessories,/rider/accessories,exact-match,high,Already in redirects CSV,no
+/collections/feed,/horse/stable/feed,exact-match,high,Already in redirects CSV,no
+/collections/stable-and-yard,/horse/stable,exact-match,high,Already in redirects CSV,no
+/collections/clippers,/horse/stable/clippers,exact-match,high,Already in redirects CSV,no
+/collections/body-protectors,/rider/body-protectors,exact-match,high,Already in redirects CSV,no
+/collections/horse-bits,/horse/bits,exact-match,high,Already in redirects CSV,no
+/collections/trailrace-equestrian-outfitters,/accessories/gifts,ai-suggested,medium,"Trailrace Equestrian Outfitters appears to be a brand/vendor collection page rather than a product category. Without more context about specific products, mapping to gifts/general accessories is most appropriate as it's the catch-all for non-specific equestrian merchandise. Alternative could be a brand-specific page, but no brand structure exists in current categories.",no
+/collections/thinline-global-australia,/brands/thinline-global-australia,brand-match,high,Matches existing brand handle,no
+/collections/southern-sport-horses,/horse/breeds/sport-horses,ai-suggested,medium,"Southern Sport Horses appears to be a breed or type category for sport horses. No existing breed-specific category exists in the structure, so suggesting a new subcategory under horse for breed classifications.",yes
+/collections/dapple-eq,/horse/tack,ai-suggested,medium,"Dapple-EQ appears to be a brand that produces horse equipment and tack. Without more specific information about the product category, mapping to the general horse tack section is the most appropriate choice as it encompasses bridles, reins, and other leather goods commonly associated with equestrian brands.",no
+/collections/ascot-saddlery,/horse/saddles,ai-suggested,high,Ascot Saddlery is a brand/store name that specializes in horse saddles and related tack. The most appropriate existing category is /horse/saddles as it represents their primary product line.,no
+/collections/fly-veils-and-hoods,/horse/bonnets,ai-suggested,high,Fly veils and hoods are horse bonnets worn under bridles for fly protection and ear coverage. The existing /horse/bonnets category is the perfect match for this product type.,no
+/collections/luggage,/rider/luggage,exact-match,high,Already in redirects CSV,no
+/collections/horse-books,/accessories/books,exact-match,high,Already in redirects CSV,no
+/collections/eac-animal-care,/horse/veterinary,exact-match,high,Already in redirects CSV,no

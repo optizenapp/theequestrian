@@ -105,6 +105,12 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
 
   // Total count is now returned from getProductsByTypes (no separate API call needed)
   const totalProductCount = totalCount;
+
+  // EMPTY CATEGORY REDIRECT: If this subcategory has no products and no filters are applied,
+  // redirect up to the parent category
+  if (totalProductCount === 0 && !filterBrands && !filterSizes && !filterColors && !afterCursor) {
+    redirect(`/${category}`);
+  }
   
   // Get allowed brand vendors from brand-mapping.csv (only for equestrian categories)
   // For pet/accessories categories, show all brands

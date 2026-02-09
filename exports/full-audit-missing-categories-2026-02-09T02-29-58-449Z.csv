@@ -1,0 +1,63 @@
+url_path,parent_url,category_level,top_level,suggested_label,created_for_urls
+,,,,,
+/brands/hitchley-harrow,/brands,3,/brands,Hitchley Harrow,/collections/hitchley-harrow
+/clothing/activewear/base-layers,/clothing/activewear,3,clothing,Base Layers,/collections/base-layers; /collections/base-layers/navy
+/brands/visentin,/brands,3,accessories,Visentin,/collections/visentin-equestrian
+/accessories/homeware,/accessories,2,accessories,Homeware,/collections/homeware
+/horse/tack/stirrups/freejump,/horse/tack/stirrups,4,horse,Freejump,/collections/stirrups/freejump
+/clothing/tops/base-layers,/clothing/tops,3,clothing,Base Layers,/collections/base-layers/grey; /collections/base-layers/white; /collections/base-layers/black
+/rider/accessories/water-bottles,/rider/accessories,3,rider,Water Bottles,/collections/accessories/water-bottles
+/horse/stable/hay-feeders,/horse/stable,3,horse,Hay Feeders,/collections/stable-and-yard/hay-feeders
+/accessories/collectibles/breyer,/accessories/collectibles,3,accessories,Breyer,/collections/horse-toys/breyer
+/horse/halters/breakaway,/horse/halters,3,horse,Breakaway,/collections/horse-halters/breakaway
+/horse/saddles/equipe,/horse/saddles,3,horse,Equipe,/collections/saddles/equipe
+/horse/saddles/arena,/horse/saddles,3,horse,Arena,/collections/saddles/arena
+/horse/pads/mattes,/horse/pads,3,horse,Mattes,/collections/saddle-pads/mattes
+/horse/pads/bareback,/horse/pads,3,horse,Bareback,/collections/saddle-pads/bareback
+/horse/pads/matchy-sets,/horse/pads,3,horse,Matchy Sets,/collections/saddle-pads/matchy-horse-sets
+/horse/pads/sheepskin,/horse/pads,3,horse,Sheepskin,/collections/saddle-pads/sheepskin
+/horse/pads/bare,/horse/pads,3,horse,Bare,/collections/saddle-pads/bare
+/pet/food,/pet,2,pet,Food,/collections/pets/advance-pet-food
+/pet/aristopet,/pet,2,pet,Aristopet,/collections/pets/aristopet
+/rider/luggage/saddle-bags,/rider/luggage,3,rider,Saddle Bags,/collections/luggage/saddle-bags
+/rider/luggage/backpacks,/rider/luggage,3,rider,Backpacks,/collections/luggage/backpacks
+/horse/rugs/woolen,/horse/rugs,3,horse,Woolen,/collections/horse-rugs/woolen
+/horse/rugs/canvas,/horse/rugs,3,horse,Canvas,/collections/horse-rugs/canvas
+/horse/rugs/show,/horse/rugs,3,horse,Show,/collections/horse-rugs/show
+/horse/rugs/eurohunter,/horse/rugs,3,horse,Eurohunter,/collections/horse-rugs/eurohunter
+/horse/rugs/kentucky,/horse/rugs,3,horse,Kentucky,/collections/horse-rugs/kentucky
+/rider/helmets/brims,/rider/helmets,3,rider,Brims,/collections/horse-riding-helmets/brims
+/clothing/footwear/tucci,/clothing/footwear,3,clothing,Tucci,/collections/footwear/tucci
+/clothing/footwear/ego-7,/clothing/footwear,3,clothing,Ego 7,/collections/footwear/ego-7
+/clothing/footwear/cavallo,/clothing/footwear,3,clothing,Cavallo,/collections/footwear/cavallo
+/clothing/footwear/ariat,/clothing/footwear,3,clothing,Ariat,/collections/footwear/ariat
+/horse/supplements/psyllium-husk,/horse/supplements,3,horse,Psyllium Husk,/collections/horse-health/psyllium-husk
+/horse/supplements/msm,/horse/supplements,3,horse,Msm,/collections/horse-health/msm
+/horse/supplements/dynavyte,/horse/supplements,3,horse,Dynavyte,/collections/horse-health/dynavyte
+/horse/supplements/anti-inflammatory,/horse/supplements,3,horse,Anti Inflammatory,/collections/horse-health/anti-inflammatory
+/horse/supplements/biotin,/horse/supplements,3,horse,Biotin,/collections/horse-health/biotin
+/horse/supplements/electrolytes,/horse/supplements,3,horse,Electrolytes,/collections/horse-health/electrolytes
+/horse/supplements/calming,/horse/supplements,3,horse,Calming,/collections/horse-health/calming-supplements; /collections/horse-health/b-quiet
+/horse/veterinary/therapy-equipment,/horse/veterinary,3,horse,Therapy Equipment,/collections/horse-health/arcequine
+/horse/bonnets/fly-veils,/horse/bonnets,3,horse,Fly Veils,/collections/horse-health/fly-veils-and-hoods
+/horse/supplements/ranvet,/horse/supplements,3,horse,Ranvet,/collections/horse-health/ranvet
+/horse/supplements/kelato,/horse/supplements,3,horse,Kelato,/collections/horse-health/kelato
+/horse/supplements/joint,/horse/supplements,3,horse,Joint,/collections/horse-health/joint-supplements
+/horse/veterinary/wound-care,/horse/veterinary,3,horse,Wound Care,/collections/horse-health/wound-care
+/horse/boots/zandona,/horse/boots,3,horse,Zandona,/collections/horse-boots/zandona
+/horse/boots/woof-wear,/horse/boots,3,horse,Woof Wear,/collections/horse-boots/woof-wear
+/horse/boots/kentucky,/horse/boots,3,horse,Kentucky,/collections/horse-boots/kentucky
+/horse/bits/myler,/horse/bits,3,horse,Myler,/collections/horse-bits/myler
+/horse/bits/dr-bristol,/horse/bits,3,horse,Dr Bristol,/collections/horse-bits/dr-bristol
+/horse/bits/pelham-bits,/horse/bits,3,horse,Pelham Bits,/collections/horse-bits/pelham-bits
+/horse/bits/sprenger,/horse/bits,3,horse,Sprenger,/collections/horse-bits/sprenger
+/horse/bits/gag,/horse/bits,3,horse,Gag,/collections/horse-bits/gag
+/horse/bits/snaffle,/horse/bits,3,horse,Snaffle,/collections/horse-bits/snaffle
+/horse/bits/trust,/horse/bits,3,horse,Trust,/collections/horse-bits/trust
+/horse/bits/bombers,/horse/bits,3,horse,Bombers,/collections/horse-bits/bombers-bits
+/clothing/unisex,/clothing,2,clothing,Unisex,/collections/horse-riding-apparel/unisex
+/clothing/accessories/beanies,/clothing/accessories,3,clothing,Beanies,/collections/horse-riding-apparel/beanies-and-headbands
+/clothing/activewear/base-layer,/clothing/activewear,3,clothing,Base Layer,/collections/horse-riding-apparel/base-layer
+/clothing/mens/tops,/clothing/mens,3,clothing,Tops,/collections/horse-riding-apparel/mens-tops
+/horse/tack/browbands,/horse/tack,3,horse,Browbands,/collections/strapping/browbands-for-horses
+/horse/tack/breastplates-martingales,/horse/tack,3,horse,Breastplates Martingales,/collections/strapping/breastplates-martingales

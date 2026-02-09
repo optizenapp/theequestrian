@@ -331,6 +331,13 @@ async function renderSubSubcategoryPage(
   // Total count is now returned from getProductsByTypes (no separate API call needed)
   const totalProductCount = totalCount;
 
+  // EMPTY CATEGORY REDIRECT: If this sub-subcategory has no products and no filters are applied,
+  // redirect up to the parent subcategory
+  if (totalProductCount === 0 && !filterBrands && !filterSizes && !filterColors && !afterCursor) {
+    const { redirect } = await import('next/navigation');
+    redirect(`/${category}/${subcategory}`);
+  }
+
   // Get sibling sub-subcategories (for pills)
   const allSubSubcategories = await getMappingSubcategories(category, subcategory);
   const siblingSubSubcategories = allSubSubcategories.filter(s => s.handle !== subsubcategory);

@@ -1,0 +1,248 @@
+{
+  "summary": {
+    "totalOldUrls": 30,
+    "alreadyMapped": 23,
+    "newMappings": 7,
+    "unmappable": 6,
+    "missingCategories": 0
+  },
+  "redirectMappings": [
+    {
+      "from": "/collections/saddles",
+      "to": "/horse/saddles",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-rugs",
+      "to": "/horse/rugs",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/footwear",
+      "to": "/clothing/footwear",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-boots",
+      "to": "/horse/boots",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-bandages",
+      "to": "/horse/boots/bandages",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-grooming-supplies",
+      "to": "/horse/grooming",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-health",
+      "to": "/horse/veterinary",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/saddle-pads",
+      "to": "/horse/pads",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-riding-apparel",
+      "to": "/clothing",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-riding-helmets",
+      "to": "/rider/helmets",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/strapping",
+      "to": "/",
+      "method": "ai-suggested",
+      "confidence": "low",
+      "reasoning": "AI mapping failed, defaulting to home",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/horse-halters",
+      "to": "/horse/halters",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-toys",
+      "to": "/horse/stable/treats",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-jewellery",
+      "to": "/rider/jewellery",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/pets",
+      "to": "/pet",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-riding-accessories",
+      "to": "/rider/accessories",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/feed",
+      "to": "/horse/stable/feed",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/stable-and-yard",
+      "to": "/horse/stable",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/clippers",
+      "to": "/horse/stable/clippers",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/body-protectors",
+      "to": "/rider/body-protectors",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-bits",
+      "to": "/horse/bits",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/trailrace-equestrian-outfitters",
+      "to": "/",
+      "method": "ai-suggested",
+      "confidence": "low",
+      "reasoning": "AI mapping failed, defaulting to home",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/thinline-global-australia",
+      "to": "/brands/thinline-global-australia",
+      "method": "brand-match",
+      "confidence": "high",
+      "reasoning": "Matches existing brand handle"
+    },
+    {
+      "from": "/collections/southern-sport-horses",
+      "to": "/",
+      "method": "ai-suggested",
+      "confidence": "low",
+      "reasoning": "AI mapping failed, defaulting to home",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/dapple-eq",
+      "to": "/",
+      "method": "ai-suggested",
+      "confidence": "low",
+      "reasoning": "AI mapping failed, defaulting to home",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/ascot-saddlery",
+      "to": "/",
+      "method": "ai-suggested",
+      "confidence": "low",
+      "reasoning": "AI mapping failed, defaulting to home",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/fly-veils-and-hoods",
+      "to": "/",
+      "method": "ai-suggested",
+      "confidence": "low",
+      "reasoning": "AI mapping failed, defaulting to home",
+      "isNewCategory": false
+    },
+    {
+      "from": "/collections/luggage",
+      "to": "/rider/luggage",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/horse-books",
+      "to": "/accessories/books",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    },
+    {
+      "from": "/collections/eac-animal-care",
+      "to": "/horse/veterinary",
+      "method": "exact-match",
+      "confidence": "high",
+      "reasoning": "Already in redirects CSV"
+    }
+  ],
+  "missingCategories": [],
+  "stats": {
+    "byMethod": {
+      "exact-match": 23,
+      "ai-suggested": 6,
+      "brand-match": 1
+    },
+    "byConfidence": {
+      "high": 24,
+      "low": 6
+    },
+    "byTopLevel": {
+      "horse": 14,
+      "clothing": 2,
+      "rider": 5,
+      "root": 6,
+      "pet": 1,
+      "brands": 1,
+      "accessories": 1
+    }
+  }
+}
