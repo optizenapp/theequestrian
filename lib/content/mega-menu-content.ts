@@ -1,9 +1,11 @@
 /**
  * Mega Menu Content Management
  * 
- * Reads content from CSV file to populate mega menu hero images and quick links
+ * Reads content from PostgreSQL database to populate mega menu hero images and quick links
+ * Falls back to CSV file if database is unavailable
  */
 
+import { sql } from '@vercel/postgres';
 import fs from 'fs';
 import path from 'path';
 import { parse } from 'csv-parse/sync';
@@ -29,12 +31,68 @@ export interface MegaMenuContent {
 }
 
 let cachedContent: Map<string, MegaMenuContent> | null = null;
-let lastModified: number = 0;
+let cacheTimestamp: number = 0;
+const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 
 /**
- * Load mega menu content from CSV
+ * Load mega menu content from PostgreSQL database
  */
-function loadMegaMenuContent(): Map<string, MegaMenuContent> {
+async function loadMegaMenuContentFromDB(): Promise<Map<string, MegaMenuContent>> {
+  try {
+    const result = await sql`
+      SELECT 
+        category,
+        featured_image_url,
+        featured_title,
+        featured_subtitle,
+        featured_link,
+        quick_links,
+        subcategory_cards
+      FROM mega_menu_content
+    `;
+    
+    const contentMap = new Map<string, MegaMenuContent>();
+    
+    for (const row of result.rows) {
+      const content: MegaMenuContent = {
+        category: row.category,
+      };
+      
+      // Parse featured image
+      if (row.featured_image_url) {
+        content.featuredImage = {
+          url: row.featured_image_url,
+          title: row.featured_title || 'Featured Collection',
+          subtitle: row.featured_subtitle || `Discover ${row.category}`,
+          link: row.featured_link || `/${row.category}`,
+        };
+      }
+      
+      // Parse quick links (stored as JSONB)
+      if (row.quick_links && Array.isArray(row.quick_links) && row.quick_links.length > 0) {
+        content.quickLinks = row.quick_links;
+      }
+      
+      // Parse subcategory cards (stored as JSONB)
+      if (row.subcategory_cards && Array.isArray(row.subcategory_cards) && row.subcategory_cards.length > 0) {
+        content.subcategoryCards = row.subcategory_cards;
+      }
+      
+      contentMap.set(row.category, content);
+    }
+    
+    console.log(`[MegaMenu] Loaded ${contentMap.size} categories from database`);
+    return contentMap;
+  } catch (error) {
+    console.error('[MegaMenu] Error loading from database:', error);
+    throw error;
+  }
+}
+
+/**
+ * Load mega menu content from CSV (fallback)
+ */
+function loadMegaMenuContentFromCSV(): Map<string, MegaMenuContent> {
   const csvPath = path.join(process.cwd(), 'exports', 'mega-menu-content.csv');
   
   // Check if file exists
@@ -52,12 +110,11 @@ function loadMegaMenuContent(): Map<string, MegaMenuContent> {
   
   // Return cached content if file hasn't changed (skip cache in dev)
   if (!isDevelopment && cachedContent && lastModified === currentModified) {
+    console.log('[MegaMenu] Using cached content');
     return cachedContent;
   }
   
-  if (isDevelopment) {
-    console.log('[MegaMenu] Development mode: Reloading CSV from:', csvPath);
-  }
+  console.log('[MegaMenu] Loading CSV from:', csvPath, 'isDev:', isDevelopment);
   
   try {
     const fileContent = fs.readFileSync(csvPath, 'utf-8');
@@ -154,18 +211,45 @@ function loadMegaMenuContent(): Map<string, MegaMenuContent> {
 }
 
 /**
+ * Load mega menu content with caching
+ */
+async function loadMegaMenuContent(): Promise<Map<string, MegaMenuContent>> {
+  const now = Date.now();
+  
+  // Return cached content if still valid
+  if (cachedContent && (now - cacheTimestamp) < CACHE_TTL) {
+    return cachedContent;
+  }
+  
+  try {
+    // Try loading from database first
+    const content = await loadMegaMenuContentFromDB();
+    cachedContent = content;
+    cacheTimestamp = now;
+    return content;
+  } catch (error) {
+    console.error('[MegaMenu] Database load failed, falling back to CSV');
+    // Fallback to CSV
+    const content = loadMegaMenuContentFromCSV();
+    cachedContent = content;
+    cacheTimestamp = now;
+    return content;
+  }
+}
+
+/**
  * Get mega menu content for a specific category
  */
-export function getMegaMenuContent(category: string): MegaMenuContent | null {
-  const contentMap = loadMegaMenuContent();
+export async function getMegaMenuContent(category: string): Promise<MegaMenuContent | null> {
+  const contentMap = await loadMegaMenuContent();
   return contentMap.get(category) || null;
 }
 
 /**
  * Check if category has custom content
  */
-export function hasCustomContent(category: string): boolean {
-  const content = getMegaMenuContent(category);
+export async function hasCustomContent(category: string): Promise<boolean> {
+  const content = await getMegaMenuContent(category);
   return !!(content?.featuredImage || content?.quickLinks);
 }
 

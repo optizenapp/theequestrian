@@ -84,7 +84,8 @@
     "apply:categories": "tsx scripts/apply-category-changes.ts",
     "apply:categories:dry": "tsx scripts/apply-category-changes.ts --dry-run",
     "verify:redirects": "tsx scripts/verify-redirect-coverage.ts",
-    "test:empty-categories": "tsx scripts/test-empty-category-behavior.ts"
+    "test:empty-categories": "tsx scripts/test-empty-category-behavior.ts",
+    "migrate:mega-menu": "tsx scripts/migrate-mega-menu-to-db.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.73.0",

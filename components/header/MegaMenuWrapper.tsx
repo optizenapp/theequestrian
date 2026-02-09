@@ -60,8 +60,12 @@ const menuCache = new Map<string, MegaMenuData>();
 function preloadImage(url: string) {
   if (typeof window === 'undefined') return;
   
-  const img = new Image();
-  img.src = url;
+  // Use link preload for better browser support
+  const link = document.createElement('link');
+  link.rel = 'preload';
+  link.as = 'image';
+  link.href = url;
+  document.head.appendChild(link);
 }
 
 /**

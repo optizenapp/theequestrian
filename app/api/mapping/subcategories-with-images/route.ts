@@ -23,8 +23,8 @@ export async function GET(request: NextRequest) {
     // Get subcategories from mapping
     const subcategories = await getSubcategoriesForCollection(category);
 
-    // Check for custom content from CSV
-    const customContent = getMegaMenuContent(category);
+    // Check for custom content from database
+    const customContent = await getMegaMenuContent(category);
     
     // Featured image (from CSV or fallback to auto-generated)
     let featuredImage = null;
