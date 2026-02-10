@@ -1,123 +1,118 @@
 import { NextResponse } from 'next/server';
-import { shopifyFetch } from '@/lib/shopify/client';
-import { GET_ALL_COLLECTIONS, GET_RECENT_ARTICLES } from '@/lib/shopify/queries';
 
-export const revalidate = 3600; // Revalidate every hour
-
-interface Collection {
-  handle: string;
-  title: string;
-}
-
-interface Article {
-  handle: string;
-  title: string;
-}
-
-interface Product {
-  handle: string;
-  title: string;
-}
+export const revalidate = 3600;
 
 export async function GET() {
-  try {
-    const siteUrl = 'https://theequestrian.com.au';
+  const siteUrl = 'https://www.theequestrian.com.au';
 
-    // Fetch collections
-    const collectionsResponse = await shopifyFetch<{
-      collections: {
-        edges: Array<{ node: Collection }>;
-      };
-    }>({
-      query: GET_ALL_COLLECTIONS,
-    });
+  const content = `# The Equestrian
 
-    const collections = collectionsResponse.collections.edges.map(({ node }) => node);
+> Australia's specialist equestrian retailer. We sell horse riding gear, saddlery, rider apparel, stable supplies, and selected pet essentials. Based in Australia, shipping nationwide. All prices are in AUD.
 
-    // Fetch recent articles
-    const articlesResponse = await shopifyFetch<{
-      blog: {
-        articles: {
-          edges: Array<{ node: Article }>;
-        };
-      } | null;
-    }>({
-      query: GET_RECENT_ARTICLES,
-      variables: { blogHandle: 'news', first: 10 },
-    });
+The Equestrian (${siteUrl}) is structured for clear category discovery and product intent. Primary content lives under nested category paths and brand pages. Legacy Shopify collection/tag URLs are deprecated.
 
-    const articles = articlesResponse.blog?.articles.edges.map(({ node }) => node) || [];
+## Site Scope For LLM Crawlers
 
-    // Fetch products (lightweight query)
-    const productsResponse = await shopifyFetch<{
-      products: {
-        edges: Array<{ node: Product }>;
-      };
-    }>({
-      query: `
-        query GetAllProductsLight {
-          products(first: 250) {
-            edges {
-              node {
-                handle
-                title
-              }
-            }
-          }
-        }
-      `,
-    });
+- Domain: ${siteUrl}
+- Primary language: English (Australia)
+- Currency: AUD
+- Core audience: Horse owners, riders, stables, and equestrian professionals in Australia
+- High-signal content types:
+  - Category landing pages
+  - Brand landing pages
+  - Product detail pages
+  - Sizing and policy pages
 
-    const products = productsResponse.products.edges.map(({ node }) => node);
+## Canonical URL Conventions
 
-    // Generate llms.txt content
-    let content = `# The Equestrian - ${siteUrl}\n\n`;
-    content += `Australian-owned online saddlery and equestrian equipment store offering premium horse gear and rider equipment from world-leading brands.\n\n`;
+- Prefer category-based product URLs as canonical when available:
+  - \`/${"{"}category}/product-handle\`
+  - \`/${"{"}category}/${"{"}subcategory}/product-handle\`
+  - \`/${"{"}category}/${"{"}subcategory}/${"{"}subsubcategory}/product-handle\`
+- Brand pages:
+  - \`/brands\`
+  - \`/brands/${"{"}brand-handle}\`
+- Legacy \`/collections/*\` paths are deprecated and may redirect or return 410.
+- \`/products/*\` may exist for compatibility but is not always canonical.
 
-    // Collections
-    if (collections.length > 0) {
-      content += `## Collections\n\n`;
-      collections.forEach((collection) => {
-        content += `- [${collection.title}](${siteUrl}/${collection.handle})\n`;
-      });
-      content += `\n`;
-    }
+## Primary Shopping Sections
 
-    // Recent Articles
-    if (articles.length > 0) {
-      content += `## Recent Articles\n\n`;
-      articles.forEach((article) => {
-        content += `- [${article.title}](${siteUrl}/news/${article.handle})\n`;
-      });
-      content += `\n`;
-    }
+### Horse
 
-    // Products
-    if (products.length > 0) {
-      content += `## Products (${products.length} total)\n\n`;
-      // Show first 50 products to keep file size reasonable
-      products.slice(0, 50).forEach((product) => {
-        content += `- [${product.title}](${siteUrl}/products/${product.handle})\n`;
-      });
-      if (products.length > 50) {
-        content += `\n... and ${products.length - 50} more products\n`;
-      }
-      content += `\n`;
-    }
+- [Saddles](${siteUrl}/horse/saddles)
+- [Bridles](${siteUrl}/horse/bridles)
+- [Bits](${siteUrl}/horse/bits)
+- [Saddlecloths](${siteUrl}/horse/saddlecloths)
+- [Boots](${siteUrl}/horse/boots)
+- [Rugs](${siteUrl}/horse/rugs)
+- [Grooming](${siteUrl}/horse/grooming)
+- [Health](${siteUrl}/horse/health)
 
-    content += `## Contact\n\n`;
-    content += `For more information, visit ${siteUrl}\n`;
+### Rider
 
-    return new NextResponse(content, {
-      headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200',
-      },
-    });
-  } catch (error) {
-    console.error('Error generating llms.txt:', error);
-    return new NextResponse('Error generating llms.txt', { status: 500 });
-  }
+- [Footwear](${siteUrl}/rider/footwear)
+- [Breeches](${siteUrl}/rider/breeches)
+- [Helmets](${siteUrl}/rider/helmets)
+- [Apparel](${siteUrl}/rider/apparel)
+- [Gloves](${siteUrl}/rider/gloves)
+- [Safety](${siteUrl}/rider/safety)
+
+### Stable
+
+- [Stable](${siteUrl}/stable)
+- [Stable Equipment](${siteUrl}/stable/equipment)
+- [Fencing](${siteUrl}/stable/fencing)
+- [Arena](${siteUrl}/stable/arena)
+
+### Brands
+
+- [Brands Index](${siteUrl}/brands)
+- Brand pages are first-class landing pages and include curated copy plus product listings.
+
+## Key Informational Pages
+
+- [About](${siteUrl}/about)
+- [Contact](${siteUrl}/contact)
+- [FAQ](${siteUrl}/faq)
+- [Sizing](${siteUrl}/sizing)
+- [Shipping & Delivery](${siteUrl}/shipping-delivery)
+- [Returns & Refunds](${siteUrl}/returns-refunds)
+- [Privacy Policy](${siteUrl}/privacy-policy)
+- [Terms of Service](${siteUrl}/terms-of-service)
+- [Sale](${siteUrl}/on-sale)
+
+## Product Interpretation Guidance
+
+- Product taxonomy is hierarchical (up to 3 category levels before product handle).
+- A product may appear in multiple discovery contexts (category and brand), but canonical URL should be treated as category-first.
+- Brand association should be inferred from:
+  - Product brand/vendor identity
+  - Brand landing page handle and naming
+  - Product metadata and content
+- For comparison and retrieval tasks, prefer:
+  - Canonical product URL
+  - Product title + brand + category path
+  - Safety/size context where relevant (helmets, boots, breeches, rugs, etc.)
+
+## Deprecated / Low-Value Paths
+
+- Avoid using legacy Shopify \`/collections/*\` URLs as authoritative.
+- Ignore feed-like and app-generated junk URLs (atom/rss and app utility paths).
+- Ignore crawl-junk tag-combination URLs containing \`+\`.
+
+## Discovery Endpoints
+
+- [Sitemap](${siteUrl}/sitemap.xml)
+- [Robots](${siteUrl}/robots.txt)
+- [LLMs](${siteUrl}/llms.txt)
+`;
+
+  return new NextResponse(content, {
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200',
+    },
+  });
 }
 
 

@@ -1,9 +1,9 @@
 import { sql } from '@vercel/postgres';
-import { getAllBrands, getBrandByHandle, type BrandMapping } from '@/lib/mapping/brand-mapping';
 
-export interface BrandContentOverride {
+export interface BrandContentRow {
   handle: string;
   title: string;
+  products_count: number;
   h1_title: string | null;
   meta_title: string | null;
   meta_description: string | null;
@@ -12,23 +12,50 @@ export interface BrandContentOverride {
   breadcrumb_label: string | null;
   faq_json: string | null;
   status: string | null;
+  updated_at?: string | null;
 }
 
-let brandContentCache: Map<string, BrandContentOverride> | null = null;
+let brandContentCache: Map<string, BrandContentRow> | null = null;
 let cacheTimestamp: number | null = null;
 const CACHE_TTL = 15 * 60 * 1000;
 
-async function loadBrandContent(): Promise<Map<string, BrandContentOverride>> {
+async function ensureBrandContentTable() {
+  await sql`
+    CREATE TABLE IF NOT EXISTS brand_content (
+      id SERIAL PRIMARY KEY,
+      handle TEXT NOT NULL UNIQUE,
+      title TEXT NOT NULL,
+      products_count INTEGER DEFAULT 0,
+      h1_title TEXT,
+      meta_title TEXT,
+      meta_description TEXT,
+      short_description TEXT,
+      long_description TEXT,
+      breadcrumb_label TEXT,
+      faq_json TEXT,
+      status TEXT DEFAULT 'published',
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS idx_brand_content_handle ON brand_content(handle)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_brand_content_status ON brand_content(status)`;
+  await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS products_count INTEGER DEFAULT 0`;
+}
+
+async function loadBrandContent(): Promise<Map<string, BrandContentRow>> {
   const now = Date.now();
   if (brandContentCache && cacheTimestamp && now - cacheTimestamp < CACHE_TTL) {
     return brandContentCache;
   }
 
   try {
+    await ensureBrandContentTable();
     const result = await sql.query(`
       SELECT
         handle,
         title,
+        COALESCE(products_count, 0) AS products_count,
         h1_title,
         meta_title,
         meta_description,
@@ -36,14 +63,15 @@ async function loadBrandContent(): Promise<Map<string, BrandContentOverride>> {
         long_description,
         breadcrumb_label,
         faq_json,
-        status
+        status,
+        updated_at
       FROM brand_content
       WHERE status = 'published'
       ORDER BY handle
     `);
-    const map = new Map<string, BrandContentOverride>();
+    const map = new Map<string, BrandContentRow>();
     for (const row of result.rows) {
-      map.set(row.handle, row as BrandContentOverride);
+      map.set(row.handle, row as BrandContentRow);
     }
     brandContentCache = map;
     cacheTimestamp = now;
@@ -55,37 +83,33 @@ async function loadBrandContent(): Promise<Map<string, BrandContentOverride>> {
   }
 }
 
-export async function getBrandContentByHandle(handle: string): Promise<BrandMapping | null> {
-  const base = getBrandByHandle(handle);
-  if (!base) return null;
+export async function getBrandContentByHandle(handle: string): Promise<BrandContentRow | null> {
   const overrides = await loadBrandContent();
-  const override = overrides.get(handle);
-  if (!override) return base;
-  return {
-    ...base,
-    title: override.title || base.title,
-    h1_title: override.h1_title || base.h1_title,
-    meta_title: override.meta_title || base.meta_title,
-    meta_description: override.meta_description || base.meta_description,
-    short_description: override.short_description || base.short_description,
-    long_description: override.long_description || base.long_description,
-    breadcrumb_label: override.breadcrumb_label || base.breadcrumb_label,
-    faq_json: override.faq_json || base.faq_json,
-  };
+  return overrides.get(handle) || null;
+}
+
+export async function getAllPublishedBrandContent(): Promise<BrandContentRow[]> {
+  const contentMap = await loadBrandContent();
+  return Array.from(contentMap.values());
 }
 
 export async function listBrandsWithOverrides() {
-  const brands = getAllBrands();
-  const overrides = await loadBrandContent();
-  return brands.map((brand) => {
-    const override = overrides.get(brand.handle);
-    return {
-      handle: brand.handle,
-      title: override?.title || brand.title,
-      status: override?.status || 'missing',
-      updated_at: null,
-    };
-  });
+  await ensureBrandContentTable();
+  const result = await sql.query(`
+    SELECT
+      handle,
+      title,
+      status,
+      updated_at
+    FROM brand_content
+    ORDER BY handle
+  `);
+  return result.rows as Array<{
+    handle: string;
+    title: string;
+    status: string;
+    updated_at: string | null;
+  }>;
 }
 
 export function invalidateBrandContentCache() {

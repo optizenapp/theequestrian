@@ -8,6 +8,7 @@ const ensureBrandContentTable = async () => {
       id SERIAL PRIMARY KEY,
       handle TEXT NOT NULL UNIQUE,
       title TEXT NOT NULL,
+      products_count INTEGER DEFAULT 0,
       h1_title TEXT,
       meta_title TEXT,
       meta_description TEXT,
@@ -21,6 +22,7 @@ const ensureBrandContentTable = async () => {
     )
   `;
   await sql`CREATE INDEX IF NOT EXISTS idx_brand_content_handle ON brand_content(handle)`;
+  await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS products_count INTEGER DEFAULT 0`;
 };
 
 export async function GET() {

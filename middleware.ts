@@ -2,13 +2,19 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { blogRedirects, collectionRedirects, pageRedirects } from '@/lib/redirects/maps';
 
-const hasPlusInPath = (pathname: string) => {
-  const withoutQuery = pathname.split('?')[0].split('#')[0];
-  return withoutQuery.includes('+');
-};
+const goneResponse = () =>
+  new NextResponse(null, {
+    status: 410,
+    statusText: 'Gone',
+    headers: {
+      'X-Robots-Tag': 'noindex',
+      'Cache-Control': 'public, max-age=86400',
+    },
+  });
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const decodedPath = decodeURIComponent(pathname);
 
   // Redirect legacy cart permalinks (Shopify cart share URLs)
   // Format: /cart/c/[cart-id]?key=...
@@ -28,11 +34,33 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // Redirect legacy Shopify tag URLs with '+' in the last segment.
-  if (hasPlusInPath(pathname)) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = '/';
-    return NextResponse.redirect(redirectUrl, 301);
+  // ------------------------------------------------------------------
+  // 1. KILL MULTI-TAG "+" COMBINATIONS
+  // ------------------------------------------------------------------
+  if (decodedPath.includes('+')) {
+    return goneResponse();
+  }
+
+  // ------------------------------------------------------------------
+  // 2. KILL RSS / ATOM FEEDS
+  // ------------------------------------------------------------------
+  if (decodedPath.endsWith('.atom') || decodedPath.endsWith('.rss')) {
+    return goneResponse();
+  }
+
+  // ------------------------------------------------------------------
+  // 3. KILL SHOPIFY APP JUNK
+  // ------------------------------------------------------------------
+  const appJunkPatterns = ['globo_basis', 'globo-', 'secomapp', 'toolbox'];
+  if (appJunkPatterns.some((pattern) => decodedPath.includes(pattern))) {
+    return goneResponse();
+  }
+
+  // ------------------------------------------------------------------
+  // 4. KILL /collections/ CATCH-ALL (after redirects are checked)
+  // ------------------------------------------------------------------
+  if (decodedPath.startsWith('/collections/') || decodedPath === '/collections') {
+    return goneResponse();
   }
 
   // Redirect legacy blog URLs (specific map, then fallback to strip /blogs).
@@ -80,5 +108,12 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/collections/:path*', '/blogs/:path*', '/pages/:path*', '/cart/c/:path*'],
+  matcher: [
+    '/admin/:path*',
+    '/collections/:path*',
+    '/blogs/:path*',
+    '/pages/:path*',
+    '/cart/c/:path*',
+    '/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|llms.txt).*)',
+  ],
 };

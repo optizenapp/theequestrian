@@ -83,6 +83,7 @@
     "audit:categories:apply": "tsx scripts/audit-and-map-categories.ts --apply",
     "apply:categories": "tsx scripts/apply-category-changes.ts",
     "apply:categories:dry": "tsx scripts/apply-category-changes.ts --dry-run",
+    "brands:migrate-db": "tsx scripts/migrate-brands-to-db.ts",
     "verify:redirects": "tsx scripts/verify-redirect-coverage.ts",
     "test:empty-categories": "tsx scripts/test-empty-category-behavior.ts",
     "migrate:mega-menu": "tsx scripts/migrate-mega-menu-to-db.ts"

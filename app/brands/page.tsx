@@ -1,6 +1,6 @@
 
 import Link from 'next/link';
-import { getAllBrands } from '@/lib/mapping/brand-mapping';
+import { getAllPublishedBrandContent } from '@/lib/content/brand-content';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -13,8 +13,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function BrandsIndexPage() {
-  const brands = getAllBrands();
+export default async function BrandsIndexPage() {
+  const brands = await getAllPublishedBrandContent();
 
   // Group brands by first letter for easier navigation
   const groupedBrands = brands.reduce((acc, brand) => {

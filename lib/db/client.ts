@@ -10,6 +10,11 @@ import { neon } from '@neondatabase/serverless';
 // This allows dotenv to load vars before database connection is created
 let _sql: ReturnType<typeof neon> | null = null;
 
+/** Reset the DB client (e.g. after quota/plan change). Next query will create a new connection. */
+export function resetDbClient(): void {
+  _sql = null;
+}
+
 function getSql(): ReturnType<typeof neon> {
   if (!_sql) {
     const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
@@ -21,11 +26,26 @@ function getSql(): ReturnType<typeof neon> {
   return _sql;
 }
 
+function isQuotaError(err: unknown): boolean {
+  if (err && typeof err === 'object') {
+    const msg = String((err as { message?: string }).message ?? '');
+    return msg.includes('402') || msg.includes('data transfer quota') || msg.includes('exceeded');
+  }
+  return false;
+}
+
 // Export sql as a template tag function with lazy initialization
 // Usage: sql`SELECT * FROM table`
-// Create a function that acts as the template tag
+// On 402 / quota errors, reset client so next request gets a fresh connection after plan upgrade.
 function sqlTemplateTag(strings: TemplateStringsArray, ...values: any[]) {
-  return getSql()(strings, ...values);
+  const result = getSql()(strings, ...values);
+  if (result && typeof (result as Promise<unknown>).then === 'function') {
+    return (result as Promise<unknown>).catch((err: unknown) => {
+      if (isQuotaError(err)) resetDbClient();
+      throw err;
+    });
+  }
+  return result;
 }
 
 export const sql = sqlTemplateTag as ReturnType<typeof neon>;

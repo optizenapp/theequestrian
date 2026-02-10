@@ -11,11 +11,15 @@ export async function POST(request: Request) {
     const limit = typeof body.limit === 'number' ? body.limit : 50;
     const start = typeof body.start === 'number' ? body.start : 0;
     const dryRun = Boolean(body.dryRun);
+    const model = body.model === 'gpt-5.2-codex' ? 'gpt-5.2-codex' : 'gpt-4o';
+    const exportCsvInDryRun = Boolean(body.exportCsvInDryRun);
 
     const result = await runClassification({
       start,
       limit,
       dryRun,
+      model,
+      exportCsvInDryRun,
       saveDb: !dryRun,
       saveCsv: false, // Disabled in production - Vercel has read-only filesystem
     });
@@ -24,7 +28,8 @@ export async function POST(request: Request) {
       started: true,
       total: result.total,
       saved: result.saved,
-      message: `Classification complete (start=${start}, limit=${limit}${dryRun ? ', dry-run' : ''}).`,
+      model: result.model,
+      message: `Classification complete (model=${model}, start=${start}, limit=${limit}${dryRun ? ', dry-run' : ''}).`,
     });
   } catch (error) {
     console.error('Error starting classification job:', error);

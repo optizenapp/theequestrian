@@ -4,7 +4,6 @@ import { getCollectionWithPagination, getCollectionProductCount } from '@/lib/sh
 import { getProductCanonicalUrls } from '@/lib/shopify/products';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
-import { getBrandByHandle } from '@/lib/mapping/brand-mapping';
 import { getBrandContentByHandle } from '@/lib/content/brand-content';
 import { RichContent } from '@/components/collection/RichContent';
 import { FAQSection } from '@/components/collection/FAQSection';
@@ -65,7 +64,7 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
   }
 
   // 2. Fetch Products from Shopify Collection with pagination and sorting
-  const { collection, products, pageInfo } = await getCollectionWithPagination(
+  const { products, pageInfo } = await getCollectionWithPagination(
     brand.handle,
     36,
     afterCursor
@@ -76,7 +75,7 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
   
   // Generate canonical URLs for all products (fast with Neon DB)
   // Product cards will link directly to category-based URLs
-  const productUrls = await getProductCanonicalUrls(products);
+  await getProductCanonicalUrls(products);
 
   // Fetch review stats for all products in one batch (server-side)
   const productHandles = products.map(p => p.handle);

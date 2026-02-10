@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
-import { getBrandByHandle } from '@/lib/mapping/brand-mapping';
 
 const ensureBrandContentTable = async () => {
   await sql`
@@ -8,6 +7,7 @@ const ensureBrandContentTable = async () => {
       id SERIAL PRIMARY KEY,
       handle TEXT NOT NULL UNIQUE,
       title TEXT NOT NULL,
+      products_count INTEGER DEFAULT 0,
       h1_title TEXT,
       meta_title TEXT,
       meta_description TEXT,
@@ -21,6 +21,7 @@ const ensureBrandContentTable = async () => {
     )
   `;
   await sql`CREATE INDEX IF NOT EXISTS idx_brand_content_handle ON brand_content(handle)`;
+  await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS products_count INTEGER DEFAULT 0`;
 };
 
 export async function GET(
@@ -30,17 +31,16 @@ export async function GET(
   try {
     await ensureBrandContentTable();
     const { handle } = await params;
-    const base = getBrandByHandle(handle);
-    if (!base) {
-      return NextResponse.json({ error: 'Brand not found' }, { status: 404 });
-    }
-    const overrideResult = await sql`
+    const existing = await sql`
       SELECT *
       FROM brand_content
       WHERE handle = ${handle}
       LIMIT 1
     `;
-    return NextResponse.json({ brand: base, override: overrideResult.rows[0] || null });
+    if (existing.rows.length === 0) {
+      return NextResponse.json({ error: 'Brand not found' }, { status: 404 });
+    }
+    return NextResponse.json({ brand: existing.rows[0], override: existing.rows[0] || null });
   } catch (error) {
     console.error('Error fetching brand content:', error);
     return NextResponse.json({ error: 'Failed to fetch brand' }, { status: 500 });
@@ -54,16 +54,23 @@ export async function PATCH(
   try {
     await ensureBrandContentTable();
     const { handle } = await params;
-    const base = getBrandByHandle(handle);
-    if (!base) {
+    const existing = await sql`
+      SELECT *
+      FROM brand_content
+      WHERE handle = ${handle}
+      LIMIT 1
+    `;
+    if (existing.rows.length === 0) {
       return NextResponse.json({ error: 'Brand not found' }, { status: 404 });
     }
+    const base = existing.rows[0];
 
     const body = await request.json();
     const result = await sql`
       INSERT INTO brand_content (
         handle,
         title,
+        products_count,
         h1_title,
         meta_title,
         meta_description,
@@ -75,7 +82,8 @@ export async function PATCH(
         updated_at
       ) VALUES (
         ${handle},
-        ${String(body?.title || base.title)},
+        ${String(body?.title || base.title || handle)},
+        ${Number(body?.products_count ?? base.products_count ?? 0)},
         ${String(body?.h1_title || '')},
         ${String(body?.meta_title || '')},
         ${String(body?.meta_description || '')},
@@ -89,6 +97,7 @@ export async function PATCH(
       ON CONFLICT (handle) DO UPDATE
       SET
         title = EXCLUDED.title,
+        products_count = EXCLUDED.products_count,
         h1_title = EXCLUDED.h1_title,
         meta_title = EXCLUDED.meta_title,
         meta_description = EXCLUDED.meta_description,

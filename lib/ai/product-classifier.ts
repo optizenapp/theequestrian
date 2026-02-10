@@ -1,6 +1,6 @@
 /**
  * AI Product Classifier
- * Uses OpenAI and Anthropic to intelligently classify products into proper product types
+ * Supports chat-completions (gpt-4o) and responses API (gpt-5.2-codex)
  */
 
 import OpenAI from 'openai';
@@ -13,62 +13,116 @@ interface ProductFeatures {
   tags: string[];
   collections: string[];
   currentType?: string;
+  description?: string;
+  descriptionHtml?: string;
+  productUrl?: string;
+  canonicalCollection?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  variantTitles?: string[];
+  variantOptions?: string[];
+  imageUrls?: string[];
+  imageAltTexts?: string[];
+  overrideBullets?: string[];
+  overrideDescriptionHtml?: string;
+  overrideTopDescriptionHtml?: string;
+  overrideBottomDescriptionHtml?: string;
 }
 
-interface ClassificationResult {
+export interface ClassificationResult {
   suggestedType: string;
   confidence: number; // 0-100
   reasoning: string;
   validationStatus: 'auto' | 'claude-validated' | 'needs-review';
   alternativeTypes?: string[];
+  brandHandles?: string[];
+  categoryTitle?: string;
+  categorySlug?: string;
+  proposedCanonicalUrl?: string;
+  openaiType?: string;
+  openaiConfidence?: number;
+  claudeType?: string;
+  claudeConfidence?: number;
+  modelUsed?: ClassificationModel;
+  visionEscalated?: boolean;
 }
 
-interface AnthropicMessage {
-  role: 'user' | 'assistant';
-  content: string;
+export type ClassificationModel = 'gpt-4o' | 'gpt-5.2-codex';
+export interface BrandSeed {
+  handle: string;
+  title: string;
+}
+
+interface ProductClassifierOptions {
+  model?: ClassificationModel;
+  confidenceReviewThreshold?: number;
+  brands?: BrandSeed[];
 }
 
 /**
- * Product Classifier using OpenAI and Anthropic
+ * Product Classifier using a single configured model
  */
 export class ProductClassifier {
   private openai: OpenAI;
-  private anthropicApiKey: string;
   private validProductTypes: string[];
+  private model: ClassificationModel;
+  private confidenceReviewThreshold: number;
+  private validBrandHandles: Set<string>;
+  private brands: BrandSeed[];
 
-  constructor(validProductTypes: string[]) {
+  constructor(validProductTypes: string[], options: ProductClassifierOptions = {}) {
     const openaiKey = process.env.OPENAI_API_KEY;
-    const anthropicKey = process.env.ANTHROPIC_API_KEY;
 
     if (!openaiKey) {
       throw new Error('OPENAI_API_KEY environment variable is required');
     }
-    if (!anthropicKey) {
-      throw new Error('ANTHROPIC_API_KEY environment variable is required');
-    }
 
     this.openai = new OpenAI({ apiKey: openaiKey });
-    this.anthropicApiKey = anthropicKey;
     this.validProductTypes = validProductTypes;
+    this.model = options.model || 'gpt-4o';
+    this.confidenceReviewThreshold = options.confidenceReviewThreshold ?? 70;
+    this.brands = options.brands || [];
+    this.validBrandHandles = new Set(this.brands.map((b) => b.handle));
   }
 
   /**
-   * Classify a single product using OpenAI and validate with Claude
+   * Classify a single product using the configured model
    */
   async classifyProduct(product: ProductFeatures): Promise<ClassificationResult> {
-    console.log(`  🤖 Classifying: ${product.title}`);
+    console.log(`  🤖 Classifying (${this.model}): ${product.title}`);
 
     // Build context for AI
     const context = this.buildContext(product);
-    
+
     try {
-      // Step 1: OpenAI Classification
-      const openaiResult = await this.classifyWithOpenAI(context);
-      
-      // Step 2: Always validate with Claude for dual AI validation
-      console.log(`    🔍 Validating with Claude (OpenAI: ${openaiResult.confidence}%)...`);
-      const claudeResult = await this.validateWithClaude(context, openaiResult);
-      return claudeResult;
+      const rawResult = this.model === 'gpt-5.2-codex'
+        ? await this.classifyWithCodexResponses(context)
+        : await this.classifyWithOpenAIChat(context);
+      let normalized = this.normalizeAndValidateResult(rawResult, product.currentType || '');
+      let visionEscalated = false;
+
+      if (this.shouldEscalateToVision(normalized, product)) {
+        const visionContext = this.buildVisionContext(product, normalized);
+        const visionRaw = this.model === 'gpt-5.2-codex'
+          ? await this.classifyWithCodexVision(visionContext, product.imageUrls || [])
+          : await this.classifyWithOpenAIVision(visionContext, product.imageUrls || []);
+        const visionNormalized = this.normalizeAndValidateResult(visionRaw, product.currentType || '');
+
+        if (visionNormalized.confidence >= normalized.confidence) {
+          normalized = {
+            ...visionNormalized,
+            reasoning: `Vision pass used. ${visionNormalized.reasoning}`,
+          };
+        }
+        visionEscalated = true;
+      }
+
+      return {
+        ...normalized,
+        validationStatus: normalized.confidence >= this.confidenceReviewThreshold ? 'auto' : 'needs-review',
+        modelUsed: this.model,
+        visionEscalated,
+      };
     } catch (error) {
       console.error(`    ❌ Error classifying product:`, error);
       return {
@@ -76,6 +130,8 @@ export class ProductClassifier {
         confidence: 0,
         reasoning: `Error during classification: ${error}`,
         validationStatus: 'needs-review',
+        modelUsed: this.model,
+        visionEscalated: false,
       };
     }
   }
@@ -90,10 +146,10 @@ export class ProductClassifier {
       const result = await this.classifyProduct(product);
       results.set(product.id, result);
       
-      // Rate limiting: wait 100ms between requests
+      // Rate limiting between requests
       await new Promise(resolve => setTimeout(resolve, 100));
     }
-    
+
     return results;
   }
 
@@ -101,11 +157,28 @@ export class ProductClassifier {
    * Build context string for AI prompt
    */
   private buildContext(product: ProductFeatures): string {
+    const descriptionText = this.toPlainText(product.descriptionHtml || product.description || '');
+    const overrideDescriptionText = this.toPlainText(product.overrideDescriptionHtml || '');
+    const overrideTopText = this.toPlainText(product.overrideTopDescriptionHtml || '');
+    const overrideBottomText = this.toPlainText(product.overrideBottomDescriptionHtml || '');
+
     const signals = [
       `Title: ${product.title}`,
       `Vendor: ${product.vendor}`,
       `Tags: ${product.tags.slice(0, 10).join(', ')}`,
       `Collections: ${product.collections.slice(0, 5).join(', ')}`,
+      `Product URL: ${product.productUrl || `https://theequestrian.com/products/${product.handle}`}`,
+      `Canonical Collection Hint: ${product.canonicalCollection || 'none'}`,
+      `Description: ${descriptionText.slice(0, 1500) || 'none'}`,
+      `SEO Title: ${product.seoTitle || 'none'}`,
+      `SEO Description: ${product.seoDescription || 'none'}`,
+      `Variant Titles: ${(product.variantTitles || []).slice(0, 10).join(', ') || 'none'}`,
+      `Variant Options: ${(product.variantOptions || []).slice(0, 20).join(', ') || 'none'}`,
+      `Headless Bullets: ${(product.overrideBullets || []).slice(0, 12).join(' | ') || 'none'}`,
+      `Headless Description: ${overrideDescriptionText.slice(0, 1000) || 'none'}`,
+      `Headless Top Description: ${overrideTopText.slice(0, 600) || 'none'}`,
+      `Headless Bottom Description: ${overrideBottomText.slice(0, 600) || 'none'}`,
+      `Image Alts: ${(product.imageAltTexts || []).slice(0, 5).join(' | ') || 'none'}`,
     ];
 
     if (product.currentType) {
@@ -115,36 +188,61 @@ export class ProductClassifier {
     return signals.join('\n');
   }
 
+  private buildSystemPrompt(): string {
+    const types = this.validProductTypes
+      .map((type, idx) => `${idx + 1}. ${type}`)
+      .join('\n');
+    const brands = this.brands.length > 0
+      ? this.brands.map((brand, idx) => `${idx + 1}. ${brand.handle} (${brand.title})`).join('\n')
+      : 'No brand pages configured.';
+
+    return `You classify equestrian and pet products into one existing product type.
+
+Use ONLY these exact allowed product types:
+${types}
+
+Allowed brand pages (optional association targets):
+${brands}
+
+Rules:
+1. Choose exactly one "type" from the allowed list. Never invent or alter names.
+2. Pick the most specific type supported by title, tags, vendor, and collections.
+3. If uncertain, still choose the best allowed type but reduce confidence.
+4. "alternatives" must contain only allowed types and must not include the primary "type".
+5. You may include up to 3 matching brand page handles in "brand_handles" when there is clear evidence.
+6. "brand_handles" values must be exact handles from the allowed brand list.
+7. Keep "reasoning" brief and evidence-based (title/tags/collections/vendor/description).
+
+Return JSON only with this schema:
+{"type":"<allowed type>","confidence":0-100,"reasoning":"...","alternatives":["<allowed type>","<allowed type>"],"brand_handles":["<allowed brand handle>"]}`;
+  }
+
+  private buildVisionContext(
+    product: ProductFeatures,
+    prior: Omit<ClassificationResult, 'validationStatus'>
+  ): string {
+    return `${this.buildContext(product)}
+
+Prior text-only result:
+Type: ${prior.suggestedType}
+Confidence: ${prior.confidence}
+Reasoning: ${prior.reasoning}
+
+Use the product images to confirm or correct this classification and return JSON only.`;
+  }
+
   /**
-   * Classify using OpenAI GPT-4o
+   * Classify using OpenAI Chat Completions (gpt-4o)
    */
-  private async classifyWithOpenAI(context: string): Promise<Omit<ClassificationResult, 'validationStatus'>> {
-    const systemPrompt = `You are an expert at classifying equestrian and pet products into specific product types.
-
-VALID PRODUCT TYPES (choose ONLY from this list):
-${this.validProductTypes.slice(0, 100).join(', ')}
-${this.validProductTypes.length > 100 ? `... and ${this.validProductTypes.length - 100} more types` : ''}
-
-RULES:
-1. Choose the MOST SPECIFIC type that matches (e.g., "Horse Boots" not "Accessories")
-2. For horses: Use types like "Horse Boots", "Saddle Cloths", "Bits", "Bridles", "Horse Rugs"
-3. For riders: Use types like "Helmets", "Breeches", "Gloves", "Boots"
-4. For dogs: Use types like "Dog Treats", "Dog Toys", "Dog Collars & Leads"
-5. For cats: Use types like "Cat Food & Treats", "Cat Gyms & Toys"
-6. Confidence score: 
-   - 90-100: Very clear match (e.g., "helmet" in title → "Helmets")
-   - 70-89: Good match based on multiple signals
-   - Below 70: Uncertain, needs validation
-
-Return ONLY valid JSON: {"type": "...", "confidence": 0-100, "reasoning": "...", "alternatives": ["...", "..."]}`;
-
+  private async classifyWithOpenAIChat(context: string): Promise<Omit<ClassificationResult, 'validationStatus'>> {
+    const systemPrompt = this.buildSystemPrompt();
     const completion = await this.openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: context },
       ],
-      temperature: 0.3, // Lower temperature for more consistent results
+      temperature: 0.1,
       response_format: { type: 'json_object' },
     });
 
@@ -153,128 +251,236 @@ Return ONLY valid JSON: {"type": "...", "confidence": 0-100, "reasoning": "...",
       throw new Error('No response from OpenAI');
     }
 
-    const parsed = JSON.parse(response);
-    
+    const parsed = this.parseModelJson(response);
+
     return {
       suggestedType: parsed.type,
       confidence: parsed.confidence,
       reasoning: parsed.reasoning,
       alternativeTypes: parsed.alternatives || [],
+      brandHandles: parsed.brand_handles || [],
     };
   }
 
   /**
-   * Validate classification using Claude 3.5 Sonnet
+   * Classify using Responses API (gpt-5.2-codex)
    */
-  private async validateWithClaude(
+  private async classifyWithCodexResponses(context: string): Promise<Omit<ClassificationResult, 'validationStatus'>> {
+    const systemPrompt = this.buildSystemPrompt();
+    const response = await this.openai.responses.create({
+      model: 'gpt-5.2-codex',
+      input: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: context },
+      ],
+      reasoning: { effort: 'medium' },
+      text: { verbosity: 'medium' },
+    });
+    const text = response.output_text;
+    if (!text) {
+      throw new Error('No output_text returned from Responses API');
+    }
+    const parsed = this.parseModelJson(text);
+
+    return {
+      suggestedType: parsed.type,
+      confidence: parsed.confidence,
+      reasoning: parsed.reasoning,
+      alternativeTypes: parsed.alternatives || [],
+      brandHandles: parsed.brand_handles || [],
+    };
+  }
+
+  private async classifyWithOpenAIVision(
     context: string,
-    openaiResult: Omit<ClassificationResult, 'validationStatus'>
-  ): Promise<ClassificationResult> {
-    const prompt = `You are validating a product classification made by another AI.
+    imageUrls: string[]
+  ): Promise<Omit<ClassificationResult, 'validationStatus'>> {
+    const systemPrompt = this.buildSystemPrompt();
+    const content: Array<
+      { type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }
+    > = [{ type: 'text', text: context }];
+    for (const url of imageUrls.slice(0, 3)) {
+      content.push({ type: 'image_url', image_url: { url } });
+    }
 
-PRODUCT DETAILS:
-${context}
-
-PREVIOUS CLASSIFICATION:
-Type: ${openaiResult.suggestedType}
-Confidence: ${openaiResult.confidence}%
-Reasoning: ${openaiResult.reasoning}
-
-VALID PRODUCT TYPES:
-${this.validProductTypes.slice(0, 100).join(', ')}
-
-TASK:
-1. Do you AGREE with the classification "${openaiResult.suggestedType}"?
-2. If NO, what type would you suggest instead?
-3. What confidence level (0-100) do you have?
-
-Return ONLY valid JSON: {"agree": true/false, "suggestedType": "...", "confidence": 0-100, "reasoning": "..."}`;
-
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': this.anthropicApiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5-20250929',
-        max_tokens: 1024,
-        temperature: 0.3,
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-      }),
+    const completion = await this.openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content },
+      ],
+      temperature: 0.1,
+      response_format: { type: 'json_object' },
     });
 
-    if (!response.ok) {
-      console.error('Claude API error:', await response.text());
-      return {
-        ...openaiResult,
-        validationStatus: 'needs-review',
-      };
+    const response = completion.choices[0].message.content;
+    if (!response) {
+      throw new Error('No response from OpenAI vision pass');
+    }
+    const parsed = this.parseModelJson(response);
+    return {
+      suggestedType: parsed.type,
+      confidence: parsed.confidence,
+      reasoning: parsed.reasoning,
+      alternativeTypes: parsed.alternatives || [],
+      brandHandles: parsed.brand_handles || [],
+    };
+  }
+
+  private async classifyWithCodexVision(
+    context: string,
+    imageUrls: string[]
+  ): Promise<Omit<ClassificationResult, 'validationStatus'>> {
+    const systemPrompt = this.buildSystemPrompt();
+    const content: Array<
+      { type: 'input_text'; text: string } | { type: 'input_image'; image_url: string; detail: 'low' }
+    > = [
+      { type: 'input_text', text: context },
+    ];
+    for (const url of imageUrls.slice(0, 3)) {
+      content.push({ type: 'input_image', image_url: url, detail: 'low' });
     }
 
-    const data = await response.json();
-    const content = data.content[0].text;
-    
-    // Extract JSON from Claude's response (it might include extra text)
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      console.error('Could not parse Claude response:', content);
-      return {
-        ...openaiResult,
-        validationStatus: 'needs-review',
-      };
+    const response = await this.openai.responses.create({
+      model: 'gpt-5.2-codex',
+      input: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content },
+      ],
+      reasoning: { effort: 'medium' },
+      text: { verbosity: 'medium' },
+    });
+    if (!response.output_text) {
+      throw new Error('No output_text returned from codex vision pass');
     }
+    const parsed = this.parseModelJson(response.output_text);
+    return {
+      suggestedType: parsed.type,
+      confidence: parsed.confidence,
+      reasoning: parsed.reasoning,
+      alternativeTypes: parsed.alternatives || [],
+      brandHandles: parsed.brand_handles || [],
+    };
+  }
 
-    const parsed = JSON.parse(jsonMatch[0]);
-
-    if (parsed.agree && parsed.confidence >= 70) {
-      // Both AIs agree - highest confidence
-      const finalConfidence = Math.max(openaiResult.confidence, parsed.confidence);
-      console.log(`    ✅ Both AIs agree (${finalConfidence}%): ${openaiResult.suggestedType}`);
-      return {
-        suggestedType: openaiResult.suggestedType,
-        confidence: finalConfidence,
-        reasoning: `Dual AI validation - OpenAI (${openaiResult.confidence}%) + Claude (${parsed.confidence}%) agree: ${parsed.reasoning}`,
-        validationStatus: 'claude-validated',
+  private parseModelJson(rawText: string): {
+    type: string;
+    confidence: number;
+    reasoning: string;
+    alternatives?: string[];
+    brand_handles?: string[];
+    brandHandles?: string[];
+  } {
+    try {
+      return JSON.parse(rawText) as {
+        type: string;
+        confidence: number;
+        reasoning: string;
+        alternatives?: string[];
+        brand_handles?: string[];
       };
-    } else {
-      console.log(`    ⚠️  AIs disagree - OpenAI: ${openaiResult.suggestedType} (${openaiResult.confidence}%), Claude: ${parsed.suggestedType} (${parsed.confidence}%)`);
-      
-      if (parsed.confidence >= 85 && parsed.confidence > openaiResult.confidence) {
-        // Claude is more confident in a different type
-        return {
-          suggestedType: parsed.suggestedType,
-          confidence: parsed.confidence,
-          reasoning: `Claude override (higher confidence): ${parsed.reasoning}. OpenAI suggested: ${openaiResult.suggestedType}`,
-          validationStatus: 'claude-validated',
-          alternativeTypes: [openaiResult.suggestedType],
-        };
-      } else if (openaiResult.confidence >= 85 && openaiResult.confidence > parsed.confidence) {
-        // OpenAI is more confident
-        return {
-          suggestedType: openaiResult.suggestedType,
-          confidence: openaiResult.confidence,
-          reasoning: `OpenAI override (higher confidence): ${openaiResult.reasoning}. Claude suggested: ${parsed.suggestedType}`,
-          validationStatus: 'claude-validated',
-          alternativeTypes: [parsed.suggestedType],
-        };
-      } else {
-        // Both AIs uncertain or disagree with similar confidence - needs review
-        return {
-          suggestedType: openaiResult.confidence >= parsed.confidence ? openaiResult.suggestedType : parsed.suggestedType,
-          confidence: Math.max(openaiResult.confidence, parsed.confidence),
-          reasoning: `AIs disagree - needs review. OpenAI (${openaiResult.confidence}%): ${openaiResult.reasoning}. Claude (${parsed.confidence}%): ${parsed.reasoning}`,
-          validationStatus: 'needs-review',
-          alternativeTypes: [openaiResult.suggestedType, parsed.suggestedType].filter((v, i, a) => a.indexOf(v) === i),
-        };
+    } catch {
+      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error(`Could not parse model JSON response: ${rawText.slice(0, 500)}`);
       }
+      return JSON.parse(jsonMatch[0]) as {
+        type: string;
+        confidence: number;
+        reasoning: string;
+        alternatives?: string[];
+        brand_handles?: string[];
+      };
     }
+  }
+
+  private normalizeAndValidateResult(
+    raw: Omit<ClassificationResult, 'validationStatus'>,
+    fallbackType: string
+  ): Omit<ClassificationResult, 'validationStatus'> {
+    const validMap = new Map(this.validProductTypes.map((type) => [type.toLowerCase(), type]));
+    const primary = (raw.suggestedType || '').trim().toLowerCase();
+    const mappedPrimary = validMap.get(primary);
+
+    if (mappedPrimary) {
+      return {
+        suggestedType: mappedPrimary,
+        confidence: this.clampConfidence(raw.confidence),
+        reasoning: raw.reasoning || 'Model-selected classification',
+        alternativeTypes: this.normalizeAlternatives(raw.alternativeTypes || [], mappedPrimary, validMap),
+        brandHandles: this.normalizeBrandHandles(raw.brandHandles || []),
+      };
+    }
+
+    const fallbackAlt = (raw.alternativeTypes || [])
+      .map((type) => type.trim().toLowerCase())
+      .map((type) => validMap.get(type))
+      .find((type): type is string => Boolean(type));
+
+    if (fallbackAlt) {
+      return {
+        suggestedType: fallbackAlt,
+        confidence: Math.min(this.clampConfidence(raw.confidence), 65),
+        reasoning: `Primary type was invalid; fallback to first valid alternative. ${raw.reasoning || ''}`.trim(),
+        alternativeTypes: this.normalizeAlternatives(raw.alternativeTypes || [], fallbackAlt, validMap),
+        brandHandles: this.normalizeBrandHandles(raw.brandHandles || []),
+      };
+    }
+
+    return {
+      suggestedType: fallbackType,
+      confidence: 0,
+      reasoning: `Model did not return a valid allowed type. ${raw.reasoning || ''}`.trim(),
+      alternativeTypes: [],
+      brandHandles: this.normalizeBrandHandles(raw.brandHandles || []),
+    };
+  }
+
+  private normalizeAlternatives(
+    alternatives: string[],
+    primary: string,
+    validMap: Map<string, string>
+  ): string[] {
+    const deduped = new Set<string>();
+    for (const candidate of alternatives) {
+      const normalized = validMap.get((candidate || '').trim().toLowerCase());
+      if (!normalized || normalized === primary) continue;
+      deduped.add(normalized);
+      if (deduped.size >= 3) break;
+    }
+    return Array.from(deduped);
+  }
+
+  private clampConfidence(confidence: number): number {
+    if (!Number.isFinite(confidence)) return 0;
+    return Math.max(0, Math.min(100, Math.round(confidence)));
+  }
+
+  private normalizeBrandHandles(candidates: string[]): string[] {
+    const deduped = new Set<string>();
+    for (const raw of candidates) {
+      const handle = (raw || '').trim().toLowerCase();
+      if (!handle || !this.validBrandHandles.has(handle)) continue;
+      deduped.add(handle);
+      if (deduped.size >= 3) break;
+    }
+    return Array.from(deduped);
+  }
+
+  private shouldEscalateToVision(
+    result: Omit<ClassificationResult, 'validationStatus'>,
+    product: ProductFeatures
+  ): boolean {
+    return Boolean((product.imageUrls || []).length > 0 && result.confidence < this.confidenceReviewThreshold);
+  }
+
+  private toPlainText(value: string): string {
+    return value
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
   }
 
   /**
@@ -289,10 +495,7 @@ Return ONLY valid JSON: {"agree": true/false, "suggestedType": "...", "confidenc
     bothAgree: number;
   } {
     const values = Array.from(results.values());
-    const bothAgree = values.filter(r => 
-      r.validationStatus === 'claude-validated' && 
-      r.reasoning.includes('agree')
-    ).length;
+    const bothAgree = 0;
     
     return {
       total: values.length,
