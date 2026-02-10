@@ -5,6 +5,109 @@ export default function robots(): MetadataRoute.Robots {
 
   return {
     rules: [
+      // ========================================
+      // GOOGLEBOT - Full access to content & redirects
+      // ========================================
+      {
+        userAgent: 'Googlebot',
+        allow: [
+          '/',
+          '/products/',
+          '/collections/',
+          '/horse/',
+          '/rider/',
+          '/dog/',
+          '/pet/',
+          '/brands/',
+        ],
+        disallow: [
+          '/api/',
+          '/_next/',
+          '/preview',
+          '/admin',
+          '/account',
+          '/cart',
+          '/checkout',
+          '/orders',
+          '/search',
+          '/*+*',
+          '/*%2B*',
+          '/*.atom',
+          '/*.rss',
+          '/*.json',
+          '/*globo*',
+          '/*secomapp*',
+          '/*toolbox*',
+          '/*?*utm_*',
+          '/*?*ref=*',
+          '/*?*fbclid=*',
+          '/*?*gclid=*',
+          '/*?*size=*',
+          '/*?*price=*',
+          '/*?*color=*',
+          '/*?*colour=*',
+          '/*?*brand=*',
+          '/*?*sort=*',
+          '/*?*sort_by=*',
+          '/*?*variant=*',
+          '/*?*page=*',
+          '/*?filter*',
+        ],
+      },
+
+      // ========================================
+      // BINGBOT - Same rules as Googlebot
+      // ========================================
+      {
+        userAgent: 'Bingbot',
+        allow: [
+          '/',
+          '/products/',
+          '/collections/',
+          '/horse/',
+          '/rider/',
+          '/dog/',
+          '/pet/',
+          '/brands/',
+        ],
+        disallow: [
+          '/api/',
+          '/_next/',
+          '/preview',
+          '/admin',
+          '/account',
+          '/cart',
+          '/checkout',
+          '/orders',
+          '/search',
+          '/*+*',
+          '/*%2B*',
+          '/*.atom',
+          '/*.rss',
+          '/*.json',
+          '/*globo*',
+          '/*secomapp*',
+          '/*toolbox*',
+          '/*?*utm_*',
+          '/*?*ref=*',
+          '/*?*fbclid=*',
+          '/*?*gclid=*',
+          '/*?*size=*',
+          '/*?*price=*',
+          '/*?*color=*',
+          '/*?*colour=*',
+          '/*?*brand=*',
+          '/*?*sort=*',
+          '/*?*sort_by=*',
+          '/*?*variant=*',
+          '/*?*page=*',
+          '/*?filter*',
+        ],
+      },
+
+      // ========================================
+      // ALL OTHER BOTS - More restrictive
+      // ========================================
       {
         userAgent: '*',
         allow: [
