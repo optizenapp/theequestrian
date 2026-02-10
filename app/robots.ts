@@ -10,6 +10,7 @@ export default function robots(): MetadataRoute.Robots {
         allow: [
           '/',
           '/products/', // Allow so Google can follow 301 redirects to new nested URLs
+          '/collections/', // Allow so Google can follow 301 redirects from old collection URLs
         ],
         disallow: [
           // ========================================
@@ -33,7 +34,6 @@ export default function robots(): MetadataRoute.Robots {
           // ========================================
           // 3. LEGACY SHOPIFY STRUCTURE (DUPLICATE CONTENT)
           // ========================================
-          '/collections/', // Block old /collections/* structure
           '/pages/', // Block Shopify /pages/ if migrated to root paths
           '/blogs/*/tagged/*', // Block blog tag archives (duplicate content)
 
