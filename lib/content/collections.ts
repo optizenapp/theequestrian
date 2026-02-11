@@ -10,7 +10,7 @@
  * - Fallback to CSV if database is unavailable
  */
 
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/client';
 
 export interface FAQItem {
   question: string;
@@ -57,7 +57,7 @@ async function loadContent(): Promise<Map<string, CollectionContent>> {
 
   try {
     // Query all published content from database
-    const result = await sql.query(`
+    const result = await sql`
       SELECT 
         url_path, h1_title, meta_title, meta_description,
         short_description, long_description, breadcrumb_label,
@@ -66,11 +66,26 @@ async function loadContent(): Promise<Map<string, CollectionContent>> {
       FROM collection_content
       WHERE status = 'published'
       ORDER BY url_path
-    `);
+    `;
 
     const contentMap = new Map<string, CollectionContent>();
+    const rows = (Array.isArray(result) ? result : []) as Array<{
+      url_path: string;
+      h1_title: string;
+      meta_title: string;
+      meta_description: string;
+      short_description: string;
+      long_description: string;
+      breadcrumb_label: string;
+      parent_url: string;
+      category_level: number;
+      status: string;
+      default_sort: string;
+      faq_items: FAQItem[];
+      related_categories: RelatedCategory[];
+    }>;
 
-    for (const row of result.rows) {
+    for (const row of rows) {
       contentMap.set(row.url_path, {
         url_path: row.url_path,
         h1_title: row.h1_title,

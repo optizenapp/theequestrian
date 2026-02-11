@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/client';
 import { getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
 import { listManualRedirects } from './manual';
 
@@ -15,11 +15,23 @@ const findCategoryMatch = async (path: string) => {
     WHERE url_path = ${path}
     LIMIT 1
   `;
-  return result.rows[0]?.url_path ?? null;
+  const row = (Array.isArray(result) ? result[0] : undefined) as { url_path: string } | undefined;
+  return row?.url_path ?? null;
 };
 
 export async function auditManualRedirects() {
-  const redirects = await listManualRedirects(500);
+  const redirects = await listManualRedirects(500) as Array<{
+    id: number;
+    from_path: string;
+    to_path: string;
+    redirect_type: string;
+    source: string;
+    status: string;
+    conflict_target: string | null;
+    last_checked: string | null;
+    created_at: string;
+    updated_at: string;
+  }>;
   const conflicts: Array<{
     id: number;
     from_path: string;
@@ -28,7 +40,7 @@ export async function auditManualRedirects() {
   }> = [];
 
   for (const redirect of redirects) {
-    const fromPath = redirect.from_path as string;
+    const fromPath = redirect.from_path;
     const currentStatus = typeof redirect.status === 'string' ? redirect.status : 'active';
     let conflictTarget: string | null = null;
 
