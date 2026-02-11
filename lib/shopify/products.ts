@@ -1054,18 +1054,23 @@ export async function getProductsByCategory(
   try {
     // Get product IDs allocated to this category (includes child categories)
     const { getProductIdsByCategory } = await import('@/lib/db/product-allocations');
+    console.log(`[getProductsByCategory] Querying allocations for ${categoryPath}...`);
+    console.log(`[getProductsByCategory] Environment: VERCEL_ENV=${process.env.VERCEL_ENV}, NODE_ENV=${process.env.NODE_ENV}`);
+    
     const productIds = await getProductIdsByCategory(categoryPath);
 
     if (productIds.length === 0) {
-      console.log(`[getProductsByCategory] No products allocated to ${categoryPath}`);
+      console.log(`[getProductsByCategory] ❌ No products allocated to ${categoryPath} - returning empty`);
+      console.log(`[getProductsByCategory] This suggests the database may not have allocations or wrong DB is connected`);
       return emptyResult;
     }
 
-    console.log(`[getProductsByCategory] Found ${productIds.length} products allocated to ${categoryPath}`);
+    console.log(`[getProductsByCategory] ✅ Found ${productIds.length} products allocated to ${categoryPath}. First 5 IDs:`, productIds.slice(0, 5));
 
     // Fetch all allocated products from Shopify
     // Build query to fetch by IDs
     const idQueries = productIds.map(id => `id:${id}`).join(' OR ');
+    console.log(`[getProductsByCategory] Fetching from Shopify with query length: ${idQueries.length} chars`);
     
     const data = await shopifyFetch<ProductsResponse>({
       query: GET_PRODUCTS_BY_QUERY,
@@ -1076,6 +1081,7 @@ export async function getProductsByCategory(
     });
 
     let allProducts = data.products.edges.map(({ node }) => node);
+    console.log(`[getProductsByCategory] Shopify returned ${allProducts.length} products`);
 
     // Apply filters
     if (filters) {

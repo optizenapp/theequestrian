@@ -29,6 +29,9 @@ function getSql(): ReturnType<typeof neon> {
     if (!connectionString) {
       throw new Error('Missing database connection string. Set CUSTOM_DATABASE_URL, POSTGRES_URL, or DATABASE_URL');
     }
+    // Log which DB we're connecting to (mask password)
+    const maskedUrl = connectionString.replace(/:([^:@]+)@/, ':***@');
+    console.log(`[DB Client] Connecting to: ${maskedUrl} (VERCEL_ENV=${process.env.VERCEL_ENV}, override=${!!explicitOverride})`);
     _sql = neon(connectionString);
   }
   return _sql;
