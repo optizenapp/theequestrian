@@ -17,9 +17,17 @@ export function resetDbClient(): void {
 
 function getSql(): ReturnType<typeof neon> {
   if (!_sql) {
-    const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+    const explicitOverride = process.env.CUSTOM_DATABASE_URL;
+    const isVercelPreview = process.env.VERCEL_ENV === 'preview';
+    // In Preview deployments we intentionally prefer DATABASE_URL so branch-specific
+    // Vercel overrides cannot be shadowed by global POSTGRES_URL values.
+    const connectionString = explicitOverride || (
+      isVercelPreview
+        ? (process.env.DATABASE_URL || process.env.POSTGRES_URL)
+        : (process.env.POSTGRES_URL || process.env.DATABASE_URL)
+    );
     if (!connectionString) {
-      throw new Error('Missing database connection string. Set POSTGRES_URL or DATABASE_URL');
+      throw new Error('Missing database connection string. Set CUSTOM_DATABASE_URL, POSTGRES_URL, or DATABASE_URL');
     }
     _sql = neon(connectionString);
   }
