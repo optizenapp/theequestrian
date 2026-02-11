@@ -29,7 +29,13 @@ const normalizePath = (value: string) => {
   return withSlash.length > 1 && withSlash.endsWith('/') ? withSlash.slice(0, -1) : withSlash;
 };
 
-async function getFrontendSearchHandles(search: string): Promise<string[]> {
+async function getFrontendSearchHandles(search: string): Promise<Array<{
+  id: string;
+  handle: string;
+  title: string;
+  vendor: string | null;
+  productType: string | null;
+}>> {
   const products: Array<{
     id: string;
     handle: string;

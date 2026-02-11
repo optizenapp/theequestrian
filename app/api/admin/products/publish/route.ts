@@ -60,7 +60,7 @@ const ensureOverridesTable = async () => {
 
 type ProductRow = { id: string; handle: string };
 
-async function getFrontendSearchHandles(search: string): Promise<string[]> {
+async function getFrontendSearchHandles(search: string): Promise<ProductRow[]> {
   const products: Array<{ id: string; handle: string }> = [];
   const seenHandles = new Set<string>();
   let hasNextPage = true;
