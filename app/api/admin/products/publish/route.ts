@@ -69,7 +69,12 @@ async function getFrontendSearchHandles(search: string): Promise<string[]> {
   let pages = 0;
 
   while (hasNextPage && pages < maxPages) {
-    const data = await shopifyFetch<{
+    const data: {
+      products: {
+        edges: Array<{ node: { id: string; handle: string } }>;
+        pageInfo: { hasNextPage: boolean; endCursor: string | null };
+      };
+    } = await shopifyFetch<{
       products: {
         edges: Array<{ node: { id: string; handle: string } }>;
         pageInfo: { hasNextPage: boolean; endCursor: string | null };
