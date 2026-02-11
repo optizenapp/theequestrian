@@ -1240,8 +1240,9 @@ export async function getProductsByCategory(
     };
 
   } catch (error) {
-    console.error('[getProductsByCategory] Error:', error);
-    return emptyResult;
+    console.error('[getProductsByCategory] Error fetching products for', categoryPath, ':', error);
+    // Re-throw the error so we can see it in logs instead of silently returning empty
+    throw error;
   }
 }
 

@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/client';
 
 export interface ProductAllocationInput {
   productId: string;
@@ -68,7 +68,7 @@ export async function getProductAllocationByProductId(productId: string) {
     WHERE product_id = ${productId}
     LIMIT 1
   `;
-  return result.rows[0] as ProductAllocationRow | undefined;
+  return (Array.isArray(result) ? result[0] : undefined) as ProductAllocationRow | undefined;
 }
 
 export async function getProductAllocationByHandle(productHandle: string) {
@@ -79,19 +79,22 @@ export async function getProductAllocationByHandle(productHandle: string) {
     WHERE product_handle = ${productHandle}
     LIMIT 1
   `;
-  return result.rows[0] as ProductAllocationRow | undefined;
+  return (Array.isArray(result) ? result[0] : undefined) as ProductAllocationRow | undefined;
 }
 
 export async function getProductAllocationMapByProductIds(productIds: string[]) {
   await ensureProductAllocationTable();
   if (productIds.length === 0) return new Map<string, string>();
-  const placeholders = productIds.map((_, i) => `$${i + 1}`).join(',');
-  const result = await sql.query(
-    `SELECT product_id, canonical_path FROM product_category_assignments WHERE product_id IN (${placeholders})`,
-    productIds
-  );
+  // Neon doesn't support .query() with placeholders - use template literals
+  // Build a safe query by passing array to IN clause
+  const result = await sql`
+    SELECT product_id, canonical_path 
+    FROM product_category_assignments 
+    WHERE product_id = ANY(${productIds})
+  `;
   const map = new Map<string, string>();
-  for (const row of result.rows) {
+  const rows = (Array.isArray(result) ? result : []) as Array<{ product_id: string; canonical_path: string }>;
+  for (const row of rows) {
     map.set(row.product_id, row.canonical_path);
   }
   return map;
@@ -107,7 +110,25 @@ export async function listProductAllocations(options: {
   const offset = options.offset ?? 0;
   const search = options.search?.trim();
 
-  let query = `
+  if (search) {
+    const searchPattern = `%${search}%`;
+    const result = await sql`
+      SELECT 
+        pca.*,
+        p.title as product_title,
+        p.vendor as product_vendor,
+        p.product_type as product_type
+      FROM product_category_assignments pca
+      LEFT JOIN products p
+        ON p.id = pca.product_id OR p.handle = pca.product_handle
+      WHERE pca.product_handle ILIKE ${searchPattern} OR p.title ILIKE ${searchPattern}
+      ORDER BY pca.updated_at DESC 
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+    return Array.isArray(result) ? result : [];
+  }
+
+  const result = await sql`
     SELECT 
       pca.*,
       p.title as product_title,
@@ -116,21 +137,10 @@ export async function listProductAllocations(options: {
     FROM product_category_assignments pca
     LEFT JOIN products p
       ON p.id = pca.product_id OR p.handle = pca.product_handle
-    WHERE 1=1
+    ORDER BY pca.updated_at DESC 
+    LIMIT ${limit} OFFSET ${offset}
   `;
-  const params: any[] = [];
-  let paramIndex = 1;
-
-  if (search) {
-    query += ` AND (pca.product_handle ILIKE $${paramIndex} OR p.title ILIKE $${paramIndex})`;
-    params.push(`%${search}%`);
-    paramIndex++;
-  }
-
-  query += ` ORDER BY pca.updated_at DESC LIMIT ${limit} OFFSET ${offset}`;
-
-  const { rows } = await sql.query(query, params);
-  return rows;
+  return Array.isArray(result) ? result : [];
 }
 
 /**
@@ -143,7 +153,7 @@ export async function getProductIdsByCategory(categoryPath: string): Promise<str
   
   // Get products where category_path starts with the given path
   // This includes exact matches and child categories
-  const { rows } = await sql`
+  const result = await sql`
     SELECT product_id
     FROM product_category_assignments
     WHERE category_path = ${normalized}
@@ -151,6 +161,7 @@ export async function getProductIdsByCategory(categoryPath: string): Promise<str
     ORDER BY updated_at DESC
   `;
   
+  const rows = (Array.isArray(result) ? result : []) as Array<{ product_id: string }>;
   return rows.map(row => row.product_id);
 }
 
@@ -161,7 +172,7 @@ export async function getProductHandlesByCategory(categoryPath: string): Promise
   await ensureProductAllocationTable();
   const normalized = normalizePath(categoryPath);
   
-  const { rows } = await sql`
+  const result = await sql`
     SELECT product_handle
     FROM product_category_assignments
     WHERE category_path = ${normalized}
@@ -169,6 +180,7 @@ export async function getProductHandlesByCategory(categoryPath: string): Promise
     ORDER BY updated_at DESC
   `;
   
+  const rows = (Array.isArray(result) ? result : []) as Array<{ product_handle: string }>;
   return rows.map(row => row.product_handle);
 }
 
@@ -216,7 +228,7 @@ export async function upsertProductAllocation(input: ProductAllocationInput) {
     RETURNING *
   `;
 
-  return result.rows[0] as ProductAllocationRow;
+  return (Array.isArray(result) ? result[0] : undefined) as ProductAllocationRow;
 }
 
 export async function deleteProductAllocation(productId: string) {
@@ -239,7 +251,7 @@ export async function getCategoryAllocationCounts() {
     FROM product_category_assignments
     GROUP BY category_path, top_level, parent_category, subcategory_handle
   `;
-  return result.rows as Array<{
+  return (Array.isArray(result) ? result : []) as Array<{
     category_path: string;
     top_level: string;
     parent_category: string | null;
