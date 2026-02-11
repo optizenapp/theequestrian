@@ -5,6 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { normalizeCheckoutUrl } from '@/lib/shopify/cart-utils';
 import { trackGaEvent } from '@/lib/analytics/ga4';
+import { FaCcVisa, FaCcMastercard, FaCcPaypal } from 'react-icons/fa';
+import { SiAfterpay, SiShopify } from 'react-icons/si';
 
 export function CartDrawer() {
   const { cart, isOpen, closeCart, updateCartItem, removeCartItem } = useCart();
@@ -151,6 +153,40 @@ export function CartDrawer() {
             >
               Checkout
             </a>
+            <div className="border border-gray-200 rounded-lg p-2 bg-gray-50 flex justify-center items-center gap-1.5 flex-wrap transition-all">
+              <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center" title="Visa">
+                <FaCcVisa className="text-[#1A1F71] text-2xl" />
+              </div>
+              <div className="h-6 w-10 bg-[#5A31F4] border border-gray-200 rounded flex items-center justify-center" title="Shop Pay">
+                <SiShopify className="text-white text-xl" />
+              </div>
+              <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center" title="Mastercard">
+                <FaCcMastercard className="text-[#EB001B] text-2xl" />
+              </div>
+              <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center" title="PayPal">
+                <FaCcPaypal className="text-[#003087] text-2xl" />
+              </div>
+              <div className="h-6 w-10 bg-[#b2fce4] border border-gray-200 rounded flex items-center justify-center" title="Afterpay">
+                <SiAfterpay className="text-black text-lg" />
+              </div>
+              <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center p-0.5 overflow-hidden" title="Zip">
+                <Image src="/zip.png" alt="Zip Pay" width={40} height={24} className="h-full w-auto object-contain" />
+              </div>
+              <div className="text-[10px] flex items-center gap-1 text-gray-500 font-medium border-l pl-2 border-gray-300 h-6">
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>
+                Secure payment
+              </div>
+            </div>
+            <div className="mx-auto w-full max-w-[108px] rounded-md border border-gray-200 overflow-hidden bg-white">
+              <Image
+                src="/google top quality store.jpg"
+                alt="Google Top Quality Store"
+                width={420}
+                height={112}
+                className="w-full h-auto object-contain"
+                priority={false}
+              />
+            </div>
             <Link
               href="/cart"
               onClick={closeCart}

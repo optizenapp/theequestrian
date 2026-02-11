@@ -1,9 +1,10 @@
 import { notFound, permanentRedirect, redirect } from 'next/navigation';
-import { getProductByHandle, getProductCanonicalUrl, hasProductImage } from '@/lib/shopify/products';
+import { getProductByHandle, getProductCanonicalUrl, getRecommendedProducts, hasProductImage } from '@/lib/shopify/products';
 import { ProductImageGallery } from '@/components/ProductImageGallery';
 import { ProductBreadcrumbs } from '@/components/ProductBreadcrumbs';
 import { ProductBuyBox } from '@/components/product/ProductBuyBox';
 import { ProductDescription } from '@/components/product/ProductDescription';
+import { RelatedProducts } from '@/components/product/RelatedProducts';
 import { generateBreadcrumbSchema } from '@/lib/utils/breadcrumb-schema';
 import { getBreadcrumbsForProduct } from '@/lib/mapping/collection-mapping';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
@@ -11,6 +12,7 @@ import { getProductBulletPoints } from '@/lib/products/bullet-points';
 import { getManualRedirect } from '@/lib/redirects/manual';
 import { getProductOverrideByHandle, resolveProductHandleFromSlug } from '@/lib/content/product-overrides';
 import ProductReviewSection from '@/components/reviews/ProductReviewSection';
+import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 
 export const revalidate = 300;
 
@@ -130,6 +132,10 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
     ? overrideBullets
     : getProductBulletPoints(product.id);
 
+  // Fetch related products and review stats (server-side batch)
+  const relatedProducts = await getRecommendedProducts(4, product.productType, product.handle);
+  const relatedReviewStatsMap = await getReviewStatsForProducts(relatedProducts.map((p) => p.handle));
+
   return (
     <>
       <div className="bg-background min-h-screen pb-20">
@@ -223,6 +229,12 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
         productHandle={product.handle}
         productTitle={product.title}
       />
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+        <RelatedProducts
+          products={relatedProducts}
+          reviewStatsMap={relatedReviewStatsMap}
+        />
+      </div>
     </>
   );
 }

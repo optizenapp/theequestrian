@@ -380,6 +380,16 @@ if (isInCart) return null;
                       Secure payment
                    </div>
                 </div>
+                <div className="mx-auto mt-3 w-full max-w-[132px] rounded-md border border-gray-200 overflow-hidden bg-white">
+                  <Image
+                    src="/google top quality store.jpg"
+                    alt="Google Top Quality Store"
+                    width={420}
+                    height={112}
+                    className="w-full h-auto object-contain"
+                    priority={false}
+                  />
+                </div>
 
               </div>
             </div>

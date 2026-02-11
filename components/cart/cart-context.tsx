@@ -34,6 +34,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
           setCart(existingCart);
           // Sync cart ID to cookie for server-side access
           await setCartCookie(cartId);
+          // Re-render server components (e.g. /cart recommendations)
+          // so they can use the synced cart cookie immediately.
+          router.refresh();
         } else {
           // Cart doesn't exist anymore, remove from localStorage
           localStorage.removeItem('cartId');
