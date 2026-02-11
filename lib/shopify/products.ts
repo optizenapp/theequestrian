@@ -49,6 +49,18 @@ let productsByTypesCache: Map<string, {
   timestamp: number;
 }> = new Map();
 
+// Cache for products by category (from database allocations)
+let productsByCategoryCache: Map<string, {
+  products: ProductWithPrimaryCollection[];
+  timestamp: number;
+}> = new Map();
+
+// Function to clear category cache (useful for debugging)
+export function clearCategoryCache() {
+  productsByCategoryCache.clear();
+  console.log('[Cache] Category cache cleared');
+}
+
 const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 
 /**
@@ -1052,36 +1064,152 @@ export async function getProductsByCategory(
   };
 
   try {
-    // Get product IDs allocated to this category (includes child categories)
-    const { getProductIdsByCategory } = await import('@/lib/db/product-allocations');
-    console.log(`[getProductsByCategory] Querying allocations for ${categoryPath}...`);
-    console.log(`[getProductsByCategory] Environment: VERCEL_ENV=${process.env.VERCEL_ENV}, NODE_ENV=${process.env.NODE_ENV}`);
+    // Check cache first
+    const now = Date.now();
+    const cached = productsByCategoryCache.get(categoryPath);
     
-    const productIds = await getProductIdsByCategory(categoryPath);
-
-    if (productIds.length === 0) {
-      console.log(`[getProductsByCategory] ❌ No products allocated to ${categoryPath} - returning empty`);
-      console.log(`[getProductsByCategory] This suggests the database may not have allocations or wrong DB is connected`);
-      return emptyResult;
-    }
-
-    console.log(`[getProductsByCategory] ✅ Found ${productIds.length} products allocated to ${categoryPath}. First 5 IDs:`, productIds.slice(0, 5));
-
-    // Fetch all allocated products from Shopify
-    // Build query to fetch by IDs
-    const idQueries = productIds.map(id => `id:${id}`).join(' OR ');
-    console.log(`[getProductsByCategory] Fetching from Shopify with query length: ${idQueries.length} chars`);
+    let allProducts: ProductWithPrimaryCollection[];
     
-    const data = await shopifyFetch<ProductsResponse>({
-      query: GET_PRODUCTS_BY_QUERY,
-      variables: {
-        query: idQueries,
-        first: 250 // Fetch all at once since we have the exact IDs
+    // Skip cache if it has 0 products (likely from a previous error)
+    if (cached && cached.products.length > 0 && (now - cached.timestamp) < CACHE_TTL) {
+      console.log(`[getProductsByCategory] ✅ Using cached products for ${categoryPath} (${cached.products.length} products)`);
+      allProducts = cached.products;
+    } else {
+      // Get product IDs allocated to this category (includes child categories)
+      const { getProductIdsByCategory } = await import('@/lib/db/product-allocations');
+      console.log(`[getProductsByCategory] Querying allocations for ${categoryPath}...`);
+      
+      const productIds = await getProductIdsByCategory(categoryPath);
+
+      if (productIds.length === 0) {
+        console.log(`[getProductsByCategory] ❌ No products allocated to ${categoryPath} - returning empty`);
+        return emptyResult;
       }
-    });
 
-    let allProducts = data.products.edges.map(({ node }) => node);
-    console.log(`[getProductsByCategory] Shopify returned ${allProducts.length} products`);
+      console.log(`[getProductsByCategory] ✅ Found ${productIds.length} products allocated to ${categoryPath}`);
+
+      // Fetch all allocated products from Shopify in batches
+      // Shopify has a query length limit (~8KB), so we batch requests
+      const BATCH_SIZE = 100; // Fetch 100 products at a time (safe query size)
+      const PARALLEL_BATCHES = 5; // Fetch 5 batches in parallel for speed
+      
+      console.log(`[getProductsByCategory] 📥 Fetching ${productIds.length} products from Shopify in ${Math.ceil(productIds.length / BATCH_SIZE)} batches (${PARALLEL_BATCHES} parallel)...`);
+      
+      // Split into batches
+      const batches: string[][] = [];
+      for (let i = 0; i < productIds.length; i += BATCH_SIZE) {
+        batches.push(productIds.slice(i, i + BATCH_SIZE));
+      }
+      
+      // Fetch batches in parallel groups using GraphQL aliases
+      // The Storefront API doesn't support id: filtering in the products query,
+      // so we use the product(id:) query with aliases to fetch multiple products at once
+      allProducts = [];
+      for (let i = 0; i < batches.length; i += PARALLEL_BATCHES) {
+        const parallelBatches = batches.slice(i, i + PARALLEL_BATCHES);
+        
+        const results = await Promise.all(
+          parallelBatches.map(async (batchIds, batchIndex) => {
+            // Build a query with aliases for each product ID
+            const aliases = batchIds.map((id, idx) => {
+              const alias = `product_${idx}`;
+              return `${alias}: product(id: "${id}") {
+                id
+                handle
+                title
+                availableForSale
+                createdAt
+                productType
+                vendor
+                tags
+                priceRange {
+                  minVariantPrice {
+                    amount
+                    currencyCode
+                  }
+                  maxVariantPrice {
+                    amount
+                    currencyCode
+                  }
+                }
+                compareAtPriceRange {
+                  minVariantPrice {
+                    amount
+                    currencyCode
+                  }
+                  maxVariantPrice {
+                    amount
+                    currencyCode
+                  }
+                }
+                images(first: 10) {
+                  edges {
+                    node {
+                      url
+                      altText
+                      width
+                      height
+                    }
+                  }
+                }
+                variants(first: 100) {
+                  edges {
+                    node {
+                      id
+                      title
+                      availableForSale
+                      selectedOptions {
+                        name
+                        value
+                      }
+                      price {
+                        amount
+                        currencyCode
+                      }
+                      compareAtPrice {
+                        amount
+                        currencyCode
+                      }
+                    }
+                  }
+                }
+              }`;
+            }).join('\n');
+            
+            const query = `query GetProductsByIds { ${aliases} }`;
+            
+            const data = await shopifyFetch<Record<string, ShopifyProduct | null>>({
+              query,
+              variables: {},
+              cache: 'force-cache',
+            });
+            
+            // Extract products from aliased response
+            const products: ProductWithPrimaryCollection[] = [];
+            Object.values(data).forEach(product => {
+              if (product && product.id) {
+                products.push(product as ProductWithPrimaryCollection);
+              }
+            });
+            
+            return products;
+          })
+        );
+        
+        // Flatten results
+        results.forEach(batch => allProducts.push(...batch));
+        
+        console.log(`[getProductsByCategory] Progress: ${Math.min((i + PARALLEL_BATCHES) * BATCH_SIZE, productIds.length)}/${productIds.length} products fetched`);
+      }
+
+      console.log(`[getProductsByCategory] ✅ Fetched ${allProducts.length} products from Shopify`);
+      
+      // Cache the results
+      productsByCategoryCache.set(categoryPath, {
+        products: allProducts,
+        timestamp: now
+      });
+    }
 
     // Apply filters
     if (filters) {
