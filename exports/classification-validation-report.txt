@@ -1,0 +1,46 @@
+============================================================
+CLASSIFICATION VALIDATION REPORT
+============================================================
+
+Generated: 2026-02-10T23:59:31.228Z
+
+MERGE SUMMARY:
+  - Backup CSV: 4750 products
+  - Final CSV: 5383 products
+  - Duplicates: 0
+  - Total Unique: 10133
+
+VALIDATION RESULTS:
+  - Missing cat_slug: 2
+  - Low confidence (<70): 50
+  - Needs review: 50
+  - Redirects required: 3917
+
+PRODUCTS MISSING CAT_SLUG:
+  - gid://shopify/Product/8274450809124 | sticky | Sticky
+  - gid://shopify/Product/10164893384996 | shipping | Shipping
+
+LOW CONFIDENCE PRODUCTS (sample):
+  - cavalleria-toscana-boys-breeches-knee-grip-horse-and-helmet | Confidence: 65 | breeches
+  - cavalleria-toscana-team-red-stripe-breeches-girls | Confidence: 65 | Clothing - Kid's Clothing
+  - cavallo-hattie-show-fly-rug | Confidence: 65 | Horse Rug
+  - aubenhausen-v22-dressage-boots | Confidence: 65 | Horse Boots
+  - sticky | Confidence: 0 | 
+  - kate-breech-dark-grey-sale | Confidence: 0 | breeches
+  - mia-phone-pocket-breech-grey | Confidence: 0 | breeches
+  - cavalleria-toscana-ct-dash-breeches-boys | Confidence: 65 | breeches
+  - trade-stubby-holder | Confidence: 60 | Bag
+  - rw-large-long-die-cut-sticker | Confidence: 60 | Accessories - Luggage
+  - licorice-treat-250g | Confidence: 0 | Treats
+  - b-vertigo-rouge-reflection-fly-mask-pink | Confidence: 0 | Fly mask
+  - horze-maddox-body-brush | Confidence: 0 | Grooming Bags and Brushes
+  - ariat-unisex-fishing-shirt-coastal | Confidence: 0 | Mens
+  - thorowgood-t8-gp-compact | Confidence: 65 | saddles
+  - rw-bull-sticker-white | Confidence: 60 | Other Care Products
+  - big-rig-sticker-navy | Confidence: 50 | Accessories - Luggage
+  - cinch-decal-long-white | Confidence: 60 | Accessories - Luggage
+  - stay-dry-mesh-air-fly-rug-with-surcingles | Confidence: 65 | Rug
+  - showertex-fly-rug-with-surcingles | Confidence: 65 | Horse Rug
+  ... and 30 more
+
+============================================================
