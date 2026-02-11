@@ -477,15 +477,48 @@ export function getCollectionTitle(
 }
 
 /**
- * Get all breadcrumb paths for a product based on its product type
- * Returns all collection paths where this product type appears
+ * Get all breadcrumb paths for a product
+ * Priority order:
+ * 1. product_category_assignments table (AI-allocated categories)
+ * 2. Product type mapping (legacy fallback)
  * 
  * @param productType - The Shopify product type
+ * @param productId - Optional product ID to check allocation table
  * @returns Array of breadcrumb paths (primary first, then additional paths)
  */
 export async function getBreadcrumbsForProduct(
-  productType: string
+  productType: string,
+  productId?: string
 ): Promise<Array<Array<{ label: string; href: string }>>> {
+  // Priority 1: Check product_category_assignments table if productId provided
+  if (productId) {
+    try {
+      const { getProductAllocationByProductId } = await import('@/lib/db/product-allocations');
+      const allocation = await getProductAllocationByProductId(productId);
+      
+      if (allocation && allocation.category_path) {
+        // Build breadcrumb from allocated category path
+        const pathParts = allocation.category_path.replace(/^\//, '').split('/').filter(Boolean);
+        const breadcrumbs: Array<{ label: string; href: string }> = [];
+
+        // Build breadcrumb for each level
+        for (let i = 0; i < pathParts.length; i++) {
+          const partialPath = pathParts.slice(0, i + 1);
+          const href = `/${partialPath.join('/')}`;
+          const label = getCollectionTitle(...partialPath as [string, string?, string?]);
+          
+          breadcrumbs.push({ label, href });
+        }
+
+        return [breadcrumbs]; // Return as array with single primary path
+      }
+    } catch (error) {
+      // If allocation table doesn't exist or query fails, fall back to legacy method
+      console.warn('[getBreadcrumbsForProduct] Failed to check allocation table:', error);
+    }
+  }
+
+  // Priority 2: Fall back to product type mapping (legacy)
   if (!productType || !productType.trim()) {
     return [];
   }

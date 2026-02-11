@@ -201,7 +201,10 @@ export async function getAllProducts(): Promise<ProductWithPrimaryCollection[]> 
 
 /**
  * Check if a product belongs to a specific category path
- * Uses primary_collection metafield or derives from productType mapping
+ * Priority order:
+ * 1. product_category_assignments table (AI-allocated categories)
+ * 2. primary_collection metafield
+ * 3. productType mapping (legacy fallback)
  */
 async function productBelongsToCategory(
   product: ProductWithPrimaryCollection,
@@ -209,7 +212,36 @@ async function productBelongsToCategory(
   subcategory?: string,
   subsubcategory?: string
 ): Promise<boolean> {
-  // Priority 1: Check primary_collection metafield
+  // Priority 1: Check product_category_assignments table
+  try {
+    const { getProductAllocationByProductId } = await import('@/lib/db/product-allocations');
+    const allocation = await getProductAllocationByProductId(product.id);
+    
+    if (allocation) {
+      const pathParts = allocation.category_path.replace(/^\//, '').split('/').filter(Boolean);
+      
+      if (subsubcategory) {
+        // Check if product is in this exact 3-level category OR any child
+        return pathParts.length >= 3 &&
+               pathParts[0] === category &&
+               pathParts[1] === subcategory &&
+               pathParts[2] === subsubcategory;
+      } else if (subcategory) {
+        // Check if product is in this 2-level category OR any child
+        return pathParts.length >= 2 &&
+               pathParts[0] === category &&
+               pathParts[1] === subcategory;
+      } else {
+        // Check if product is in this top-level category OR any child
+        return pathParts.length >= 1 && pathParts[0] === category;
+      }
+    }
+  } catch (error) {
+    // If allocation table doesn't exist or query fails, fall back to legacy methods
+    console.warn('[productBelongsToCategory] Failed to check allocation table:', error);
+  }
+
+  // Priority 2: Check primary_collection metafield
   if (product.metafield?.value) {
     const metafieldPath = product.metafield.value.split('/');
     if (subsubcategory) {
@@ -223,7 +255,7 @@ async function productBelongsToCategory(
     }
   }
 
-  // Priority 2: Derive from productType mapping
+  // Priority 3: Derive from productType mapping (legacy)
   if (product.productType) {
     const categoryPath = await getPrimaryCategoryPath(product.productType);
     if (categoryPath) {

@@ -138,10 +138,11 @@ async function renderProductPage(product: ShopifyProduct, canonicalPath?: string
     .filter((cp): cp is { amount: string; currencyCode: string } => cp !== null && cp !== undefined)
     .sort((a, b) => parseFloat(a.amount) - parseFloat(b.amount))[0];
   
-  // Build breadcrumb paths from product type using mapping
-  const breadcrumbPaths = product.productType 
-    ? await getBreadcrumbsForProduct(product.productType)
-    : [];
+  // Build breadcrumb paths from allocation table (priority) or product type (fallback)
+  const breadcrumbPaths = await getBreadcrumbsForProduct(
+    product.productType || '',
+    product.id
+  );
   
   // Primary breadcrumb path (most specific/longest path first)
   const primaryPath = breadcrumbPaths[0] || [];

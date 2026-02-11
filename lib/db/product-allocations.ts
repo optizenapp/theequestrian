@@ -133,6 +133,45 @@ export async function listProductAllocations(options: {
   return rows;
 }
 
+/**
+ * Get product IDs allocated to a specific category path
+ * Includes products from the exact category and all child categories
+ */
+export async function getProductIdsByCategory(categoryPath: string): Promise<string[]> {
+  await ensureProductAllocationTable();
+  const normalized = normalizePath(categoryPath);
+  
+  // Get products where category_path starts with the given path
+  // This includes exact matches and child categories
+  const { rows } = await sql`
+    SELECT product_id
+    FROM product_category_assignments
+    WHERE category_path = ${normalized}
+       OR category_path LIKE ${normalized + '/%'}
+    ORDER BY updated_at DESC
+  `;
+  
+  return rows.map(row => row.product_id);
+}
+
+/**
+ * Get product handles allocated to a specific category path
+ */
+export async function getProductHandlesByCategory(categoryPath: string): Promise<string[]> {
+  await ensureProductAllocationTable();
+  const normalized = normalizePath(categoryPath);
+  
+  const { rows } = await sql`
+    SELECT product_handle
+    FROM product_category_assignments
+    WHERE category_path = ${normalized}
+       OR category_path LIKE ${normalized + '/%'}
+    ORDER BY updated_at DESC
+  `;
+  
+  return rows.map(row => row.product_handle);
+}
+
 export async function upsertProductAllocation(input: ProductAllocationInput) {
   await ensureProductAllocationTable();
   const { normalized, parts, topLevel, parentCategory, subcategoryHandle } = splitCategoryPath(input.categoryPath);

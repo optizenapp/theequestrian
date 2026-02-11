@@ -90,9 +90,10 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
     .sort((a, b) => parseFloat(a.amount) - parseFloat(b.amount))[0];
   
   // Build breadcrumb paths from product type using mapping
-  const breadcrumbPaths = product.productType 
-    ? await getBreadcrumbsForProduct(product.productType)
-    : [];
+  const breadcrumbPaths = await getBreadcrumbsForProduct(
+    product.productType || '',
+    product.id
+  );
   
   // Primary breadcrumb path (most specific/longest path first)
   const primaryPath = breadcrumbPaths[0] || [];
