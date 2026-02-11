@@ -201,10 +201,14 @@ export async function getAllProducts(): Promise<ProductWithPrimaryCollection[]> 
 
 /**
  * Check if a product belongs to a specific category path
+ * LEGACY FUNCTION - Only used for old getProductsByTypes() flow
+ * New code should use getProductsByCategory() instead
+ * 
  * Priority order:
- * 1. product_category_assignments table (AI-allocated categories)
- * 2. primary_collection metafield
- * 3. productType mapping (legacy fallback)
+ * 1. primary_collection metafield
+ * 2. productType mapping (legacy fallback)
+ * 
+ * NOTE: Does NOT check product_category_assignments to avoid connection exhaustion
  */
 async function productBelongsToCategory(
   product: ProductWithPrimaryCollection,
@@ -212,36 +216,7 @@ async function productBelongsToCategory(
   subcategory?: string,
   subsubcategory?: string
 ): Promise<boolean> {
-  // Priority 1: Check product_category_assignments table
-  try {
-    const { getProductAllocationByProductId } = await import('@/lib/db/product-allocations');
-    const allocation = await getProductAllocationByProductId(product.id);
-    
-    if (allocation) {
-      const pathParts = allocation.category_path.replace(/^\//, '').split('/').filter(Boolean);
-      
-      if (subsubcategory) {
-        // Check if product is in this exact 3-level category OR any child
-        return pathParts.length >= 3 &&
-               pathParts[0] === category &&
-               pathParts[1] === subcategory &&
-               pathParts[2] === subsubcategory;
-      } else if (subcategory) {
-        // Check if product is in this 2-level category OR any child
-        return pathParts.length >= 2 &&
-               pathParts[0] === category &&
-               pathParts[1] === subcategory;
-      } else {
-        // Check if product is in this top-level category OR any child
-        return pathParts.length >= 1 && pathParts[0] === category;
-      }
-    }
-  } catch (error) {
-    // If allocation table doesn't exist or query fails, fall back to legacy methods
-    console.warn('[productBelongsToCategory] Failed to check allocation table:', error);
-  }
-
-  // Priority 2: Check primary_collection metafield
+  // Priority 1: Check primary_collection metafield
   if (product.metafield?.value) {
     const metafieldPath = product.metafield.value.split('/');
     if (subsubcategory) {
@@ -255,7 +230,7 @@ async function productBelongsToCategory(
     }
   }
 
-  // Priority 3: Derive from productType mapping (legacy)
+  // Priority 2: Derive from productType mapping (legacy)
   if (product.productType) {
     const categoryPath = await getPrimaryCategoryPath(product.productType);
     if (categoryPath) {
@@ -1045,6 +1020,231 @@ export function verifyProductCollectionPath(
  * Get total count of products matching the given product types
  * Uses Admin API for accurate counts
  */
+/**
+ * Get products allocated to a specific category from product_category_assignments table
+ * This is the NEW method for fetching products by category (replaces product type mapping)
+ */
+export async function getProductsByCategory(
+  categoryPath: string,
+  limit: number = 36,
+  after: string | null = null,
+  filters?: {
+    brands?: string[];
+    sizes?: string[];
+    colors?: string[];
+  }
+): Promise<{
+  products: ProductWithPrimaryCollection[];
+  pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  totalCount: number;
+  facets: {
+    brands: { value: string; count: number; displayName: string }[];
+    sizes: { value: string; count: number }[];
+    colors: { value: string; count: number; originalValue: string }[];
+    price: { min: number; max: number };
+  };
+}> {
+  const emptyResult = {
+    products: [],
+    pageInfo: { hasNextPage: false, endCursor: null },
+    totalCount: 0,
+    facets: { brands: [], sizes: [], colors: [], price: { min: 0, max: 0 } }
+  };
+
+  try {
+    // Get product IDs allocated to this category (includes child categories)
+    const { getProductIdsByCategory } = await import('@/lib/db/product-allocations');
+    const productIds = await getProductIdsByCategory(categoryPath);
+
+    if (productIds.length === 0) {
+      console.log(`[getProductsByCategory] No products allocated to ${categoryPath}`);
+      return emptyResult;
+    }
+
+    console.log(`[getProductsByCategory] Found ${productIds.length} products allocated to ${categoryPath}`);
+
+    // Fetch all allocated products from Shopify
+    // Build query to fetch by IDs
+    const idQueries = productIds.map(id => `id:${id}`).join(' OR ');
+    
+    const data = await shopifyFetch<ProductsResponse>({
+      query: GET_PRODUCTS_BY_QUERY,
+      variables: {
+        query: idQueries,
+        first: 250 // Fetch all at once since we have the exact IDs
+      }
+    });
+
+    let allProducts = data.products.edges.map(({ node }) => node);
+
+    // Apply filters
+    if (filters) {
+      if (filters.brands && filters.brands.length > 0) {
+        allProducts = allProducts.filter(p => 
+          filters.brands!.some(brand => 
+            p.vendor.toLowerCase() === brand.toLowerCase()
+          )
+        );
+      }
+
+      if (filters.sizes && filters.sizes.length > 0) {
+        allProducts = allProducts.filter(p =>
+          p.variants.edges.some(({ node: variant }) =>
+            variant.selectedOptions.some(opt =>
+              opt.name.toLowerCase() === 'size' &&
+              filters.sizes!.includes(opt.value)
+            )
+          )
+        );
+      }
+
+      if (filters.colors && filters.colors.length > 0) {
+        allProducts = allProducts.filter(p =>
+          p.variants.edges.some(({ node: variant }) =>
+            variant.selectedOptions.some(opt =>
+              (opt.name.toLowerCase() === 'color' || opt.name.toLowerCase() === 'colour') &&
+              filters.colors!.some(filterColor =>
+                normalizeColor(opt.value) === normalizeColor(filterColor)
+              )
+            )
+          )
+        );
+      }
+    }
+
+    // Calculate facets from filtered products
+    const brandCounts = new Map<string, { count: number; displayName: string }>();
+    const sizeCounts = new Map<string, number>();
+    const colorCounts = new Map<string, { count: number; originalValue: string }>();
+    const countedBrands = new Set<string>();
+    let minPrice = Infinity;
+    let maxPrice = 0;
+
+    allProducts.forEach(p => {
+      // Brands (from tags)
+      p.tags.forEach(tag => {
+        const normalizedTag = tag.toLowerCase();
+        if (normalizedTag.startsWith('brand:') && !countedBrands.has(normalizedTag)) {
+          const brandName = tag.substring(6).trim();
+          const count = brandCounts.get(normalizedTag) || 0;
+          if (count === 0) {
+            const displayName = brandName.split(' ').map(word => 
+              word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+            ).join(' ');
+            brandCounts.set(normalizedTag, {
+              count: 1,
+              displayName: displayName
+            });
+          }
+          countedBrands.add(normalizedTag);
+        }
+      });
+      
+      // Prices
+      const pMin = parseFloat(p.priceRange.minVariantPrice.amount);
+      const pMax = parseFloat(p.priceRange.maxVariantPrice.amount);
+      if (pMin < minPrice) minPrice = pMin;
+      if (pMax > maxPrice) maxPrice = pMax;
+      
+      // Variants (Size & Color)
+      p.variants.edges.forEach(({ node: variant }) => {
+        const sizeOption = variant.selectedOptions.find(
+          (opt) => opt.name.toLowerCase() === 'size'
+        );
+        if (sizeOption && !isColorValue(sizeOption.value)) {
+          const count = sizeCounts.get(sizeOption.value) || 0;
+          sizeCounts.set(sizeOption.value, count + 1);
+        }
+        
+        const colorOption = variant.selectedOptions.find(
+          (opt) => opt.name.toLowerCase() === 'color'
+        );
+        if (colorOption) {
+          const normalizedValue = normalizeColor(colorOption.value);
+          const existing = colorCounts.get(normalizedValue);
+          if (existing) {
+            existing.count++;
+          } else {
+            colorCounts.set(normalizedValue, {
+              count: 1,
+              originalValue: colorOption.value
+            });
+          }
+        }
+      });
+    });
+
+    const brandFacets = Array.from(brandCounts.entries())
+      .map(([value, { count, displayName }]) => ({ value, count, displayName }))
+      .sort((a, b) => a.displayName.localeCompare(b.displayName));
+      
+    const sizeFacets = Array.from(sizeCounts.entries())
+      .map(([value, count]) => ({ value, count }))
+      .sort((a, b) => {
+        const aNum = parseFloat(a.value);
+        const bNum = parseFloat(b.value);
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+          return aNum - bNum;
+        }
+        return a.value.localeCompare(b.value);
+      });
+      
+    const colorFacets = Array.from(colorCounts.entries())
+      .map(([value, { count, originalValue }]) => ({ value, count, originalValue }))
+      .sort((a, b) => a.originalValue.localeCompare(b.originalValue));
+      
+    const priceFacet = {
+      min: minPrice === Infinity ? 0 : Math.floor(minPrice / 10) * 10,
+      max: maxPrice === 0 ? 500 : Math.ceil(maxPrice / 10) * 10
+    };
+
+    const facets = {
+      brands: brandFacets,
+      sizes: sizeFacets,
+      colors: colorFacets,
+      price: priceFacet
+    };
+
+    // Sort: in-stock first, out-of-stock last
+    allProducts.sort((a, b) => {
+      const aInStock = a.variants.edges.some(({ node }) => node.availableForSale);
+      const bInStock = b.variants.edges.some(({ node }) => node.availableForSale);
+      if (aInStock && !bInStock) return -1;
+      if (!aInStock && bInStock) return 1;
+      return 0;
+    });
+
+    // Implement pagination
+    const totalCount = allProducts.length;
+    let startIndex = 0;
+
+    if (after) {
+      // Find the index of the product after the cursor
+      const cursorIndex = allProducts.findIndex(p => p.id === after);
+      if (cursorIndex !== -1) {
+        startIndex = cursorIndex + 1;
+      }
+    }
+
+    const paginatedProducts = allProducts.slice(startIndex, startIndex + limit);
+    const hasNextPage = startIndex + limit < totalCount;
+    const endCursor = paginatedProducts.length > 0 
+      ? paginatedProducts[paginatedProducts.length - 1].id 
+      : null;
+
+    return {
+      products: paginatedProducts,
+      pageInfo: { hasNextPage, endCursor },
+      totalCount,
+      facets
+    };
+
+  } catch (error) {
+    console.error('[getProductsByCategory] Error:', error);
+    return emptyResult;
+  }
+}
+
 export async function getProductCountByTypes(productTypes: string[]): Promise<number> {
   if (productTypes.length === 0) {
     return 0;

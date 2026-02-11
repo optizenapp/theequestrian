@@ -1,7 +1,7 @@
 import { notFound, permanentRedirect, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
-import { getProductsByTypes } from '@/lib/shopify/products';
+import { getProductsByCategory } from '@/lib/shopify/products';
 import { getProductByHandle, getProductCanonicalUrl, getProductCanonicalUrls } from '@/lib/shopify/products';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { getCategoryContent } from '@/lib/content/collections';
@@ -82,11 +82,21 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     redirect(manualRedirect.to);
   }
 
-  // Check if this category exists in our mapping
-  const allowedProductTypes = await getProductTypesForCollection(category);
+  // Fetch products allocated to this category from product_category_assignments table
+  const categoryPath = `/${category}`;
+  const { products: filteredProducts, pageInfo, facets, totalCount } = await getProductsByCategory(
+    categoryPath,
+    36, 
+    afterCursor,
+    { 
+      brands: filterBrands,
+      sizes: filterSizes,
+      colors: filterColors
+    }
+  );
   
-  if (allowedProductTypes.length === 0) {
-    // Try as a product (fallback)
+  // If no products found, try as a product (fallback)
+  if (totalCount === 0) {
     const product = await getProductByHandle(category);
     
     if (!product) {
@@ -181,21 +191,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     );
   }
 
-  // Fetch products with pagination (36 per page)
-  // Filter by category to ensure only products belonging to this category are shown
-  const { products: filteredProducts, pageInfo, facets, totalCount } = await getProductsByTypes(
-    allowedProductTypes, 
-    36, 
-    afterCursor,
-    { 
-      brands: filterBrands,
-      sizes: filterSizes,
-      colors: filterColors
-    },
-    {
-      category
-    }
-  );
+  // Products already fetched above via getProductsByCategory
 
   // Total count is now returned from getProductsByTypes (no separate API call needed)
   const totalProductCount = totalCount;

@@ -1,7 +1,7 @@
 import { notFound, permanentRedirect, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
-import { getProductsByTypes, getProductByHandle, getProductCanonicalUrl, getRecommendedProducts } from '@/lib/shopify/products';
+import { getProductsByCategory, getProductByHandle, getProductCanonicalUrl, getRecommendedProducts } from '@/lib/shopify/products';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
 import { 
@@ -319,27 +319,20 @@ async function renderSubSubcategoryPage(
   filterSizes?: string[],
   filterColors?: string[]
 ) {
-  // Get allowed product types for this collection
-  const allowedProductTypes = await getProductTypesForCollection(category, subcategory, subsubcategory);
-  
-  // Fetch products with pagination (36 per page)
-  const { products: filteredProducts, pageInfo, totalCount } = await getProductsByTypes(
-    allowedProductTypes, 
+  // Fetch products allocated to this sub-subcategory from product_category_assignments table
+  const categoryPath = `/${category}/${subcategory}/${subsubcategory}`;
+  const { products: filteredProducts, pageInfo, totalCount } = await getProductsByCategory(
+    categoryPath,
     36, 
     afterCursor,
     { 
       brands: filterBrands,
       sizes: filterSizes,
       colors: filterColors
-    },
-    {
-      category,
-      subcategory,
-      subsubcategory
     }
   );
 
-  // Total count is now returned from getProductsByTypes (no separate API call needed)
+  // Total count is now returned from getProductsByCategory (no separate API call needed)
   const totalProductCount = totalCount;
 
   // EMPTY CATEGORY REDIRECT: If this sub-subcategory has no products and no filters are applied,

@@ -1,7 +1,7 @@
 import { notFound, permanentRedirect, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
-import { getProductsByTypes, getProductCanonicalUrls } from '@/lib/shopify/products';
+import { getProductsByCategory, getProductCanonicalUrls } from '@/lib/shopify/products';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
 import { 
@@ -79,29 +79,27 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
     redirect(manualRedirect.to);
   }
 
-  // Check if this path exists in our mapping
-  const allowedProductTypes = await getProductTypesForCollection(category, subcategory);
-  
-  if (allowedProductTypes.length === 0) {
-    notFound();
-  }
-
-  // Fetch products with pagination (36 per page)
-  // Filter by category and subcategory to ensure only products belonging to this path are shown
-  const { products: filteredProducts, pageInfo, facets, totalCount } = await getProductsByTypes(
-    allowedProductTypes, 
+  // Fetch products allocated to this category from product_category_assignments table
+  const categoryPath = `/${category}/${subcategory}`;
+  const { products: filteredProducts, pageInfo, facets, totalCount } = await getProductsByCategory(
+    categoryPath,
     36, 
     afterCursor,
     { 
       brands: filterBrands,
       sizes: filterSizes,
       colors: filterColors
-    },
-    {
-      category,
-      subcategory
     }
   );
+  
+  // If no products found, check if category exists in collection_content
+  if (totalCount === 0) {
+    // Try to fetch category content to see if it's a valid category
+    const content = await getCategoryContent(category, subcategory);
+    if (!content) {
+      notFound();
+    }
+  }
 
   // Total count is now returned from getProductsByTypes (no separate API call needed)
   const totalProductCount = totalCount;
