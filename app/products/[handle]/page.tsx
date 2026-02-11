@@ -49,6 +49,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
   const override = await getProductOverrideByHandle(resolvedHandle);
+  if (override?.is_published_headless === false) {
+    notFound();
+  }
   const displayTitle = override?.use_headless_title ? (override?.title_override || product.title) : product.title;
   const descriptionHtml = override?.use_headless_description
     ? (override?.description_html || product.descriptionHtml)
@@ -251,6 +254,11 @@ export async function generateMetadata({ params }: ProductPageProps) {
   }
 
   const override = await getProductOverrideByHandle(resolvedHandle);
+  if (override?.is_published_headless === false) {
+    return {
+      title: 'Product Not Found',
+    };
+  }
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
   const canonicalUrl = `${siteUrl}${await getProductCanonicalUrl(product)}`;
   

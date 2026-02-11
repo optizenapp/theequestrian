@@ -161,6 +161,12 @@ export async function getProductByHandle(
   }
 }
 
+async function filterPublishedForHeadless<T extends { handle: string }>(products: T[]): Promise<T[]> {
+  if (products.length === 0) return products;
+  const overrideMap = await getProductOverridesByHandles(products.map((product) => product.handle));
+  return products.filter((product) => overrideMap.get(product.handle)?.is_published_headless !== false);
+}
+
 /**
  * Get all products (with pagination support and caching)
  */
@@ -374,6 +380,12 @@ export async function getProductsByTypes(
         products: allProductsUnfiltered,
         timestamp: now
       });
+    }
+
+    const beforePublishFilter = allProductsUnfiltered.length;
+    allProductsUnfiltered = await filterPublishedForHeadless(allProductsUnfiltered);
+    if (allProductsUnfiltered.length !== beforePublishFilter) {
+      console.log(`[getProductsByTypes] 👁️ Visibility filter applied: ${beforePublishFilter} → ${allProductsUnfiltered.length} products`);
     }
 
     // --- AGGREGATE FACETS FROM ALL PRODUCTS ---
@@ -1209,6 +1221,12 @@ export async function getProductsByCategory(
         products: allProducts,
         timestamp: now
       });
+    }
+
+    const beforePublishFilter = allProducts.length;
+    allProducts = await filterPublishedForHeadless(allProducts);
+    if (allProducts.length !== beforePublishFilter) {
+      console.log(`[getProductsByCategory] 👁️ Visibility filter applied: ${beforePublishFilter} → ${allProducts.length} products`);
     }
 
     // Apply filters

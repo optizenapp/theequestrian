@@ -10,6 +10,7 @@ interface ProductResult {
   title: string;
   vendor: string | null;
   product_type: string | null;
+  is_published_headless?: boolean;
 }
 
 interface ProductContentResponse {
@@ -46,6 +47,9 @@ export default function AdminProductContentPage() {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [totalCount, setTotalCount] = useState(0);
   const [offset, setOffset] = useState(0);
+  const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(new Set());
+  const [selectAllMatches, setSelectAllMatches] = useState(false);
+  const [bulkUpdating, setBulkUpdating] = useState(false);
   const pageSize = 50;
 
   const [titleOverride, setTitleOverride] = useState('');
@@ -130,10 +134,60 @@ export default function AdminProductContentPage() {
         setTotalCount(total);
         setOffset(nextOffset);
       }
+      if (mode === 'reset') {
+        setSelectedProductIds(new Set());
+        setSelectAllMatches(false);
+      }
     } catch (error) {
       console.error('Failed to search products:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const selectedCount = selectAllMatches ? totalCount : selectedProductIds.size;
+
+  const toggleSelected = (productId: string) => {
+    setSelectedProductIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(productId)) {
+        next.delete(productId);
+      } else {
+        next.add(productId);
+      }
+      return next;
+    });
+  };
+
+  const handleBulkPublishUpdate = async (published: boolean) => {
+    if (selectedCount === 0) return;
+    setBulkUpdating(true);
+    try {
+      const response = await fetch('/api/admin/products/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          published,
+          search: selectAllMatches ? search : undefined,
+          categoryPath: categoryFilter || undefined,
+          productIds: selectAllMatches ? undefined : Array.from(selectedProductIds),
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        alert(data?.error || 'Failed to update publish visibility');
+        return;
+      }
+
+      alert(`${published ? 'Published' : 'Unpublished'} ${data.updated} products.`);
+      setSelectedProductIds(new Set());
+      setSelectAllMatches(false);
+      await searchProducts('reset');
+    } catch (error) {
+      console.error('Failed to bulk update publish visibility:', error);
+    } finally {
+      setBulkUpdating(false);
     }
   };
 
@@ -250,24 +304,93 @@ export default function AdminProductContentPage() {
             </div>
           </div>
         )}
+        {totalCount > 0 && (
+          <div className="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3 text-xs text-gray-700">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span className="font-semibold text-gray-900">
+                  {selectedCount} selected
+                </span>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={selectAllMatches}
+                    onChange={(event) => {
+                      setSelectAllMatches(event.target.checked);
+                      if (event.target.checked) {
+                        setSelectedProductIds(new Set());
+                      }
+                    }}
+                  />
+                  Select all {totalCount} matches
+                </label>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={selectedCount === 0 || bulkUpdating}
+                  onClick={() => handleBulkPublishUpdate(true)}
+                  className="rounded-full border border-green-200 bg-green-50 px-3 py-1 font-semibold text-green-700 disabled:opacity-60"
+                >
+                  Publish selected
+                </button>
+                <button
+                  type="button"
+                  disabled={selectedCount === 0 || bulkUpdating}
+                  onClick={() => handleBulkPublishUpdate(false)}
+                  className="rounded-full border border-red-200 bg-red-50 px-3 py-1 font-semibold text-red-700 disabled:opacity-60"
+                >
+                  Unpublish selected
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         {isLoading && (
           <div className="mt-3 text-sm text-gray-500">Loading...</div>
         )}
         {results.length > 0 && (
           <div className="mt-4 max-h-64 overflow-y-auto rounded-lg border border-gray-200">
             {results.map((product) => (
-              <button
+              <div
                 key={product.id}
-                type="button"
-                onClick={() => loadProduct(product.handle)}
                 className="flex w-full items-center justify-between border-b border-gray-100 px-4 py-3 text-left text-sm hover:bg-gray-50"
               >
-                <div>
-                  <div className="font-medium text-gray-900">{product.title}</div>
-                  <div className="text-xs text-gray-500">{product.handle}</div>
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={selectAllMatches || selectedProductIds.has(product.id)}
+                    disabled={selectAllMatches}
+                    onChange={() => toggleSelected(product.id)}
+                    className="mt-1"
+                  />
+                  <div>
+                    <div className="font-medium text-gray-900">{product.title}</div>
+                    <div className="text-xs text-gray-500">{product.handle}</div>
+                    <div className="mt-1">
+                      {product.is_published_headless !== false ? (
+                        <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-700">
+                          Published
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-semibold text-red-700">
+                          Unpublished
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div className="text-xs text-gray-500">{product.vendor || '—'}</div>
-              </button>
+                <div className="flex items-center gap-3">
+                  <div className="text-xs text-gray-500">{product.vendor || '—'}</div>
+                  <button
+                    type="button"
+                    onClick={() => loadProduct(product.handle)}
+                    className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700"
+                  >
+                    Edit
+                  </button>
+                </div>
+              </div>
             ))}
           </div>
         )}

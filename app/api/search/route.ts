@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
 import { shopifyFetch } from '@/lib/shopify/client';
 import { getProductTypesForCollection } from '@/lib/mapping/collection-mapping';
+import { getProductOverridesByHandles } from '@/lib/content/product-overrides';
 
 const SEARCH_PRODUCTS_QUERY = `
   query SearchProducts($query: String!, $first: Int!) {
@@ -123,7 +124,14 @@ export async function GET(request: Request) {
       return a.node.availableForSale ? -1 : 1;
     });
 
-    const productResults = sortedProducts.map(({ node }) => ({
+    // Hide products explicitly unpublished for headless storefront
+    const productHandles = sortedProducts.map(({ node }) => node.handle);
+    const overrideMap = await getProductOverridesByHandles(productHandles);
+    const visibleProducts = sortedProducts.filter(
+      ({ node }) => overrideMap.get(node.handle)?.is_published_headless !== false
+    );
+
+    const productResults = visibleProducts.map(({ node }) => ({
       type: 'product' as const,
       id: node.id,
       handle: node.handle,

@@ -57,6 +57,9 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
     notFound();
   }
   const override = await getProductOverrideByHandle(handle);
+  if (override?.is_published_headless === false) {
+    notFound();
+  }
   const displayTitle = override?.use_headless_title ? (override?.title_override || product.title) : product.title;
   const descriptionHtml = override?.use_headless_description
     ? (override?.description_html || product.descriptionHtml)
@@ -241,6 +244,11 @@ export async function generateMetadata({ params }: ProductCatchAllPageProps) {
   const canonicalUrl = `${siteUrl}${await getProductCanonicalUrl(product)}`;
   
   const override = await getProductOverrideByHandle(handle);
+  if (override?.is_published_headless === false) {
+    return {
+      title: 'Product Not Found',
+    };
+  }
   const displayTitle = override?.use_headless_title ? (override?.title_override || product.title) : product.title;
   const title = override?.use_headless_meta_title
     ? (override?.meta_title || `${displayTitle} | The Equestrian`)

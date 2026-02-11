@@ -196,6 +196,7 @@ export async function initializeSchema(): Promise<void> {
         meta_description TEXT,
         top_description_html TEXT,
         bottom_description_html TEXT,
+        is_published_headless BOOLEAN NOT NULL DEFAULT true,
         created_at TIMESTAMPTZ DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT NOW()
       )
@@ -213,6 +214,7 @@ export async function initializeSchema(): Promise<void> {
     await sql`ALTER TABLE product_content_overrides ADD COLUMN IF NOT EXISTS use_headless_description BOOLEAN DEFAULT false`;
     await sql`ALTER TABLE product_content_overrides ADD COLUMN IF NOT EXISTS use_headless_bullets BOOLEAN DEFAULT false`;
     await sql`ALTER TABLE product_content_overrides ADD COLUMN IF NOT EXISTS use_headless_slug BOOLEAN DEFAULT false`;
+    await sql`ALTER TABLE product_content_overrides ADD COLUMN IF NOT EXISTS is_published_headless BOOLEAN NOT NULL DEFAULT true`;
 
     // Create static_pages table
     console.log('[DB] Creating static_pages table...');

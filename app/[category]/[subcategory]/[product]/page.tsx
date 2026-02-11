@@ -106,6 +106,10 @@ export default async function Page({ params, searchParams }: PageProps) {
   if (!product) {
     notFound();
   }
+  const productOverride = await getProductOverrideByHandle(resolvedHandle);
+  if (productOverride?.is_published_headless === false) {
+    notFound();
+  }
 
   // Get the canonical URL for this product
   const canonicalUrl = await getProductCanonicalUrl(product);
@@ -126,6 +130,9 @@ export default async function Page({ params, searchParams }: PageProps) {
  */
 async function renderProductPage(product: ShopifyProduct, canonicalPath?: string) {
   const override = await getProductOverrideByHandle(product.handle);
+  if (override?.is_published_headless === false) {
+    notFound();
+  }
   const displayTitle = override?.use_headless_title ? (override?.title_override || product.title) : product.title;
   const descriptionHtml = override?.use_headless_description
     ? (override?.description_html || product.descriptionHtml)
@@ -517,6 +524,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const override = await getProductOverrideByHandle(resolvedHandle);
+  if (override?.is_published_headless === false) {
+    return {
+      title: 'Product Not Found',
+    };
+  }
   const canonicalUrl = `${siteUrl}/${category}/${subcategory}/${thirdSegment}`;
   const displayTitle = override?.use_headless_title ? (override?.title_override || product.title) : product.title;
   const title = override?.use_headless_meta_title
