@@ -161,10 +161,20 @@ export async function getProductByHandle(
   }
 }
 
+export function hasProductImage(product: Pick<ShopifyProduct, 'images'> | null | undefined): boolean {
+  const primaryImage = product?.images?.edges?.[0]?.node;
+  return typeof primaryImage?.url === 'string' && primaryImage.url.trim().length > 0;
+}
+
 async function filterPublishedForHeadless<T extends { handle: string }>(products: T[]): Promise<T[]> {
   if (products.length === 0) return products;
   const overrideMap = await getProductOverridesByHandles(products.map((product) => product.handle));
   return products.filter((product) => overrideMap.get(product.handle)?.is_published_headless !== false);
+}
+
+function filterProductsWithImages<T extends Pick<ShopifyProduct, 'images'>>(products: T[]): T[] {
+  if (products.length === 0) return products;
+  return products.filter((product) => hasProductImage(product));
 }
 
 /**
@@ -386,6 +396,11 @@ export async function getProductsByTypes(
     allProductsUnfiltered = await filterPublishedForHeadless(allProductsUnfiltered);
     if (allProductsUnfiltered.length !== beforePublishFilter) {
       console.log(`[getProductsByTypes] 👁️ Visibility filter applied: ${beforePublishFilter} → ${allProductsUnfiltered.length} products`);
+    }
+    const beforeImageFilter = allProductsUnfiltered.length;
+    allProductsUnfiltered = filterProductsWithImages(allProductsUnfiltered);
+    if (allProductsUnfiltered.length !== beforeImageFilter) {
+      console.log(`[getProductsByTypes] 🖼️ Image filter applied: ${beforeImageFilter} → ${allProductsUnfiltered.length} products`);
     }
 
     // --- AGGREGATE FACETS FROM ALL PRODUCTS ---
@@ -636,6 +651,7 @@ export async function getRecommendedProducts(limit: number = 4, productType?: st
     if (excludeHandle) {
       products = products.filter(p => p.handle !== excludeHandle);
     }
+    products = filterProductsWithImages(products);
 
     if (products.length === 0) {
       console.warn('[getRecommendedProducts] No related products returned', {
@@ -783,7 +799,9 @@ export async function getSmartCartRecommendations(
     }
     
     // Score each candidate product
-    const scoredProducts: ScoredProduct[] = Array.from(candidateProducts.values()).map(product => {
+    const scoredProducts: ScoredProduct[] = Array.from(candidateProducts.values())
+      .filter((product) => hasProductImage(product))
+      .map(product => {
       let score = 0;
       const reasons: string[] = [];
       
@@ -1227,6 +1245,11 @@ export async function getProductsByCategory(
     allProducts = await filterPublishedForHeadless(allProducts);
     if (allProducts.length !== beforePublishFilter) {
       console.log(`[getProductsByCategory] 👁️ Visibility filter applied: ${beforePublishFilter} → ${allProducts.length} products`);
+    }
+    const beforeImageFilter = allProducts.length;
+    allProducts = filterProductsWithImages(allProducts);
+    if (allProducts.length !== beforeImageFilter) {
+      console.log(`[getProductsByCategory] 🖼️ Image filter applied: ${beforeImageFilter} → ${allProducts.length} products`);
     }
 
     // Apply filters

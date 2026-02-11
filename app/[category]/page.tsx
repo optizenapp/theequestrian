@@ -2,7 +2,7 @@ import { notFound, permanentRedirect, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { getProductsByCategory } from '@/lib/shopify/products';
-import { getProductByHandle, getProductCanonicalUrl, getProductCanonicalUrls } from '@/lib/shopify/products';
+import { getProductByHandle, getProductCanonicalUrl, getProductCanonicalUrls, hasProductImage } from '@/lib/shopify/products';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { getCategoryContent } from '@/lib/content/collections';
 import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
@@ -100,6 +100,9 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     const product = await getProductByHandle(category);
     
     if (!product) {
+      notFound();
+    }
+    if (!hasProductImage(product)) {
       notFound();
     }
 

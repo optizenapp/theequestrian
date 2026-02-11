@@ -1,7 +1,7 @@
 import { notFound, permanentRedirect, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
-import { getProductsByCategory, getProductByHandle, getProductCanonicalUrl, getRecommendedProducts } from '@/lib/shopify/products';
+import { getProductsByCategory, getProductByHandle, getProductCanonicalUrl, getRecommendedProducts, hasProductImage } from '@/lib/shopify/products';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
 import { 
@@ -106,6 +106,9 @@ export default async function Page({ params, searchParams }: PageProps) {
   if (!product) {
     notFound();
   }
+  if (!hasProductImage(product)) {
+    notFound();
+  }
   const productOverride = await getProductOverrideByHandle(resolvedHandle);
   if (productOverride?.is_published_headless === false) {
     notFound();
@@ -129,6 +132,9 @@ export default async function Page({ params, searchParams }: PageProps) {
  * Render a product page
  */
 async function renderProductPage(product: ShopifyProduct, canonicalPath?: string) {
+  if (!hasProductImage(product)) {
+    notFound();
+  }
   const override = await getProductOverrideByHandle(product.handle);
   if (override?.is_published_headless === false) {
     notFound();
@@ -518,6 +524,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const product = await getProductByHandle(resolvedHandle, { cache: 'no-store' });
   
   if (!product) {
+    return {
+      title: 'Product Not Found',
+    };
+  }
+  if (!hasProductImage(product)) {
     return {
       title: 'Product Not Found',
     };

@@ -130,8 +130,11 @@ export async function GET(request: Request) {
     const visibleProducts = sortedProducts.filter(
       ({ node }) => overrideMap.get(node.handle)?.is_published_headless !== false
     );
+    const imageVisibleProducts = visibleProducts.filter(
+      ({ node }) => Boolean(node.images.edges[0]?.node?.url)
+    );
 
-    const productResults = visibleProducts.map(({ node }) => ({
+    const productResults = imageVisibleProducts.map(({ node }) => ({
       type: 'product' as const,
       id: node.id,
       handle: node.handle,

@@ -1,5 +1,5 @@
 import { notFound, permanentRedirect, redirect } from 'next/navigation';
-import { getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
+import { getProductByHandle, getProductCanonicalUrl, hasProductImage } from '@/lib/shopify/products';
 import { ProductImageGallery } from '@/components/ProductImageGallery';
 import { ProductBreadcrumbs } from '@/components/ProductBreadcrumbs';
 import { ProductBuyBox } from '@/components/product/ProductBuyBox';
@@ -54,6 +54,9 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
   const product = await getProductByHandle(handle);
 
   if (!product) {
+    notFound();
+  }
+  if (!hasProductImage(product)) {
     notFound();
   }
   const override = await getProductOverrideByHandle(handle);
@@ -235,6 +238,11 @@ export async function generateMetadata({ params }: ProductCatchAllPageProps) {
   const product = await getProductByHandle(handle);
   
   if (!product) {
+    return {
+      title: 'Product Not Found',
+    };
+  }
+  if (!hasProductImage(product)) {
     return {
       title: 'Product Not Found',
     };
