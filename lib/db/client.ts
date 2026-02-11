@@ -17,10 +17,21 @@ export function resetDbClient(): void {
 
 function getSql(): ReturnType<typeof neon> {
   if (!_sql) {
-    const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+    const explicitOverride = process.env.CUSTOM_DATABASE_URL;
+    const isVercelPreview = process.env.VERCEL_ENV === 'preview';
+    // In Preview deployments we intentionally prefer DATABASE_URL so branch-specific
+    // Vercel overrides cannot be shadowed by global POSTGRES_URL values.
+    const connectionString = explicitOverride || (
+      isVercelPreview
+        ? (process.env.DATABASE_URL || process.env.POSTGRES_URL)
+        : (process.env.POSTGRES_URL || process.env.DATABASE_URL)
+    );
     if (!connectionString) {
-      throw new Error('Missing database connection string. Set POSTGRES_URL or DATABASE_URL');
+      throw new Error('Missing database connection string. Set CUSTOM_DATABASE_URL, POSTGRES_URL, or DATABASE_URL');
     }
+    // Log which DB we're connecting to (mask password)
+    const maskedUrl = connectionString.replace(/:([^:@]+)@/, ':***@');
+    console.log(`[DB Client] Connecting to: ${maskedUrl} (VERCEL_ENV=${process.env.VERCEL_ENV}, override=${!!explicitOverride})`);
     _sql = neon(connectionString);
   }
   return _sql;
@@ -185,6 +196,7 @@ export async function initializeSchema(): Promise<void> {
         meta_description TEXT,
         top_description_html TEXT,
         bottom_description_html TEXT,
+        is_published_headless BOOLEAN NOT NULL DEFAULT true,
         created_at TIMESTAMPTZ DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT NOW()
       )
@@ -202,6 +214,7 @@ export async function initializeSchema(): Promise<void> {
     await sql`ALTER TABLE product_content_overrides ADD COLUMN IF NOT EXISTS use_headless_description BOOLEAN DEFAULT false`;
     await sql`ALTER TABLE product_content_overrides ADD COLUMN IF NOT EXISTS use_headless_bullets BOOLEAN DEFAULT false`;
     await sql`ALTER TABLE product_content_overrides ADD COLUMN IF NOT EXISTS use_headless_slug BOOLEAN DEFAULT false`;
+    await sql`ALTER TABLE product_content_overrides ADD COLUMN IF NOT EXISTS is_published_headless BOOLEAN NOT NULL DEFAULT true`;
 
     // Create static_pages table
     console.log('[DB] Creating static_pages table...');

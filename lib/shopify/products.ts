@@ -49,6 +49,18 @@ let productsByTypesCache: Map<string, {
   timestamp: number;
 }> = new Map();
 
+// Cache for products by category (from database allocations)
+let productsByCategoryCache: Map<string, {
+  products: ProductWithPrimaryCollection[];
+  timestamp: number;
+}> = new Map();
+
+// Function to clear category cache (useful for debugging)
+export function clearCategoryCache() {
+  productsByCategoryCache.clear();
+  console.log('[Cache] Category cache cleared');
+}
+
 const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 
 /**
@@ -149,6 +161,22 @@ export async function getProductByHandle(
   }
 }
 
+export function hasProductImage(product: Pick<ShopifyProduct, 'images'> | null | undefined): boolean {
+  const primaryImage = product?.images?.edges?.[0]?.node;
+  return typeof primaryImage?.url === 'string' && primaryImage.url.trim().length > 0;
+}
+
+async function filterPublishedForHeadless<T extends { handle: string }>(products: T[]): Promise<T[]> {
+  if (products.length === 0) return products;
+  const overrideMap = await getProductOverridesByHandles(products.map((product) => product.handle));
+  return products.filter((product) => overrideMap.get(product.handle)?.is_published_headless !== false);
+}
+
+function filterProductsWithImages<T extends Pick<ShopifyProduct, 'images'>>(products: T[]): T[] {
+  if (products.length === 0) return products;
+  return products.filter((product) => hasProductImage(product));
+}
+
 /**
  * Get all products (with pagination support and caching)
  */
@@ -201,7 +229,14 @@ export async function getAllProducts(): Promise<ProductWithPrimaryCollection[]> 
 
 /**
  * Check if a product belongs to a specific category path
- * Uses primary_collection metafield or derives from productType mapping
+ * LEGACY FUNCTION - Only used for old getProductsByTypes() flow
+ * New code should use getProductsByCategory() instead
+ * 
+ * Priority order:
+ * 1. primary_collection metafield
+ * 2. productType mapping (legacy fallback)
+ * 
+ * NOTE: Does NOT check product_category_assignments to avoid connection exhaustion
  */
 async function productBelongsToCategory(
   product: ProductWithPrimaryCollection,
@@ -223,7 +258,7 @@ async function productBelongsToCategory(
     }
   }
 
-  // Priority 2: Derive from productType mapping
+  // Priority 2: Derive from productType mapping (legacy)
   if (product.productType) {
     const categoryPath = await getPrimaryCategoryPath(product.productType);
     if (categoryPath) {
@@ -355,6 +390,17 @@ export async function getProductsByTypes(
         products: allProductsUnfiltered,
         timestamp: now
       });
+    }
+
+    const beforePublishFilter = allProductsUnfiltered.length;
+    allProductsUnfiltered = await filterPublishedForHeadless(allProductsUnfiltered);
+    if (allProductsUnfiltered.length !== beforePublishFilter) {
+      console.log(`[getProductsByTypes] 👁️ Visibility filter applied: ${beforePublishFilter} → ${allProductsUnfiltered.length} products`);
+    }
+    const beforeImageFilter = allProductsUnfiltered.length;
+    allProductsUnfiltered = filterProductsWithImages(allProductsUnfiltered);
+    if (allProductsUnfiltered.length !== beforeImageFilter) {
+      console.log(`[getProductsByTypes] 🖼️ Image filter applied: ${beforeImageFilter} → ${allProductsUnfiltered.length} products`);
     }
 
     // --- AGGREGATE FACETS FROM ALL PRODUCTS ---
@@ -605,6 +651,7 @@ export async function getRecommendedProducts(limit: number = 4, productType?: st
     if (excludeHandle) {
       products = products.filter(p => p.handle !== excludeHandle);
     }
+    products = filterProductsWithImages(products);
 
     if (products.length === 0) {
       console.warn('[getRecommendedProducts] No related products returned', {
@@ -752,7 +799,9 @@ export async function getSmartCartRecommendations(
     }
     
     // Score each candidate product
-    const scoredProducts: ScoredProduct[] = Array.from(candidateProducts.values()).map(product => {
+    const scoredProducts: ScoredProduct[] = Array.from(candidateProducts.values())
+      .filter((product) => hasProductImage(product))
+      .map(product => {
       let score = 0;
       const reasons: string[] = [];
       
@@ -1013,6 +1062,365 @@ export function verifyProductCollectionPath(
  * Get total count of products matching the given product types
  * Uses Admin API for accurate counts
  */
+/**
+ * Get products allocated to a specific category from product_category_assignments table
+ * This is the NEW method for fetching products by category (replaces product type mapping)
+ */
+export async function getProductsByCategory(
+  categoryPath: string,
+  limit: number = 36,
+  after: string | null = null,
+  filters?: {
+    brands?: string[];
+    sizes?: string[];
+    colors?: string[];
+  }
+): Promise<{
+  products: ProductWithPrimaryCollection[];
+  pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  totalCount: number;
+  facets: {
+    brands: { value: string; count: number; displayName: string }[];
+    sizes: { value: string; count: number }[];
+    colors: { value: string; count: number; originalValue: string }[];
+    price: { min: number; max: number };
+  };
+}> {
+  const emptyResult = {
+    products: [],
+    pageInfo: { hasNextPage: false, endCursor: null },
+    totalCount: 0,
+    facets: { brands: [], sizes: [], colors: [], price: { min: 0, max: 0 } }
+  };
+
+  try {
+    // Check cache first
+    const now = Date.now();
+    const cached = productsByCategoryCache.get(categoryPath);
+    
+    let allProducts: ProductWithPrimaryCollection[];
+    
+    // Skip cache if it has 0 products (likely from a previous error)
+    if (cached && cached.products.length > 0 && (now - cached.timestamp) < CACHE_TTL) {
+      console.log(`[getProductsByCategory] ✅ Using cached products for ${categoryPath} (${cached.products.length} products)`);
+      allProducts = cached.products;
+    } else {
+      // Get product IDs allocated to this category (includes child categories)
+      const { getProductIdsByCategory } = await import('@/lib/db/product-allocations');
+      console.log(`[getProductsByCategory] Querying allocations for ${categoryPath}...`);
+      
+      const productIds = await getProductIdsByCategory(categoryPath);
+
+      if (productIds.length === 0) {
+        console.log(`[getProductsByCategory] ❌ No products allocated to ${categoryPath} - returning empty`);
+        return emptyResult;
+      }
+
+      console.log(`[getProductsByCategory] ✅ Found ${productIds.length} products allocated to ${categoryPath}`);
+
+      // Fetch all allocated products from Shopify in batches
+      // Shopify has a query length limit (~8KB), so we batch requests
+      const BATCH_SIZE = 100; // Fetch 100 products at a time (safe query size)
+      const PARALLEL_BATCHES = 5; // Fetch 5 batches in parallel for speed
+      
+      console.log(`[getProductsByCategory] 📥 Fetching ${productIds.length} products from Shopify in ${Math.ceil(productIds.length / BATCH_SIZE)} batches (${PARALLEL_BATCHES} parallel)...`);
+      
+      // Split into batches
+      const batches: string[][] = [];
+      for (let i = 0; i < productIds.length; i += BATCH_SIZE) {
+        batches.push(productIds.slice(i, i + BATCH_SIZE));
+      }
+      
+      // Fetch batches in parallel groups using GraphQL aliases
+      // The Storefront API doesn't support id: filtering in the products query,
+      // so we use the product(id:) query with aliases to fetch multiple products at once
+      allProducts = [];
+      for (let i = 0; i < batches.length; i += PARALLEL_BATCHES) {
+        const parallelBatches = batches.slice(i, i + PARALLEL_BATCHES);
+        
+        const results = await Promise.all(
+          parallelBatches.map(async (batchIds, batchIndex) => {
+            // Build a query with aliases for each product ID
+            const aliases = batchIds.map((id, idx) => {
+              const alias = `product_${idx}`;
+              return `${alias}: product(id: "${id}") {
+                id
+                handle
+                title
+                availableForSale
+                createdAt
+                productType
+                vendor
+                tags
+                priceRange {
+                  minVariantPrice {
+                    amount
+                    currencyCode
+                  }
+                  maxVariantPrice {
+                    amount
+                    currencyCode
+                  }
+                }
+                compareAtPriceRange {
+                  minVariantPrice {
+                    amount
+                    currencyCode
+                  }
+                  maxVariantPrice {
+                    amount
+                    currencyCode
+                  }
+                }
+                images(first: 10) {
+                  edges {
+                    node {
+                      url
+                      altText
+                      width
+                      height
+                    }
+                  }
+                }
+                variants(first: 100) {
+                  edges {
+                    node {
+                      id
+                      title
+                      availableForSale
+                      selectedOptions {
+                        name
+                        value
+                      }
+                      price {
+                        amount
+                        currencyCode
+                      }
+                      compareAtPrice {
+                        amount
+                        currencyCode
+                      }
+                    }
+                  }
+                }
+              }`;
+            }).join('\n');
+            
+            const query = `query GetProductsByIds { ${aliases} }`;
+            
+            const data = await shopifyFetch<Record<string, ShopifyProduct | null>>({
+              query,
+              variables: {},
+              cache: 'force-cache',
+            });
+            
+            // Extract products from aliased response
+            const products: ProductWithPrimaryCollection[] = [];
+            Object.values(data).forEach(product => {
+              if (product && product.id) {
+                products.push(product as ProductWithPrimaryCollection);
+              }
+            });
+            
+            return products;
+          })
+        );
+        
+        // Flatten results
+        results.forEach(batch => allProducts.push(...batch));
+        
+        console.log(`[getProductsByCategory] Progress: ${Math.min((i + PARALLEL_BATCHES) * BATCH_SIZE, productIds.length)}/${productIds.length} products fetched`);
+      }
+
+      console.log(`[getProductsByCategory] ✅ Fetched ${allProducts.length} products from Shopify`);
+      
+      // Cache the results
+      productsByCategoryCache.set(categoryPath, {
+        products: allProducts,
+        timestamp: now
+      });
+    }
+
+    const beforePublishFilter = allProducts.length;
+    allProducts = await filterPublishedForHeadless(allProducts);
+    if (allProducts.length !== beforePublishFilter) {
+      console.log(`[getProductsByCategory] 👁️ Visibility filter applied: ${beforePublishFilter} → ${allProducts.length} products`);
+    }
+    const beforeImageFilter = allProducts.length;
+    allProducts = filterProductsWithImages(allProducts);
+    if (allProducts.length !== beforeImageFilter) {
+      console.log(`[getProductsByCategory] 🖼️ Image filter applied: ${beforeImageFilter} → ${allProducts.length} products`);
+    }
+
+    // Apply filters
+    if (filters) {
+      if (filters.brands && filters.brands.length > 0) {
+        allProducts = allProducts.filter(p => 
+          filters.brands!.some(brand => 
+            p.vendor.toLowerCase() === brand.toLowerCase()
+          )
+        );
+      }
+
+      if (filters.sizes && filters.sizes.length > 0) {
+        allProducts = allProducts.filter(p =>
+          p.variants.edges.some(({ node: variant }) =>
+            variant.selectedOptions.some(opt =>
+              opt.name.toLowerCase() === 'size' &&
+              filters.sizes!.includes(opt.value)
+            )
+          )
+        );
+      }
+
+      if (filters.colors && filters.colors.length > 0) {
+        allProducts = allProducts.filter(p =>
+          p.variants.edges.some(({ node: variant }) =>
+            variant.selectedOptions.some(opt =>
+              (opt.name.toLowerCase() === 'color' || opt.name.toLowerCase() === 'colour') &&
+              filters.colors!.some(filterColor =>
+                normalizeColor(opt.value) === normalizeColor(filterColor)
+              )
+            )
+          )
+        );
+      }
+    }
+
+    // Calculate facets from filtered products
+    const brandCounts = new Map<string, { count: number; displayName: string }>();
+    const sizeCounts = new Map<string, number>();
+    const colorCounts = new Map<string, { count: number; originalValue: string }>();
+    const countedBrands = new Set<string>();
+    let minPrice = Infinity;
+    let maxPrice = 0;
+
+    allProducts.forEach(p => {
+      // Brands (from tags)
+      p.tags.forEach(tag => {
+        const normalizedTag = tag.toLowerCase();
+        if (normalizedTag.startsWith('brand:') && !countedBrands.has(normalizedTag)) {
+          const brandName = tag.substring(6).trim();
+          const count = brandCounts.get(normalizedTag) || 0;
+          if (count === 0) {
+            const displayName = brandName.split(' ').map(word => 
+              word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+            ).join(' ');
+            brandCounts.set(normalizedTag, {
+              count: 1,
+              displayName: displayName
+            });
+          }
+          countedBrands.add(normalizedTag);
+        }
+      });
+      
+      // Prices
+      const pMin = parseFloat(p.priceRange.minVariantPrice.amount);
+      const pMax = parseFloat(p.priceRange.maxVariantPrice.amount);
+      if (pMin < minPrice) minPrice = pMin;
+      if (pMax > maxPrice) maxPrice = pMax;
+      
+      // Variants (Size & Color)
+      p.variants.edges.forEach(({ node: variant }) => {
+        const sizeOption = variant.selectedOptions.find(
+          (opt) => opt.name.toLowerCase() === 'size'
+        );
+        if (sizeOption && !isColorValue(sizeOption.value)) {
+          const count = sizeCounts.get(sizeOption.value) || 0;
+          sizeCounts.set(sizeOption.value, count + 1);
+        }
+        
+        const colorOption = variant.selectedOptions.find(
+          (opt) => opt.name.toLowerCase() === 'color'
+        );
+        if (colorOption) {
+          const normalizedValue = normalizeColor(colorOption.value);
+          const existing = colorCounts.get(normalizedValue);
+          if (existing) {
+            existing.count++;
+          } else {
+            colorCounts.set(normalizedValue, {
+              count: 1,
+              originalValue: colorOption.value
+            });
+          }
+        }
+      });
+    });
+
+    const brandFacets = Array.from(brandCounts.entries())
+      .map(([value, { count, displayName }]) => ({ value, count, displayName }))
+      .sort((a, b) => a.displayName.localeCompare(b.displayName));
+      
+    const sizeFacets = Array.from(sizeCounts.entries())
+      .map(([value, count]) => ({ value, count }))
+      .sort((a, b) => {
+        const aNum = parseFloat(a.value);
+        const bNum = parseFloat(b.value);
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+          return aNum - bNum;
+        }
+        return a.value.localeCompare(b.value);
+      });
+      
+    const colorFacets = Array.from(colorCounts.entries())
+      .map(([value, { count, originalValue }]) => ({ value, count, originalValue }))
+      .sort((a, b) => a.originalValue.localeCompare(b.originalValue));
+      
+    const priceFacet = {
+      min: minPrice === Infinity ? 0 : Math.floor(minPrice / 10) * 10,
+      max: maxPrice === 0 ? 500 : Math.ceil(maxPrice / 10) * 10
+    };
+
+    const facets = {
+      brands: brandFacets,
+      sizes: sizeFacets,
+      colors: colorFacets,
+      price: priceFacet
+    };
+
+    // Sort: in-stock first, out-of-stock last
+    allProducts.sort((a, b) => {
+      const aInStock = a.variants.edges.some(({ node }) => node.availableForSale);
+      const bInStock = b.variants.edges.some(({ node }) => node.availableForSale);
+      if (aInStock && !bInStock) return -1;
+      if (!aInStock && bInStock) return 1;
+      return 0;
+    });
+
+    // Implement pagination
+    const totalCount = allProducts.length;
+    let startIndex = 0;
+
+    if (after) {
+      // Find the index of the product after the cursor
+      const cursorIndex = allProducts.findIndex(p => p.id === after);
+      if (cursorIndex !== -1) {
+        startIndex = cursorIndex + 1;
+      }
+    }
+
+    const paginatedProducts = allProducts.slice(startIndex, startIndex + limit);
+    const hasNextPage = startIndex + limit < totalCount;
+    const endCursor = paginatedProducts.length > 0 
+      ? paginatedProducts[paginatedProducts.length - 1].id 
+      : null;
+
+    return {
+      products: paginatedProducts,
+      pageInfo: { hasNextPage, endCursor },
+      totalCount,
+      facets
+    };
+
+  } catch (error) {
+    console.error('[getProductsByCategory] Error fetching products for', categoryPath, ':', error);
+    // Re-throw the error so we can see it in logs instead of silently returning empty
+    throw error;
+  }
+}
+
 export async function getProductCountByTypes(productTypes: string[]): Promise<number> {
   if (productTypes.length === 0) {
     return 0;

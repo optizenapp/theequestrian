@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/client';
 
 const safeDecodePath = (value: string) => {
   try {
@@ -55,10 +55,11 @@ export async function getManualRedirect(pathname: string) {
       AND status IN ('active', 'override')
     LIMIT 1
   `;
-  if (!result.rows[0]) return null;
+  const row = (Array.isArray(result) ? result[0] : undefined) as { to_path: string; redirect_type: string } | undefined;
+  if (!row) return null;
   return {
-    to: result.rows[0].to_path,
-    type: result.rows[0].redirect_type || '301',
+    to: row.to_path,
+    type: row.redirect_type || '301',
   };
 }
 
@@ -102,5 +103,5 @@ export async function listManualRedirects(limit = 50, source?: string) {
         ORDER BY updated_at DESC
         LIMIT ${limit}
       `;
-  return result.rows;
+  return Array.isArray(result) ? result : [];
 }

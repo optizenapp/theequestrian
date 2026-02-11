@@ -25,6 +25,7 @@ const ensureProductContentTable = async () => {
       use_headless_slug BOOLEAN DEFAULT false,
       use_headless_top_description BOOLEAN DEFAULT false,
       use_headless_bottom_description BOOLEAN DEFAULT false,
+      is_published_headless BOOLEAN NOT NULL DEFAULT true,
       created_at TIMESTAMPTZ DEFAULT NOW(),
       updated_at TIMESTAMPTZ DEFAULT NOW()
     )
@@ -41,6 +42,7 @@ const ensureProductContentTable = async () => {
   await sql`ALTER TABLE product_content_overrides ADD COLUMN IF NOT EXISTS use_headless_description BOOLEAN DEFAULT false`;
   await sql`ALTER TABLE product_content_overrides ADD COLUMN IF NOT EXISTS use_headless_bullets BOOLEAN DEFAULT false`;
   await sql`ALTER TABLE product_content_overrides ADD COLUMN IF NOT EXISTS use_headless_slug BOOLEAN DEFAULT false`;
+  await sql`ALTER TABLE product_content_overrides ADD COLUMN IF NOT EXISTS is_published_headless BOOLEAN NOT NULL DEFAULT true`;
 };
 
 const getProductFromDb = async (handle: string): Promise<Partial<ShopifyProduct> | null> => {

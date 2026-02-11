@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS product_content_overrides (
   use_headless_slug BOOLEAN DEFAULT false,
   use_headless_top_description BOOLEAN DEFAULT false,
   use_headless_bottom_description BOOLEAN DEFAULT false,
+  is_published_headless BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );

@@ -1,5 +1,5 @@
 import { notFound, permanentRedirect, redirect } from 'next/navigation';
-import { getProductByHandle, getProductCanonicalUrl, getRecommendedProducts } from '@/lib/shopify/products';
+import { getProductByHandle, getProductCanonicalUrl, getRecommendedProducts, hasProductImage } from '@/lib/shopify/products';
 import { ProductImageGallery } from '@/components/ProductImageGallery';
 import { ProductBreadcrumbs } from '@/components/ProductBreadcrumbs';
 import { ProductBuyBox } from '@/components/product/ProductBuyBox';
@@ -48,7 +48,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
   if (!product) {
     notFound();
   }
+  if (!hasProductImage(product)) {
+    notFound();
+  }
   const override = await getProductOverrideByHandle(resolvedHandle);
+  if (override?.is_published_headless === false) {
+    notFound();
+  }
   const displayTitle = override?.use_headless_title ? (override?.title_override || product.title) : product.title;
   const descriptionHtml = override?.use_headless_description
     ? (override?.description_html || product.descriptionHtml)
@@ -78,9 +84,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
     .sort((a, b) => parseFloat(a.amount) - parseFloat(b.amount))[0];
   
   // Build breadcrumb paths from product type using mapping
-  const breadcrumbPaths = product.productType 
-    ? await getBreadcrumbsForProduct(product.productType)
-    : [];
+  const breadcrumbPaths = await getBreadcrumbsForProduct(
+    product.productType || '',
+    product.id
+  );
   
   // Primary breadcrumb path (most specific/longest path first)
   const primaryPath = breadcrumbPaths[0] || [];
@@ -248,8 +255,18 @@ export async function generateMetadata({ params }: ProductPageProps) {
       title: 'Product Not Found',
     };
   }
+  if (!hasProductImage(product)) {
+    return {
+      title: 'Product Not Found',
+    };
+  }
 
   const override = await getProductOverrideByHandle(resolvedHandle);
+  if (override?.is_published_headless === false) {
+    return {
+      title: 'Product Not Found',
+    };
+  }
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
   const canonicalUrl = `${siteUrl}${await getProductCanonicalUrl(product)}`;
   

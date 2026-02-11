@@ -1,7 +1,7 @@
 import { notFound, permanentRedirect, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
-import { getProductsByTypes, getProductByHandle, getProductCanonicalUrl, getRecommendedProducts } from '@/lib/shopify/products';
+import { getProductsByCategory, getProductByHandle, getProductCanonicalUrl, getRecommendedProducts, hasProductImage } from '@/lib/shopify/products';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
 import { 
@@ -106,6 +106,13 @@ export default async function Page({ params, searchParams }: PageProps) {
   if (!product) {
     notFound();
   }
+  if (!hasProductImage(product)) {
+    notFound();
+  }
+  const productOverride = await getProductOverrideByHandle(resolvedHandle);
+  if (productOverride?.is_published_headless === false) {
+    notFound();
+  }
 
   // Get the canonical URL for this product
   const canonicalUrl = await getProductCanonicalUrl(product);
@@ -125,7 +132,13 @@ export default async function Page({ params, searchParams }: PageProps) {
  * Render a product page
  */
 async function renderProductPage(product: ShopifyProduct, canonicalPath?: string) {
+  if (!hasProductImage(product)) {
+    notFound();
+  }
   const override = await getProductOverrideByHandle(product.handle);
+  if (override?.is_published_headless === false) {
+    notFound();
+  }
   const displayTitle = override?.use_headless_title ? (override?.title_override || product.title) : product.title;
   const descriptionHtml = override?.use_headless_description
     ? (override?.description_html || product.descriptionHtml)
@@ -138,10 +151,11 @@ async function renderProductPage(product: ShopifyProduct, canonicalPath?: string
     .filter((cp): cp is { amount: string; currencyCode: string } => cp !== null && cp !== undefined)
     .sort((a, b) => parseFloat(a.amount) - parseFloat(b.amount))[0];
   
-  // Build breadcrumb paths from product type using mapping
-  const breadcrumbPaths = product.productType 
-    ? await getBreadcrumbsForProduct(product.productType)
-    : [];
+  // Build breadcrumb paths from allocation table (priority) or product type (fallback)
+  const breadcrumbPaths = await getBreadcrumbsForProduct(
+    product.productType || '',
+    product.id
+  );
   
   // Primary breadcrumb path (most specific/longest path first)
   const primaryPath = breadcrumbPaths[0] || [];
@@ -318,27 +332,20 @@ async function renderSubSubcategoryPage(
   filterSizes?: string[],
   filterColors?: string[]
 ) {
-  // Get allowed product types for this collection
-  const allowedProductTypes = await getProductTypesForCollection(category, subcategory, subsubcategory);
-  
-  // Fetch products with pagination (36 per page)
-  const { products: filteredProducts, pageInfo, totalCount } = await getProductsByTypes(
-    allowedProductTypes, 
+  // Fetch products allocated to this sub-subcategory from product_category_assignments table
+  const categoryPath = `/${category}/${subcategory}/${subsubcategory}`;
+  const { products: filteredProducts, pageInfo, totalCount } = await getProductsByCategory(
+    categoryPath,
     36, 
     afterCursor,
     { 
       brands: filterBrands,
       sizes: filterSizes,
       colors: filterColors
-    },
-    {
-      category,
-      subcategory,
-      subsubcategory
     }
   );
 
-  // Total count is now returned from getProductsByTypes (no separate API call needed)
+  // Total count is now returned from getProductsByCategory (no separate API call needed)
   const totalProductCount = totalCount;
 
   // EMPTY CATEGORY REDIRECT: If this sub-subcategory has no products and no filters are applied,
@@ -521,8 +528,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: 'Product Not Found',
     };
   }
+  if (!hasProductImage(product)) {
+    return {
+      title: 'Product Not Found',
+    };
+  }
 
   const override = await getProductOverrideByHandle(resolvedHandle);
+  if (override?.is_published_headless === false) {
+    return {
+      title: 'Product Not Found',
+    };
+  }
   const canonicalUrl = `${siteUrl}/${category}/${subcategory}/${thirdSegment}`;
   const displayTitle = override?.use_headless_title ? (override?.title_override || product.title) : product.title;
   const title = override?.use_headless_meta_title

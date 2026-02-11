@@ -18,6 +18,7 @@ export interface ProductContentOverride {
   use_headless_slug: boolean | null;
   use_headless_top_description: boolean | null;
   use_headless_bottom_description: boolean | null;
+  is_published_headless: boolean | null;
 }
 
 let overrideCache: Map<string, ProductContentOverride> | null = null;
@@ -52,10 +53,12 @@ async function loadOverrides(): Promise<Map<string, ProductContentOverride>> {
         use_headless_slug BOOLEAN DEFAULT false,
         use_headless_top_description BOOLEAN DEFAULT false,
         use_headless_bottom_description BOOLEAN DEFAULT false,
+        is_published_headless BOOLEAN NOT NULL DEFAULT true,
         created_at TIMESTAMPTZ DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT NOW()
       )
     `;
+    await sql`ALTER TABLE product_content_overrides ADD COLUMN IF NOT EXISTS is_published_headless BOOLEAN NOT NULL DEFAULT true`;
 
     const result = await sql.query(`
       SELECT 
@@ -75,7 +78,8 @@ async function loadOverrides(): Promise<Map<string, ProductContentOverride>> {
         use_headless_bullets,
         use_headless_slug,
         use_headless_top_description,
-        use_headless_bottom_description
+        use_headless_bottom_description,
+        is_published_headless
       FROM product_content_overrides
       ORDER BY product_handle
     `);

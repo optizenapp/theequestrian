@@ -1,5 +1,5 @@
 import { notFound, permanentRedirect, redirect } from 'next/navigation';
-import { getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
+import { getProductByHandle, getProductCanonicalUrl, hasProductImage } from '@/lib/shopify/products';
 import { ProductImageGallery } from '@/components/ProductImageGallery';
 import { ProductBreadcrumbs } from '@/components/ProductBreadcrumbs';
 import { ProductBuyBox } from '@/components/product/ProductBuyBox';
@@ -56,7 +56,13 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
   if (!product) {
     notFound();
   }
+  if (!hasProductImage(product)) {
+    notFound();
+  }
   const override = await getProductOverrideByHandle(handle);
+  if (override?.is_published_headless === false) {
+    notFound();
+  }
   const displayTitle = override?.use_headless_title ? (override?.title_override || product.title) : product.title;
   const descriptionHtml = override?.use_headless_description
     ? (override?.description_html || product.descriptionHtml)
@@ -90,9 +96,10 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
     .sort((a, b) => parseFloat(a.amount) - parseFloat(b.amount))[0];
   
   // Build breadcrumb paths from product type using mapping
-  const breadcrumbPaths = product.productType 
-    ? await getBreadcrumbsForProduct(product.productType)
-    : [];
+  const breadcrumbPaths = await getBreadcrumbsForProduct(
+    product.productType || '',
+    product.id
+  );
   
   // Primary breadcrumb path (most specific/longest path first)
   const primaryPath = breadcrumbPaths[0] || [];
@@ -235,11 +242,21 @@ export async function generateMetadata({ params }: ProductCatchAllPageProps) {
       title: 'Product Not Found',
     };
   }
+  if (!hasProductImage(product)) {
+    return {
+      title: 'Product Not Found',
+    };
+  }
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
   const canonicalUrl = `${siteUrl}${await getProductCanonicalUrl(product)}`;
   
   const override = await getProductOverrideByHandle(handle);
+  if (override?.is_published_headless === false) {
+    return {
+      title: 'Product Not Found',
+    };
+  }
   const displayTitle = override?.use_headless_title ? (override?.title_override || product.title) : product.title;
   const title = override?.use_headless_meta_title
     ? (override?.meta_title || `${displayTitle} | The Equestrian`)

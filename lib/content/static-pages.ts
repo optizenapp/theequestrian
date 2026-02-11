@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/client';
 
 export interface StaticPageContent {
   slug: string;
@@ -22,7 +22,7 @@ async function loadStaticPages(): Promise<Map<string, StaticPageContent>> {
   }
 
   try {
-    const result = await sql.query(`
+    const result = await sql`
       SELECT 
         slug,
         title,
@@ -35,10 +35,11 @@ async function loadStaticPages(): Promise<Map<string, StaticPageContent>> {
       FROM static_pages
       WHERE status = 'published'
       ORDER BY slug
-    `);
+    `;
     const map = new Map<string, StaticPageContent>();
-    for (const row of result.rows) {
-      map.set(row.slug, row as StaticPageContent);
+    const rows = (Array.isArray(result) ? result : []) as StaticPageContent[];
+    for (const row of rows) {
+      map.set(row.slug, row);
     }
     pageCache = map;
     cacheTimestamp = now;

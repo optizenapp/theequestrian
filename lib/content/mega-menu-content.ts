@@ -5,7 +5,7 @@
  * Falls back to CSV file if database is unavailable
  */
 
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/client';
 import fs from 'fs';
 import path from 'path';
 import { parse } from 'csv-parse/sync';
@@ -52,8 +52,17 @@ async function loadMegaMenuContentFromDB(): Promise<Map<string, MegaMenuContent>
     `;
     
     const contentMap = new Map<string, MegaMenuContent>();
+    const rows = (Array.isArray(result) ? result : []) as Array<{
+      category: string;
+      featured_image_url?: string;
+      featured_title?: string;
+      featured_subtitle?: string;
+      featured_link?: string;
+      quick_links?: any[];
+      subcategory_cards?: any[];
+    }>;
     
-    for (const row of result.rows) {
+    for (const row of rows) {
       const content: MegaMenuContent = {
         category: row.category,
       };

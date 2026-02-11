@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { parse } from 'csv-parse/sync';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/client';
 
 const REDIRECTS_DIR = path.join(process.cwd(), 'redirects');
 
