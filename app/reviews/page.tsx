@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ReviewCard } from '@/components/reviews/ReviewCard';
 import { ReviewStars } from '@/components/reviews/ReviewStars';
+import { generateSimplePageSchema } from '@/lib/utils/site-schema';
 
 interface Review {
   id: string;
@@ -21,6 +22,12 @@ interface Review {
 }
 
 export default function ReviewsPage() {
+  const schema = generateSimplePageSchema(
+    '/reviews',
+    'Customer Reviews | The Equestrian',
+    'Browse verified customer reviews for products available on The Equestrian.'
+  );
+
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filterRating, setFilterRating] = useState<number | null>(null);
@@ -83,6 +90,10 @@ export default function ReviewsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import { SearchResults } from './SearchResults';
+import { generateSearchPageSchema } from '@/lib/utils/site-schema';
 
 interface SearchPageProps {
   searchParams: Promise<{
@@ -10,9 +11,21 @@ interface SearchPageProps {
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const { q } = await searchParams;
   const query = q || '';
+  const schema = generateSearchPageSchema(
+    '/search',
+    query ? `Search Results for "${query}"` : 'Search Products',
+    query
+      ? `Search results for ${query} on The Equestrian.`
+      : 'Search The Equestrian for equestrian products, brands, and categories.',
+    query
+  );
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
       <h1 className="text-3xl font-bold mb-6">
         {query ? `Search Results for "${query}"` : 'Search Products'}
       </h1>

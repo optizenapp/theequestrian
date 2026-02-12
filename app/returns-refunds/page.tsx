@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { PolicyLayout } from '@/components/policy/PolicyLayout';
+import { generatePolicyPageSchema } from '@/lib/utils/site-schema';
 
 export const metadata: Metadata = {
   title: 'Returns & Refunds | The Equestrian',
@@ -7,9 +8,20 @@ export const metadata: Metadata = {
 };
 
 export default function ReturnsRefundsPage() {
+  const schema = generatePolicyPageSchema({
+    path: '/returns-refunds',
+    title: 'Returns & Refunds | The Equestrian',
+    description: 'Returns and refunds policy for online orders, timeframes, and conditions.',
+  });
+
   return (
-    <PolicyLayout title="Returns & Refunds">
-      <div className="space-y-6 text-gray-700">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
+      <PolicyLayout title="Returns & Refunds">
+        <div className="space-y-6 text-gray-700">
         <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">Purchased via an "Add To Cart" and online checkout only</h2>
 
         <ul className="list-disc pl-6 space-y-2">
@@ -28,8 +40,9 @@ export default function ReturnsRefundsPage() {
             to arrange refunds or exchanges.
           </li>
         </ul>
-      </div>
-    </PolicyLayout>
+        </div>
+      </PolicyLayout>
+    </>
   );
 }
 

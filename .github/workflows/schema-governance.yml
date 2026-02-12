@@ -1,0 +1,38 @@
+name: Schema Governance
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 18 * * 0'
+  workflow_dispatch:
+
+jobs:
+  schema-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate schema contracts
+        run: npm run schema:validate:contracts
+
+      - name: Generate schema inventory report
+        run: npm run schema:audit:inventory
+
+      - name: Upload schema artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: schema-audit-artifacts
+          path: |
+            docs/SCHEMA-AUDIT-INVENTORY.md
+            exports/schema-audit-inventory.json

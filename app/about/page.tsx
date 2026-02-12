@@ -1,5 +1,6 @@
 import { PolicyLayout } from '@/components/policy/PolicyLayout';
 import { getStaticPageContent } from '@/lib/content/static-pages';
+import { generateAboutPageSchema } from '@/lib/utils/site-schema';
 
 export async function generateMetadata() {
   const page = await getStaticPageContent('about');
@@ -13,20 +14,37 @@ export async function generateMetadata() {
 
 export default async function AboutPage() {
   const page = await getStaticPageContent('about');
+  const title = page?.title || 'About The Equestrian';
+  const description =
+    page?.meta_description ||
+    'Learn about The Equestrian team and our mission to serve the Australian equestrian community.';
+  const schema = generateAboutPageSchema('/about', title, description);
+
   if (page?.body_html || page?.intro_html || page?.bottom_html) {
     return (
-      <PolicyLayout title={page.title || 'About The Equestrian'}>
-        <div className="space-y-6 text-gray-700">
-          {page.intro_html ? <div dangerouslySetInnerHTML={{ __html: page.intro_html }} /> : null}
-          {page.body_html ? <div dangerouslySetInnerHTML={{ __html: page.body_html }} /> : null}
-          {page.bottom_html ? <div dangerouslySetInnerHTML={{ __html: page.bottom_html }} /> : null}
-        </div>
-      </PolicyLayout>
+      <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+        <PolicyLayout title={title}>
+          <div className="space-y-6 text-gray-700">
+            {page.intro_html ? <div dangerouslySetInnerHTML={{ __html: page.intro_html }} /> : null}
+            {page.body_html ? <div dangerouslySetInnerHTML={{ __html: page.body_html }} /> : null}
+            {page.bottom_html ? <div dangerouslySetInnerHTML={{ __html: page.bottom_html }} /> : null}
+          </div>
+        </PolicyLayout>
+      </>
     );
   }
   return (
-    <PolicyLayout title="About The Equestrian">
-      <div className="space-y-6 text-gray-700">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
+      <PolicyLayout title="About The Equestrian">
+        <div className="space-y-6 text-gray-700">
         <h2 className="text-2xl font-bold text-gray-900 mb-4">It's time for an Equestrian Marketplace for everyone</h2>
 
         <p>
@@ -109,8 +127,9 @@ export default async function AboutPage() {
             Follow us on social media for the latest products, tips, and equestrian news. We're passionate about building a supportive community for all horse lovers across Australia.
           </p>
         </div>
-      </div>
-    </PolicyLayout>
+        </div>
+      </PolicyLayout>
+    </>
   );
 }
 

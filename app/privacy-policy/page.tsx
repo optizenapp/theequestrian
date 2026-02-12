@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { PolicyLayout } from '@/components/policy/PolicyLayout';
+import { generatePolicyPageSchema } from '@/lib/utils/site-schema';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy | The Equestrian',
@@ -7,9 +8,20 @@ export const metadata: Metadata = {
 };
 
 export default function PrivacyPolicyPage() {
+  const schema = generatePolicyPageSchema({
+    path: '/privacy-policy',
+    title: 'Privacy Policy | The Equestrian',
+    description: 'Read our privacy policy to understand how we collect, use, and protect your personal information.',
+  });
+
   return (
-    <PolicyLayout title="Privacy Policy" lastUpdated="19 April 2021">
-      <div className="space-y-6 text-gray-700">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
+      <PolicyLayout title="Privacy Policy" lastUpdated="19 April 2021">
+        <div className="space-y-6 text-gray-700">
         <p>
           Equine Marketplace Pty Ltd ("us", "we", or "our") operates{' '}
           <a href="https://theequestrian.com.au" className="text-action hover:text-action-hover">
@@ -151,8 +163,9 @@ export default function PrivacyPolicyPage() {
         <p className="text-sm text-gray-500 italic mt-8">
           Last updated on 19 April 2021 by Equine Marketplace Pty Ltd
         </p>
-      </div>
-    </PolicyLayout>
+        </div>
+      </PolicyLayout>
+    </>
   );
 }
 

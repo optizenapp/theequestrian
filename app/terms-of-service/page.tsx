@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { PolicyLayout } from '@/components/policy/PolicyLayout';
+import { generatePolicyPageSchema } from '@/lib/utils/site-schema';
 
 export const metadata: Metadata = {
   title: 'Terms of Service | The Equestrian',
@@ -7,9 +8,20 @@ export const metadata: Metadata = {
 };
 
 export default function TermsOfServicePage() {
+  const schema = generatePolicyPageSchema({
+    path: '/terms-of-service',
+    title: 'Terms of Service | The Equestrian',
+    description: 'Read our terms of service to understand the conditions of use for The Equestrian marketplace.',
+  });
+
   return (
-    <PolicyLayout title="Terms of Service" lastUpdated="19 April 2021">
-      <div className="space-y-6 text-gray-700">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
+      <PolicyLayout title="Terms of Service" lastUpdated="19 April 2021">
+        <div className="space-y-6 text-gray-700">
         <p>
           Welcome to The Equestrian. These Terms of Service govern your use of our website and services. By accessing or using The Equestrian, you agree to be bound by these terms.
         </p>
@@ -165,8 +177,9 @@ export default function TermsOfServicePage() {
         <p className="text-sm text-gray-500 italic mt-8">
           Last updated on 19 April 2021 by Equine Marketplace Pty Ltd
         </p>
-      </div>
-    </PolicyLayout>
+        </div>
+      </PolicyLayout>
+    </>
   );
 }
 

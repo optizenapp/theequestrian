@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { getArticlesByAuthor } from '@/lib/shopify/blogs';
 import { BlogCard } from '@/components/blog/BlogCard';
+import { generateAuthorProfileSchema } from '@/lib/utils/site-schema';
 
 interface AuthorPageProps {
   params: Promise<{
@@ -49,12 +50,22 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
   const { slug } = await params;
   const authorName = slugToName(slug);
   const articles = await getArticlesByAuthor(authorName);
+  const schema = generateAuthorProfileSchema(
+    `/news/author/${slug}`,
+    authorName,
+    `Read all articles written by ${authorName} on The Equestrian.`,
+    articles.map((article) => article.handle)
+  );
 
   const initials = getInitials(authorName);
   const avatarColor = generateAvatarColor(authorName);
 
   return (
     <div className="bg-gray-50 min-h-screen py-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Author Header */}
         <div className="bg-white rounded-2xl shadow-sm p-8 mb-12">

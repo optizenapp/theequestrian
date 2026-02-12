@@ -1,0 +1,359 @@
+{
+  "generatedAt": "2026-02-12T00:47:18.471Z",
+  "baseUrl": "https://theequestrian.com.au",
+  "results": [
+    {
+      "url": "https://theequestrian.com.au/",
+      "pageType": "Home",
+      "schemaTypes": [
+        "OnlineStore",
+        "ImageObject",
+        "PostalAddress",
+        "Country",
+        "ContactPoint",
+        "WebSite",
+        "SearchAction",
+        "EntryPoint",
+        "WebPage",
+        "FAQPage",
+        "Question",
+        "Answer"
+      ],
+      "issues": []
+    },
+    {
+      "url": "https://theequestrian.com.au/horse",
+      "pageType": "Collection (category)",
+      "schemaTypes": [
+        "BreadcrumbList",
+        "ListItem",
+        "CollectionPage",
+        "ItemList",
+        "Product",
+        "Offer",
+        "Thing",
+        "FAQPage",
+        "Question",
+        "Answer"
+      ],
+      "issues": []
+    },
+    {
+      "url": "https://theequestrian.com.au/horse/rugs",
+      "pageType": "Collection (subcategory)",
+      "schemaTypes": [
+        "BreadcrumbList",
+        "ListItem",
+        "CollectionPage",
+        "ItemList",
+        "Product",
+        "Offer",
+        "Thing",
+        "FAQPage",
+        "Question",
+        "Answer"
+      ],
+      "issues": []
+    },
+    {
+      "url": "https://theequestrian.com.au/on-sale",
+      "pageType": "Collection (on-sale)",
+      "schemaTypes": [
+        "BreadcrumbList",
+        "ListItem",
+        "CollectionPage",
+        "ItemList",
+        "Product",
+        "Offer",
+        "Thing"
+      ],
+      "issues": []
+    },
+    {
+      "url": "https://theequestrian.com.au/faq",
+      "pageType": "FAQ",
+      "schemaTypes": [],
+      "issues": [
+        {
+          "severity": "high",
+          "url": "https://theequestrian.com.au/faq",
+          "pageType": "FAQ",
+          "message": "No JSON-LD blocks found in rendered HTML."
+        },
+        {
+          "severity": "high",
+          "url": "https://theequestrian.com.au/faq",
+          "pageType": "FAQ",
+          "message": "Missing required type: FAQPage"
+        }
+      ]
+    },
+    {
+      "url": "https://theequestrian.com.au/about",
+      "pageType": "About",
+      "schemaTypes": [],
+      "issues": [
+        {
+          "severity": "medium",
+          "url": "https://theequestrian.com.au/about",
+          "pageType": "About",
+          "message": "No JSON-LD blocks found in rendered HTML."
+        },
+        {
+          "severity": "medium",
+          "url": "https://theequestrian.com.au/about",
+          "pageType": "About",
+          "message": "Missing required type: AboutPage"
+        },
+        {
+          "severity": "medium",
+          "url": "https://theequestrian.com.au/about",
+          "pageType": "About",
+          "message": "Missing required type: Organization"
+        }
+      ]
+    },
+    {
+      "url": "https://theequestrian.com.au/contact",
+      "pageType": "Contact",
+      "schemaTypes": [],
+      "issues": [
+        {
+          "severity": "medium",
+          "url": "https://theequestrian.com.au/contact",
+          "pageType": "Contact",
+          "message": "No JSON-LD blocks found in rendered HTML."
+        },
+        {
+          "severity": "medium",
+          "url": "https://theequestrian.com.au/contact",
+          "pageType": "Contact",
+          "message": "Missing required type: ContactPage"
+        },
+        {
+          "severity": "medium",
+          "url": "https://theequestrian.com.au/contact",
+          "pageType": "Contact",
+          "message": "Missing required type: Organization"
+        }
+      ]
+    },
+    {
+      "url": "https://theequestrian.com.au/news",
+      "pageType": "News Index",
+      "schemaTypes": [],
+      "issues": [
+        {
+          "severity": "medium",
+          "url": "https://theequestrian.com.au/news",
+          "pageType": "News Index",
+          "message": "No JSON-LD blocks found in rendered HTML."
+        },
+        {
+          "severity": "medium",
+          "url": "https://theequestrian.com.au/news",
+          "pageType": "News Index",
+          "message": "Missing required type: Blog"
+        },
+        {
+          "severity": "medium",
+          "url": "https://theequestrian.com.au/news",
+          "pageType": "News Index",
+          "message": "Missing required type: CollectionPage"
+        }
+      ]
+    },
+    {
+      "url": "https://theequestrian.com.au/privacy-policy",
+      "pageType": "Policy (privacy)",
+      "schemaTypes": [],
+      "issues": [
+        {
+          "severity": "low",
+          "url": "https://theequestrian.com.au/privacy-policy",
+          "pageType": "Policy (privacy)",
+          "message": "No JSON-LD blocks found in rendered HTML."
+        },
+        {
+          "severity": "low",
+          "url": "https://theequestrian.com.au/privacy-policy",
+          "pageType": "Policy (privacy)",
+          "message": "Missing required type: WebPage"
+        }
+      ]
+    },
+    {
+      "url": "https://theequestrian.com.au/terms-of-service",
+      "pageType": "Policy (terms)",
+      "schemaTypes": [],
+      "issues": [
+        {
+          "severity": "low",
+          "url": "https://theequestrian.com.au/terms-of-service",
+          "pageType": "Policy (terms)",
+          "message": "No JSON-LD blocks found in rendered HTML."
+        },
+        {
+          "severity": "low",
+          "url": "https://theequestrian.com.au/terms-of-service",
+          "pageType": "Policy (terms)",
+          "message": "Missing required type: WebPage"
+        }
+      ]
+    },
+    {
+      "url": "https://theequestrian.com.au/shipping-delivery",
+      "pageType": "Policy (shipping)",
+      "schemaTypes": [],
+      "issues": [
+        {
+          "severity": "low",
+          "url": "https://theequestrian.com.au/shipping-delivery",
+          "pageType": "Policy (shipping)",
+          "message": "No JSON-LD blocks found in rendered HTML."
+        },
+        {
+          "severity": "low",
+          "url": "https://theequestrian.com.au/shipping-delivery",
+          "pageType": "Policy (shipping)",
+          "message": "Missing required type: WebPage"
+        }
+      ]
+    },
+    {
+      "url": "https://theequestrian.com.au/returns-refunds",
+      "pageType": "Policy (returns)",
+      "schemaTypes": [],
+      "issues": [
+        {
+          "severity": "low",
+          "url": "https://theequestrian.com.au/returns-refunds",
+          "pageType": "Policy (returns)",
+          "message": "No JSON-LD blocks found in rendered HTML."
+        },
+        {
+          "severity": "low",
+          "url": "https://theequestrian.com.au/returns-refunds",
+          "pageType": "Policy (returns)",
+          "message": "Missing required type: WebPage"
+        }
+      ]
+    }
+  ],
+  "issues": [
+    {
+      "severity": "high",
+      "url": "https://theequestrian.com.au/faq",
+      "pageType": "FAQ",
+      "message": "No JSON-LD blocks found in rendered HTML."
+    },
+    {
+      "severity": "high",
+      "url": "https://theequestrian.com.au/faq",
+      "pageType": "FAQ",
+      "message": "Missing required type: FAQPage"
+    },
+    {
+      "severity": "medium",
+      "url": "https://theequestrian.com.au/about",
+      "pageType": "About",
+      "message": "No JSON-LD blocks found in rendered HTML."
+    },
+    {
+      "severity": "medium",
+      "url": "https://theequestrian.com.au/about",
+      "pageType": "About",
+      "message": "Missing required type: AboutPage"
+    },
+    {
+      "severity": "medium",
+      "url": "https://theequestrian.com.au/about",
+      "pageType": "About",
+      "message": "Missing required type: Organization"
+    },
+    {
+      "severity": "medium",
+      "url": "https://theequestrian.com.au/contact",
+      "pageType": "Contact",
+      "message": "No JSON-LD blocks found in rendered HTML."
+    },
+    {
+      "severity": "medium",
+      "url": "https://theequestrian.com.au/contact",
+      "pageType": "Contact",
+      "message": "Missing required type: ContactPage"
+    },
+    {
+      "severity": "medium",
+      "url": "https://theequestrian.com.au/contact",
+      "pageType": "Contact",
+      "message": "Missing required type: Organization"
+    },
+    {
+      "severity": "medium",
+      "url": "https://theequestrian.com.au/news",
+      "pageType": "News Index",
+      "message": "No JSON-LD blocks found in rendered HTML."
+    },
+    {
+      "severity": "medium",
+      "url": "https://theequestrian.com.au/news",
+      "pageType": "News Index",
+      "message": "Missing required type: Blog"
+    },
+    {
+      "severity": "medium",
+      "url": "https://theequestrian.com.au/news",
+      "pageType": "News Index",
+      "message": "Missing required type: CollectionPage"
+    },
+    {
+      "severity": "low",
+      "url": "https://theequestrian.com.au/privacy-policy",
+      "pageType": "Policy (privacy)",
+      "message": "No JSON-LD blocks found in rendered HTML."
+    },
+    {
+      "severity": "low",
+      "url": "https://theequestrian.com.au/privacy-policy",
+      "pageType": "Policy (privacy)",
+      "message": "Missing required type: WebPage"
+    },
+    {
+      "severity": "low",
+      "url": "https://theequestrian.com.au/terms-of-service",
+      "pageType": "Policy (terms)",
+      "message": "No JSON-LD blocks found in rendered HTML."
+    },
+    {
+      "severity": "low",
+      "url": "https://theequestrian.com.au/terms-of-service",
+      "pageType": "Policy (terms)",
+      "message": "Missing required type: WebPage"
+    },
+    {
+      "severity": "low",
+      "url": "https://theequestrian.com.au/shipping-delivery",
+      "pageType": "Policy (shipping)",
+      "message": "No JSON-LD blocks found in rendered HTML."
+    },
+    {
+      "severity": "low",
+      "url": "https://theequestrian.com.au/shipping-delivery",
+      "pageType": "Policy (shipping)",
+      "message": "Missing required type: WebPage"
+    },
+    {
+      "severity": "low",
+      "url": "https://theequestrian.com.au/returns-refunds",
+      "pageType": "Policy (returns)",
+      "message": "No JSON-LD blocks found in rendered HTML."
+    },
+    {
+      "severity": "low",
+      "url": "https://theequestrian.com.au/returns-refunds",
+      "pageType": "Policy (returns)",
+      "message": "Missing required type: WebPage"
+    }
+  ]
+}

@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { getProductByHandle } from '@/lib/shopify/products';
 import { ReviewForm } from '@/components/reviews/ReviewForm';
+import { generateSimplePageSchema } from '@/lib/utils/site-schema';
 
 export const metadata = {
   title: 'Write a Review | The Equestrian',
@@ -127,23 +128,35 @@ export default function ReviewPage({
 }: {
   searchParams: Promise<{ product?: string; order?: string }>;
 }) {
+  const schema = generateSimplePageSchema(
+    '/review',
+    'Write a Review | The Equestrian',
+    'Share your experience with products purchased from The Equestrian.'
+  );
+
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-gray-50 py-12">
-          <div className="max-w-2xl mx-auto px-4">
-            <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
-              <div className="animate-pulse">
-                <div className="h-8 bg-gray-200 rounded w-1/2 mx-auto mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto"></div>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
+      <Suspense
+        fallback={
+          <div className="min-h-screen bg-gray-50 py-12">
+            <div className="max-w-2xl mx-auto px-4">
+              <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
+                <div className="animate-pulse">
+                  <div className="h-8 bg-gray-200 rounded w-1/2 mx-auto mb-4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto"></div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      }
-    >
-      <ReviewPageContent searchParams={searchParams} />
-    </Suspense>
+        }
+      >
+        <ReviewPageContent searchParams={searchParams} />
+      </Suspense>
+    </>
   );
 }
 

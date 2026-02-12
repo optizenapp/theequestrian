@@ -6,6 +6,7 @@ import { ProductBuyBox } from '@/components/product/ProductBuyBox';
 import { ProductDescription } from '@/components/product/ProductDescription';
 import { RelatedProducts } from '@/components/product/RelatedProducts';
 import { generateBreadcrumbSchema } from '@/lib/utils/breadcrumb-schema';
+import { generateProductSchemaGraph } from '@/lib/utils/product-schema';
 import { getBreadcrumbsForProduct } from '@/lib/mapping/collection-mapping';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
@@ -17,6 +18,7 @@ import { getReviewStatsWithCache } from '@/lib/reviews/get-review-stats';
 import { cache } from 'react';
 
 export const revalidate = 300;
+export const dynamic = 'force-static';
 
 interface ProductCatchAllPageProps {
   params: Promise<{
@@ -135,6 +137,14 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
         average_rating: reviewStats.averageRating,
       }
     : null;
+  const primaryBreadcrumb = Array.isArray(breadcrumbSchemas) ? breadcrumbSchemas[0] : breadcrumbSchemas;
+  const schemaGraph = generateProductSchemaGraph(
+    { ...product, title: displayTitle },
+    canonicalUrl,
+    primaryBreadcrumb,
+    siteUrl,
+    reviewStats
+  );
 
   // Fetch related products and review stats (server-side batch)
   const relatedProducts = await getRecommendedProducts(4, product.productType, product.handle);
@@ -143,21 +153,21 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
   return (
     <>
       <div className="bg-background min-h-screen pb-20">
-        {/* Breadcrumb Schema */}
-        {Array.isArray(breadcrumbSchemas) ? (
-          breadcrumbSchemas.map((schema, index) => (
+        {/* Unified Schema Graph (BreadcrumbList + Product) */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaGraph) }}
+        />
+
+        {/* Additional breadcrumb paths (if product appears in multiple categories) */}
+        {Array.isArray(breadcrumbSchemas) &&
+          breadcrumbSchemas.slice(1).map((schema, index) => (
             <script
-              key={index}
+              key={`breadcrumb-alt-${index}`}
               type="application/ld+json"
               dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
             />
-          ))
-        ) : (
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchemas) }}
-          />
-        )}
+          ))}
 
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 pt-4">
         

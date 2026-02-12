@@ -1,6 +1,6 @@
 import { notFound, permanentRedirect, redirect } from 'next/navigation';
 import { Suspense } from 'react';
-import dynamic from 'next/dynamic';
+import dynamicImport from 'next/dynamic';
 import { getProductsByCategory, getProductByHandle, getProductCanonicalUrl, getRecommendedProducts, hasProductImage } from '@/lib/shopify/products';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
@@ -39,7 +39,7 @@ import { getProductOverrideByHandle, resolveProductHandleFromSlug } from '@/lib/
 import { cache } from 'react';
 
 // Lazy load heavy below-the-fold components to improve LCP
-const ProductReviewSection = dynamic(
+const ProductReviewSection = dynamicImport(
   () => import('@/components/reviews/ProductReviewSection'),
   {
     loading: () => <div className="h-96 bg-gray-50 animate-pulse rounded-lg" />,
@@ -48,6 +48,7 @@ const ProductReviewSection = dynamic(
 
 // ISR Configuration: Revalidate every 15 minutes
 export const revalidate = 900;
+export const dynamic = 'force-static';
 
 interface PageProps {
   params: Promise<{

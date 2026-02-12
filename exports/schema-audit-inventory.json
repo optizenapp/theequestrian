@@ -1,0 +1,491 @@
+{
+  "generatedAt": "2026-02-12T00:54:46.084Z",
+  "results": [
+    {
+      "contract": {
+        "id": "home",
+        "pageType": "Home",
+        "templatePath": "app/page.tsx",
+        "sampleUrls": [
+          "/"
+        ],
+        "requiredTypes": [
+          "OnlineStore",
+          "WebSite",
+          "WebPage"
+        ],
+        "recommendedTypes": [
+          "FAQPage"
+        ],
+        "missingSeverity": "high"
+      },
+      "hasJsonLdScript": true,
+      "missingRequired": [],
+      "missingRecommended": []
+    },
+    {
+      "contract": {
+        "id": "product-canonical",
+        "pageType": "Product (canonical)",
+        "templatePath": "app/products/[handle]/page.tsx",
+        "sampleUrls": [
+          "/products/sample-product"
+        ],
+        "requiredTypes": [
+          "Product",
+          "BreadcrumbList"
+        ],
+        "recommendedTypes": [
+          "AggregateRating",
+          "Offer",
+          "AggregateOffer"
+        ],
+        "missingSeverity": "critical"
+      },
+      "hasJsonLdScript": true,
+      "missingRequired": [],
+      "missingRecommended": []
+    },
+    {
+      "contract": {
+        "id": "product-catch-all",
+        "pageType": "Product (catch-all)",
+        "templatePath": "app/[...slug]/page.tsx",
+        "sampleUrls": [
+          "/horse/rugs/turnout/sample-product"
+        ],
+        "requiredTypes": [
+          "Product",
+          "BreadcrumbList"
+        ],
+        "recommendedTypes": [
+          "AggregateRating",
+          "Offer",
+          "AggregateOffer"
+        ],
+        "missingSeverity": "critical"
+      },
+      "hasJsonLdScript": true,
+      "missingRequired": [],
+      "missingRecommended": []
+    },
+    {
+      "contract": {
+        "id": "category-fallback-product",
+        "pageType": "Product (category fallback)",
+        "templatePath": "app/[category]/page.tsx",
+        "sampleUrls": [
+          "/sample-product"
+        ],
+        "requiredTypes": [
+          "Product"
+        ],
+        "recommendedTypes": [
+          "AggregateRating",
+          "Offer",
+          "AggregateOffer"
+        ],
+        "missingSeverity": "critical"
+      },
+      "hasJsonLdScript": true,
+      "missingRequired": [],
+      "missingRecommended": []
+    },
+    {
+      "contract": {
+        "id": "collection-category",
+        "pageType": "Collection (category)",
+        "templatePath": "app/[category]/page.tsx",
+        "sampleUrls": [
+          "/horse"
+        ],
+        "requiredTypes": [
+          "CollectionPage",
+          "ItemList",
+          "BreadcrumbList"
+        ],
+        "recommendedTypes": [
+          "FAQPage"
+        ],
+        "missingSeverity": "high"
+      },
+      "hasJsonLdScript": true,
+      "missingRequired": [],
+      "missingRecommended": [
+        "FAQPage"
+      ]
+    },
+    {
+      "contract": {
+        "id": "collection-subcategory",
+        "pageType": "Collection (subcategory)",
+        "templatePath": "app/[category]/[subcategory]/page.tsx",
+        "sampleUrls": [
+          "/horse/rugs"
+        ],
+        "requiredTypes": [
+          "CollectionPage",
+          "ItemList",
+          "BreadcrumbList"
+        ],
+        "recommendedTypes": [
+          "FAQPage"
+        ],
+        "missingSeverity": "high"
+      },
+      "hasJsonLdScript": true,
+      "missingRequired": [],
+      "missingRecommended": [
+        "FAQPage"
+      ]
+    },
+    {
+      "contract": {
+        "id": "collection-sub-subcategory-or-product",
+        "pageType": "Collection or Product (third level)",
+        "templatePath": "app/[category]/[subcategory]/[product]/page.tsx",
+        "sampleUrls": [
+          "/sample-third-level",
+          "/horse/rugs/turnout/sample-product"
+        ],
+        "requiredTypes": [
+          "BreadcrumbList"
+        ],
+        "recommendedTypes": [
+          "CollectionPage",
+          "ItemList",
+          "Product"
+        ],
+        "missingSeverity": "high"
+      },
+      "hasJsonLdScript": true,
+      "missingRequired": [],
+      "missingRecommended": []
+    },
+    {
+      "contract": {
+        "id": "sale-collection",
+        "pageType": "Collection (on-sale)",
+        "templatePath": "app/on-sale/page.tsx",
+        "sampleUrls": [
+          "/on-sale"
+        ],
+        "requiredTypes": [
+          "CollectionPage",
+          "ItemList",
+          "BreadcrumbList"
+        ],
+        "recommendedTypes": [],
+        "missingSeverity": "high"
+      },
+      "hasJsonLdScript": true,
+      "missingRequired": [],
+      "missingRecommended": []
+    },
+    {
+      "contract": {
+        "id": "brand-detail",
+        "pageType": "Brand Collection",
+        "templatePath": "app/brands/[handle]/page.tsx",
+        "sampleUrls": [
+          "/brands/sample-brand"
+        ],
+        "requiredTypes": [
+          "CollectionPage",
+          "ItemList",
+          "BreadcrumbList"
+        ],
+        "recommendedTypes": [],
+        "missingSeverity": "medium"
+      },
+      "hasJsonLdScript": true,
+      "missingRequired": [],
+      "missingRecommended": []
+    },
+    {
+      "contract": {
+        "id": "brand-index",
+        "pageType": "Brand Index",
+        "templatePath": "app/brands/page.tsx",
+        "sampleUrls": [
+          "/brands"
+        ],
+        "requiredTypes": [
+          "CollectionPage",
+          "ItemList"
+        ],
+        "recommendedTypes": [
+          "Brand"
+        ],
+        "missingSeverity": "medium"
+      },
+      "hasJsonLdScript": true,
+      "missingRequired": [],
+      "missingRecommended": []
+    },
+    {
+      "contract": {
+        "id": "faq-page",
+        "pageType": "FAQ",
+        "templatePath": "app/faq/page.tsx",
+        "sampleUrls": [
+          "/faq"
+        ],
+        "requiredTypes": [
+          "FAQPage"
+        ],
+        "recommendedTypes": [
+          "WebPage"
+        ],
+        "missingSeverity": "high"
+      },
+      "hasJsonLdScript": true,
+      "missingRequired": [],
+      "missingRecommended": []
+    },
+    {
+      "contract": {
+        "id": "about-page",
+        "pageType": "About",
+        "templatePath": "app/about/page.tsx",
+        "sampleUrls": [
+          "/about"
+        ],
+        "requiredTypes": [
+          "AboutPage",
+          "Organization"
+        ],
+        "recommendedTypes": [
+          "LocalBusiness"
+        ],
+        "missingSeverity": "medium"
+      },
+      "hasJsonLdScript": true,
+      "missingRequired": [],
+      "missingRecommended": []
+    },
+    {
+      "contract": {
+        "id": "contact-page",
+        "pageType": "Contact",
+        "templatePath": "app/contact/page.tsx",
+        "sampleUrls": [
+          "/contact"
+        ],
+        "requiredTypes": [
+          "ContactPage",
+          "Organization"
+        ],
+        "recommendedTypes": [
+          "ContactPoint"
+        ],
+        "missingSeverity": "medium"
+      },
+      "hasJsonLdScript": true,
+      "missingRequired": [],
+      "missingRecommended": []
+    },
+    {
+      "contract": {
+        "id": "news-index",
+        "pageType": "News Index",
+        "templatePath": "app/news/page.tsx",
+        "sampleUrls": [
+          "/news"
+        ],
+        "requiredTypes": [
+          "Blog",
+          "CollectionPage"
+        ],
+        "recommendedTypes": [
+          "BlogPosting"
+        ],
+        "missingSeverity": "medium"
+      },
+      "hasJsonLdScript": true,
+      "missingRequired": [],
+      "missingRecommended": []
+    },
+    {
+      "contract": {
+        "id": "news-article",
+        "pageType": "News Article",
+        "templatePath": "app/news/[handle]/page.tsx",
+        "sampleUrls": [
+          "/news/sample-article"
+        ],
+        "requiredTypes": [
+          "BlogPosting"
+        ],
+        "recommendedTypes": [
+          "Person"
+        ],
+        "missingSeverity": "medium"
+      },
+      "hasJsonLdScript": true,
+      "missingRequired": [],
+      "missingRecommended": []
+    },
+    {
+      "contract": {
+        "id": "news-author",
+        "pageType": "News Author",
+        "templatePath": "app/news/author/[slug]/page.tsx",
+        "sampleUrls": [
+          "/news/author/sample-author"
+        ],
+        "requiredTypes": [
+          "ProfilePage",
+          "Person"
+        ],
+        "recommendedTypes": [
+          "ItemList"
+        ],
+        "missingSeverity": "medium"
+      },
+      "hasJsonLdScript": true,
+      "missingRequired": [],
+      "missingRecommended": []
+    },
+    {
+      "contract": {
+        "id": "privacy-policy",
+        "pageType": "Policy (privacy)",
+        "templatePath": "app/privacy-policy/page.tsx",
+        "sampleUrls": [
+          "/privacy-policy"
+        ],
+        "requiredTypes": [
+          "WebPage"
+        ],
+        "recommendedTypes": [
+          "Organization"
+        ],
+        "missingSeverity": "low"
+      },
+      "hasJsonLdScript": true,
+      "missingRequired": [],
+      "missingRecommended": []
+    },
+    {
+      "contract": {
+        "id": "terms-policy",
+        "pageType": "Policy (terms)",
+        "templatePath": "app/terms-of-service/page.tsx",
+        "sampleUrls": [
+          "/terms-of-service"
+        ],
+        "requiredTypes": [
+          "WebPage"
+        ],
+        "recommendedTypes": [
+          "Organization"
+        ],
+        "missingSeverity": "low"
+      },
+      "hasJsonLdScript": true,
+      "missingRequired": [],
+      "missingRecommended": []
+    },
+    {
+      "contract": {
+        "id": "shipping-policy",
+        "pageType": "Policy (shipping)",
+        "templatePath": "app/shipping-delivery/page.tsx",
+        "sampleUrls": [
+          "/shipping-delivery"
+        ],
+        "requiredTypes": [
+          "WebPage"
+        ],
+        "recommendedTypes": [
+          "Organization"
+        ],
+        "missingSeverity": "low"
+      },
+      "hasJsonLdScript": true,
+      "missingRequired": [],
+      "missingRecommended": []
+    },
+    {
+      "contract": {
+        "id": "returns-policy",
+        "pageType": "Policy (returns)",
+        "templatePath": "app/returns-refunds/page.tsx",
+        "sampleUrls": [
+          "/returns-refunds"
+        ],
+        "requiredTypes": [
+          "WebPage"
+        ],
+        "recommendedTypes": [
+          "Organization"
+        ],
+        "missingSeverity": "low"
+      },
+      "hasJsonLdScript": true,
+      "missingRequired": [],
+      "missingRecommended": []
+    },
+    {
+      "contract": {
+        "id": "search-page",
+        "pageType": "Search",
+        "templatePath": "app/search/page.tsx",
+        "sampleUrls": [
+          "/search"
+        ],
+        "requiredTypes": [
+          "SearchResultsPage"
+        ],
+        "recommendedTypes": [
+          "SearchAction"
+        ],
+        "missingSeverity": "low"
+      },
+      "hasJsonLdScript": true,
+      "missingRequired": [],
+      "missingRecommended": []
+    },
+    {
+      "contract": {
+        "id": "reviews-page",
+        "pageType": "Reviews",
+        "templatePath": "app/reviews/page.tsx",
+        "sampleUrls": [
+          "/reviews"
+        ],
+        "requiredTypes": [
+          "WebPage"
+        ],
+        "recommendedTypes": [
+          "Organization"
+        ],
+        "missingSeverity": "low"
+      },
+      "hasJsonLdScript": true,
+      "missingRequired": [],
+      "missingRecommended": []
+    },
+    {
+      "contract": {
+        "id": "review-page",
+        "pageType": "Write Review",
+        "templatePath": "app/review/page.tsx",
+        "sampleUrls": [
+          "/review"
+        ],
+        "requiredTypes": [
+          "WebPage"
+        ],
+        "recommendedTypes": [
+          "Organization"
+        ],
+        "missingSeverity": "low"
+      },
+      "hasJsonLdScript": true,
+      "missingRequired": [],
+      "missingRecommended": []
+    }
+  ]
+}

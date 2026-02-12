@@ -18,6 +18,7 @@ import { getProductOverrideByHandle, resolveProductHandleFromSlug } from '@/lib/
 import { cache } from 'react';
 
 export const revalidate = 300;
+export const dynamic = 'force-static';
 
 interface ProductPageProps {
   params: Promise<{

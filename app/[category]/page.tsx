@@ -1,11 +1,12 @@
 import { notFound, permanentRedirect, redirect } from 'next/navigation';
 import { Suspense } from 'react';
-import dynamic from 'next/dynamic';
+import dynamicImport from 'next/dynamic';
 import { getProductsByCategory } from '@/lib/shopify/products';
 import { getProductByHandle, getProductCanonicalUrl, getProductCanonicalUrls, hasProductImage } from '@/lib/shopify/products';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { getCategoryContent } from '@/lib/content/collections';
 import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
+import { generateProductSchema } from '@/lib/utils/product-schema';
 import { 
   getSubcategoriesForCollection as getMappingSubcategories,
   getCollectionTitle,
@@ -19,30 +20,31 @@ import { CollectionBreadcrumbs } from '@/components/CollectionBreadcrumbs';
 import Image from 'next/image';
 import type { Metadata } from 'next';
 import { getManualRedirect } from '@/lib/redirects/manual';
+import { getReviewStatsWithCache } from '@/lib/reviews/get-review-stats';
 
 // Lazy load below-the-fold components for better Speed Index
-const ProductGridWithFilters = dynamic(
+const ProductGridWithFilters = dynamicImport(
   () => import('@/components/filters/ProductGridWithFilters').then((mod) => ({ default: mod.ProductGridWithFilters })),
   {
     loading: () => <div className="text-center py-12 min-h-[400px] bg-gray-50 animate-pulse rounded-lg">Loading products...</div>,
   }
 );
 
-const FAQSection = dynamic(
+const FAQSection = dynamicImport(
   () => import('@/components/collection/FAQSection').then((mod) => ({ default: mod.FAQSection })),
   {
     loading: () => <div className="h-64 bg-gray-50 animate-pulse rounded-lg" />,
   }
 );
 
-const RelatedCategories = dynamic(
+const RelatedCategories = dynamicImport(
   () => import('@/components/collection/RelatedCategories').then((mod) => ({ default: mod.RelatedCategories })),
   {
     loading: () => <div className="h-48 bg-gray-50 animate-pulse rounded-lg" />,
   }
 );
 
-const RichContent = dynamic(
+const RichContent = dynamicImport(
   () => import('@/components/collection/RichContent').then((mod) => ({ default: mod.RichContent })),
   {
     loading: () => <div className="h-64 bg-gray-50 animate-pulse rounded-lg" />,
@@ -51,6 +53,7 @@ const RichContent = dynamic(
 
 // ISR Configuration: Revalidate every 15 minutes
 export const revalidate = 900;
+export const dynamic = 'force-static';
 
 interface CategoryPageProps {
   params: Promise<{
@@ -111,89 +114,99 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
       redirect(canonicalUrl);
     }
 
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
+    const reviewStats = await getReviewStatsWithCache(product.handle);
+    const productSchema = generateProductSchema(product, canonicalUrl, siteUrl, reviewStats);
+
     // Render fallback product page
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Product Images */}
-            <div>
-              {product.images.edges.length > 0 && (
-                <div className="relative aspect-square w-full rounded-lg overflow-hidden">
-                  <Image
-                    src={product.images.edges[0].node.url}
-                    alt={product.images.edges[0].node.altText || product.title}
-                    fill
-                    className="object-contain"
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Product Details */}
-            <div>
-              <h1 className="text-3xl font-bold mb-4">{product.title}</h1>
-              
-              <div className="text-2xl font-semibold mb-6">
-                {product.priceRange.minVariantPrice.currencyCode}{' '}
-                {product.priceRange.minVariantPrice.amount}
+      <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+        />
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Product Images */}
+              <div>
+                {product.images.edges.length > 0 && (
+                  <div className="relative aspect-square w-full rounded-lg overflow-hidden">
+                    <Image
+                      src={product.images.edges[0].node.url}
+                      alt={product.images.edges[0].node.altText || product.title}
+                      fill
+                      className="object-contain"
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                    />
+                  </div>
+                )}
               </div>
 
-              <div 
-                className="prose mb-6"
-                dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
-              />
+              {/* Product Details */}
+              <div>
+                <h1 className="text-3xl font-bold mb-4">{product.title}</h1>
 
-              {/* Variants */}
-              {product.variants.edges.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="font-semibold mb-2">Options:</h3>
-                  <div className="space-y-2">
-                    {product.variants.edges.map(({ node: variant }) => (
-                      <div key={variant.id} className="flex items-center gap-2">
-                        <span>{variant.title}</span>
-                        <span className="text-gray-600">
-                          - {variant.price.currencyCode} {variant.price.amount}
-                        </span>
-                        {!variant.availableForSale && (
-                          <span className="text-red-500 text-sm">(Out of stock)</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                <div className="text-2xl font-semibold mb-6">
+                  {product.priceRange.minVariantPrice.currencyCode}{' '}
+                  {product.priceRange.minVariantPrice.amount}
                 </div>
-              )}
 
-              {/* Collections */}
-              {product.collections.edges.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="font-semibold mb-2">Categories:</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {product.collections.edges.map(({ node: collection }) => (
-                      <a
-                        key={collection.id}
-                        href={`/${collection.handle}`}
-                        className="px-3 py-1 bg-gray-100 rounded-full text-sm hover:bg-gray-200"
-                      >
-                        {collection.title}
-                      </a>
-                    ))}
+                <div
+                  className="prose mb-6"
+                  dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
+                />
+
+                {/* Variants */}
+                {product.variants.edges.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="font-semibold mb-2">Options:</h3>
+                    <div className="space-y-2">
+                      {product.variants.edges.map(({ node: variant }) => (
+                        <div key={variant.id} className="flex items-center gap-2">
+                          <span>{variant.title}</span>
+                          <span className="text-gray-600">
+                            - {variant.price.currencyCode} {variant.price.amount}
+                          </span>
+                          {!variant.availableForSale && (
+                            <span className="text-red-500 text-sm">(Out of stock)</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Add to Cart Button */}
-              <button
-                className="w-full bg-black text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition-colors disabled:bg-gray-300"
-                disabled={!product.availableForSale}
-              >
-                {product.availableForSale ? 'Add to Cart' : 'Out of Stock'}
-              </button>
+                {/* Collections */}
+                {product.collections.edges.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="font-semibold mb-2">Categories:</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {product.collections.edges.map(({ node: collection }) => (
+                        <a
+                          key={collection.id}
+                          href={`/${collection.handle}`}
+                          className="px-3 py-1 bg-gray-100 rounded-full text-sm hover:bg-gray-200"
+                        >
+                          {collection.title}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Add to Cart Button */}
+                <button
+                  className="w-full bg-black text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition-colors disabled:bg-gray-300"
+                  disabled={!product.availableForSale}
+                >
+                  {product.availableForSale ? 'Add to Cart' : 'Out of Stock'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </>
     );
   }
 

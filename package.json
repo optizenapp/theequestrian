@@ -91,7 +91,11 @@
     "brands:migrate-db": "tsx scripts/migrate-brands-to-db.ts",
     "verify:redirects": "tsx scripts/verify-redirect-coverage.ts",
     "test:empty-categories": "tsx scripts/test-empty-category-behavior.ts",
-    "migrate:mega-menu": "tsx scripts/migrate-mega-menu-to-db.ts"
+    "migrate:mega-menu": "tsx scripts/migrate-mega-menu-to-db.ts",
+    "schema:audit:inventory": "tsx scripts/schema-audit-inventory.ts",
+    "schema:validate:contracts": "tsx scripts/schema-validate-contracts.ts",
+    "schema:audit:urls": "tsx scripts/schema-audit-url-samples.ts",
+    "schema:ci": "npm run schema:validate:contracts && npm run schema:audit:inventory"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.73.0",

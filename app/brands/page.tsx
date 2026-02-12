@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { getAllPublishedBrandContent } from '@/lib/content/brand-content';
 import type { Metadata } from 'next';
+import { generateBrandIndexSchema } from '@/lib/utils/site-schema';
 
 export const metadata: Metadata = {
   title: 'Brands | The Equestrian',
@@ -15,6 +16,15 @@ export const metadata: Metadata = {
 
 export default async function BrandsIndexPage() {
   const brands = await getAllPublishedBrandContent();
+  const schema = generateBrandIndexSchema(
+    '/brands',
+    'Brands | The Equestrian',
+    'Shop top equestrian brands including Equipe, Pikeur, Ariat and more.',
+    brands.map((brand) => ({
+      name: brand.title,
+      handle: brand.handle,
+    }))
+  );
 
   // Group brands by first letter for easier navigation
   const groupedBrands = brands.reduce((acc, brand) => {
@@ -30,6 +40,10 @@ export default async function BrandsIndexPage() {
 
   return (
     <div className="bg-gray-50 min-h-screen pb-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
       {/* Hero Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 py-12">

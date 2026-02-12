@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { PolicyLayout } from '@/components/policy/PolicyLayout';
+import { generatePolicyPageSchema } from '@/lib/utils/site-schema';
 
 export const metadata: Metadata = {
   title: 'Postage & Delivery | The Equestrian',
@@ -7,9 +8,20 @@ export const metadata: Metadata = {
 };
 
 export default function ShippingDeliveryPage() {
+  const schema = generatePolicyPageSchema({
+    path: '/shipping-delivery',
+    title: 'Postage & Delivery | The Equestrian',
+    description: 'Postage, delivery times, tracking, click & collect, and multi-vendor shipping details.',
+  });
+
   return (
-    <PolicyLayout title="Postage & Delivery">
-      <div className="space-y-6 text-gray-700">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
+      <PolicyLayout title="Postage & Delivery">
+        <div className="space-y-6 text-gray-700">
         <p>
           We use Australia Post for postage Australia wide. If ordered before 12pm on a business day, it's likely to be
           shipped same day. Otherwise generally the next day. As we ship from various warehouses around Australia to
@@ -55,8 +67,9 @@ export default function ShippingDeliveryPage() {
           seller and purchaser. Private seller transactions are not possible within The Equestrian site. Payment
           between private sellers and purchasers is to be made with alternative arrangements.
         </p>
-      </div>
-    </PolicyLayout>
+        </div>
+      </PolicyLayout>
+    </>
   );
 }
 
