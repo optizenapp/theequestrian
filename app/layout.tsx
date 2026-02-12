@@ -28,8 +28,8 @@ const manrope = Manrope({
 const gaMeasurementId = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID;
 
 export const metadata: Metadata = {
-  title: 'The Equestrian - Premium Equestrian Equipment',
-  description: 'Everything you need for horse and rider. World-leading brands at competitive prices.',
+  title: 'Australian Equestrian Marketplace - Gear, Taks, Clothing | Horse, Rider, Pet',
+  description: 'Checkout our range of over 10,000 horse and rider products. FREE SHIPPING site wide. Global Brands',
   icons: {
     icon: [
       { url: '/favicon.ico' },
