@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { StatCard } from '@/components/admin/StatCard';
+import { RedirectSuggestionTool } from '@/components/admin/RedirectSuggestionTool';
 
 interface RollupRow {
   path: string;
@@ -36,6 +37,15 @@ interface NotFoundData {
   }>;
 }
 
+const emptyNotFoundData: NotFoundData = {
+  rollupTotal: 0,
+  rollupHits: 0,
+  rollup: [],
+  internalDaily: [],
+  ga4Total: 0,
+  ga4Rows: [],
+};
+
 interface ManualRedirect {
   id: number;
   from_path: string;
@@ -57,7 +67,7 @@ export default function AdminNotFoundPage() {
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [conflicts, setConflicts] = useState<ManualRedirect[]>([]);
   const [attempting, setAttempting] = useState<Record<string, boolean>>({});
-  const [activeTab, setActiveTab] = useState<'internal' | 'redirects' | 'ga4'>('internal');
+  const [activeTab, setActiveTab] = useState<'internal' | 'redirects' | 'ga4' | 'suggestions'>('internal');
   const [internalPage, setInternalPage] = useState(1);
   const [redirectsPage, setRedirectsPage] = useState(1);
   const [ga4Page, setGa4Page] = useState(1);
@@ -97,11 +107,27 @@ export default function AdminNotFoundPage() {
 
   const fetchData = async () => {
     setIsLoading(true);
-    const res = await fetch('/api/admin/404');
-    const payload = await res.json();
-    setData(payload);
-    setIsLoading(false);
-    setInternalPage(1);
+    try {
+      const res = await fetch('/api/admin/404');
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setData(emptyNotFoundData);
+      } else {
+        setData({
+          rollupTotal: Number(payload?.rollupTotal || 0),
+          rollupHits: Number(payload?.rollupHits || 0),
+          rollup: Array.isArray(payload?.rollup) ? payload.rollup : [],
+          internalDaily: Array.isArray(payload?.internalDaily) ? payload.internalDaily : [],
+          ga4Total: Number(payload?.ga4Total || 0),
+          ga4Rows: Array.isArray(payload?.ga4Rows) ? payload.ga4Rows : [],
+        });
+      }
+      setInternalPage(1);
+    } catch {
+      setData(emptyNotFoundData);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const fetchRedirects = async (source?: string) => {
@@ -487,6 +513,17 @@ export default function AdminNotFoundPage() {
                 }`}
               >
                 GA4 404s
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('suggestions')}
+                className={`rounded-full px-4 py-2 text-xs font-semibold ${
+                  activeTab === 'suggestions'
+                    ? 'bg-action text-white'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                404 redirect suggestion tool
               </button>
             </div>
 
@@ -1161,6 +1198,8 @@ export default function AdminNotFoundPage() {
                 </div>
               </div>
             ) : null}
+
+            {activeTab === 'suggestions' ? <RedirectSuggestionTool /> : null}
           </div>
         </>
       )}

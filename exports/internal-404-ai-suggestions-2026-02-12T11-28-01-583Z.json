@@ -1,0 +1,49 @@
+{
+  "generatedAt": "2026-02-12T11:28:14.035Z",
+  "inputCsvPath": "/Users/jonosmmachine/Documents/Cursor/theequestrian/exports/internal-404-audit-2026-02-12T06-39-04-178Z.csv",
+  "baseUrl": "https://www.theequestrian.com.au",
+  "model": "gpt-4o",
+  "totalSuggestions": 2,
+  "exportedRedirectRows": 2,
+  "minConfidence": 0,
+  "suggestions": [
+    {
+      "from": "/products",
+      "suggestedTo": "/horse/grooming/products",
+      "confidence": 90,
+      "method": "ai",
+      "reasoning": "The broken URL '/products' suggests a general product category, and '/horse/grooming/products' closely matches this with a specific product category, making it a relevant redirect.",
+      "alternatives": [
+        "/"
+      ],
+      "sourcePath": "/",
+      "brokenStatus": 404,
+      "candidateCount": 2,
+      "candidateSample": [
+        "/horse/grooming/products",
+        "/"
+      ]
+    },
+    {
+      "from": "/accessories/brands",
+      "suggestedTo": "/accessories/brands/horseware",
+      "confidence": 85,
+      "method": "ai",
+      "reasoning": "The broken URL suggests a focus on 'brands' within 'accessories', and the candidate target '/accessories/brands/horseware' closely matches this context by being a subcategory under accessories specifically for brands.",
+      "alternatives": [
+        "/brands/hitchley-harrow",
+        "/brands/visentin",
+        "/"
+      ],
+      "sourcePath": "/accessories",
+      "brokenStatus": 404,
+      "candidateCount": 4,
+      "candidateSample": [
+        "/accessories/brands/horseware",
+        "/brands/hitchley-harrow",
+        "/brands/visentin",
+        "/"
+      ]
+    }
+  ]
+}

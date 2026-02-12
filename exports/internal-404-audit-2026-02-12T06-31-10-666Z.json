@@ -1,0 +1,15 @@
+{
+  "baseUrl": "http://localhost:3003",
+  "startPath": "/",
+  "visitedPages": 1,
+  "checkedLinks": 0,
+  "brokenCount": 1,
+  "generatedAt": "2026-02-12T06:31:22.088Z",
+  "brokenLinks": [
+    {
+      "source": "seed",
+      "target": "http://localhost:3003/",
+      "status": 0
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+"source","target","status"
+"http://localhost:3003/","http://localhost:3003/products","404"
+"http://localhost:3003/accessories","http://localhost:3003/accessories/brands","404"

@@ -46,6 +46,21 @@ const ensureGa4RollupTable = async () => {
   `;
 };
 
+const parseServiceAccountCredentials = (rawValue: string) => {
+  const trimmed = rawValue.trim();
+  if (!trimmed) {
+    throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY is empty');
+  }
+
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    // Common env format stores newlines as escaped "\\n"
+    const normalized = trimmed.replace(/\\n/g, '\n');
+    return JSON.parse(normalized);
+  }
+};
+
 export async function GET(request: Request) {
   try {
     const today = new Date();
@@ -107,94 +122,98 @@ export async function GET(request: Request) {
     const serviceAccountKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
 
     if (propertyId && serviceAccountKey) {
-      const client = new BetaAnalyticsDataClient({
-        credentials: JSON.parse(serviceAccountKey),
-      });
-      const property = `properties/${propertyId}`;
-      const [ga4Report] = await client.runReport({
-        property,
-        dateRanges: [dateRange],
-        dimensions: [{ name: 'pagePath' }, { name: 'pageTitle' }],
-        metrics: [{ name: 'screenPageViews' }, { name: 'totalUsers' }],
-        dimensionFilter: {
-          orGroup: {
-            expressions: [
-              {
-                filter: {
-                  fieldName: 'pageTitle',
-                  stringFilter: { value: '404', matchType: 'CONTAINS' },
+      try {
+        const client = new BetaAnalyticsDataClient({
+          credentials: parseServiceAccountCredentials(serviceAccountKey),
+        });
+        const property = `properties/${propertyId}`;
+        const [ga4Report] = await client.runReport({
+          property,
+          dateRanges: [dateRange],
+          dimensions: [{ name: 'pagePath' }, { name: 'pageTitle' }],
+          metrics: [{ name: 'screenPageViews' }, { name: 'totalUsers' }],
+          dimensionFilter: {
+            orGroup: {
+              expressions: [
+                {
+                  filter: {
+                    fieldName: 'pageTitle',
+                    stringFilter: { value: '404', matchType: 'CONTAINS' },
+                  },
                 },
-              },
-              {
-                filter: {
-                  fieldName: 'pageTitle',
-                  stringFilter: { value: 'Not Found', matchType: 'CONTAINS' },
+                {
+                  filter: {
+                    fieldName: 'pageTitle',
+                    stringFilter: { value: 'Not Found', matchType: 'CONTAINS' },
+                  },
                 },
-              },
-              {
-                filter: {
-                  fieldName: 'pagePath',
-                  stringFilter: { value: '/404', matchType: 'CONTAINS' },
+                {
+                  filter: {
+                    fieldName: 'pagePath',
+                    stringFilter: { value: '/404', matchType: 'CONTAINS' },
+                  },
                 },
-              },
-            ],
+              ],
+            },
           },
-        },
-        orderBys: [
-          {
-            metric: { metricName: 'screenPageViews' },
-            desc: true,
-          },
-        ],
-        limit: 50,
-      });
+          orderBys: [
+            {
+              metric: { metricName: 'screenPageViews' },
+              desc: true,
+            },
+          ],
+          limit: 50,
+        });
 
-      const ga4Top =
-        ga4Report.rows?.map((row) => {
-          const path = row.dimensionValues?.[0]?.value || '/';
-          const views = Number(row.metricValues?.[0]?.value || 0);
-          const users = Number(row.metricValues?.[1]?.value || 0);
-          return { path, views, users };
-        }) ?? [];
-      ga4Total = ga4Top.reduce((sum, row) => sum + row.views, 0);
-      await Promise.all(
-        ga4Top.map((row) =>
-          upsertNotFoundRollup({
-            path: row.path,
-            referrer: 'ga4',
-            source: 'ga4',
-            hitIncrement: 0,
-            ga4Views: row.views,
-          })
-        )
-      );
-      await Promise.all(
-        ga4Top.map((row) =>
-          sql`
-            INSERT INTO ga4_404_rollup (
-              path,
-              views,
-              users,
-              first_seen,
-              last_seen,
-              updated_at
-            )
-            VALUES (
-              ${row.path},
-              ${row.views},
-              ${row.users},
-              NOW(),
-              NOW(),
-              NOW()
-            )
-            ON CONFLICT (path) DO UPDATE
-            SET views = EXCLUDED.views,
-                users = EXCLUDED.users,
-                last_seen = NOW(),
-                updated_at = NOW()
-          `
-        )
-      );
+        const ga4Top =
+          ga4Report.rows?.map((row) => {
+            const path = row.dimensionValues?.[0]?.value || '/';
+            const views = Number(row.metricValues?.[0]?.value || 0);
+            const users = Number(row.metricValues?.[1]?.value || 0);
+            return { path, views, users };
+          }) ?? [];
+        ga4Total = ga4Top.reduce((sum, row) => sum + row.views, 0);
+        await Promise.all(
+          ga4Top.map((row) =>
+            upsertNotFoundRollup({
+              path: row.path,
+              referrer: 'ga4',
+              source: 'ga4',
+              hitIncrement: 0,
+              ga4Views: row.views,
+            })
+          )
+        );
+        await Promise.all(
+          ga4Top.map((row) =>
+            sql`
+              INSERT INTO ga4_404_rollup (
+                path,
+                views,
+                users,
+                first_seen,
+                last_seen,
+                updated_at
+              )
+              VALUES (
+                ${row.path},
+                ${row.views},
+                ${row.users},
+                NOW(),
+                NOW(),
+                NOW()
+              )
+              ON CONFLICT (path) DO UPDATE
+              SET views = EXCLUDED.views,
+                  users = EXCLUDED.users,
+                  last_seen = NOW(),
+                  updated_at = NOW()
+            `
+          )
+        );
+      } catch (ga4Error) {
+        console.error('404 admin GA4 sync skipped:', ga4Error);
+      }
     }
 
     const ga4RollupTotals = await sql`

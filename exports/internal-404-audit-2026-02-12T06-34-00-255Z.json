@@ -1,0 +1,163 @@
+{
+  "baseUrl": "http://localhost:3003",
+  "startPath": "/",
+  "visitedPages": 10,
+  "checkedLinks": 346,
+  "brokenCount": 2,
+  "requestErrorsCount": 28,
+  "generatedAt": "2026-02-12T06:40:28.002Z",
+  "brokenLinks": [
+    {
+      "source": "http://localhost:3003/",
+      "target": "http://localhost:3003/products",
+      "status": 404
+    },
+    {
+      "source": "http://localhost:3003/accessories",
+      "target": "http://localhost:3003/accessories/brands",
+      "status": 404
+    }
+  ],
+  "requestErrors": [
+    {
+      "source": "http://localhost:3003/rider",
+      "target": "http://localhost:3003/rider/whips/whip-show-cane-woof-wear-black",
+      "error": "fetch failed"
+    },
+    {
+      "source": "http://localhost:3003/rider",
+      "target": "http://localhost:3003/rider/gloves/gloves-eurohunter-summer-mesh-black",
+      "error": "fetch failed"
+    },
+    {
+      "source": "http://localhost:3003/rider",
+      "target": "http://localhost:3003/rider/whips/whip-show-cane-woof-wear-chocolate",
+      "error": "fetch failed"
+    },
+    {
+      "source": "http://localhost:3003/rider",
+      "target": "http://localhost:3003/rider/gloves/gloves-eurohunter-summer-mesh-navy",
+      "error": "fetch failed"
+    },
+    {
+      "source": "http://localhost:3003/rider",
+      "target": "http://localhost:3003/rider/whips/whip-show-whip-woof-wear-chocolate",
+      "error": "fetch failed"
+    },
+    {
+      "source": "http://localhost:3003/rider",
+      "target": "http://localhost:3003/rider/helmets/helmet-eurohunter-cattai-glitter-crystal-black",
+      "error": "fetch failed"
+    },
+    {
+      "source": "http://localhost:3003/rider",
+      "target": "http://localhost:3003/rider/helmets/helmet-eurohunter-cattai-glitter-blue",
+      "error": "fetch failed"
+    },
+    {
+      "source": "http://localhost:3003/rider",
+      "target": "http://localhost:3003/rider/helmets/helmet-eurohunter-cattai-crossed-crystal-black",
+      "error": "fetch failed"
+    },
+    {
+      "source": "http://localhost:3003/rider",
+      "target": "http://localhost:3003/rider/body-protectors/body-protector-kd-ballistic-flex-fit",
+      "error": "fetch failed"
+    },
+    {
+      "source": "http://localhost:3003/rider",
+      "target": "http://localhost:3003/rider/body-protectors/body-protector-kd-ballistic-flex-fit-pro-junior",
+      "error": "fetch failed"
+    },
+    {
+      "source": "http://localhost:3003/rider",
+      "target": "http://localhost:3003/rider/helmets/eurohunter-cattai-glitter-helmet-blue",
+      "error": "fetch failed"
+    },
+    {
+      "source": "http://localhost:3003/rider",
+      "target": "http://localhost:3003/rider/helmets/eurohunter-cattai-crossed-crystal-helmet-black",
+      "error": "fetch failed"
+    },
+    {
+      "source": "http://localhost:3003/rider",
+      "target": "http://localhost:3003/rider/helmets/helmet-equinavia-crown-mips-black-gunmetal-grey",
+      "error": "fetch failed"
+    },
+    {
+      "source": "http://localhost:3003/rider",
+      "target": "http://localhost:3003/rider/jewellery/earrings/paw-print-stud-earrings",
+      "error": "fetch failed"
+    },
+    {
+      "source": "http://localhost:3003/rider",
+      "target": "http://localhost:3003/rider/jewellery/necklaces/mountain-creek-jewellery-stirling-silver-chain-with-horseshoe-pendant",
+      "error": "fetch failed"
+    },
+    {
+      "source": "http://localhost:3003/rider",
+      "target": "http://localhost:3003/rider/accessories/hatbands/leather-and-horsehair-inlaid-hatband-with-tassles-and-adjustable-waxed-cord-slider",
+      "error": "fetch failed"
+    },
+    {
+      "source": "http://localhost:3003/rider",
+      "target": "http://localhost:3003/rider/jewellery/earrings/mountain-creek-jewellery-freshwater-pink-pearl-stud-earrings",
+      "error": "fetch failed"
+    },
+    {
+      "source": "http://localhost:3003/rider",
+      "target": "http://localhost:3003/rider/helmets/helmet-equinavia-crown-crystal-mips-black",
+      "error": "fetch failed"
+    },
+    {
+      "source": "http://localhost:3003/rider",
+      "target": "http://localhost:3003/rider/gloves/eurohunter-summer-mesh-gloves",
+      "error": "fetch failed"
+    },
+    {
+      "source": "http://localhost:3003/rider",
+      "target": "http://localhost:3003/rider/helmets/helmet-equinavia-crown-mips-navy-gold",
+      "error": "fetch failed"
+    },
+    {
+      "source": "http://localhost:3003/rider",
+      "target": "http://localhost:3003/rider/helmets/helmet-kep-liner-oval",
+      "error": "fetch failed"
+    },
+    {
+      "source": "http://localhost:3003/rider",
+      "target": "http://localhost:3003/rider/helmets/helmet-equinavia-crown-mips-black",
+      "error": "fetch failed"
+    },
+    {
+      "source": "http://localhost:3003/rider",
+      "target": "http://localhost:3003/rider/giftware/breyer-xmas-2025-stablemates-lexington-racehorse-ornament",
+      "error": "fetch failed"
+    },
+    {
+      "source": "http://localhost:3003/rider",
+      "target": "http://localhost:3003/rider/helmets/accessories/cromo-2-0-metal-red-cross-visor",
+      "error": "fetch failed"
+    },
+    {
+      "source": "http://localhost:3003/rider",
+      "target": "http://localhost:3003/rider/helmets/inner-pad-for-cromo-2-0",
+      "error": "fetch failed"
+    },
+    {
+      "source": "http://localhost:3003/rider",
+      "target": "http://localhost:3003/rider/helmets/accessories/cromo-2-0-matt-black-polo-visor",
+      "error": "fetch failed"
+    },
+    {
+      "source": "http://localhost:3003/rider",
+      "target": "http://localhost:3003/clothing/womens",
+      "error": "fetch failed"
+    },
+    {
+      "source": "http://localhost:3003/rider",
+      "target": "http://localhost:3003/rider/helmets/helmet-oscar-swift-black",
+      "error": "fetch failed"
+    }
+  ]
+}

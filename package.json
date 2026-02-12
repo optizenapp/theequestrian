@@ -77,6 +77,8 @@
     "redirects:audit": "tsx scripts/audit-manual-redirects.ts",
     "404s:rollup": "tsx scripts/rollup-404s.ts",
     "404s:scan": "tsx scripts/scan-404s.ts",
+    "audit:404:internal": "tsx scripts/audit-internal-404s.ts",
+    "audit:404:suggest": "tsx scripts/ai-suggest-404-redirects.ts",
     "performance:init": "tsx scripts/init-performance-table.ts",
     "feed:export": "tsx scripts/export-gmc-feed.ts",
     "feed:upload": "tsx scripts/upload-gmc-feed.ts",

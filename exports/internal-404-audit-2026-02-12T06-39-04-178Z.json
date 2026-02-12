@@ -1,0 +1,107 @@
+{
+  "baseUrl": "http://localhost:3003",
+  "startPath": "/",
+  "visitedPages": 400,
+  "checkedLinks": 2718,
+  "brokenCount": 19,
+  "requestErrorsCount": 0,
+  "generatedAt": "2026-02-12T07:07:42.409Z",
+  "brokenLinks": [
+    {
+      "source": "http://localhost:3003/",
+      "target": "http://localhost:3003/products",
+      "status": 404
+    },
+    {
+      "source": "http://localhost:3003/accessories",
+      "target": "http://localhost:3003/accessories/brands",
+      "status": 404
+    },
+    {
+      "source": "http://localhost:3003/",
+      "target": "http://localhost:3003/products",
+      "status": 404
+    },
+    {
+      "source": "http://localhost:3003/horse/boots",
+      "target": "http://localhost:3003/horse/bandages",
+      "status": 404
+    },
+    {
+      "source": "http://localhost:3003/horse/halters",
+      "target": "http://localhost:3003/horse/halters/equestrian-australia-stallion-hamag%E2%84%A2-halter-disc-single-with-velcro-holder-1",
+      "status": 404
+    },
+    {
+      "source": "http://localhost:3003/horse/tack",
+      "target": "http://localhost:3003/horse/tack/number-holders/equestrian-australia-stallion-hamag%E2%84%A2-leather-halter-number-holders-pair",
+      "status": 404
+    },
+    {
+      "source": "http://localhost:3003/horse/tack",
+      "target": "http://localhost:3003/horse/tack/number-holders/equestrian-australia-stallion-hamag%E2%84%A2-leather-saddle-cloth-number-holders-pair-4-digit",
+      "status": 404
+    },
+    {
+      "source": "http://localhost:3003/horse/veterinary",
+      "target": "http://localhost:3003/horse/veterinary/white-healer%C2%AE",
+      "status": 404
+    },
+    {
+      "source": "http://localhost:3003/accessories",
+      "target": "http://localhost:3003/accessories/brands",
+      "status": 404
+    },
+    {
+      "source": "http://localhost:3003/brands/eac-animal-care",
+      "target": "http://localhost:3003/horse/veterinary/donation-product",
+      "status": 404
+    },
+    {
+      "source": "http://localhost:3003/brands/hitchley-harrow",
+      "target": "http://localhost:3003/rider/accessories/hw-picnic-mat-tropicana-2m-x-2m",
+      "status": 404
+    },
+    {
+      "source": "http://localhost:3003/brands/hitchley-harrow",
+      "target": "http://localhost:3003/accessories/gifts/hw-cabbage-bowl-small",
+      "status": 404
+    },
+    {
+      "source": "http://localhost:3003/brands/hitchley-harrow",
+      "target": "http://localhost:3003/accessories/gifts/christmas-tree",
+      "status": 404
+    },
+    {
+      "source": "http://localhost:3003/brands/hitchley-harrow",
+      "target": "http://localhost:3003/clothing/accessories/hats/hw-3x3-fr-horn-sunburst",
+      "status": 404
+    },
+    {
+      "source": "http://localhost:3003/brands/hitchley-harrow",
+      "target": "http://localhost:3003/accessories/gifts/2025-vip-gift",
+      "status": 404
+    },
+    {
+      "source": "http://localhost:3003/brands/hitchley-harrow",
+      "target": "http://localhost:3003/rider/luggage/bags/smoothie-cup-stainless-cobalt-check-500ml",
+      "status": 404
+    },
+    {
+      "source": "http://localhost:3003/brands/living-horse-tales-jewellery-by-monika",
+      "target": "http://localhost:3003/rider/accessories/hatbands/classic-adjustable-horsehair-hatband",
+      "status": 404
+    },
+    {
+      "source": "http://localhost:3003/brands/the-equestrian",
+      "target": "http://localhost:3003/horse/pads/jumping/animo-widos-jumping-saddle-pad",
+      "status": 404
+    },
+    {
+      "source": "http://localhost:3003/news/psyllium-husk-for-horses",
+      "target": "http://localhost:3003/Psyllium%20Husk",
+      "status": 404
+    }
+  ],
+  "requestErrors": []
+}
