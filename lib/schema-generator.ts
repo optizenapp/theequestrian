@@ -91,7 +91,7 @@ export function generateArticleSchema(article: ShopifyArticle) {
           : undefined,
         datePublished: article.publishedAt,
         dateModified: article.publishedAt,
-        wordCount,
+        wordCount: wordCount || undefined,
         inLanguage: 'en-AU',
         author: {
           '@type': 'Person',
@@ -105,15 +105,16 @@ export function generateArticleSchema(article: ShopifyArticle) {
         isPartOf: { '@id': `${siteUrl}/news#blog` },
         mainEntityOfPage: articleUrl,
         articleSection: articleSections.length > 0 ? articleSections : undefined,
-        keywords: keywords,
+        keywords: keywords || undefined,
         about: aboutEntities.length > 0 ? aboutEntities : undefined,
         citation: externalLinks.length > 0 ? externalLinks : undefined,
-        mentions: internalLinks.length > 0 
-          ? internalLinks.map((url) => ({
-              '@type': 'Thing',
-              url: url,
-            }))
-          : undefined,
+        mentions:
+          internalLinks.length > 0
+            ? internalLinks.map((url) => ({
+                '@type': 'Thing',
+                url,
+              }))
+            : undefined,
         speakable: {
           '@type': 'SpeakableSpecification',
           cssSelector: ['article h1', '.article-content h2'],
@@ -121,99 +122,6 @@ export function generateArticleSchema(article: ShopifyArticle) {
       },
     ],
   };
-
-  if (!(schema as any)['@graph'][1].image) {
-    delete (schema as any)['@graph'][1].image;
-  }
-
-  if (!(schema as any)['@graph'][1].wordCount) {
-    delete (schema as any)['@graph'][1].wordCount;
-  }
-
-  if (!(schema as any)['@graph'][1].mentions) {
-    delete (schema as any)['@graph'][1].mentions;
-  }
-
-  if (!(schema as any)['@graph'][1].citation) {
-    delete (schema as any)['@graph'][1].citation;
-  }
-
-  if (!(schema as any)['@graph'][1].about) {
-    delete (schema as any)['@graph'][1].about;
-  }
-
-  if (!(schema as any)['@graph'][1].articleSection) {
-    delete (schema as any)['@graph'][1].articleSection;
-  }
-
-  if (!(schema as any)['@graph'][1].keywords) {
-    delete (schema as any)['@graph'][1].keywords;
-  }
-
-  if (!(schema as any)['@graph'][1].speakable) {
-    delete (schema as any)['@graph'][1].speakable;
-  }
-
-  if (!(schema as any)['@graph'][1].description) {
-    delete (schema as any)['@graph'][1].description;
-  }
-
-  if (!(schema as any)['@graph'][1].dateModified) {
-    delete (schema as any)['@graph'][1].dateModified;
-  }
-
-  if (!(schema as any)['@graph'][1].datePublished) {
-    delete (schema as any)['@graph'][1].datePublished;
-  }
-
-  if (!(schema as any)['@graph'][1].headline) {
-    delete (schema as any)['@graph'][1].headline;
-  }
-
-  if (!(schema as any)['@graph'][1].mainEntityOfPage) {
-    delete (schema as any)['@graph'][1].mainEntityOfPage;
-  }
-
-  if (!(schema as any)['@graph'][1].author) {
-    delete (schema as any)['@graph'][1].author;
-  }
-
-  if (!(schema as any)['@graph'][1].publisher) {
-    delete (schema as any)['@graph'][1].publisher;
-  }
-
-  if (!(schema as any)['@graph'][1].isPartOf) {
-    delete (schema as any)['@graph'][1].isPartOf;
-  }
-
-  if (!(schema as any)['@graph'][1].inLanguage) {
-    delete (schema as any)['@graph'][1].inLanguage;
-  }
-
-  if (!(schema as any)['@graph'][1]['@id']) {
-    delete (schema as any)['@graph'][1]['@id'];
-  }
-
-  if (!(schema as any)['@graph'][1]['@type']) {
-    delete (schema as any)['@graph'][1]['@type'];
-  }
-
-  if (!(schema as any)['@graph'][0].itemListElement?.length) {
-    delete (schema as any)['@graph'][0];
-  }
-
-  if (!(schema as any)['@graph'][0]) {
-    (schema as any)['@graph'] = (schema as any)['@graph'].slice(1);
-  }
-
-  if (!(schema as any)['@graph']?.length) {
-    return {
-      '@context': 'https://schema.org',
-      '@type': 'BlogPosting',
-      headline: article.title,
-    },
-  };
-  }
 
   return JSON.parse(JSON.stringify(schema));
 }

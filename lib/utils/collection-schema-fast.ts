@@ -193,9 +193,16 @@ export function generateCollectionSchemaFast(params: CollectionSchemaFastParams)
       '@type': 'WebSite',
       '@id': `${siteUrl}#website`,
     },
-    about: {
-      '@id': `${siteUrl}#organization`,
-    },
+    about: [
+      {
+        '@id': `${siteUrl}#organization`,
+      },
+      {
+        '@type': 'Thing',
+        name: collectionName,
+        description: collectionDescription || `${collectionName} for equestrian use`,
+      },
+    ],
     inLanguage: 'en-AU',
     
     // Enhanced: Add additionalType for more specific classification
@@ -211,12 +218,6 @@ export function generateCollectionSchemaFast(params: CollectionSchemaFastParams)
     // Enhanced: Add keywords for better semantic understanding
     keywords: generateKeywords(collectionName, collectionUrl),
     
-    // Enhanced: Add about property for topical relevance
-    about: {
-      '@type': 'Thing',
-      name: collectionName,
-      description: collectionDescription || `${collectionName} for equestrian use`,
-    },
   };
 
   // Add optional fields
