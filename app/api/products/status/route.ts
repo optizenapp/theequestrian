@@ -52,6 +52,8 @@ const GET_PRODUCTS_STATUS = `
 
 export async function POST(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const mode = searchParams.get('mode') === 'strict' ? 'strict' : 'soft';
     const body: ProductStatusRequest = await request.json();
     const { productIds } = body;
 
@@ -103,7 +105,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(statusMap, {
       headers: {
-        'Cache-Control': 'no-store, max-age=0',
+        'Cache-Control':
+          mode === 'strict'
+            ? 'no-store, max-age=0'
+            : 'public, max-age=5, s-maxage=10, stale-while-revalidate=30',
       },
     });
   } catch (error) {

@@ -169,8 +169,15 @@ export function ProductBuyBox({ product }: ProductBuyBoxProps) {
         </div>
         
         {/* Zip */}
-        <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center p-0.5 overflow-hidden" title="Zip">
-          <Image src="/zip.png" alt="Zip Pay" width={40} height={24} className="h-full w-auto object-contain" />
+        <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center overflow-hidden" title="Zip">
+          <Image
+            src="/zip.png"
+            alt="Zip Pay"
+            width={40}
+            height={24}
+            loading="eager"
+            className="w-[40px] h-[24px] object-contain"
+          />
         </div>
       </div>
 

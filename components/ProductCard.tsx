@@ -51,7 +51,8 @@ export function ProductCard({ product, priority = false, showBreadcrumbs = false
             alt={image.altText || product.title}
             fill
             className="object-contain object-center transition-transform duration-300 group-hover:scale-105"
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            sizes="(max-width: 640px) 92vw, (max-width: 1024px) 46vw, (max-width: 1536px) 31vw, 380px"
+            quality={72}
             priority={priority}
             loading={priority ? 'eager' : 'lazy'}
             fetchPriority={priority ? 'high' : 'auto'}

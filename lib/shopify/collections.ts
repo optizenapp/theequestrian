@@ -1,5 +1,5 @@
 import { shopifyFetch } from './client';
-import { GET_COLLECTION_BY_HANDLE, GET_ALL_COLLECTIONS } from './queries';
+import { GET_COLLECTION_BY_HANDLE, GET_ALL_COLLECTIONS, GET_COLLECTION_PRODUCTS_PAGE } from './queries';
 import type { ShopifyCollection, CollectionWithParent, ShopifyProduct } from '@/types/shopify';
 
 interface CollectionResponse {
@@ -143,7 +143,7 @@ export async function getCollectionWithPagination(
   while (hasNextPage && allProducts.length < maxProducts) {
     const paginationCursor = cursor; // Avoid circular type inference
     const data: CollectionResponse = await shopifyFetch<CollectionResponse>({
-      query: GET_COLLECTION_BY_HANDLE,
+      query: GET_COLLECTION_PRODUCTS_PAGE,
       variables: { 
         handle, 
         first: 50,

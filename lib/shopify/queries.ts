@@ -193,6 +193,80 @@ export const GET_COLLECTION_BY_HANDLE = `
   }
 `;
 
+export const GET_COLLECTION_PRODUCTS_PAGE = `
+  query GetCollectionProductsPage($handle: String!, $first: Int = 50, $after: String) {
+    collection(handle: $handle) {
+      products(first: $first, after: $after) {
+        edges {
+          node {
+            id
+            handle
+            title
+            availableForSale
+            priceRange {
+              minVariantPrice {
+                amount
+                currencyCode
+              }
+              maxVariantPrice {
+                amount
+                currencyCode
+              }
+            }
+            compareAtPriceRange {
+              minVariantPrice {
+                amount
+                currencyCode
+              }
+              maxVariantPrice {
+                amount
+                currencyCode
+              }
+            }
+            images(first: 1) {
+              edges {
+                node {
+                  url
+                  altText
+                  width
+                  height
+                }
+              }
+            }
+            variants(first: 20) {
+              edges {
+                node {
+                  id
+                  title
+                  availableForSale
+                  price {
+                    amount
+                    currencyCode
+                  }
+                  selectedOptions {
+                    name
+                    value
+                  }
+                }
+              }
+            }
+            tags
+            productType
+            metafield(namespace: "custom", key: "primary_collection") {
+              value
+            }
+          }
+        }
+        pageInfo {
+          hasNextPage
+          hasPreviousPage
+          endCursor
+        }
+      }
+    }
+  }
+`;
+
 export const GET_ALL_PRODUCTS = `
   query GetAllProducts($first: Int = 100, $after: String) {
     products(first: $first, after: $after) {

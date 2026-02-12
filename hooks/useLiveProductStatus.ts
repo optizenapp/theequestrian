@@ -27,6 +27,7 @@ interface ProductStatusMap {
 
 interface LiveStatusOptions {
   deferMs?: number;
+  mode?: 'soft' | 'strict';
 }
 
 export function useLiveProductStatus(products: ShopifyProduct[]): {
@@ -55,7 +56,7 @@ export function useLiveProductStatus(products: ShopifyProduct[]): {
         console.log(`[useLiveProductStatus] Fetching live status for ${productIds.length} products`);
 
         // Fetch live status from API
-        const response = await fetch('/api/products/status', {
+        const response = await fetch('/api/products/status?mode=strict', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -183,14 +184,15 @@ export function useLiveProductStatusOptimized(
     async function fetchLiveStatus() {
       try {
         const productIds = currentProducts.map(p => p.id);
+        const mode = options?.mode === 'strict' ? 'strict' : 'soft';
 
-        const response = await fetch('/api/products/status', {
+        const response = await fetch(`/api/products/status?mode=${mode}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ productIds }),
-          cache: 'no-store',
+          cache: mode === 'strict' ? 'no-store' : 'default',
         });
 
         if (!response.ok) {
@@ -259,7 +261,7 @@ export function useLiveProductStatusOptimized(
         clearTimeout(timer);
       }
     };
-  }, [productIdsKey, options?.deferMs]); // Only re-fetch when product IDs change
+  }, [productIdsKey, options?.deferMs, options?.mode]); // Only re-fetch when product IDs or fetch mode change
 
   return {
     products: hydratedProducts,

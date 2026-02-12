@@ -73,6 +73,7 @@ export function ProductGridWithFilters({
   // Hydrate products with real-time price and inventory data
   const { products: hydratedProducts } = useLiveProductStatusOptimized(products, {
     deferMs: 1200,
+    mode: 'soft',
   });
 
   // Get filters from URL params

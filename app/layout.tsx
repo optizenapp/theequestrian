@@ -17,6 +17,8 @@ const CartDrawer = dynamic(
 import { NavigationProgress } from '@/components/NavigationProgress';
 import { ConfiguredShopifyInbox } from '@/components/chat/ConfiguredShopifyInbox';
 import Script from 'next/script';
+import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 const manrope = Manrope({
   subsets: ['latin'],
@@ -61,18 +63,6 @@ export default function RootLayout({
         {/* Analytics and tracking domains */}
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
-        
-        {/* Preload critical assets for faster LCP */}
-        <link rel="preload" as="image" href="/hero-image-v2.jpg" fetchPriority="high" />
-        
-        {/* Preload fonts to prevent layout shift */}
-        <link
-          rel="preload"
-          href="https://fonts.gstatic.com/s/manrope/v15/xn7_YHE41ni1AdIRqAuZuw1Bx9mbZk59FO_F87jxeN7B.woff2"
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
-        />
       </head>
       <body className={`${manrope.className} overflow-x-hidden`}>
         {gaMeasurementId ? (
@@ -113,6 +103,8 @@ export default function RootLayout({
               greetingMessage: '👋 Hey. Welcome to The Equestrian. If you have a question, just ask. We\'ll reply shortly.',
             }}
           />
+          <Analytics />
+          <SpeedInsights />
         </CartProvider>
       </body>
     </html>

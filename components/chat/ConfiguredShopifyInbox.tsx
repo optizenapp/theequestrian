@@ -2,6 +2,7 @@
 
 import Script from 'next/script';
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 /**
  * Configured Shopify Inbox Component
@@ -35,18 +36,15 @@ const DEFAULT_CONFIG: InboxConfig = {
 
 export function ConfiguredShopifyInbox({ config = DEFAULT_CONFIG }: { config?: InboxConfig } = {}) {
   const [isLoaded, setIsLoaded] = useState(false);
+  const pathname = usePathname();
   const scriptUrl = process.env.NEXT_PUBLIC_SHOPIFY_INBOX_SCRIPT_URL;
   const shopDomain = 'theequestrian.myshopify.com';
   const isEnabled = process.env.NEXT_PUBLIC_SHOPIFY_INBOX_ENABLED !== 'false';
+  const isAdminRoute = pathname?.startsWith('/admin');
 
-  if (process.env.NODE_ENV === 'development') {
-    console.log('📝 Shopify Inbox enabled:', isEnabled);
-    console.log('📝 NEXT_PUBLIC_SHOPIFY_INBOX_ENABLED:', process.env.NEXT_PUBLIC_SHOPIFY_INBOX_ENABLED);
-  }
-
-  if (!scriptUrl || !isEnabled) {
+  if (!scriptUrl || !isEnabled || isAdminRoute) {
     if (process.env.NODE_ENV === 'development') {
-      console.log('⚠️ Shopify Inbox disabled or no script URL');
+      console.log('⚠️ Shopify Inbox disabled for current route/config');
     }
     return null;
   }
@@ -59,9 +57,10 @@ export function ConfiguredShopifyInbox({ config = DEFAULT_CONFIG }: { config?: I
   useEffect(() => {
     if (!isLoaded) return;
 
-    let intervalId: NodeJS.Timeout | null = null;
+    let observer: MutationObserver | null = null;
+    let timeoutId: NodeJS.Timeout | null = null;
     let attempts = 0;
-    const maxAttempts = 30; // Try for 30 seconds
+    const maxAttempts = 10;
 
     const applyConfiguration = () => {
       attempts++;
@@ -127,28 +126,43 @@ export function ConfiguredShopifyInbox({ config = DEFAULT_CONFIG }: { config?: I
         applied = true;
       }
 
-      // Stop interval if we've applied everything or reached max attempts
-      if ((applied && storeInfo) || attempts >= maxAttempts) {
-        if (intervalId) {
-          clearInterval(intervalId);
-          if (process.env.NODE_ENV === 'development') {
-            console.log('✅ Configuration applied successfully');
-          }
+      // Stop observing when configuration is applied.
+      if (applied && storeInfo && observer) {
+        observer.disconnect();
+        observer = null;
+        if (process.env.NODE_ENV === 'development') {
+          console.log('✅ Configuration applied successfully');
         }
       }
 
       return applied;
     };
 
-    // Apply immediately
+    // Apply immediately and then react to DOM mutations instead of polling.
     applyConfiguration();
 
-    // Keep trying every 500ms until successful
-    intervalId = setInterval(applyConfiguration, 500);
+    observer = new MutationObserver(() => {
+      if (attempts < maxAttempts) {
+        applyConfiguration();
+      } else if (observer) {
+        observer.disconnect();
+        observer = null;
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    // Safety timeout to avoid long-lived observers.
+    timeoutId = setTimeout(() => {
+      if (observer) {
+        observer.disconnect();
+        observer = null;
+      }
+    }, 15000);
 
     // Cleanup
     return () => {
-      if (intervalId) clearInterval(intervalId);
+      if (observer) observer.disconnect();
+      if (timeoutId) clearTimeout(timeoutId);
     };
   }, [isLoaded, config]);
 
