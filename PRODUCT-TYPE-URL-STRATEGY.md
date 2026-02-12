@@ -237,12 +237,12 @@ For high-value products, manually review and assign appropriate product types.
 
 1. **Dry Run** (Preview changes):
 ```bash
-curl "http://localhost:3001/api/admin/set-primary-collections?dryRun=true&limit=100"
+curl "https://www.theequestrian.com.au/api/admin/set-primary-collections?dryRun=true&limit=100"
 ```
 
 2. **Apply Changes**:
 ```bash
-curl -X POST "http://localhost:3001/api/admin/set-primary-collections?limit=1000"
+curl -X POST "https://www.theequestrian.com.au/api/admin/set-primary-collections?limit=1000"
 ```
 
 ### Using Shopify Flow (Recommended for Ongoing)
@@ -634,12 +634,12 @@ For high-value products, manually review and assign appropriate product types.
 
 1. **Dry Run** (Preview changes):
 ```bash
-curl "http://localhost:3001/api/admin/set-primary-collections?dryRun=true&limit=100"
+curl "https://www.theequestrian.com.au/api/admin/set-primary-collections?dryRun=true&limit=100"
 ```
 
 2. **Apply Changes**:
 ```bash
-curl -X POST "http://localhost:3001/api/admin/set-primary-collections?limit=1000"
+curl -X POST "https://www.theequestrian.com.au/api/admin/set-primary-collections?limit=1000"
 ```
 
 ### Using Shopify Flow (Recommended for Ongoing)

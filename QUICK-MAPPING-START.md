@@ -106,14 +106,14 @@ After applying:
 
 1. **Check Product Page:**
    ```
-   http://localhost:3001/products/[handle]
+   https://www.theequestrian.com.au/products/[handle]
    ```
    - Breadcrumbs should show: `Home > Collection > Subcategory > Product`
    - View source → Check for `<script type="application/ld+json">` tags
 
 2. **Check Subcategory Page:**
    ```
-   http://localhost:3001/footwear/riding-boots
+   https://www.theequestrian.com.au/footwear/riding-boots
    ```
    - Products should appear
    - Breadcrumbs should show: `Home > Footwear > Riding Boots`
@@ -271,14 +271,14 @@ After applying:
 
 1. **Check Product Page:**
    ```
-   http://localhost:3001/products/[handle]
+   https://www.theequestrian.com.au/products/[handle]
    ```
    - Breadcrumbs should show: `Home > Collection > Subcategory > Product`
    - View source → Check for `<script type="application/ld+json">` tags
 
 2. **Check Subcategory Page:**
    ```
-   http://localhost:3001/footwear/riding-boots
+   https://www.theequestrian.com.au/footwear/riding-boots
    ```
    - Products should appear
    - Breadcrumbs should show: `Home > Footwear > Riding Boots`

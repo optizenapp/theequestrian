@@ -146,7 +146,7 @@ if (matchingCollection) {
 
 1. **Preview what tag will be selected:**
    ```bash
-   curl http://localhost:3001/api/admin/set-primary-collections?dryRun=true&limit=1
+   curl https://www.theequestrian.com.au/api/admin/set-primary-collections?dryRun=true&limit=1
    ```
 
 2. **Check the result:**
@@ -389,7 +389,7 @@ if (matchingCollection) {
 
 1. **Preview what tag will be selected:**
    ```bash
-   curl http://localhost:3001/api/admin/set-primary-collections?dryRun=true&limit=1
+   curl https://www.theequestrian.com.au/api/admin/set-primary-collections?dryRun=true&limit=1
    ```
 
 2. **Check the result:**

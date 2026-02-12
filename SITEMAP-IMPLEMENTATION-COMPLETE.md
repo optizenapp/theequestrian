@@ -87,26 +87,26 @@ lib/
 
 ### Sitemap Index
 ```bash
-curl http://localhost:3001/sitemap.xml
+curl https://www.theequestrian.com.au/sitemap.xml
 ```
 ✅ Returns index with 8 sub-sitemaps
 
 ### Static Pages
 ```bash
-curl http://localhost:3001/sitemap/static.xml
+curl https://www.theequestrian.com.au/sitemap/static.xml
 ```
 ✅ Returns ~10 static pages with proper priorities
 
 ### Collections
 ```bash
-curl http://localhost:3001/sitemap/collections.xml
+curl https://www.theequestrian.com.au/sitemap/collections.xml
 ```
 ✅ Returns ~50 collections with weekly update frequency
 
 ### Products
 ```bash
-curl http://localhost:3001/sitemap/products-0.xml
-curl http://localhost:3001/sitemap/products-1.xml
+curl https://www.theequestrian.com.au/sitemap/products-0.xml
+curl https://www.theequestrian.com.au/sitemap/products-1.xml
 ```
 ✅ Returns products with full hierarchical URLs  
 ✅ Verified 2, 3, and 4-level URL structures  
@@ -114,7 +114,7 @@ curl http://localhost:3001/sitemap/products-1.xml
 
 ### News
 ```bash
-curl http://localhost:3001/sitemap/news.xml
+curl https://www.theequestrian.com.au/sitemap/news.xml
 ```
 ✅ Returns blog posts with monthly update frequency
 

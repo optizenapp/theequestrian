@@ -123,7 +123,7 @@ After setting up:
 
 ```bash
 # Visit a product page
-http://localhost:3001/products/[any-product-handle]
+https://www.theequestrian.com.au/products/[any-product-handle]
 
 # Should see:
 ✅ Breadcrumb navigation at top
@@ -283,7 +283,7 @@ After setting up:
 
 ```bash
 # Visit a product page
-http://localhost:3001/products/[any-product-handle]
+https://www.theequestrian.com.au/products/[any-product-handle]
 
 # Should see:
 ✅ Breadcrumb navigation at top

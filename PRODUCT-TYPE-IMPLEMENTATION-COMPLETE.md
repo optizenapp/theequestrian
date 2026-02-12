@@ -151,10 +151,10 @@ export const PRODUCT_TYPE_TO_COLLECTION: Record<string, string> = {
 
 ```bash
 # Dry run first
-curl "http://localhost:3001/api/admin/set-primary-collections?dryRun=true&limit=100"
+curl "https://www.theequestrian.com.au/api/admin/set-primary-collections?dryRun=true&limit=100"
 
 # Apply changes (requires Admin API setup)
-curl -X POST "http://localhost:3001/api/admin/set-primary-collections?limit=1000"
+curl -X POST "https://www.theequestrian.com.au/api/admin/set-primary-collections?limit=1000"
 ```
 
 ---
@@ -211,12 +211,12 @@ curl -X POST "http://localhost:3001/api/admin/set-primary-collections?limit=1000
 1. **Find a product with productType:**
    ```bash
    # Check product types
-   curl "http://localhost:3001/api/admin/analyze-product-types"
+   curl "https://www.theequestrian.com.au/api/admin/analyze-product-types"
    ```
 
 2. **Visit product page:**
    ```
-   http://localhost:3001/products/[handle]
+   https://www.theequestrian.com.au/products/[handle]
    ```
 
 3. **Verify:**
@@ -229,12 +229,12 @@ curl -X POST "http://localhost:3001/api/admin/set-primary-collections?limit=1000
 
 1. **Visit collection:**
    ```
-   http://localhost:3001/womens-clothing
+   https://www.theequestrian.com.au/womens-clothing
    ```
 
 2. **Visit subcollection:**
    ```
-   http://localhost:3001/womens-clothing/breeches
+   https://www.theequestrian.com.au/womens-clothing/breeches
    ```
 
 3. **Verify:**
@@ -277,10 +277,10 @@ The implementation is complete. Test locally and add more mappings as you discov
 **Test Command:**
 ```bash
 # Dry run
-curl "http://localhost:3001/api/admin/set-primary-collections?dryRun=true&limit=10"
+curl "https://www.theequestrian.com.au/api/admin/set-primary-collections?dryRun=true&limit=10"
 
 # Visit a product page
-open http://localhost:3001/products/[handle]
+open https://www.theequestrian.com.au/products/[handle]
 ```
 
 
@@ -439,10 +439,10 @@ export const PRODUCT_TYPE_TO_COLLECTION: Record<string, string> = {
 
 ```bash
 # Dry run first
-curl "http://localhost:3001/api/admin/set-primary-collections?dryRun=true&limit=100"
+curl "https://www.theequestrian.com.au/api/admin/set-primary-collections?dryRun=true&limit=100"
 
 # Apply changes (requires Admin API setup)
-curl -X POST "http://localhost:3001/api/admin/set-primary-collections?limit=1000"
+curl -X POST "https://www.theequestrian.com.au/api/admin/set-primary-collections?limit=1000"
 ```
 
 ---
@@ -499,12 +499,12 @@ curl -X POST "http://localhost:3001/api/admin/set-primary-collections?limit=1000
 1. **Find a product with productType:**
    ```bash
    # Check product types
-   curl "http://localhost:3001/api/admin/analyze-product-types"
+   curl "https://www.theequestrian.com.au/api/admin/analyze-product-types"
    ```
 
 2. **Visit product page:**
    ```
-   http://localhost:3001/products/[handle]
+   https://www.theequestrian.com.au/products/[handle]
    ```
 
 3. **Verify:**
@@ -517,12 +517,12 @@ curl -X POST "http://localhost:3001/api/admin/set-primary-collections?limit=1000
 
 1. **Visit collection:**
    ```
-   http://localhost:3001/womens-clothing
+   https://www.theequestrian.com.au/womens-clothing
    ```
 
 2. **Visit subcollection:**
    ```
-   http://localhost:3001/womens-clothing/breeches
+   https://www.theequestrian.com.au/womens-clothing/breeches
    ```
 
 3. **Verify:**
@@ -565,10 +565,10 @@ The implementation is complete. Test locally and add more mappings as you discov
 **Test Command:**
 ```bash
 # Dry run
-curl "http://localhost:3001/api/admin/set-primary-collections?dryRun=true&limit=10"
+curl "https://www.theequestrian.com.au/api/admin/set-primary-collections?dryRun=true&limit=10"
 
 # Visit a product page
-open http://localhost:3001/products/[handle]
+open https://www.theequestrian.com.au/products/[handle]
 ```
 
 

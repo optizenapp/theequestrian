@@ -44,7 +44,7 @@ async function testDraftOrder() {
   console.log(JSON.stringify(testOrder, null, 2));
   
   console.log('\n🚀 To test, start your dev server and run:');
-  console.log('\ncurl -X POST http://localhost:3001/api/checkout/create-draft-order \\');
+  console.log('\ncurl -X POST https://www.theequestrian.com.au/api/checkout/create-draft-order \\');
   console.log('  -H "Content-Type: application/json" \\');
   console.log(`  -d '${JSON.stringify(testOrder)}'`);
   

@@ -150,7 +150,7 @@
 
 1. **Visit a product page:**
    ```
-   http://localhost:3001/products/[any-product-handle]
+   https://www.theequestrian.com.au/products/[any-product-handle]
    ```
 
 2. **Check for:**
@@ -160,7 +160,7 @@
 
 3. **Test redirects:**
    ```
-   http://localhost:3001/collections/[collection-name]
+   https://www.theequestrian.com.au/collections/[collection-name]
    ```
    - ✅ Should redirect to `/[collection-name]`
 
@@ -349,7 +349,7 @@
 
 1. **Visit a product page:**
    ```
-   http://localhost:3001/products/[any-product-handle]
+   https://www.theequestrian.com.au/products/[any-product-handle]
    ```
 
 2. **Check for:**
@@ -359,7 +359,7 @@
 
 3. **Test redirects:**
    ```
-   http://localhost:3001/collections/[collection-name]
+   https://www.theequestrian.com.au/collections/[collection-name]
    ```
    - ✅ Should redirect to `/[collection-name]`
 

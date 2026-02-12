@@ -178,7 +178,7 @@ npm run import:mapping -- --apply
 
 After applying changes, verify breadcrumbs work:
 
-1. Visit a product page: `http://localhost:3001/products/[handle]`
+1. Visit a product page: `https://www.theequestrian.com.au/products/[handle]`
 2. Check breadcrumbs render correctly
 3. Verify breadcrumb links work
 
@@ -205,7 +205,7 @@ Verify structured data is correct:
 
 Verify subcategory pages work:
 
-1. Visit: `http://localhost:3001/footwear/riding-boots`
+1. Visit: `https://www.theequestrian.com.au/footwear/riding-boots`
 2. Verify products appear
 3. Verify breadcrumbs show: `Home > Footwear > Riding Boots`
 4. Verify schema includes `CollectionPage` with `isPartOf`
@@ -571,7 +571,7 @@ npm run import:mapping -- --apply
 
 After applying changes, verify breadcrumbs work:
 
-1. Visit a product page: `http://localhost:3001/products/[handle]`
+1. Visit a product page: `https://www.theequestrian.com.au/products/[handle]`
 2. Check breadcrumbs render correctly
 3. Verify breadcrumb links work
 
@@ -598,7 +598,7 @@ Verify structured data is correct:
 
 Verify subcategory pages work:
 
-1. Visit: `http://localhost:3001/footwear/riding-boots`
+1. Visit: `https://www.theequestrian.com.au/footwear/riding-boots`
 2. Verify products appear
 3. Verify breadcrumbs show: `Home > Footwear > Riding Boots`
 4. Verify schema includes `CollectionPage` with `isPartOf`

@@ -164,7 +164,7 @@ tsx test-page-redirects.ts
 
 ### Manual Test (any URL)
 ```bash
-curl -I http://localhost:3001/collections/saddles
+curl -I https://www.theequestrian.com.au/collections/saddles
 # Should return: HTTP/1.1 301 Moved Permanently
 # location: /horse/saddles
 ```

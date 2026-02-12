@@ -198,37 +198,37 @@ Home > Riding Wear > Boots > Paddock Boot
 
 1. **Product Page (Canonical)**
    ```
-   URL: http://localhost:3001/products/[any-product-handle]
+   URL: https://www.theequestrian.com.au/products/[any-product-handle]
    Expected: Product page displays with breadcrumbs
    ```
 
 2. **Collection Page**
    ```
-   URL: http://localhost:3001/riding-wear
+   URL: https://www.theequestrian.com.au/riding-wear
    Expected: Collection page with products
    ```
 
 3. **Tag-Filtered Collection**
    ```
-   URL: http://localhost:3001/riding-wear/breeches
+   URL: https://www.theequestrian.com.au/riding-wear/breeches
    Expected: Collection page filtered by "breeches" tag
    ```
 
 4. **Old Collection URL (Redirect)**
    ```
-   URL: http://localhost:3001/collections/riding-wear
+   URL: https://www.theequestrian.com.au/collections/riding-wear
    Expected: 301 redirect to /riding-wear
    ```
 
 5. **Old Tag-Filtered Collection URL (Redirect)**
    ```
-   URL: http://localhost:3001/collections/riding-wear/breeches
+   URL: https://www.theequestrian.com.au/collections/riding-wear/breeches
    Expected: 301 redirect to /riding-wear/breeches
    ```
 
 6. **Hierarchical Product URL (Redirect)**
    ```
-   URL: http://localhost:3001/riding-wear/breeches/product-handle
+   URL: https://www.theequestrian.com.au/riding-wear/breeches/product-handle
    Expected: 301 redirect to /products/product-handle
    ```
 
@@ -475,37 +475,37 @@ Home > Riding Wear > Boots > Paddock Boot
 
 1. **Product Page (Canonical)**
    ```
-   URL: http://localhost:3001/products/[any-product-handle]
+   URL: https://www.theequestrian.com.au/products/[any-product-handle]
    Expected: Product page displays with breadcrumbs
    ```
 
 2. **Collection Page**
    ```
-   URL: http://localhost:3001/riding-wear
+   URL: https://www.theequestrian.com.au/riding-wear
    Expected: Collection page with products
    ```
 
 3. **Tag-Filtered Collection**
    ```
-   URL: http://localhost:3001/riding-wear/breeches
+   URL: https://www.theequestrian.com.au/riding-wear/breeches
    Expected: Collection page filtered by "breeches" tag
    ```
 
 4. **Old Collection URL (Redirect)**
    ```
-   URL: http://localhost:3001/collections/riding-wear
+   URL: https://www.theequestrian.com.au/collections/riding-wear
    Expected: 301 redirect to /riding-wear
    ```
 
 5. **Old Tag-Filtered Collection URL (Redirect)**
    ```
-   URL: http://localhost:3001/collections/riding-wear/breeches
+   URL: https://www.theequestrian.com.au/collections/riding-wear/breeches
    Expected: 301 redirect to /riding-wear/breeches
    ```
 
 6. **Hierarchical Product URL (Redirect)**
    ```
-   URL: http://localhost:3001/riding-wear/breeches/product-handle
+   URL: https://www.theequestrian.com.au/riding-wear/breeches/product-handle
    Expected: 301 redirect to /products/product-handle
    ```
 

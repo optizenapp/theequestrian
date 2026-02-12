@@ -147,7 +147,7 @@ npm run preview-titles -- --category=horse --validate
 npm run dev
 
 # Visit your category
-# http://localhost:3001/horse
+# https://www.theequestrian.com.au/horse
 ```
 
 **Check:**

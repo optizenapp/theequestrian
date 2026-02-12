@@ -7,7 +7,7 @@
 **List all valid subcategories for a collection:**
 
 ```bash
-curl "http://localhost:3001/api/admin/list-subcategories?category=footwear"
+curl "https://www.theequestrian.com.au/api/admin/list-subcategories?category=footwear"
 ```
 
 This returns:
@@ -21,7 +21,7 @@ This returns:
 **View all product types in your store:**
 
 ```bash
-curl "http://localhost:3001/api/admin/analyze-product-types"
+curl "https://www.theequestrian.com.au/api/admin/analyze-product-types"
 ```
 
 Then normalize them using the `normalizeProductType()` function:
@@ -78,22 +78,22 @@ Based on your store data, here are the valid subcategories:
 
 ```bash
 # List all valid subcategories
-curl "http://localhost:3001/api/admin/list-subcategories?category=footwear"
+curl "https://www.theequestrian.com.au/api/admin/list-subcategories?category=footwear"
 
 # Test a specific URL
-curl -I "http://localhost:3001/footwear/riding-boots"
+curl -I "https://www.theequestrian.com.au/footwear/riding-boots"
 # Should return: HTTP/1.1 200 OK
 ```
 
 ### In Browser
 
-Visit: `http://localhost:3001/footwear/[subcategory]`
+Visit: `https://www.theequestrian.com.au/footwear/[subcategory]`
 
 **Working examples:**
-- ✅ `http://localhost:3001/footwear/riding-boots`
-- ✅ `http://localhost:3001/footwear/boots`
-- ✅ `http://localhost:3001/footwear/spurs`
-- ✅ `http://localhost:3001/footwear/tall-boots`
+- ✅ `https://www.theequestrian.com.au/footwear/riding-boots`
+- ✅ `https://www.theequestrian.com.au/footwear/boots`
+- ✅ `https://www.theequestrian.com.au/footwear/spurs`
+- ✅ `https://www.theequestrian.com.au/footwear/tall-boots`
 
 ---
 
@@ -107,8 +107,8 @@ Visit: `http://localhost:3001/footwear/[subcategory]`
 3. No products have that productType
 
 **Solution:**
-1. Check valid subcategories: `curl "http://localhost:3001/api/admin/list-subcategories?category=[category]"`
-2. Verify productType exists: `curl "http://localhost:3001/api/admin/analyze-product-types"`
+1. Check valid subcategories: `curl "https://www.theequestrian.com.au/api/admin/list-subcategories?category=[category]"`
+2. Verify productType exists: `curl "https://www.theequestrian.com.au/api/admin/analyze-product-types"`
 3. Check if products are in the collection
 
 ### Issue: Multiple ProductTypes Normalize to Same URL
@@ -125,13 +125,13 @@ Visit: `http://localhost:3001/footwear/[subcategory]`
 
 ```bash
 # Replace [collection-handle] with your collection
-curl "http://localhost:3001/api/admin/list-subcategories?category=[collection-handle]"
+curl "https://www.theequestrian.com.au/api/admin/list-subcategories?category=[collection-handle]"
 ```
 
 **Examples:**
-- `curl "http://localhost:3001/api/admin/list-subcategories?category=womens-clothing"`
-- `curl "http://localhost:3001/api/admin/list-subcategories?category=horse-boots"`
-- `curl "http://localhost:3001/api/admin/list-subcategories?category=saddles-tack"`
+- `curl "https://www.theequestrian.com.au/api/admin/list-subcategories?category=womens-clothing"`
+- `curl "https://www.theequestrian.com.au/api/admin/list-subcategories?category=horse-boots"`
+- `curl "https://www.theequestrian.com.au/api/admin/list-subcategories?category=saddles-tack"`
 
 ---
 
@@ -167,17 +167,17 @@ curl "http://localhost:3001/api/admin/list-subcategories?category=[collection-ha
 
 1. Check if collection exists:
    ```bash
-   curl "http://localhost:3001/api/admin/debug-subcategory?category=footwear&subcategory=riding-boots"
+   curl "https://www.theequestrian.com.au/api/admin/debug-subcategory?category=footwear&subcategory=riding-boots"
    ```
 
 2. Verify productTypes in collection:
    ```bash
-   curl "http://localhost:3001/api/admin/list-subcategories?category=footwear"
+   curl "https://www.theequestrian.com.au/api/admin/list-subcategories?category=footwear"
    ```
 
 3. Check product type analysis:
    ```bash
-   curl "http://localhost:3001/api/admin/analyze-product-types"
+   curl "https://www.theequestrian.com.au/api/admin/analyze-product-types"
    ```
 
 ---
@@ -191,7 +191,7 @@ curl "http://localhost:3001/api/admin/list-subcategories?category=[collection-ha
 
 **To find all valid URLs:**
 ```bash
-curl "http://localhost:3001/api/admin/list-subcategories?category=[collection-handle]"
+curl "https://www.theequestrian.com.au/api/admin/list-subcategories?category=[collection-handle]"
 ```
 
 
@@ -206,7 +206,7 @@ curl "http://localhost:3001/api/admin/list-subcategories?category=[collection-ha
 **List all valid subcategories for a collection:**
 
 ```bash
-curl "http://localhost:3001/api/admin/list-subcategories?category=footwear"
+curl "https://www.theequestrian.com.au/api/admin/list-subcategories?category=footwear"
 ```
 
 This returns:
@@ -220,7 +220,7 @@ This returns:
 **View all product types in your store:**
 
 ```bash
-curl "http://localhost:3001/api/admin/analyze-product-types"
+curl "https://www.theequestrian.com.au/api/admin/analyze-product-types"
 ```
 
 Then normalize them using the `normalizeProductType()` function:
@@ -277,22 +277,22 @@ Based on your store data, here are the valid subcategories:
 
 ```bash
 # List all valid subcategories
-curl "http://localhost:3001/api/admin/list-subcategories?category=footwear"
+curl "https://www.theequestrian.com.au/api/admin/list-subcategories?category=footwear"
 
 # Test a specific URL
-curl -I "http://localhost:3001/footwear/riding-boots"
+curl -I "https://www.theequestrian.com.au/footwear/riding-boots"
 # Should return: HTTP/1.1 200 OK
 ```
 
 ### In Browser
 
-Visit: `http://localhost:3001/footwear/[subcategory]`
+Visit: `https://www.theequestrian.com.au/footwear/[subcategory]`
 
 **Working examples:**
-- ✅ `http://localhost:3001/footwear/riding-boots`
-- ✅ `http://localhost:3001/footwear/boots`
-- ✅ `http://localhost:3001/footwear/spurs`
-- ✅ `http://localhost:3001/footwear/tall-boots`
+- ✅ `https://www.theequestrian.com.au/footwear/riding-boots`
+- ✅ `https://www.theequestrian.com.au/footwear/boots`
+- ✅ `https://www.theequestrian.com.au/footwear/spurs`
+- ✅ `https://www.theequestrian.com.au/footwear/tall-boots`
 
 ---
 
@@ -306,8 +306,8 @@ Visit: `http://localhost:3001/footwear/[subcategory]`
 3. No products have that productType
 
 **Solution:**
-1. Check valid subcategories: `curl "http://localhost:3001/api/admin/list-subcategories?category=[category]"`
-2. Verify productType exists: `curl "http://localhost:3001/api/admin/analyze-product-types"`
+1. Check valid subcategories: `curl "https://www.theequestrian.com.au/api/admin/list-subcategories?category=[category]"`
+2. Verify productType exists: `curl "https://www.theequestrian.com.au/api/admin/analyze-product-types"`
 3. Check if products are in the collection
 
 ### Issue: Multiple ProductTypes Normalize to Same URL
@@ -324,13 +324,13 @@ Visit: `http://localhost:3001/footwear/[subcategory]`
 
 ```bash
 # Replace [collection-handle] with your collection
-curl "http://localhost:3001/api/admin/list-subcategories?category=[collection-handle]"
+curl "https://www.theequestrian.com.au/api/admin/list-subcategories?category=[collection-handle]"
 ```
 
 **Examples:**
-- `curl "http://localhost:3001/api/admin/list-subcategories?category=womens-clothing"`
-- `curl "http://localhost:3001/api/admin/list-subcategories?category=horse-boots"`
-- `curl "http://localhost:3001/api/admin/list-subcategories?category=saddles-tack"`
+- `curl "https://www.theequestrian.com.au/api/admin/list-subcategories?category=womens-clothing"`
+- `curl "https://www.theequestrian.com.au/api/admin/list-subcategories?category=horse-boots"`
+- `curl "https://www.theequestrian.com.au/api/admin/list-subcategories?category=saddles-tack"`
 
 ---
 
@@ -366,17 +366,17 @@ curl "http://localhost:3001/api/admin/list-subcategories?category=[collection-ha
 
 1. Check if collection exists:
    ```bash
-   curl "http://localhost:3001/api/admin/debug-subcategory?category=footwear&subcategory=riding-boots"
+   curl "https://www.theequestrian.com.au/api/admin/debug-subcategory?category=footwear&subcategory=riding-boots"
    ```
 
 2. Verify productTypes in collection:
    ```bash
-   curl "http://localhost:3001/api/admin/list-subcategories?category=footwear"
+   curl "https://www.theequestrian.com.au/api/admin/list-subcategories?category=footwear"
    ```
 
 3. Check product type analysis:
    ```bash
-   curl "http://localhost:3001/api/admin/analyze-product-types"
+   curl "https://www.theequestrian.com.au/api/admin/analyze-product-types"
    ```
 
 ---
@@ -390,7 +390,7 @@ curl "http://localhost:3001/api/admin/list-subcategories?category=[collection-ha
 
 **To find all valid URLs:**
 ```bash
-curl "http://localhost:3001/api/admin/list-subcategories?category=[collection-handle]"
+curl "https://www.theequestrian.com.au/api/admin/list-subcategories?category=[collection-handle]"
 ```
 
 

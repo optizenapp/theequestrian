@@ -227,7 +227,7 @@ Keep both versions and test Postgres first:
 1. Current Shopify version: `app/[category]/page.tsx` (keep as is)
 2. New Postgres version: `app/[category]/page-postgres.tsx` (already created)
 
-Test the Postgres version at: `http://localhost:3001/horse`
+Test the Postgres version at: `https://www.theequestrian.com.au/horse`
 
 When ready to switch:
 ```bash
@@ -258,7 +258,7 @@ mv app/[category]/page-postgres.tsx app/[category]/page.tsx
 npm run dev
 ```
 
-Visit: `http://localhost:3001/horse`
+Visit: `https://www.theequestrian.com.au/horse`
 
 **Expected:**
 - ✅ Page loads in <200ms (check Network tab)
@@ -285,7 +285,7 @@ Visit: `http://localhost:3001/horse`
 Test the API directly:
 
 ```bash
-curl "http://localhost:3001/api/products/search?type=Horse%20Rugs&limit=10"
+curl "https://www.theequestrian.com.au/api/products/search?type=Horse%20Rugs&limit=10"
 ```
 
 **Expected response:**

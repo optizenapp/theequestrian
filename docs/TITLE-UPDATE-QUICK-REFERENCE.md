@@ -41,7 +41,7 @@ exports/collection-content.csv
    ```
 
 5. **Test**
-   - Visit: `http://localhost:3001/your-category`
+   - Visit: `https://www.theequestrian.com.au/your-category`
    - Check: H1, browser tab, breadcrumbs
 
 ## 💡 Title Format Examples

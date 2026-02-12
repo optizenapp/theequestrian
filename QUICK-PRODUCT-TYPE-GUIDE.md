@@ -47,10 +47,10 @@ Automatically generated for SEO and AI search engines.
 
 ```bash
 # In browser:
-http://localhost:3001/api/admin/analyze-product-types
+https://www.theequestrian.com.au/api/admin/analyze-product-types
 
 # Or via curl:
-curl "http://localhost:3001/api/admin/analyze-product-types" | python3 -m json.tool
+curl "https://www.theequestrian.com.au/api/admin/analyze-product-types" | python3 -m json.tool
 ```
 
 **Top Product Types:**
@@ -296,10 +296,10 @@ Automatically generated for SEO and AI search engines.
 
 ```bash
 # In browser:
-http://localhost:3001/api/admin/analyze-product-types
+https://www.theequestrian.com.au/api/admin/analyze-product-types
 
 # Or via curl:
-curl "http://localhost:3001/api/admin/analyze-product-types" | python3 -m json.tool
+curl "https://www.theequestrian.com.au/api/admin/analyze-product-types" | python3 -m json.tool
 ```
 
 **Top Product Types:**

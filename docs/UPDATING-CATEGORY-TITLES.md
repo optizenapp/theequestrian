@@ -82,7 +82,7 @@ The CSV has these columns (in order):
    ```bash
    npm run dev
    ```
-3. **Visit** the category page: `http://localhost:3001/horse`
+3. **Visit** the category page: `https://www.theequestrian.com.au/horse`
 4. **Check**:
    - ✅ H1 title displays correctly
    - ✅ Browser tab shows new meta title

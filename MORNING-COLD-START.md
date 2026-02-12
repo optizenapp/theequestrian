@@ -197,19 +197,19 @@ Once running, these URLs are available:
 
 ### Public Pages
 - **Homepage**: http://localhost:3001
-- **Cart**: http://localhost:3001/cart
-- **Product Example**: http://localhost:3001/horse/boots/product-handle
-- **Category**: http://localhost:3001/horse
-- **Search**: http://localhost:3001/search
+- **Cart**: https://www.theequestrian.com.au/cart
+- **Product Example**: https://www.theequestrian.com.au/horse/boots/product-handle
+- **Category**: https://www.theequestrian.com.au/horse
+- **Search**: https://www.theequestrian.com.au/search
 
 ### Admin Pages
-- **Review Admin**: http://localhost:3001/admin/reviews
-- **Login**: http://localhost:3001/admin/login
+- **Review Admin**: https://www.theequestrian.com.au/admin/reviews
+- **Login**: https://www.theequestrian.com.au/admin/login
 
 ### API Routes
-- **Product Search**: http://localhost:3001/api/products/search?q=boots
-- **Product Status**: http://localhost:3001/api/products/status (POST)
-- **Reviews**: http://localhost:3001/api/reviews/[productId]
+- **Product Search**: https://www.theequestrian.com.au/api/products/search?q=boots
+- **Product Status**: https://www.theequestrian.com.au/api/products/status (POST)
+- **Reviews**: https://www.theequestrian.com.au/api/reviews/[productId]
 
 ## 🛠️ Development Tools
 

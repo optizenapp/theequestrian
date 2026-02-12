@@ -28,7 +28,7 @@ The system automatically determines the primary collection path using these rule
 Test what changes will be made without actually updating:
 
 ```bash
-curl http://localhost:3001/api/admin/set-primary-collections?dryRun=true&limit=10
+curl https://www.theequestrian.com.au/api/admin/set-primary-collections?dryRun=true&limit=10
 ```
 
 **Response:**
@@ -58,7 +58,7 @@ curl http://localhost:3001/api/admin/set-primary-collections?dryRun=true&limit=1
 Once you're happy with the preview, run it for real:
 
 ```bash
-curl -X POST http://localhost:3001/api/admin/set-primary-collections?limit=100
+curl -X POST https://www.theequestrian.com.au/api/admin/set-primary-collections?limit=100
 ```
 
 **Response:**
@@ -86,7 +86,7 @@ For large catalogs, process in batches:
 
 ```bash
 # Process first 250 products
-curl -X POST http://localhost:3001/api/admin/set-primary-collections?limit=250
+curl -X POST https://www.theequestrian.com.au/api/admin/set-primary-collections?limit=250
 
 # Then process next batch (if needed)
 # Note: You may need to add pagination support for very large catalogs
@@ -234,7 +234,7 @@ npx tsx scripts/set-primary-collections.ts
 
 1. **Preview changes:**
    ```bash
-   curl http://localhost:3001/api/admin/set-primary-collections?dryRun=true&limit=1
+   curl https://www.theequestrian.com.au/api/admin/set-primary-collections?dryRun=true&limit=1
    ```
 
 2. **Verify the logic:**
@@ -243,7 +243,7 @@ npx tsx scripts/set-primary-collections.ts
 
 3. **Apply to one product:**
    ```bash
-   curl -X POST http://localhost:3001/api/admin/set-primary-collections?limit=1
+   curl -X POST https://www.theequestrian.com.au/api/admin/set-primary-collections?limit=1
    ```
 
 4. **Check product page:**
@@ -254,7 +254,7 @@ npx tsx scripts/set-primary-collections.ts
 
 Once verified, process all products:
 ```bash
-curl -X POST http://localhost:3001/api/admin/set-primary-collections?limit=250
+curl -X POST https://www.theequestrian.com.au/api/admin/set-primary-collections?limit=250
 ```
 
 ---
@@ -305,12 +305,12 @@ curl -X POST http://localhost:3001/api/admin/set-primary-collections?limit=250
 
 1. **Preview changes:**
    ```bash
-   curl http://localhost:3001/api/admin/set-primary-collections?dryRun=true&limit=10
+   curl https://www.theequestrian.com.au/api/admin/set-primary-collections?dryRun=true&limit=10
    ```
 
 2. **Apply changes:**
    ```bash
-   curl -X POST http://localhost:3001/api/admin/set-primary-collections?limit=100
+   curl -X POST https://www.theequestrian.com.au/api/admin/set-primary-collections?limit=100
    ```
 
 3. **Verify:**
@@ -356,7 +356,7 @@ The system automatically determines the primary collection path using these rule
 Test what changes will be made without actually updating:
 
 ```bash
-curl http://localhost:3001/api/admin/set-primary-collections?dryRun=true&limit=10
+curl https://www.theequestrian.com.au/api/admin/set-primary-collections?dryRun=true&limit=10
 ```
 
 **Response:**
@@ -386,7 +386,7 @@ curl http://localhost:3001/api/admin/set-primary-collections?dryRun=true&limit=1
 Once you're happy with the preview, run it for real:
 
 ```bash
-curl -X POST http://localhost:3001/api/admin/set-primary-collections?limit=100
+curl -X POST https://www.theequestrian.com.au/api/admin/set-primary-collections?limit=100
 ```
 
 **Response:**
@@ -414,7 +414,7 @@ For large catalogs, process in batches:
 
 ```bash
 # Process first 250 products
-curl -X POST http://localhost:3001/api/admin/set-primary-collections?limit=250
+curl -X POST https://www.theequestrian.com.au/api/admin/set-primary-collections?limit=250
 
 # Then process next batch (if needed)
 # Note: You may need to add pagination support for very large catalogs
@@ -562,7 +562,7 @@ npx tsx scripts/set-primary-collections.ts
 
 1. **Preview changes:**
    ```bash
-   curl http://localhost:3001/api/admin/set-primary-collections?dryRun=true&limit=1
+   curl https://www.theequestrian.com.au/api/admin/set-primary-collections?dryRun=true&limit=1
    ```
 
 2. **Verify the logic:**
@@ -571,7 +571,7 @@ npx tsx scripts/set-primary-collections.ts
 
 3. **Apply to one product:**
    ```bash
-   curl -X POST http://localhost:3001/api/admin/set-primary-collections?limit=1
+   curl -X POST https://www.theequestrian.com.au/api/admin/set-primary-collections?limit=1
    ```
 
 4. **Check product page:**
@@ -582,7 +582,7 @@ npx tsx scripts/set-primary-collections.ts
 
 Once verified, process all products:
 ```bash
-curl -X POST http://localhost:3001/api/admin/set-primary-collections?limit=250
+curl -X POST https://www.theequestrian.com.au/api/admin/set-primary-collections?limit=250
 ```
 
 ---
@@ -633,12 +633,12 @@ curl -X POST http://localhost:3001/api/admin/set-primary-collections?limit=250
 
 1. **Preview changes:**
    ```bash
-   curl http://localhost:3001/api/admin/set-primary-collections?dryRun=true&limit=10
+   curl https://www.theequestrian.com.au/api/admin/set-primary-collections?dryRun=true&limit=10
    ```
 
 2. **Apply changes:**
    ```bash
-   curl -X POST http://localhost:3001/api/admin/set-primary-collections?limit=100
+   curl -X POST https://www.theequestrian.com.au/api/admin/set-primary-collections?limit=100
    ```
 
 3. **Verify:**

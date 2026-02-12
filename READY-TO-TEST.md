@@ -54,7 +54,7 @@ The site will be available at `http://localhost:3001`
 
 **Test 1: Initial Load (No Filters)**
 ```
-1. Navigate to http://localhost:3001/horse
+1. Navigate to https://www.theequestrian.com.au/horse
 2. Open browser DevTools → Console
 3. Look for log: "[getProductsByTypes] Query: ..."
 4. Should see: (product_type:"Horse Rugs" OR product_type:"Horse Boots" ...)
@@ -63,7 +63,7 @@ The site will be available at `http://localhost:3001`
 
 **Test 2: Filtered Load (Brand Filter)**
 ```
-1. Navigate to http://localhost:3001/horse
+1. Navigate to https://www.theequestrian.com.au/horse
 2. Click on a brand filter (e.g., "Ariat")
 3. URL should change to: /horse?brand=Ariat
 4. Check console log: "[getProductsByTypes] Query: ..."
@@ -73,7 +73,7 @@ The site will be available at `http://localhost:3001`
 
 **Test 3: Multiple Filters**
 ```
-1. Navigate to http://localhost:3001/horse?brand=Ariat
+1. Navigate to https://www.theequestrian.com.au/horse?brand=Ariat
 2. Add a size filter (e.g., "6.0")
 3. URL should change to: /horse?brand=Ariat&size=6.0
 4. Check console log for query with multiple filters
@@ -259,11 +259,11 @@ npm run dev
 # Phase 2: Look for "[useLiveProductStatus]" logs
 
 # Test URLs:
-http://localhost:3001/horse
-http://localhost:3001/horse?brand=Ariat
-http://localhost:3001/horse?brand=Ariat&size=6.0
-http://localhost:3001/rider
-http://localhost:3001/clothing
+https://www.theequestrian.com.au/horse
+https://www.theequestrian.com.au/horse?brand=Ariat
+https://www.theequestrian.com.au/horse?brand=Ariat&size=6.0
+https://www.theequestrian.com.au/rider
+https://www.theequestrian.com.au/clothing
 ```
 
 ---

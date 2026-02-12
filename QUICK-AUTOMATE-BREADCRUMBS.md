@@ -84,13 +84,13 @@ Automatically set `primary_collection` metafield values based on rules:
 ### Step 1: Preview Changes
 
 ```bash
-curl http://localhost:3001/api/admin/set-primary-collections?dryRun=true&limit=10
+curl https://www.theequestrian.com.au/api/admin/set-primary-collections?dryRun=true&limit=10
 ```
 
 ### Step 2: Apply Changes
 
 ```bash
-curl -X POST http://localhost:3001/api/admin/set-primary-collections?limit=100
+curl -X POST https://www.theequestrian.com.au/api/admin/set-primary-collections?limit=100
 ```
 
 **Note:** This requires Admin API setup. See `AUTOMATE-BREADCRUMBS.md` for full setup.
@@ -234,13 +234,13 @@ Automatically set `primary_collection` metafield values based on rules:
 ### Step 1: Preview Changes
 
 ```bash
-curl http://localhost:3001/api/admin/set-primary-collections?dryRun=true&limit=10
+curl https://www.theequestrian.com.au/api/admin/set-primary-collections?dryRun=true&limit=10
 ```
 
 ### Step 2: Apply Changes
 
 ```bash
-curl -X POST http://localhost:3001/api/admin/set-primary-collections?limit=100
+curl -X POST https://www.theequestrian.com.au/api/admin/set-primary-collections?limit=100
 ```
 
 **Note:** This requires Admin API setup. See `AUTOMATE-BREADCRUMBS.md` for full setup.

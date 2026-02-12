@@ -315,8 +315,8 @@ npm run dev
 ```
 
 3. Visit product pages:
-- http://localhost:3001/products/shanga-mesh-combo
-- http://localhost:3001/horse/rugs/shanga-towel-rug
+- https://www.theequestrian.com.au/products/shanga-mesh-combo
+- https://www.theequestrian.com.au/horse/rugs/shanga-towel-rug
 
 4. Verify bullets are unique and specific
 

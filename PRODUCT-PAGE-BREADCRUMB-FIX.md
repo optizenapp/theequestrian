@@ -89,7 +89,7 @@ const additionalPaths = breadcrumbPaths.slice(1, 4); // Limit to 3 additional pa
 
 ## Testing the Fix
 
-Visit: http://localhost:3001/products/gidgee-charisma-sunglasses-auburn-leopard-tortoise-frame-rose-lens
+Visit: https://www.theequestrian.com.au/products/gidgee-charisma-sunglasses-auburn-leopard-tortoise-frame-rose-lens
 
 **Expected Result:**
 - Breadcrumbs should show proper category path based on product type

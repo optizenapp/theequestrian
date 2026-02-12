@@ -198,10 +198,10 @@ npm run preview-titles -- --category=horse
 npm run dev
 
 # Visit affected pages:
-# - http://localhost:3001/clothing/kids
-# - http://localhost:3001/clothing/footwear
-# - http://localhost:3001/horse/rugs/summer
-# - http://localhost:3001/horse/saddles/dressage
+# - https://www.theequestrian.com.au/clothing/kids
+# - https://www.theequestrian.com.au/clothing/footwear
+# - https://www.theequestrian.com.au/horse/rugs/summer
+# - https://www.theequestrian.com.au/horse/saddles/dressage
 ```
 
 ### 5. Verify Display

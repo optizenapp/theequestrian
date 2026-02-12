@@ -68,7 +68,7 @@ code exports/collection-content.csv
 ### 4. Test Changes
 ```bash
 npm run dev
-# Visit http://localhost:3001/your-category
+# Visit https://www.theequestrian.com.au/your-category
 ```
 
 ## 📊 Current Issues Found

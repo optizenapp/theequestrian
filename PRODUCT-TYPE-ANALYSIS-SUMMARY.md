@@ -21,7 +21,7 @@
 
 ```bash
 # View analysis in browser or via curl:
-curl "http://localhost:3001/api/admin/analyze-product-types"
+curl "https://www.theequestrian.com.au/api/admin/analyze-product-types"
 ```
 
 **Top 30 Product Types:**
@@ -279,7 +279,7 @@ Once you answer these questions, I can:
 
 ```bash
 # View analysis in browser or via curl:
-curl "http://localhost:3001/api/admin/analyze-product-types"
+curl "https://www.theequestrian.com.au/api/admin/analyze-product-types"
 ```
 
 **Top 30 Product Types:**
