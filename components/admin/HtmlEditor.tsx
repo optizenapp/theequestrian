@@ -1,6 +1,17 @@
 'use client';
 
-import { Editor } from '@tinymce/tinymce-react';
+import dynamic from 'next/dynamic';
+
+const TinyMCEEditor = dynamic(
+  async () => {
+    const mod = await import('@tinymce/tinymce-react');
+    return mod.Editor;
+  },
+  {
+    ssr: false,
+    loading: () => <div className="h-80 w-full animate-pulse rounded-md bg-gray-100" />,
+  }
+);
 
 interface HtmlEditorProps {
   value: string;
@@ -10,7 +21,7 @@ interface HtmlEditorProps {
 
 export function HtmlEditor({ value, onChange, height = 320 }: HtmlEditorProps) {
   return (
-    <Editor
+    <TinyMCEEditor
       apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || ''}
       value={value}
       onEditorChange={(content) => onChange(content)}

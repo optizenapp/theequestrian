@@ -32,11 +32,11 @@ import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
 import { LazySection } from '@/components/LazySection';
-import Link from 'next/link';
 import type { Metadata } from 'next';
 import type { ShopifyProduct } from '@/types/shopify';
 import { getManualRedirect } from '@/lib/redirects/manual';
 import { getProductOverrideByHandle, resolveProductHandleFromSlug } from '@/lib/content/product-overrides';
+import { cache } from 'react';
 
 // Lazy load heavy below-the-fold components to improve LCP
 const ProductReviewSection = dynamic(
@@ -57,6 +57,12 @@ interface PageProps {
   }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
+
+const getResolvedProductBySlug = cache(async (slug: string) => {
+  const resolvedHandle = await resolveProductHandleFromSlug(slug);
+  const product = await getProductByHandle(resolvedHandle);
+  return { resolvedHandle, product };
+});
 
 /**
  * Dynamic Page: /{category}/{subcategory}/{product}
@@ -100,8 +106,7 @@ export default async function Page({ params, searchParams }: PageProps) {
   }
 
   // 2. If not a category, assume it's a product handle
-  const resolvedHandle = await resolveProductHandleFromSlug(thirdSegment);
-  const product = await getProductByHandle(resolvedHandle, { cache: 'no-store' });
+  const { resolvedHandle, product } = await getResolvedProductBySlug(thirdSegment);
 
   if (!product) {
     notFound();
@@ -143,14 +148,6 @@ async function renderProductPage(product: ShopifyProduct, canonicalPath?: string
   const descriptionHtml = override?.use_headless_description
     ? (override?.description_html || product.descriptionHtml)
     : product.descriptionHtml;
-  const price = product.priceRange.minVariantPrice;
-  
-  // Calculate compareAtPrice from variants
-  const compareAtPrice = product.variants.edges
-    .map(({ node }) => node.compareAtPrice)
-    .filter((cp): cp is { amount: string; currencyCode: string } => cp !== null && cp !== undefined)
-    .sort((a, b) => parseFloat(a.amount) - parseFloat(b.amount))[0];
-  
   // Build breadcrumb paths from allocation table (priority) or product type (fallback)
   const breadcrumbPaths = await getBreadcrumbsForProduct(
     product.productType || '',
@@ -173,6 +170,12 @@ async function renderProductPage(product: ShopifyProduct, canonicalPath?: string
 
   // Fetch review stats for schema (server-side)
   const reviewStats = await getReviewStatsWithCache(product.handle);
+  const reviewBadgeStats = reviewStats
+    ? {
+        total_reviews: reviewStats.reviewCount,
+        average_rating: reviewStats.averageRating,
+      }
+    : null;
 
   // Generate unified @graph with BreadcrumbList + Product (including review stats)
   const canonicalUrl = canonicalPath || await getProductCanonicalUrl(product);
@@ -236,7 +239,11 @@ async function renderProductPage(product: ShopifyProduct, canonicalPath?: string
         {/* Mobile title & rating */}
         <div className="lg:hidden mt-4 mb-8 space-y-2">
           <h1 className="text-3xl font-bold text-gray-900">{displayTitle}</h1>
-          <ProductPageReviewBadge productId={product.id} productHandle={product.handle} />
+          <ProductPageReviewBadge
+            productId={product.id}
+            productHandle={product.handle}
+            initialStats={reviewBadgeStats}
+          />
           <div className="space-y-2 mt-4">
             {featureHighlights.map((feature) => (
               <div key={feature} className="flex items-start gap-2 text-sm text-gray-700">
@@ -266,7 +273,11 @@ async function renderProductPage(product: ShopifyProduct, canonicalPath?: string
             <div className="hidden lg:block">
                 <h2 className="text-3xl font-bold text-gray-900 mb-2">{displayTitle}</h2>
               <div className="mb-4">
-                <ProductPageReviewBadge productId={product.id} productHandle={product.handle} />
+                <ProductPageReviewBadge
+                  productId={product.id}
+                  productHandle={product.handle}
+                  initialStats={reviewBadgeStats}
+                />
               </div>
 
               {/* Key Features */}
@@ -520,8 +531,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   // It's a product - fetch and generate full metadata
-  const resolvedHandle = await resolveProductHandleFromSlug(thirdSegment);
-  const product = await getProductByHandle(resolvedHandle, { cache: 'no-store' });
+  const { resolvedHandle, product } = await getResolvedProductBySlug(thirdSegment);
   
   if (!product) {
     return {

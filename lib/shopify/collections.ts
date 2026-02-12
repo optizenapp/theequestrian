@@ -95,15 +95,15 @@ export async function getCollectionWithPagination(
 ): Promise<{
   collection: CollectionWithParent;
   products: ShopifyProduct[];
+  totalCount: number;
   pageInfo: { hasNextPage: boolean; endCursor: string | null };
 }> {
-  console.log(`[getCollectionWithPagination] Fetching collection: ${handle}, limit: ${limit}, after: ${after}`);
-
   // Fetch collection metadata
   const collectionData = await shopifyFetch<CollectionResponse>({
     query: GET_COLLECTION_BY_HANDLE,
     variables: { handle, first: 1 }, // Just get metadata, we'll fetch products separately
-    cache: 'no-store',
+    cache: 'force-cache',
+    tags: [`collection-${handle}`],
   });
 
   if (!collectionData.collection) {
@@ -149,7 +149,8 @@ export async function getCollectionWithPagination(
         first: 50,
         after: paginationCursor
       },
-      cache: 'no-store',
+      cache: 'force-cache',
+      tags: [`collection-${handle}`],
     });
 
     if (!data.collection) break;
@@ -160,13 +161,7 @@ export async function getCollectionWithPagination(
     hasNextPage = data.collection.products.pageInfo.hasNextPage;
     cursor = data.collection.products.pageInfo.endCursor || null;
 
-    console.log(`[getCollectionWithPagination] Fetched ${products.length} products, total: ${allProducts.length}`);
   }
-
-  console.log(`[getCollectionWithPagination] Total products fetched: ${allProducts.length}`);
-  console.log('[getCollectionWithPagination] Products BEFORE sorting (first 5):', 
-    allProducts.slice(0, 5).map(p => ({ title: p.title, availableForSale: p.availableForSale }))
-  );
 
   // Sort: In-stock first, out-of-stock last
   allProducts.sort((a, b) => {
@@ -174,9 +169,6 @@ export async function getCollectionWithPagination(
     return a.availableForSale ? -1 : 1;
   });
 
-  console.log('[getCollectionWithPagination] Products AFTER sorting (first 5):', 
-    allProducts.slice(0, 5).map(p => ({ title: p.title, availableForSale: p.availableForSale }))
-  );
 
   // Handle pagination manually
   // Parse page number from cursor (format: "page:N")
@@ -193,14 +185,10 @@ export async function getCollectionWithPagination(
   const paginatedProducts = allProducts.slice(startIndex, endIndex);
   const hasMore = endIndex < allProducts.length;
 
-  console.log(`[getCollectionWithPagination] Page ${page}: Returning ${paginatedProducts.length} products (${startIndex}-${endIndex} of ${allProducts.length})`);
-  console.log('[getCollectionWithPagination] Returned products availability:', 
-    paginatedProducts.map(p => ({ title: p.title, availableForSale: p.availableForSale }))
-  );
-
   return {
     collection: collectionWithMetadata,
     products: paginatedProducts,
+    totalCount: allProducts.length,
     pageInfo: {
       hasNextPage: hasMore,
       endCursor: hasMore ? `page:${page + 1}` : null

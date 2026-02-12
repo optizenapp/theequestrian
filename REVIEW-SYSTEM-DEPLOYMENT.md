@@ -18,7 +18,7 @@
 - `GET /api/reviews/stats/[productId]` - Get review statistics
 - `GET /api/reviews/[productId]` - Get all reviews for a product
 - `POST /api/reviews` - Submit a new review
-- `POST /api/webhooks/shopify/orders` - Shopify webhook handler for order fulfillment
+- `POST /api/webhooks/shopify/orders` - Shopify webhook handler for fulfillment + refund/cancel lifecycle
 
 ### ✅ Integrations
 - Product pages now display reviews section
@@ -260,8 +260,10 @@ POSTGRES_DATABASE=...
 
 1. Go to Shopify Admin → Settings → Notifications → Webhooks
 2. Click "Create webhook"
-3. Configure:
-   - **Event:** Order fulfillment
+3. Create webhooks (same URL for each topic):
+   - **Event:** Order fulfillment (`orders/fulfilled`)
+   - **Event:** Order cancelled (`orders/cancelled`)
+   - **Event:** Refund created (`refunds/create`)
    - **Format:** JSON
    - **URL:** `https://theequestrian.com.au/api/webhooks/shopify/orders`
    - **Webhook API version:** 2024-01 (or latest)

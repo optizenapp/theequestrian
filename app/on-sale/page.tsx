@@ -1,6 +1,6 @@
 
 import { notFound } from 'next/navigation';
-import { getCollectionWithPagination, getCollectionProductCount } from '@/lib/shopify/collections';
+import { getCollectionWithPagination } from '@/lib/shopify/collections';
 import { getProductCanonicalUrls } from '@/lib/shopify/products';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
@@ -52,14 +52,11 @@ export default async function OnSalePage({
   const collectionHandle = pageData?.handle || 'on-sale';
 
   // 2. Fetch Products from Shopify Collection with pagination and sorting
-  const { collection, products, pageInfo } = await getCollectionWithPagination(
+  const { collection, products, pageInfo, totalCount } = await getCollectionWithPagination(
     collectionHandle,
     36,
     afterCursor
   );
-  
-  // Get total product count
-  const totalProductCount = await getCollectionProductCount(collectionHandle);
   
   // Generate canonical URLs for all products (fast with Neon DB)
   // Product cards will link directly to category-based URLs
@@ -147,7 +144,7 @@ export default async function OnSalePage({
               hasNextPage: pageInfo.hasNextPage,
               endCursor: pageInfo.endCursor
             }}
-            totalCount={totalProductCount}
+            totalCount={totalCount}
             reviewStatsMap={reviewStatsMap}
           />
 

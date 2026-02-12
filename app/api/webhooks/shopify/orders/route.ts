@@ -6,27 +6,28 @@ import { shopifyAdminFetch } from '@/lib/shopify/admin-client';
 import { getProductCanonicalUrl } from '@/lib/shopify/products';
 import { applyTemplate, getReviewEmailSettings } from '@/lib/reviews/email-settings';
 import {
+  cancelScheduledReviewEmailsByOrderId,
+  extractResendEmailId,
+  getShopifyOrderCancellationState,
+  shouldCancelReviewScheduleFromOrderState,
+} from '@/lib/reviews/review-email-cancellation';
+import { upsertOrderFactFromShopifyPayload, recomputeCustomerAggregates, recomputeCustomerAffinities } from '@/lib/email-platform/orders';
+import {
   renderReviewEmailHtml,
   type ReviewEmailRenderData,
   type ReviewEmailProduct,
 } from '@/lib/reviews/email-template';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+const SUPPORTED_TOPICS = new Set(['orders/fulfilled', 'orders/cancelled', 'refunds/create']);
 
 /**
- * Shopify Webhook Handler: Order Fulfillment
+ * Shopify Webhook Handler: Review email schedule lifecycle.
  *
- * This endpoint receives webhooks from Shopify when an order is fulfilled.
- * It tracks GA4 purchase events and can send review request emails.
- *
- * Setup Instructions:
- * 1. In Shopify Admin, go to Settings > Notifications > Webhooks
- * 2. Create webhook for order fulfillment:
- *    - Event: Order fulfillment (orders/fulfilled)
- *    - Format: JSON
- *    - URL: https://www.theequestrian.com.au/api/webhooks/shopify/orders
- *    - Webhook API version: 2024-01 (or latest)
- * 3. Add SHOPIFY_WEBHOOK_SECRET to your environment variables
+ * Supported topics on this endpoint:
+ * - orders/fulfilled: schedule/send review email and queue GA4 purchase event
+ * - orders/cancelled: cancel scheduled review emails for the order
+ * - refunds/create: cancel scheduled review emails if refunded before fulfillment
  */
 
 // Verify Shopify webhook signature
@@ -59,118 +60,194 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
 
-    // Parse the webhook payload
-    const order = JSON.parse(body);
+    const topic = (request.headers.get('x-shopify-topic') || '').toLowerCase();
+    const payload = JSON.parse(body);
 
-    // Extract customer and order details
-    const customerEmail = order.customer?.email;
-    const customerName = order.customer?.first_name || 'Customer';
-    const orderNumber = order.order_number;
-    const lineItems = order.line_items || [];
+    if (!SUPPORTED_TOPICS.has(topic)) {
+      console.log('ℹ️ Ignoring unsupported Shopify topic for orders webhook:', topic || '(missing)');
+      return NextResponse.json({ received: true, ignored: true });
+    }
 
-    console.log('📦 Order created:', {
-      orderId: order.id,
-      orderNumber: order.order_number,
-      customer: order.customer?.email,
-      items: order.line_items?.length,
-      totalPrice: order.total_price,
+    if (topic === 'orders/fulfilled') {
+      await handleOrderFulfilled(payload);
+      return NextResponse.json({ received: true, topic });
+    }
+
+    await handleOrderCancellationTopic({
+      topic,
+      payload,
     });
-
-    // Track GA4 purchase event (store in DB for later client-side tracking)
-    if (customerEmail && lineItems.length > 0) {
-      try {
-        const totalAmount = parseFloat(order.total_price || '0');
-        const currency = order.currency || 'AUD';
-        const items = lineItems.map((item: any) => ({
-          item_id: item.product_id?.toString(),
-          item_name: item.title,
-          quantity: item.quantity,
-          price: parseFloat(item.price || '0'),
-        }));
-
-        await sql`
-          INSERT INTO ga4_purchase_events (
-            order_id,
-            order_number,
-            customer_email,
-            total_amount,
-            currency,
-            items,
-            created_at
-          ) VALUES (
-            ${order.id.toString()},
-            ${orderNumber.toString()},
-            ${customerEmail},
-            ${totalAmount},
-            ${currency},
-            ${JSON.stringify(items)},
-            NOW()
-          )
-          ON CONFLICT (order_id) DO NOTHING
-        `;
-
-        console.log('✅ GA4 purchase event queued for order:', orderNumber);
-      } catch (gaError) {
-        console.error('❌ Failed to queue GA4 purchase event:', gaError);
-        // Don't fail the webhook if GA4 tracking fails
-      }
-    }
-
-    if (!customerEmail || lineItems.length === 0) {
-      console.log('⚠️ Skipping review request: No email or no items');
-      return NextResponse.json({ received: true });
-    }
-
-    const settings = await getReviewEmailSettings();
-    if (!settings.enabled) {
-      console.log('⚠️ Review request emails disabled in settings');
-      return NextResponse.json({ received: true });
-    }
-
-    const products: ReviewEmailProduct[] = await Promise.all(
-      lineItems.map(async (item: any) => {
-        const productGid = item.product_id ? `gid://shopify/Product/${item.product_id}` : null;
-        if (!productGid) {
-          return {
-            title: item.title,
-            handle: item.product_id?.toString() || '',
-            imageUrl: null,
-            url: null,
-          };
-        }
-        const productDetails = await fetchProductDetails(productGid);
-        const productTitle = productDetails?.title || item.title;
-        const productHandle = productDetails?.handle || item.product_id?.toString() || '';
-        const productUrl = productDetails ? await buildProductReviewUrl(productDetails) : null;
-        const productImageUrl = productDetails?.featuredImage?.url || null;
-        return {
-          title: productTitle,
-          handle: productHandle,
-          imageUrl: productImageUrl,
-          url: productUrl,
-        };
-      })
-    );
-
-    const primaryProduct = products[0];
-    await sendReviewRequestEmail({
-      customerEmail,
-      customerName,
-      orderNumber: orderNumber.toString(),
-      orderId: order.id.toString(),
-      products,
-      productTitle: primaryProduct?.title || 'Your purchase',
-      productImageUrl: primaryProduct?.imageUrl || null,
-      productUrl: primaryProduct?.url || null,
-      productHandle: primaryProduct?.handle || null,
-      settings,
-    });
-
-    return NextResponse.json({ received: true });
+    return NextResponse.json({ received: true, topic });
   } catch (error) {
     console.error('Error processing webhook:', error);
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
   }
+}
+
+async function handleOrderFulfilled(order: any): Promise<void> {
+  const customerEmail = order.customer?.email;
+  const customerName = order.customer?.first_name || 'Customer';
+  const orderNumber = order.order_number;
+  const lineItems = order.line_items || [];
+
+  console.log('📦 Order fulfilled:', {
+    orderId: order.id,
+    orderNumber: order.order_number,
+    customer: order.customer?.email,
+    items: order.line_items?.length,
+    totalPrice: order.total_price,
+  });
+
+  try {
+    await upsertOrderFactFromShopifyPayload(order);
+    await recomputeCustomerAggregates();
+    await recomputeCustomerAffinities();
+  } catch (orderFactError) {
+    console.error('❌ Failed to sync order fact into email platform:', orderFactError);
+  }
+
+  if (customerEmail && lineItems.length > 0) {
+    try {
+      const totalAmount = parseFloat(order.total_price || '0');
+      const currency = order.currency || 'AUD';
+      const items = lineItems.map((item: any) => ({
+        item_id: item.product_id?.toString(),
+        item_name: item.title,
+        quantity: item.quantity,
+        price: parseFloat(item.price || '0'),
+      }));
+
+      await sql`
+        INSERT INTO ga4_purchase_events (
+          order_id,
+          order_number,
+          customer_email,
+          total_amount,
+          currency,
+          items,
+          created_at
+        ) VALUES (
+          ${order.id.toString()},
+          ${orderNumber.toString()},
+          ${customerEmail},
+          ${totalAmount},
+          ${currency},
+          ${JSON.stringify(items)},
+          NOW()
+        )
+        ON CONFLICT (order_id) DO NOTHING
+      `;
+
+      console.log('✅ GA4 purchase event queued for order:', orderNumber);
+    } catch (gaError) {
+      console.error('❌ Failed to queue GA4 purchase event:', gaError);
+    }
+  }
+
+  if (!customerEmail || lineItems.length === 0) {
+    console.log('⚠️ Skipping review request: No email or no items');
+    return;
+  }
+
+  const settings = await getReviewEmailSettings();
+  if (!settings.enabled) {
+    console.log('⚠️ Review request emails disabled in settings');
+    return;
+  }
+
+  const products: ReviewEmailProduct[] = await Promise.all(
+    lineItems.map(async (item: any) => {
+      const productGid = item.product_id ? `gid://shopify/Product/${item.product_id}` : null;
+      if (!productGid) {
+        return {
+          title: item.title,
+          handle: item.product_id?.toString() || '',
+          imageUrl: null,
+          url: null,
+        };
+      }
+      const productDetails = await fetchProductDetails(productGid);
+      const productTitle = productDetails?.title || item.title;
+      const productHandle = productDetails?.handle || item.product_id?.toString() || '';
+      const productUrl = productDetails ? await buildProductReviewUrl(productDetails) : null;
+      const productImageUrl = productDetails?.featuredImage?.url || null;
+      return {
+        title: productTitle,
+        handle: productHandle,
+        imageUrl: productImageUrl,
+        url: productUrl,
+      };
+    })
+  );
+
+  const primaryProduct = products[0];
+  await sendReviewRequestEmail({
+    customerEmail,
+    customerName,
+    orderNumber: orderNumber.toString(),
+    orderId: order.id.toString(),
+    products,
+    productTitle: primaryProduct?.title || 'Your purchase',
+    productImageUrl: primaryProduct?.imageUrl || null,
+    productUrl: primaryProduct?.url || null,
+    productHandle: primaryProduct?.handle || null,
+    settings,
+  });
+}
+
+async function handleOrderCancellationTopic({
+  topic,
+  payload,
+}: {
+  topic: string;
+  payload: any;
+}): Promise<void> {
+  const orderId =
+    topic === 'refunds/create' ? payload?.order_id?.toString?.() : payload?.id?.toString?.();
+  if (!orderId) {
+    console.warn(`⚠️ Missing order ID for ${topic} webhook`);
+    return;
+  }
+
+  if (topic === 'refunds/create') {
+    const orderState = await getShopifyOrderCancellationState(orderId);
+    if (!orderState) {
+      console.warn(`⚠️ Could not load Shopify order state for refund webhook. orderId=${orderId}`);
+      return;
+    }
+    const shouldCancel = shouldCancelReviewScheduleFromOrderState(orderState);
+    if (!shouldCancel) {
+      console.log(`ℹ️ Refund received but order is fulfilled/partially fulfilled. Skipping cancel.`, {
+        orderId,
+        displayFinancialStatus: orderState.displayFinancialStatus,
+        displayFulfillmentStatus: orderState.displayFulfillmentStatus,
+      });
+      return;
+    }
+  }
+
+  if (topic !== 'refunds/create' && payload?.id) {
+    try {
+      await upsertOrderFactFromShopifyPayload(payload);
+      await recomputeCustomerAggregates();
+      await recomputeCustomerAffinities();
+    } catch (orderFactError) {
+      console.error('❌ Failed to sync cancelled order fact into email platform:', orderFactError);
+    }
+  }
+
+  const reason = `Shopify ${topic} webhook`;
+  const results = await cancelScheduledReviewEmailsByOrderId(orderId, reason);
+  const cancelledCount = results.filter((result) => result.cancelled).length;
+  const failedCount = results.length - cancelledCount;
+
+  console.log('✅ Processed review-email cancellation webhook:', {
+    topic,
+    orderId,
+    foundScheduled: results.length,
+    cancelledCount,
+    failedCount,
+  });
 }
 
 async function sendReviewRequestEmail({
@@ -264,24 +341,33 @@ async function sendReviewRequestEmail({
   }
 
   try {
-    await resend.emails.send({
+    const sendResult = await resend.emails.send({
       from: `${settings.fromName} <${settings.fromEmail}>`,
       to: customerEmail,
       subject,
       html,
       ...(scheduledAt ? { scheduledAt } : {}),
     });
+    const resendEmailId = extractResendEmailId(sendResult);
 
-    // Update email send record to 'sent' status
-    if (emailSendId && !scheduledAt) {
+    if (emailSendId) {
       try {
         const { sql } = await import('@vercel/postgres');
-        await sql`
-          UPDATE review_email_sends
-          SET status = 'sent',
-              sent_at = ${new Date().toISOString()}
-          WHERE id = ${emailSendId};
-        `;
+        if (scheduledAt) {
+          await sql`
+            UPDATE review_email_sends
+            SET resend_email_id = ${resendEmailId}
+            WHERE id = ${emailSendId};
+          `;
+        } else {
+          await sql`
+            UPDATE review_email_sends
+            SET status = 'sent',
+                sent_at = ${new Date().toISOString()},
+                resend_email_id = ${resendEmailId}
+            WHERE id = ${emailSendId};
+          `;
+        }
       } catch (updateError) {
         console.error('❌ Failed to update email send status:', updateError);
       }

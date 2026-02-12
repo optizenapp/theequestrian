@@ -1,11 +1,24 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { StatCard } from '@/components/admin/StatCard';
 import { DataTable } from '@/components/admin/DataTable';
-import { KpiChartCard } from '@/components/admin/KpiChartCard';
-import { KpiChartModal } from '@/components/admin/KpiChartModal';
+
+const KpiChartCard = dynamic(
+  () => import('@/components/admin/KpiChartCard').then((mod) => mod.KpiChartCard),
+  {
+    ssr: false,
+  }
+);
+
+const KpiChartModal = dynamic(
+  () => import('@/components/admin/KpiChartModal').then((mod) => mod.KpiChartModal),
+  {
+    ssr: false,
+  }
+);
 
 type DashboardDelta = { diff: number; pct: number };
 

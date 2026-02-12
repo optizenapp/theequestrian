@@ -31,7 +31,7 @@ export function LazySection({
     <div 
       ref={ref} 
       className={className}
-      style={minHeight ? { minHeight } : undefined}
+      style={!isVisible && minHeight ? { minHeight } : undefined}
     >
       {isVisible ? children : fallback}
     </div>

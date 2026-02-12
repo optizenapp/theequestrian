@@ -617,41 +617,76 @@ export async function getProductsByTypes(
 export async function getRecommendedProducts(limit: number = 4, productType?: string, excludeHandle?: string): Promise<ShopifyProduct[]> {
   try {
     let products: ShopifyProduct[] = [];
+    const applyRelatedFilters = async (source: ShopifyProduct[]) => {
+      let filtered = await filterPublishedForHeadless(source);
+      if (excludeHandle) {
+        filtered = filtered.filter((product) => product.handle !== excludeHandle);
+      }
+      return filterProductsWithImages(filtered);
+    };
+    const collectWithPagination = async ({
+      query,
+      fallbackAllProducts,
+    }: {
+      query?: string;
+      fallbackAllProducts?: boolean;
+    }): Promise<ShopifyProduct[]> => {
+      const collected: ShopifyProduct[] = [];
+      const seenIds = new Set<string>();
+      let hasNextPage = true;
+      let cursor: string | null = null;
+      let pages = 0;
+      const maxPages = 5;
+
+      while (hasNextPage && pages < maxPages && collected.length < limit) {
+        const data: ProductsResponse = fallbackAllProducts
+          ? await shopifyFetch<ProductsResponse>({
+              query: GET_ALL_PRODUCTS,
+              variables: { first: 50, after: cursor },
+            })
+          : await shopifyFetch<ProductsResponse>({
+              query: GET_PRODUCTS_BY_QUERY,
+              variables: {
+                query: query || '',
+                first: 50,
+                after: cursor,
+              },
+            });
+
+        const pageProducts = data.products?.edges?.map(({ node }) => node) || [];
+        const filteredPageProducts = await applyRelatedFilters(pageProducts);
+
+        for (const product of filteredPageProducts) {
+          if (!seenIds.has(product.id)) {
+            seenIds.add(product.id);
+            collected.push(product);
+            if (collected.length >= limit) break;
+          }
+        }
+
+        hasNextPage = data.products?.pageInfo?.hasNextPage ?? false;
+        cursor = data.products?.pageInfo?.endCursor ?? null;
+        pages += 1;
+      }
+
+      return collected;
+    };
 
     // 1. Try to fetch by product type for relevance
     if (productType) {
       console.log(`[getRecommendedProducts] Fetching related products for type: ${productType}`);
-      const data = await shopifyFetch<ProductsResponse>({
-        query: GET_PRODUCTS_BY_QUERY,
-        variables: { 
-          query: `product_type:"${productType}"`, 
-          first: limit + 5 // Fetch extra to allow for exclusion
-        },
+      products = await collectWithPagination({
+        query: `product_type:"${productType}"`,
       });
-      
-      if (data.products?.edges) {
-        products = data.products.edges.map(({ node }) => node);
-      }
     } 
-    
-    // 2. Fallback to "all products" (latest) if no type or no results found
+
+    // 2. Fallback to "all products" (latest) if no type or no post-filter results
     if (products.length === 0) {
       console.log(`[getRecommendedProducts] Fallback: Fetching latest products`);
-    const data = await shopifyFetch<ProductsResponse>({
-      query: GET_ALL_PRODUCTS,
-        variables: { first: limit + 5 },
-    });
-
-      if (data.products?.edges) {
-        products = data.products.edges.map(({ node }) => node);
-      }
+      products = await collectWithPagination({
+        fallbackAllProducts: true,
+      });
     }
-
-    // Filter out the current product if handle provided
-    if (excludeHandle) {
-      products = products.filter(p => p.handle !== excludeHandle);
-    }
-    products = filterProductsWithImages(products);
 
     if (products.length === 0) {
       console.warn('[getRecommendedProducts] No related products returned', {

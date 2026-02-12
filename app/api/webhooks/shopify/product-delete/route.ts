@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
 import crypto from 'crypto';
+import { revalidateShopifyProductCaches } from '@/lib/cache/shopify-revalidate';
 
 /**
  * Verify webhook is from Shopify
@@ -47,6 +48,8 @@ export async function POST(request: NextRequest) {
     
     // Delete from database
     await sql`DELETE FROM products WHERE id = ${productId}`;
+
+    revalidateShopifyProductCaches(product.handle || null);
     
     console.log('[Webhook] ✅ Product deleted:', productId);
     

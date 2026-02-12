@@ -5,6 +5,7 @@ import { BestDealsSlider } from '@/components/BestDealsSlider';
 import { normalizeProductType } from '@/lib/shopify/collection-mapping';
 import { getProductTypesForCollection } from '@/lib/mapping/collection-mapping';
 import type { HomeSliderItem, HomeSection } from '@/lib/content/home';
+import { getProductsByHandles } from '@/lib/shopify/products-by-handles';
 
 interface BestDealsSliderContainerProps {
   section: HomeSection;
@@ -49,17 +50,17 @@ export async function BestDealsSliderContainer({ section }: BestDealsSliderConta
 
   // Strategy 1: Use comma-separated handles (Product OR Category)
   if (productHandles.length > 0) {
+    const batchedProducts = await getProductsByHandles(productHandles);
+    const productMap = new Map(batchedProducts.map((product) => [product.handle, product]));
+
     enrichedItems = await Promise.all(
       productHandles.map(async (handle) => {
-        // 1. Try as Product Handle first
-        const productData = await getProductByHandle(handle);
+        // 1. Try as Product Handle first (batched request)
+        const productData = productMap.get(handle);
         
         if (productData) {
           // It's a product
-          let categoryLabel = productData.productType;
-          if (!categoryLabel && productData.collections.edges.length > 0) {
-            categoryLabel = productData.collections.edges[0].node.title;
-          }
+          const categoryLabel = productData.vendor || 'Featured';
           
           const price = productData.priceRange.minVariantPrice;
           const comparePrice = productData.compareAtPriceRange?.minVariantPrice;
@@ -73,7 +74,7 @@ export async function BestDealsSliderContainer({ section }: BestDealsSliderConta
             title: productData.title,
             price: `From $${parseFloat(price.amount).toFixed(0)}`,
             saving: savingAmount,
-            detail: productData.description ? productData.description.substring(0, 100) + '...' : '',
+            detail: '',
             handle: productData.handle
           };
         }
@@ -173,7 +174,6 @@ export async function BestDealsSliderContainer({ section }: BestDealsSliderConta
     enrichedItems = await Promise.all(
       rawItems.map(async (item) => {
         // ... (same as before)
-        const productHandle = item.title.toLowerCase().replace(/\s+/g, '-'); 
         const isLikelyHandle = !item.title.includes(' ') || item.title.includes('-');
         
         let productData = null;

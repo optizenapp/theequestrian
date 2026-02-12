@@ -11,7 +11,8 @@
  * - Responsive image sizes (thumbnails at 160x160)
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import Image from 'next/image';
 
 interface ImageEdge {
   node: {
@@ -53,22 +54,6 @@ export function ProductImageGallery({ images, productTitle }: ProductImageGaller
   
   const imageList = images.edges.map(edge => edge.node);
   
-  // Preload the first image for faster LCP
-  useEffect(() => {
-    if (imageList.length > 0) {
-      const link = document.createElement('link');
-      link.rel = 'preload';
-      link.as = 'image';
-      link.href = imageList[0].url;
-      link.fetchPriority = 'high';
-      document.head.appendChild(link);
-      
-      return () => {
-        document.head.removeChild(link);
-      };
-    }
-  }, [imageList]);
-  
   if (imageList.length === 0) {
     return (
       <div className="bg-surface rounded-2xl p-8 flex items-center justify-center aspect-square border border-gray-100">
@@ -80,13 +65,15 @@ export function ProductImageGallery({ images, productTitle }: ProductImageGaller
   return (
     <div className="flex flex-col lg:flex-row gap-4">
       {/* Main Image */}
-      <div className="flex-1 bg-surface rounded-2xl p-8 flex items-center justify-center aspect-square border border-gray-100 hover:shadow-sm transition-shadow order-1 lg:order-2">
-        <img
+      <div className="relative flex-1 bg-surface rounded-2xl p-8 flex items-center justify-center aspect-square border border-gray-100 hover:shadow-sm transition-shadow order-1 lg:order-2">
+        <Image
           src={imageList[selectedImageIndex].url}
           alt={imageList[selectedImageIndex].altText || productTitle}
-          className="max-w-full max-h-full object-contain"
-          loading="eager"
-          fetchPriority="high"
+          fill
+          className="max-w-full max-h-full object-contain p-8"
+          sizes="(max-width: 1024px) 100vw, 60vw"
+          priority={selectedImageIndex === 0}
+          fetchPriority={selectedImageIndex === 0 ? 'high' : 'auto'}
         />
       </div>
 
@@ -104,14 +91,13 @@ export function ProductImageGallery({ images, productTitle }: ProductImageGaller
                   : 'border-gray-200 hover:border-gray-400 opacity-60 hover:opacity-100'
               }`}
             >
-              <img
+              <Image
                 src={getShopifyImageUrl(image.url, '160x160')}
                 alt={image.altText || `${productTitle} - Image ${index + 1}`}
+                fill
                 className="w-full h-full object-cover"
+                sizes="80px"
                 loading={index < 4 ? 'eager' : 'lazy'}
-                width="80"
-                height="80"
-                decoding={index < 4 ? 'sync' : 'async'}
               />
             </button>
           ))}

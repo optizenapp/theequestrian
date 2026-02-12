@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
 import crypto from 'crypto';
+import { revalidateShopifyProductCaches } from '@/lib/cache/shopify-revalidate';
 
 /**
  * Verify webhook is from Shopify
@@ -101,6 +102,8 @@ export async function POST(request: NextRequest) {
         available_for_sale = EXCLUDED.available_for_sale,
         updated_at = NOW()
     `;
+
+    revalidateShopifyProductCaches(product.handle || null);
     
     console.log('[Webhook] ✅ Product synced:', productId);
     

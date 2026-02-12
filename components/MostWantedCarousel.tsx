@@ -76,16 +76,26 @@ export function MostWantedCarousel({
   description = 'Curated gear that riders reach for first — high performance, great reviews, and premium brands.',
 }: MostWantedCarouselProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const getScrollAmount = () =>
+    scrollContainerRef.current ? Math.max(scrollContainerRef.current.clientWidth * 0.85, 320) : 400;
 
   const scrollLeft = () => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: -400, behavior: 'smooth' });
+      const amount = getScrollAmount();
+      scrollContainerRef.current.scrollTo({
+        left: Math.max(0, scrollContainerRef.current.scrollLeft - amount),
+        behavior: 'smooth',
+      });
     }
   };
 
   const scrollRight = () => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: 400, behavior: 'smooth' });
+      const amount = getScrollAmount();
+      scrollContainerRef.current.scrollTo({
+        left: scrollContainerRef.current.scrollLeft + amount,
+        behavior: 'smooth',
+      });
     }
   };
 
@@ -169,18 +179,20 @@ export function MostWantedCarousel({
 
           {/* Navigation Buttons */}
           <button
+            type="button"
             onClick={scrollLeft}
             aria-label="Scroll left"
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 hidden lg:flex h-12 w-12 items-center justify-center rounded-full bg-white border border-gray-300 shadow-lg hover:bg-gray-50 hover:shadow-xl transition-all"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 hidden lg:flex h-12 w-12 items-center justify-center rounded-full bg-white border border-gray-300 shadow-lg hover:bg-gray-50 hover:shadow-xl transition-all pointer-events-auto"
           >
             <svg className="h-6 w-6 text-gray-700" fill="currentColor" viewBox="0 0 24 24">
               <path fillRule="evenodd" d="M10.957 12l3.47-3.47a.75.75 0 10-1.06-1.06L9.72 11.116a1.25 1.25 0 000 1.768l3.646 3.646a.75.75 0 001.06-1.06L10.958 12" clipRule="evenodd"/>
             </svg>
           </button>
           <button
+            type="button"
             onClick={scrollRight}
             aria-label="Scroll right"
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 hidden lg:flex h-12 w-12 items-center justify-center rounded-full bg-white border border-gray-300 shadow-lg hover:bg-gray-50 hover:shadow-xl transition-all"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 hidden lg:flex h-12 w-12 items-center justify-center rounded-full bg-white border border-gray-300 shadow-lg hover:bg-gray-50 hover:shadow-xl transition-all pointer-events-auto"
           >
             <svg className="h-6 w-6 text-gray-700" fill="currentColor" viewBox="0 0 24 24">
               <path fillRule="evenodd" d="M13.043 12l-3.47 3.47a.75.75 0 101.06 1.06l3.647-3.646a1.25 1.25 0 000-1.768L10.634 7.47a.75.75 0 00-1.06 1.06L13.042 12" clipRule="evenodd"/>

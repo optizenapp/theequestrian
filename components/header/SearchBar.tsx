@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 /**
  * Search Bar Component
@@ -151,8 +152,14 @@ export function SearchBar() {
                 >
                   <div className="h-10 w-10 rounded-md bg-gray-100 flex items-center justify-center overflow-hidden">
                     {item.imageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={item.imageUrl} alt={item.imageAlt || item.title} className="h-full w-full object-cover" />
+                      <Image
+                        src={item.imageUrl}
+                        alt={item.imageAlt || item.title}
+                        width={40}
+                        height={40}
+                        className="h-full w-full object-cover"
+                        sizes="40px"
+                      />
                     ) : (
                       <span className="text-xs text-gray-400">Category</span>
                     )}
@@ -175,8 +182,14 @@ export function SearchBar() {
                 >
                   <div className="h-10 w-10 rounded-md bg-gray-100 flex items-center justify-center overflow-hidden">
                     {item.imageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={item.imageUrl} alt={item.imageAlt || item.title} className="h-full w-full object-cover" />
+                      <Image
+                        src={item.imageUrl}
+                        alt={item.imageAlt || item.title}
+                        width={40}
+                        height={40}
+                        className="h-full w-full object-cover"
+                        sizes="40px"
+                      />
                     ) : (
                       <span className="text-xs text-gray-400">No image</span>
                     )}

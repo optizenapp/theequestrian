@@ -11,7 +11,7 @@
  * const hydratedProducts = useLiveProductStatus(cachedProducts);
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ShopifyProduct } from '@/types/shopify';
 
 interface ProductStatus {
@@ -23,6 +23,10 @@ interface ProductStatus {
 
 interface ProductStatusMap {
   [productId: string]: ProductStatus;
+}
+
+interface LiveStatusOptions {
+  deferMs?: number;
 }
 
 export function useLiveProductStatus(products: ShopifyProduct[]): {
@@ -143,7 +147,10 @@ export function useLiveProductStatus(products: ShopifyProduct[]): {
  * Optimized version that only hydrates when products change
  * Uses a dependency on product IDs rather than the entire products array
  */
-export function useLiveProductStatusOptimized(products: ShopifyProduct[]): {
+export function useLiveProductStatusOptimized(
+  products: ShopifyProduct[],
+  options?: LiveStatusOptions
+): {
   products: ShopifyProduct[];
   isLoading: boolean;
   error: Error | null;
@@ -151,21 +158,31 @@ export function useLiveProductStatusOptimized(products: ShopifyProduct[]): {
   const [hydratedProducts, setHydratedProducts] = useState<ShopifyProduct[]>(products);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const productsRef = useRef(products);
 
   // Create stable product IDs string for dependency
   const productIdsKey = products.map(p => p.id).join(',');
 
   useEffect(() => {
-    if (!products || products.length === 0) {
+    productsRef.current = products;
+  }, [products]);
+
+  useEffect(() => {
+    const currentProducts = productsRef.current;
+
+    if (!currentProducts || currentProducts.length === 0) {
       setIsLoading(false);
       return;
     }
 
     let isMounted = true;
 
+    const delay = options?.deferMs ?? 0;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
     async function fetchLiveStatus() {
       try {
-        const productIds = products.map(p => p.id);
+        const productIds = currentProducts.map(p => p.id);
 
         const response = await fetch('/api/products/status', {
           method: 'POST',
@@ -184,7 +201,7 @@ export function useLiveProductStatusOptimized(products: ShopifyProduct[]): {
 
         if (!isMounted) return;
 
-        const updatedProducts = products.map(product => {
+        const updatedProducts = currentProducts.map(product => {
           const liveStatus = statusMap[product.id];
           if (!liveStatus) return product;
 
@@ -225,17 +242,24 @@ export function useLiveProductStatusOptimized(products: ShopifyProduct[]): {
         if (isMounted) {
           setError(err instanceof Error ? err : new Error('Unknown error'));
           setIsLoading(false);
-          setHydratedProducts(products);
+          setHydratedProducts(currentProducts);
         }
       }
     }
 
-    fetchLiveStatus();
+    if (delay > 0) {
+      timer = setTimeout(fetchLiveStatus, delay);
+    } else {
+      fetchLiveStatus();
+    }
 
     return () => {
       isMounted = false;
+      if (timer) {
+        clearTimeout(timer);
+      }
     };
-  }, [productIdsKey]); // Only re-fetch when product IDs change
+  }, [productIdsKey, options?.deferMs]); // Only re-fetch when product IDs change
 
   return {
     products: hydratedProducts,

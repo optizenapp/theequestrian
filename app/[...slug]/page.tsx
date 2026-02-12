@@ -13,6 +13,8 @@ import { getManualRedirect } from '@/lib/redirects/manual';
 import { getProductOverrideByHandle, resolveProductHandleFromSlug } from '@/lib/content/product-overrides';
 import ProductReviewSection from '@/components/reviews/ProductReviewSection';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
+import { getReviewStatsWithCache } from '@/lib/reviews/get-review-stats';
+import { cache } from 'react';
 
 export const revalidate = 300;
 
@@ -21,6 +23,12 @@ interface ProductCatchAllPageProps {
     slug: string[];
   }>;
 }
+
+const getResolvedProduct = cache(async (rawHandle: string) => {
+  const handle = await resolveProductHandleFromSlug(rawHandle);
+  const product = await getProductByHandle(handle);
+  return { handle, product };
+});
 
 /**
  * Catch-all route for product pages at any category depth
@@ -50,11 +58,8 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
   
   // Last segment is the product handle
   const rawHandle = slug[slug.length - 1];
-  const handle = await resolveProductHandleFromSlug(rawHandle);
+  const { handle, product } = await getResolvedProduct(rawHandle);
   
-  // Fetch product
-  const product = await getProductByHandle(handle);
-
   if (!product) {
     notFound();
   }
@@ -89,14 +94,6 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
   // 1. The requested path matches the canonical URL (correct URL)
   // 2. OR the product has no category mapping (canonical is /products/{handle})
 
-  const price = product.priceRange.minVariantPrice;
-  
-  // Calculate compareAtPrice from variants
-  const compareAtPrice = product.variants.edges
-    .map(({ node }) => node.compareAtPrice)
-    .filter((cp): cp is { amount: string; currencyCode: string } => cp !== null && cp !== undefined)
-    .sort((a, b) => parseFloat(a.amount) - parseFloat(b.amount))[0];
-  
   // Build breadcrumb paths from product type using mapping
   const breadcrumbPaths = await getBreadcrumbsForProduct(
     product.productType || '',
@@ -131,6 +128,13 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
   const featureHighlights = override?.use_headless_bullets && overrideBullets.length > 0
     ? overrideBullets
     : getProductBulletPoints(product.id);
+  const reviewStats = await getReviewStatsWithCache(product.handle);
+  const reviewBadgeStats = reviewStats
+    ? {
+        total_reviews: reviewStats.reviewCount,
+        average_rating: reviewStats.averageRating,
+      }
+    : null;
 
   // Fetch related products and review stats (server-side batch)
   const relatedProducts = await getRecommendedProducts(4, product.productType, product.handle);
@@ -167,7 +171,11 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
         {/* Mobile title & rating (between breadcrumbs & image) */}
         <div className="lg:hidden mt-4 mb-8 space-y-2">
           <h1 className="text-3xl font-bold text-gray-900">{displayTitle}</h1>
-          <ProductPageReviewBadge productId={product.id} />
+          <ProductPageReviewBadge
+            productId={product.id}
+            productHandle={product.handle}
+            initialStats={reviewBadgeStats}
+          />
           <div className="space-y-2 mt-4">
             {featureHighlights.map((feature) => (
               <div key={feature} className="flex items-start gap-2 text-sm text-gray-700">
@@ -200,7 +208,11 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
               <div className="hidden lg:block">
                 <h2 className="text-3xl font-bold text-gray-900 mb-2">{displayTitle}</h2>
                 <div className="mb-4">
-                  <ProductPageReviewBadge productId={product.id} />
+                  <ProductPageReviewBadge
+                    productId={product.id}
+                    productHandle={product.handle}
+                    initialStats={reviewBadgeStats}
+                  />
                 </div>
 
                 {/* Key Features/Benefits */}
@@ -245,9 +257,7 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
 export async function generateMetadata({ params }: ProductCatchAllPageProps) {
   const { slug } = await params;
   const rawHandle = slug[slug.length - 1];
-  const handle = await resolveProductHandleFromSlug(rawHandle);
-  
-  const product = await getProductByHandle(handle);
+  const { handle, product } = await getResolvedProduct(rawHandle);
   
   if (!product) {
     return {

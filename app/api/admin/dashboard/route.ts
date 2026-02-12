@@ -402,6 +402,7 @@ export async function GET(request: NextRequest) {
         COUNT(*) as total_count,
         COUNT(*) FILTER (WHERE status = 'sent') as sent_count,
         COUNT(*) FILTER (WHERE status = 'scheduled') as scheduled_count,
+        COUNT(*) FILTER (WHERE status = 'cancelled') as cancelled_count,
         COUNT(*) FILTER (WHERE status = 'failed') as failed_count
       FROM review_email_sends
       WHERE created_at >= ${range.startDate}::date AND created_at <= ${range.endDate}::date
@@ -649,12 +650,14 @@ export async function GET(request: NextRequest) {
       emails: {
         sent: toNumber(emailStats.rows[0]?.sent_count),
         scheduled: toNumber(emailStats.rows[0]?.scheduled_count),
+        cancelled: toNumber(emailStats.rows[0]?.cancelled_count),
         failed: toNumber(emailStats.rows[0]?.failed_count),
         campaigns: [
           {
             name: 'Review Email',
             sent: toNumber(emailStats.rows[0]?.sent_count),
             scheduled: toNumber(emailStats.rows[0]?.scheduled_count),
+            cancelled: toNumber(emailStats.rows[0]?.cancelled_count),
             failed: toNumber(emailStats.rows[0]?.failed_count),
           },
         ],

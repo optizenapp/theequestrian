@@ -20,6 +20,7 @@
     "export:sitemap": "tsx scripts/export-sitemap.ts",
     "import:mapping": "tsx scripts/import-mapping.ts",
     "db:init": "tsx scripts/init-database.ts",
+    "email:init": "tsx scripts/init-email-platform.ts",
     "db:sync": "tsx scripts/sync-products-to-db.ts",
     "db:stats": "tsx scripts/db-stats.ts",
     "preview-titles": "tsx scripts/preview-titles.ts",

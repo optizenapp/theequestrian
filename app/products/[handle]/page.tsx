@@ -15,6 +15,7 @@ import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBa
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
 import { createManualRedirect, getManualRedirect } from '@/lib/redirects/manual';
 import { getProductOverrideByHandle, resolveProductHandleFromSlug } from '@/lib/content/product-overrides';
+import { cache } from 'react';
 
 export const revalidate = 300;
 
@@ -23,6 +24,12 @@ interface ProductPageProps {
     handle: string;
   }>;
 }
+
+const getResolvedProduct = cache(async (rawHandle: string) => {
+  const resolvedHandle = await resolveProductHandleFromSlug(rawHandle);
+  const product = await getProductByHandle(resolvedHandle);
+  return { resolvedHandle, product };
+});
 
 /**
  * Legacy product route: /products/{handle}
@@ -35,7 +42,7 @@ interface ProductPageProps {
  */
 export default async function ProductPage({ params }: ProductPageProps) {
   const { handle: rawHandle } = await params;
-  const resolvedHandle = await resolveProductHandleFromSlug(rawHandle);
+  const { resolvedHandle, product } = await getResolvedProduct(rawHandle);
   const manualRedirect = await getManualRedirect(`/products/${rawHandle}`);
   if (manualRedirect) {
     if (manualRedirect.type === '301' || manualRedirect.type === '308') {
@@ -43,8 +50,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
     }
     redirect(manualRedirect.to);
   }
-  const product = await getProductByHandle(resolvedHandle, { cache: 'no-store' });
-
   if (!product) {
     notFound();
   }
@@ -75,14 +80,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
   }
 
   // If we reach here, product has no mapping - render fallback page
-  const price = product.priceRange.minVariantPrice;
-  
-  // Calculate compareAtPrice from variants
-  const compareAtPrice = product.variants.edges
-    .map(({ node }) => node.compareAtPrice)
-    .filter((cp): cp is { amount: string; currencyCode: string } => cp !== null && cp !== undefined)
-    .sort((a, b) => parseFloat(a.amount) - parseFloat(b.amount))[0];
-  
   // Build breadcrumb paths from product type using mapping
   const breadcrumbPaths = await getBreadcrumbsForProduct(
     product.productType || '',
@@ -105,6 +102,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   // Fetch review stats for schema (server-side)
   const reviewStats = await getReviewStatsWithCache(product.handle);
+  const reviewBadgeStats = reviewStats
+    ? {
+        total_reviews: reviewStats.reviewCount,
+        average_rating: reviewStats.averageRating,
+      }
+    : null;
 
   // Generate unified @graph with BreadcrumbList + Product (including review stats)
   // This creates a single knowledge graph entity for better entity resolution
@@ -168,7 +171,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
       {/* Mobile title & rating (between breadcrumbs & image) */}
         <div className="lg:hidden mt-4 mb-8 space-y-2">
         <h1 className="text-3xl font-bold text-gray-900">{displayTitle}</h1>
-          <ProductPageReviewBadge productId={product.id} />
+          <ProductPageReviewBadge
+            productId={product.id}
+            productHandle={product.handle}
+            initialStats={reviewBadgeStats}
+          />
           <div className="space-y-2 mt-4">
             {featureHighlights.map((feature) => (
               <div key={feature} className="flex items-start gap-2 text-sm text-gray-700">
@@ -201,7 +208,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <div className="hidden lg:block">
                 <h2 className="text-3xl font-bold text-gray-900 mb-2">{displayTitle}</h2>
                 <div className="mb-4">
-                  <ProductPageReviewBadge productId={product.id} productHandle={product.handle} />
+                  <ProductPageReviewBadge
+                    productId={product.id}
+                    productHandle={product.handle}
+                    initialStats={reviewBadgeStats}
+                  />
                 </div>
 
                 {/* Key Features/Benefits */}
@@ -246,9 +257,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
  */
 export async function generateMetadata({ params }: ProductPageProps) {
   const { handle: rawHandle } = await params;
-  const resolvedHandle = await resolveProductHandleFromSlug(rawHandle);
-  
-  const product = await getProductByHandle(resolvedHandle, { cache: 'no-store' });
+  const { resolvedHandle, product } = await getResolvedProduct(rawHandle);
   
   if (!product) {
     return {

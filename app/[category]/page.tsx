@@ -7,7 +7,6 @@ import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { getCategoryContent } from '@/lib/content/collections';
 import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
 import { 
-  getProductTypesForCollection, 
   getSubcategoriesForCollection as getMappingSubcategories,
   getCollectionTitle,
   getCollectionHierarchy
@@ -17,7 +16,7 @@ import { TrustSignals } from '@/components/TrustSignals';
 import { CategoryPills } from '@/components/CategoryPills';
 import { CollectionDescription } from '@/components/CollectionDescription';
 import { CollectionBreadcrumbs } from '@/components/CollectionBreadcrumbs';
-import Link from 'next/link';
+import Image from 'next/image';
 import type { Metadata } from 'next';
 import { getManualRedirect } from '@/lib/redirects/manual';
 
@@ -106,9 +105,9 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
       notFound();
     }
 
-    // If product has a primary collection, redirect to canonical URL
-    if ((product as any).primaryCollection) {
-      const canonicalUrl = await getProductCanonicalUrl(product);
+    // Redirect fallback product requests to canonical URL when available.
+    const canonicalUrl = await getProductCanonicalUrl(product);
+    if (canonicalUrl !== `/${category}`) {
       redirect(canonicalUrl);
     }
 
@@ -120,11 +119,15 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             {/* Product Images */}
             <div>
               {product.images.edges.length > 0 && (
-                <img
-                  src={product.images.edges[0].node.url}
-                  alt={product.images.edges[0].node.altText || product.title}
-                  className="w-full rounded-lg"
-                />
+                <div className="relative aspect-square w-full rounded-lg overflow-hidden">
+                  <Image
+                    src={product.images.edges[0].node.url}
+                    alt={product.images.edges[0].node.altText || product.title}
+                    fill
+                    className="object-contain"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                  />
+                </div>
               )}
             </div>
 

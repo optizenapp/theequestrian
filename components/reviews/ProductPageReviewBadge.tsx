@@ -6,6 +6,7 @@ import { ReviewStars } from './ReviewStars';
 interface ProductPageReviewBadgeProps {
   productId: string;
   productHandle?: string;
+  initialStats?: ReviewStats | null;
 }
 
 interface ReviewStats {
@@ -13,11 +14,15 @@ interface ReviewStats {
   average_rating: number;
 }
 
-export function ProductPageReviewBadge({ productId, productHandle }: ProductPageReviewBadgeProps) {
-  const [stats, setStats] = useState<ReviewStats | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export function ProductPageReviewBadge({ productId, productHandle, initialStats = null }: ProductPageReviewBadgeProps) {
+  const [stats, setStats] = useState<ReviewStats | null>(initialStats);
+  const [isLoading, setIsLoading] = useState(!initialStats);
 
   useEffect(() => {
+    if (initialStats) {
+      return;
+    }
+
     async function fetchStats() {
       try {
         // Use productHandle if available (for imported reviews), otherwise fall back to productId
@@ -35,7 +40,7 @@ export function ProductPageReviewBadge({ productId, productHandle }: ProductPage
     }
 
     fetchStats();
-  }, [productId, productHandle]);
+  }, [productId, productHandle, initialStats]);
 
   if (isLoading) {
     return (

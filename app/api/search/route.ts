@@ -58,13 +58,45 @@ function buildProductTypeQuery(productTypes: string[]): string {
     .join(' OR ');
 }
 
+type SearchResponse = {
+  results: {
+    products: Array<{
+      type: 'product';
+      id: string;
+      handle: string;
+      title: string;
+      imageUrl: string | null;
+      imageAlt: string | null;
+      price: string;
+      currencyCode: string;
+    }>;
+    collections: Array<{
+      type: 'collection';
+      id: string;
+      urlPath: string;
+      title: string;
+      imageUrl: string | null;
+      imageAlt: string | null;
+    }>;
+  };
+};
+
+const searchResponseCache = new Map<string, { data: SearchResponse; timestamp: number }>();
+const SEARCH_CACHE_TTL_MS = 60 * 1000;
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q')?.trim() || '';
+    const queryKey = query.toLowerCase();
 
     if (query.length < 2) {
       return NextResponse.json({ results: [] });
+    }
+
+    const cached = searchResponseCache.get(queryKey);
+    if (cached && Date.now() - cached.timestamp < SEARCH_CACHE_TTL_MS) {
+      return NextResponse.json(cached.data);
     }
 
     const [productData, categoryData] = await Promise.all([
@@ -96,7 +128,8 @@ export async function GET(request: Request) {
     }>({
         query: SEARCH_PRODUCTS_QUERY,
         variables: { query: `title:*${query}*`, first: 8 },
-        cache: 'no-store',
+        cache: 'force-cache',
+        tags: ['search', `search-api-${queryKey}`],
       }),
       sql.query<{
         url_path: string;
@@ -153,7 +186,7 @@ export async function GET(request: Request) {
     }));
 
     const collectionResults = await Promise.all(
-      baseCollections.map(async (collection) => {
+      baseCollections.slice(0, 3).map(async (collection) => {
         const pathParts = collection.urlPath.replace(/^\//, '').split('/').filter(Boolean);
         const [category, subcategory, subsubcategory] = pathParts;
         const productTypes = await getProductTypesForCollection(category, subcategory, subsubcategory);
@@ -182,7 +215,8 @@ export async function GET(request: Request) {
         }>({
           query: SEARCH_CATEGORY_IMAGE_QUERY,
           variables: { query: `(${productTypeQuery})`, first: 1 },
-          cache: 'no-store',
+          cache: 'force-cache',
+          tags: ['search', `search-collection-image-${collection.id}`],
         });
 
         const imageNode = imageData.products.edges[0]?.node.images.edges[0]?.node;
@@ -194,12 +228,15 @@ export async function GET(request: Request) {
       })
     );
 
-    return NextResponse.json({
+    const payload: SearchResponse = {
       results: {
         products: productResults,
         collections: collectionResults,
       },
-    });
+    };
+
+    searchResponseCache.set(queryKey, { data: payload, timestamp: Date.now() });
+    return NextResponse.json(payload);
   } catch (error) {
     console.error('Search API error:', error);
     return NextResponse.json({ results: { products: [], collections: [] } }, { status: 200 });

@@ -71,7 +71,9 @@ export function ProductGridWithFilters({
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
 
   // Hydrate products with real-time price and inventory data
-  const { products: hydratedProducts, isLoading: isHydrating } = useLiveProductStatusOptimized(products);
+  const { products: hydratedProducts } = useLiveProductStatusOptimized(products, {
+    deferMs: 1200,
+  });
 
   // Get filters from URL params
   const filters = useMemo(() => getFiltersFromSearchParams(searchParams), [searchParams]);
