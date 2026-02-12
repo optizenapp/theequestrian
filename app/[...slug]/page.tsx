@@ -137,11 +137,10 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
         average_rating: reviewStats.averageRating,
       }
     : null;
-  const primaryBreadcrumb = Array.isArray(breadcrumbSchemas) ? breadcrumbSchemas[0] : breadcrumbSchemas;
   const schemaGraph = generateProductSchemaGraph(
     { ...product, title: displayTitle },
     canonicalUrl,
-    primaryBreadcrumb,
+    breadcrumbSchemas,
     siteUrl,
     reviewStats
   );
@@ -158,16 +157,6 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaGraph) }}
         />
-
-        {/* Additional breadcrumb paths (if product appears in multiple categories) */}
-        {Array.isArray(breadcrumbSchemas) &&
-          breadcrumbSchemas.slice(1).map((schema, index) => (
-            <script
-              key={`breadcrumb-alt-${index}`}
-              type="application/ld+json"
-              dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-            />
-          ))}
 
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 pt-4">
         

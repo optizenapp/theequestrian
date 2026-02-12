@@ -75,7 +75,7 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
   
   // Generate canonical URLs for all products (fast with Neon DB)
   // Product cards will link directly to category-based URLs
-  await getProductCanonicalUrls(products);
+  const productUrls = await getProductCanonicalUrls(products);
 
   // Fetch review stats for all products in one batch (server-side)
   const productHandles = products.map(p => p.handle);
@@ -110,16 +110,31 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
     collectionDescription: brand.meta_description || `Shop premium ${brand.title} equestrian products. Official retailer with fast shipping across Australia.`,
     breadcrumbs,
     products,
+    canonicalProductUrls: productUrls,
     siteUrl,
     maxProducts: 12, // Limit schema to 12 products for performance
   });
+  const brandEntity = {
+    '@type': 'Brand',
+    '@id': `${siteUrl}/brands/${handle}#brand`,
+    name: brand.title,
+    url: `${siteUrl}/brands/${handle}`,
+    description: brand.meta_description || shortDescription,
+  };
+  const enhancedSchema = {
+    ...collectionSchema,
+    '@graph': [
+      ...(Array.isArray((collectionSchema as any)['@graph']) ? (collectionSchema as any)['@graph'] : []),
+      brandEntity,
+    ],
+  };
 
   return (
     <>
       {/* Structured Data - @graph with BreadcrumbList + CollectionPage + ItemList */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(enhancedSchema) }}
       />
 
       <div className="bg-gray-50 min-h-screen pb-12">
@@ -172,6 +187,7 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
               endCursor: pageInfo.endCursor
             }}
             totalCount={totalProductCount}
+            productUrls={productUrls}
             reviewStatsMap={reviewStatsMap}
           />
 

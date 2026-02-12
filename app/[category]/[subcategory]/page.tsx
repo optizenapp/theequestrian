@@ -152,6 +152,7 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
     collectionDescription: content?.meta_description || `Shop premium ${pageTitle.toLowerCase()} from top equestrian brands. Quality products with fast shipping across Australia.`,
     breadcrumbs,
     products: filteredProducts,
+    canonicalProductUrls: productUrls,
     parentCollection: {
       name: parentCollectionTitle,
       url: `${siteUrl}/${category}`,

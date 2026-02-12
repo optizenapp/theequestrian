@@ -10,8 +10,9 @@ export const metadata: Metadata = {
 export default function ShippingDeliveryPage() {
   const schema = generatePolicyPageSchema({
     path: '/shipping-delivery',
-    title: 'Postage & Delivery | The Equestrian',
+    title: 'Postage & Delivery',
     description: 'Postage, delivery times, tracking, click & collect, and multi-vendor shipping details.',
+    lastReviewed: '2021-04-19',
   });
 
   return (

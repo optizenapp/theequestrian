@@ -180,11 +180,10 @@ async function renderProductPage(product: ShopifyProduct, canonicalPath?: string
 
   // Generate unified @graph with BreadcrumbList + Product (including review stats)
   const canonicalUrl = canonicalPath || await getProductCanonicalUrl(product);
-  const primaryBreadcrumb = Array.isArray(breadcrumbSchemas) ? breadcrumbSchemas[0] : breadcrumbSchemas;
   const schemaGraph = generateProductSchemaGraph(
     { ...product, title: displayTitle },
     canonicalUrl,
-    primaryBreadcrumb,
+    breadcrumbSchemas,
     siteUrl,
     reviewStats
   );
@@ -218,15 +217,6 @@ async function renderProductPage(product: ShopifyProduct, canonicalPath?: string
             type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaGraph) }}
           />
-
-      {/* Additional breadcrumb paths (if product appears in multiple categories) */}
-      {Array.isArray(breadcrumbSchemas) && breadcrumbSchemas.slice(1).map((schema, index) => (
-        <script
-          key={`breadcrumb-alt-${index}`}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-        />
-      ))}
 
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 pt-4">
         
@@ -400,6 +390,7 @@ async function renderSubSubcategoryPage(
     collectionDescription: content?.meta_description || `Shop premium ${pageTitle.toLowerCase()} from top equestrian brands. Quality products with fast shipping across Australia.`,
     breadcrumbs,
     products: filteredProducts,
+    canonicalProductUrls: productUrls,
     parentCollection: {
       name: parentCollectionTitle,
       url: `${siteUrl}/${category}/${subcategory}`,

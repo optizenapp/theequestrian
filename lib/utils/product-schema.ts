@@ -32,6 +32,10 @@ export interface ReviewStats {
  * Returns null if not available - schema will gracefully omit this field
  */
 function extractGTIN(product: ShopifyProduct): string | null {
+  const barcode = product.variants.edges.find(({ node }) => node.barcode)?.node.barcode?.trim();
+  if (barcode && /^\d{8,14}$/.test(barcode)) {
+    return barcode;
+  }
   // Check for GTIN metafield (you can add this in Shopify admin)
   // Format: product.metafields?.gtin?.value
   
@@ -45,6 +49,11 @@ function extractGTIN(product: ShopifyProduct): string | null {
  * Returns null if not available
  */
 function extractMPN(product: ShopifyProduct): string | null {
+  const variantSku = product.variants.edges.find(({ node }) => node.sku)?.node.sku?.trim();
+  if (variantSku) {
+    return variantSku;
+  }
+
   // Check for MPN in tags (format: "MPN:ABC123")
   const mpnTag = product.tags.find(tag => tag.toLowerCase().startsWith('mpn:'));
   if (mpnTag) {
@@ -54,6 +63,13 @@ function extractMPN(product: ShopifyProduct): string | null {
   // Check for MPN metafield
   // TODO: Add MPN metafield to Shopify products
   return null;
+}
+
+function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
 }
 
 /**
@@ -152,6 +168,9 @@ export function generateProductSchema(
   siteUrl: string = '',
   reviewStats?: ReviewStats | null
 ) {
+  const baseSiteUrl = (siteUrl || 'https://theequestrian.com.au').replace(/\/+$/, '');
+  const normalizedProductPath = productUrl.startsWith('/') ? productUrl : `/${productUrl}`;
+  const productAbsoluteUrl = `${baseSiteUrl}${normalizedProductPath}`;
   const price = product.priceRange.minVariantPrice;
   const maxPrice = product.priceRange.maxVariantPrice;
   const compareAtPrice = product.compareAtPriceRange?.minVariantPrice;
@@ -171,18 +190,20 @@ export function generateProductSchema(
   const gtin = extractGTIN(product);
   const mpn = extractMPN(product);
   const additionalProperties = extractAdditionalProperties(product);
+  const firstMaterial = additionalProperties.find((property) => property.name === 'Material')?.value as string | undefined;
   const color = extractColor(product);
   const size = extractSize(product);
+  const variantCount = product.variants.edges.length;
   
   // Build the schema with @id for entity resolution
   const schema: any = {
     "@context": "https://schema.org",
     "@type": "Product",
-    "@id": `${siteUrl}${productUrl}#product`,
+    "@id": `${productAbsoluteUrl}#product`,
     "name": product.title,
     "description": product.description || `Shop ${product.title} at The Equestrian. Premium equestrian supplies and equipment.`,
     "sku": sku,
-    "url": `${siteUrl}${productUrl}`,
+    "url": productAbsoluteUrl,
   };
   
   // OPTIONAL: GTIN (Global Trade Item Number - barcode)
@@ -212,7 +233,8 @@ export function generateProductSchema(
       product.vendor.trim() !== '') {
     schema.brand = {
       "@type": "Brand",
-      "name": product.vendor
+      "name": product.vendor,
+      "url": `${baseSiteUrl}/brands/${slugify(product.vendor)}`,
     };
   }
   
@@ -229,6 +251,10 @@ export function generateProductSchema(
   // OPTIONAL: Size (entity attribute)
   if (size) {
     schema.size = size;
+  }
+
+  if (firstMaterial) {
+    schema.material = firstMaterial;
   }
   
   // OPTIONAL: Additional properties (NLP-ready structured attributes)
@@ -258,7 +284,7 @@ export function generateProductSchema(
   
   // Build offers with merchant trust signals
   const offerBase = {
-    "url": `${siteUrl}${productUrl}`,
+    "url": productAbsoluteUrl,
     "priceCurrency": price.currencyCode,
     "availability": availability,
     "priceValidUntil": new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 90 days
@@ -266,19 +292,12 @@ export function generateProductSchema(
     
     // Seller entity (the retailer)
     "seller": {
-      "@type": "Organization",
-      "name": "The Equestrian",
-      "url": siteUrl
+      "@id": `${baseSiteUrl}#organization`,
     },
     
     // Merchant return policy (trust signal)
     "hasMerchantReturnPolicy": {
-      "@type": "MerchantReturnPolicy",
-      "applicableCountry": "AU",
-      "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
-      "merchantReturnDays": 30,
-      "returnMethod": "https://schema.org/ReturnByMail",
-      "returnFees": "https://schema.org/FreeReturn"
+      "@id": `${baseSiteUrl}#return-policy`,
     },
     
     // Shipping details (trust signal)
@@ -299,13 +318,13 @@ export function generateProductSchema(
           "@type": "QuantitativeValue",
           "minValue": 0,
           "maxValue": 2,
-          "unitCode": "d"
+          "unitCode": "DAY"
         },
         "transitTime": {
           "@type": "QuantitativeValue",
           "minValue": 2,
           "maxValue": 7,
-          "unitCode": "d"
+          "unitCode": "DAY"
         }
       }
     }
@@ -327,6 +346,51 @@ export function generateProductSchema(
       "lowPrice": price.amount,
       "highPrice": maxPrice.amount,
       "offerCount": product.variants.edges.length,
+    };
+  }
+
+  if (variantCount > 1) {
+    return {
+      "@context": "https://schema.org",
+      "@type": "ProductGroup",
+      "@id": `${productAbsoluteUrl}#product-group`,
+      "name": product.title,
+      "description": schema.description,
+      "url": productAbsoluteUrl,
+      ...(schema.brand && { "brand": schema.brand }),
+      "productGroupID": product.id.split('/').pop() || product.handle,
+      "variesBy": [
+        "https://schema.org/color",
+        "https://schema.org/size"
+      ],
+      ...(schema.aggregateRating && { "aggregateRating": schema.aggregateRating }),
+      "hasVariant": product.variants.edges.slice(0, 50).map(({ node }) => {
+        const variantColor = node.selectedOptions.find((option) => option.name.toLowerCase() === 'color' || option.name.toLowerCase() === 'colour')?.value;
+        const variantSize = node.selectedOptions.find((option) => option.name.toLowerCase() === 'size')?.value;
+        const variantUrl = `${productAbsoluteUrl}?variant=${node.id.split('/').pop() || ''}`;
+        const variantOffer = {
+          "@type": "Offer",
+          ...offerBase,
+          "url": variantUrl,
+          "price": node.price.amount,
+          "availability": node.availableForSale ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+        };
+
+        const variantSchema: any = {
+          "@type": "Product",
+          "name": `${product.title} - ${node.title}`,
+          "sku": node.sku || undefined,
+          "url": variantUrl,
+          ...(node.barcode && /^\d{8,14}$/.test(node.barcode) ? { "gtin13": node.barcode } : {}),
+          ...(variantColor ? { "color": variantColor } : {}),
+          ...(variantSize ? { "size": variantSize } : {}),
+          ...(node.image?.url ? { "image": node.image.url } : {}),
+          "isVariantOf": { "@id": `${productAbsoluteUrl}#product-group` },
+          "offers": variantOffer,
+        };
+
+        return JSON.parse(JSON.stringify(variantSchema));
+      }),
     };
   }
   
@@ -352,11 +416,12 @@ export function generateProductSchemaGraph(
   reviewStats?: ReviewStats | null
 ) {
   const productSchema = generateProductSchema(product, productUrl, siteUrl, reviewStats);
+  const breadcrumbs = Array.isArray(breadcrumbSchema) ? breadcrumbSchema : [breadcrumbSchema];
   
   return {
     "@context": "https://schema.org",
     "@graph": [
-      breadcrumbSchema,
+      ...breadcrumbs,
       productSchema
     ]
   };

@@ -143,23 +143,25 @@ export default async function Home() {
     })
   );
 
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au').replace(/\/+$/, '');
+
   // Schema.org structured data for homepage
   const schemaData = {
     "@context": "https://schema.org",
     "@graph": [
       {
         "@type": "OnlineStore",
-        "@id": "https://www.theequestrian.com.au/#organization",
+        "@id": `${siteUrl}#organization`,
         "name": "The Equestrian",
-        "url": "https://www.theequestrian.com.au",
+        "url": siteUrl,
         "logo": {
           "@type": "ImageObject",
-          "url": "https://www.theequestrian.com.au/logo-full.png",
+          "url": `${siteUrl}/logo-full.png`,
           "width": 256,
           "height": 256,
           "caption": "The Equestrian Logo"
         },
-        "image": "https://www.theequestrian.com.au/logo-full.png",
+        "image": `${siteUrl}/logo-full.png`,
         "description": "Australia's premium online equestrian store. High-quality riding apparel, horse tack, grooming supplies, and accessories for competitive and leisure riders.",
         "email": "support@theequestrian.com.au",
         "telephone": "+61-419-851-891",
@@ -178,6 +180,17 @@ export default async function Home() {
           "@type": "Country",
           "name": "Australia"
         },
+        "hasMerchantReturnPolicy": {
+          "@type": "MerchantReturnPolicy",
+          "@id": `${siteUrl}#return-policy`,
+          "applicableCountry": "AU",
+          "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+          "merchantReturnDays": 30,
+          "returnMethod": "https://schema.org/ReturnByMail",
+          "returnFees": "https://schema.org/FreeReturn",
+          "refundType": "https://schema.org/FullRefund",
+          "returnPolicyCountry": "AU"
+        },
         "sameAs": [
           "https://www.facebook.com/attheequestrian",
           "https://instagram.com/theequestrianoz",
@@ -193,42 +206,42 @@ export default async function Home() {
       },
       {
         "@type": "WebSite",
-        "@id": "https://www.theequestrian.com.au/#website",
-        "url": "https://www.theequestrian.com.au",
+        "@id": `${siteUrl}#website`,
+        "url": siteUrl,
         "name": "The Equestrian",
         "description": "Your premier Australian destination for equestrian fashion and horse gear.",
         "inLanguage": "en-AU",
         "publisher": {
-          "@id": "https://www.theequestrian.com.au/#organization"
+          "@id": `${siteUrl}#organization`
         },
         "potentialAction": {
           "@type": "SearchAction",
           "target": {
             "@type": "EntryPoint",
-            "urlTemplate": "https://www.theequestrian.com.au/search?q={search_term_string}"
+            "urlTemplate": `${siteUrl}/search?q={search_term_string}`
           },
           "query-input": "required name=search_term_string"
         }
       },
       {
         "@type": "WebPage",
-        "@id": "https://www.theequestrian.com.au/#webpage",
-        "url": "https://www.theequestrian.com.au",
+        "@id": `${siteUrl}/#webpage`,
+        "url": `${siteUrl}/`,
         "name": "The Equestrian | Premium Horse Riding Gear & Apparel Australia",
         "isPartOf": {
-          "@id": "https://www.theequestrian.com.au/#website"
+          "@id": `${siteUrl}#website`
         },
         "about": {
-          "@id": "https://www.theequestrian.com.au/#organization"
+          "@id": `${siteUrl}#organization`
         },
         "datePublished": "2023-10-01T08:00:00+10:00",
         "description": "Shop The Equestrian for the finest selection of horse tack, riding breeches, helmets, and stable supplies. Located in South Australia."
       },
       {
         "@type": "FAQPage",
-        "@id": "https://www.theequestrian.com.au/#faq",
+        "@id": `${siteUrl}/#faq`,
         "isPartOf": {
-          "@id": "https://www.theequestrian.com.au/#webpage"
+          "@id": `${siteUrl}/#webpage`
         },
         "mainEntity": [
           {

@@ -261,6 +261,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     collectionDescription: content?.meta_description || `Shop premium ${pageTitle.toLowerCase()} from top equestrian brands. Quality products with fast shipping across Australia.`,
     breadcrumbs,
     products: filteredProducts,
+    canonicalProductUrls: productUrls,
     siteUrl,
     maxProducts: 12, // Limit schema to 12 products for performance
   });

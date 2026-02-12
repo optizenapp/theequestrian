@@ -10,8 +10,9 @@ export const metadata: Metadata = {
 export default function ReturnsRefundsPage() {
   const schema = generatePolicyPageSchema({
     path: '/returns-refunds',
-    title: 'Returns & Refunds | The Equestrian',
+    title: 'Returns & Refunds',
     description: 'Returns and refunds policy for online orders, timeframes, and conditions.',
+    lastReviewed: '2021-04-19',
   });
 
   return (

@@ -94,6 +94,7 @@ export default async function OnSalePage({
     collectionDescription: pageData?.meta_description || 'Shop premium equestrian products on sale. Quality items at discounted prices with fast shipping across Australia.',
     breadcrumbs,
     products,
+    canonicalProductUrls: productUrls,
     siteUrl,
     maxProducts: 12, // Limit schema to 12 products for performance
   });
@@ -145,6 +146,7 @@ export default async function OnSalePage({
               endCursor: pageInfo.endCursor
             }}
             totalCount={totalCount}
+            productUrls={productUrls}
             reviewStatsMap={reviewStatsMap}
           />
 

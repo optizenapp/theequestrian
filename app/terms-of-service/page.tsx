@@ -10,8 +10,9 @@ export const metadata: Metadata = {
 export default function TermsOfServicePage() {
   const schema = generatePolicyPageSchema({
     path: '/terms-of-service',
-    title: 'Terms of Service | The Equestrian',
+    title: 'Terms of Service',
     description: 'Read our terms of service to understand the conditions of use for The Equestrian marketplace.',
+    lastReviewed: '2021-04-19',
   });
 
   return (

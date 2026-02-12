@@ -10,8 +10,9 @@ export const metadata: Metadata = {
 export default function PrivacyPolicyPage() {
   const schema = generatePolicyPageSchema({
     path: '/privacy-policy',
-    title: 'Privacy Policy | The Equestrian',
+    title: 'Privacy Policy',
     description: 'Read our privacy policy to understand how we collect, use, and protect your personal information.',
+    lastReviewed: '2021-04-19',
   });
 
   return (

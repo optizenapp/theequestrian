@@ -9,7 +9,7 @@
 
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
-import { getProductByHandle } from '@/lib/shopify/products';
+import { getProductByHandle, getProductCanonicalUrls } from '@/lib/shopify/products';
 import { getProductsByTypesFromDB } from '@/lib/products/postgres-adapter';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { getCategoryContent } from '@/lib/content/collections';
@@ -137,8 +137,8 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   // Total count from Postgres
   const totalProductCount = totalCount;
   
-  // PERFORMANCE: Skip canonical URL generation for now - use simple product URLs
-  const productUrls = new Map<string, string>();
+  // Generate canonical frontend URLs for schema and product cards
+  const productUrls = await getProductCanonicalUrls(filteredProducts);
 
   // Fetch review stats for all products in one batch (server-side)
   const productHandles = filteredProducts.map(p => p.handle);
@@ -172,6 +172,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     collectionDescription: content?.meta_description || `Shop premium ${pageTitle.toLowerCase()} from top equestrian brands. Quality products with fast shipping across Australia.`,
     breadcrumbs,
     products: filteredProducts,
+    canonicalProductUrls: productUrls,
     siteUrl,
     maxProducts: 12,
   });

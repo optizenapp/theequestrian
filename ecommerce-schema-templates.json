@@ -1,0 +1,923 @@
+{
+  "_meta": {
+    "version": "2.0",
+    "updated": "2026-02-12",
+    "notes": "World-class ecommerce schema templates following Google best practices (2025/2026). Replace all <PLACEHOLDER> values with dynamic data. CRITICAL: All JSON-LD must be server-side rendered in the initial HTML for headless Shopify."
+  },
+
+  "1_home_page": {
+    "_page": "/",
+    "_notes": "Establishes the site-wide entity graph. Organization node is the canonical anchor (@id) referenced by all other pages. Includes MerchantReturnPolicy and shipping defaults.",
+    "schema": {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "OnlineStore",
+          "@id": "<SITE_URL>#organization",
+          "name": "<BRAND_NAME>",
+          "url": "<SITE_URL>",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "<SITE_URL>/logo.png",
+            "width": "<LOGO_WIDTH>",
+            "height": "<LOGO_HEIGHT>"
+          },
+          "image": "<SITE_URL>/og-image.jpg",
+          "description": "<BRAND_DESCRIPTION>",
+          "foundingDate": "<YYYY-MM-DD>",
+          "founder": {
+            "@type": "Person",
+            "name": "<FOUNDER_NAME>"
+          },
+          "numberOfEmployees": {
+            "@type": "QuantitativeValue",
+            "value": "<EMPLOYEE_COUNT>"
+          },
+          "taxID": "<ABN>",
+          "vatID": "<GST_NUMBER_IF_APPLICABLE>",
+          "areaServed": {
+            "@type": "Country",
+            "name": "AU"
+          },
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "<STREET>",
+            "addressLocality": "<CITY>",
+            "addressRegion": "<STATE>",
+            "postalCode": "<POSTCODE>",
+            "addressCountry": "AU"
+          },
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer support",
+            "email": "<SUPPORT_EMAIL>",
+            "telephone": "<PHONE>",
+            "areaServed": "AU",
+            "availableLanguage": ["en"],
+            "contactOption": "TollFree"
+          },
+          "sameAs": [
+            "<FACEBOOK_URL>",
+            "<INSTAGRAM_URL>",
+            "<TIKTOK_URL>",
+            "<YOUTUBE_URL>",
+            "<LINKEDIN_URL>",
+            "<WIKIDATA_URL_IF_EXISTS>",
+            "<ABR_URL>"
+          ],
+          "hasMerchantReturnPolicy": {
+            "@type": "MerchantReturnPolicy",
+            "@id": "<SITE_URL>#return-policy",
+            "applicableCountry": "AU",
+            "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+            "merchantReturnDays": "<RETURN_DAYS>",
+            "returnMethod": "https://schema.org/ReturnByMail",
+            "returnFees": "https://schema.org/FreeReturn",
+            "refundType": "https://schema.org/FullRefund",
+            "returnPolicyCountry": "AU"
+          },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "<SITE_URL>/search?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "<SITE_URL>#website",
+          "url": "<SITE_URL>",
+          "name": "<BRAND_NAME>",
+          "description": "<SITE_DESCRIPTION>",
+          "publisher": { "@id": "<SITE_URL>#organization" },
+          "inLanguage": "en-AU",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "<SITE_URL>/search?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "WebPage",
+          "@id": "<SITE_URL>/#webpage",
+          "url": "<SITE_URL>/",
+          "name": "<HOME_TITLE>",
+          "description": "<HOME_DESCRIPTION>",
+          "isPartOf": { "@id": "<SITE_URL>#website" },
+          "about": { "@id": "<SITE_URL>#organization" },
+          "inLanguage": "en-AU"
+        }
+      ]
+    }
+  },
+
+  "2_product_page": {
+    "_page": "/products/{handle}",
+    "_notes": "Full merchant listing eligible schema. MUST include gtin or mpn for product matching. shippingDetails and hasMerchantReturnPolicy unlock rich result enhancements. All values (price, rating, availability) MUST be dynamic and match visible page content.",
+    "schema_single_product": {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "<SITE_URL>/" },
+            { "@type": "ListItem", "position": 2, "name": "<CATEGORY>", "item": "<SITE_URL>/collections/<CATEGORY_SLUG>" },
+            { "@type": "ListItem", "position": 3, "name": "<PRODUCT_NAME>" }
+          ]
+        },
+        {
+          "@type": "Product",
+          "@id": "<PRODUCT_URL>#product",
+          "name": "<PRODUCT_NAME>",
+          "description": "<PRODUCT_DESCRIPTION>",
+          "image": [
+            "<IMAGE_1_URL>",
+            "<IMAGE_2_URL>",
+            "<IMAGE_3_URL>"
+          ],
+          "sku": "<SKU>",
+          "gtin13": "<EAN_BARCODE>",
+          "mpn": "<MPN_IF_NO_GTIN>",
+          "brand": {
+            "@type": "Brand",
+            "name": "<BRAND>",
+            "url": "<SITE_URL>/brands/<BRAND_SLUG>"
+          },
+          "color": "<COLOR>",
+          "size": "<SIZE>",
+          "material": "<MATERIAL>",
+          "weight": {
+            "@type": "QuantitativeValue",
+            "value": "<WEIGHT_VALUE>",
+            "unitCode": "KGM"
+          },
+          "category": "<GOOGLE_PRODUCT_CATEGORY>",
+          "url": "<PRODUCT_URL>",
+          "offers": {
+            "@type": "Offer",
+            "url": "<PRODUCT_URL>",
+            "priceCurrency": "AUD",
+            "price": "<PRICE>",
+            "priceValidUntil": "<YYYY-MM-DD>",
+            "availability": "https://schema.org/InStock",
+            "itemCondition": "https://schema.org/NewCondition",
+            "seller": { "@id": "<SITE_URL>#organization" },
+            "shippingDetails": [
+              {
+                "@type": "OfferShippingDetails",
+                "shippingRate": {
+                  "@type": "MonetaryAmount",
+                  "value": "<SHIPPING_COST>",
+                  "currency": "AUD"
+                },
+                "shippingDestination": {
+                  "@type": "DefinedRegion",
+                  "addressCountry": "AU"
+                },
+                "deliveryTime": {
+                  "@type": "ShippingDeliveryTime",
+                  "handlingTime": {
+                    "@type": "QuantitativeValue",
+                    "minValue": "<HANDLING_MIN_DAYS>",
+                    "maxValue": "<HANDLING_MAX_DAYS>",
+                    "unitCode": "DAY"
+                  },
+                  "transitTime": {
+                    "@type": "QuantitativeValue",
+                    "minValue": "<TRANSIT_MIN_DAYS>",
+                    "maxValue": "<TRANSIT_MAX_DAYS>",
+                    "unitCode": "DAY"
+                  }
+                }
+              },
+              {
+                "@type": "OfferShippingDetails",
+                "_comment": "Free shipping threshold — include if applicable",
+                "shippingRate": {
+                  "@type": "MonetaryAmount",
+                  "value": "0",
+                  "currency": "AUD"
+                },
+                "shippingDestination": {
+                  "@type": "DefinedRegion",
+                  "addressCountry": "AU"
+                },
+                "deliveryTime": {
+                  "@type": "ShippingDeliveryTime",
+                  "handlingTime": {
+                    "@type": "QuantitativeValue",
+                    "minValue": "<HANDLING_MIN_DAYS>",
+                    "maxValue": "<HANDLING_MAX_DAYS>",
+                    "unitCode": "DAY"
+                  },
+                  "transitTime": {
+                    "@type": "QuantitativeValue",
+                    "minValue": "<TRANSIT_MIN_DAYS>",
+                    "maxValue": "<TRANSIT_MAX_DAYS>",
+                    "unitCode": "DAY"
+                  }
+                }
+              }
+            ],
+            "hasMerchantReturnPolicy": { "@id": "<SITE_URL>#return-policy" }
+          },
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "<DYNAMIC_RATING>",
+            "reviewCount": "<DYNAMIC_REVIEW_COUNT>",
+            "bestRating": "5",
+            "worstRating": "1"
+          },
+          "review": [
+            {
+              "@type": "Review",
+              "author": {
+                "@type": "Person",
+                "name": "<REVIEWER_NAME>"
+              },
+              "datePublished": "<REVIEW_DATE_ISO>",
+              "reviewBody": "<REVIEW_TEXT>",
+              "reviewRating": {
+                "@type": "Rating",
+                "ratingValue": "<REVIEW_RATING>",
+                "bestRating": "5",
+                "worstRating": "1"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "schema_with_variants": {
+      "_notes": "Use this instead of schema_single_product when a product has size/colour/etc variants. The ProductGroup wraps all variants.",
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "<SITE_URL>/" },
+            { "@type": "ListItem", "position": 2, "name": "<CATEGORY>", "item": "<SITE_URL>/collections/<CATEGORY_SLUG>" },
+            { "@type": "ListItem", "position": 3, "name": "<PRODUCT_NAME>" }
+          ]
+        },
+        {
+          "@type": "ProductGroup",
+          "@id": "<PRODUCT_URL>#product-group",
+          "name": "<PRODUCT_NAME>",
+          "description": "<PRODUCT_DESCRIPTION>",
+          "url": "<PRODUCT_URL>",
+          "brand": {
+            "@type": "Brand",
+            "name": "<BRAND>",
+            "url": "<SITE_URL>/brands/<BRAND_SLUG>"
+          },
+          "productGroupID": "<SHOPIFY_PRODUCT_ID>",
+          "variesBy": [
+            "https://schema.org/color",
+            "https://schema.org/size"
+          ],
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "<DYNAMIC_RATING>",
+            "reviewCount": "<DYNAMIC_REVIEW_COUNT>",
+            "bestRating": "5",
+            "worstRating": "1"
+          },
+          "review": [
+            {
+              "@type": "Review",
+              "author": { "@type": "Person", "name": "<REVIEWER_NAME>" },
+              "datePublished": "<REVIEW_DATE_ISO>",
+              "reviewBody": "<REVIEW_TEXT>",
+              "reviewRating": {
+                "@type": "Rating",
+                "ratingValue": "<REVIEW_RATING>",
+                "bestRating": "5",
+                "worstRating": "1"
+              }
+            }
+          ],
+          "hasVariant": [
+            {
+              "@type": "Product",
+              "name": "<PRODUCT_NAME> - <VARIANT_LABEL>",
+              "sku": "<VARIANT_SKU>",
+              "gtin13": "<VARIANT_EAN>",
+              "color": "<VARIANT_COLOR>",
+              "size": "<VARIANT_SIZE>",
+              "image": "<VARIANT_IMAGE_URL>",
+              "url": "<PRODUCT_URL>?variant=<VARIANT_ID>",
+              "isVariantOf": { "@id": "<PRODUCT_URL>#product-group" },
+              "offers": {
+                "@type": "Offer",
+                "url": "<PRODUCT_URL>?variant=<VARIANT_ID>",
+                "priceCurrency": "AUD",
+                "price": "<VARIANT_PRICE>",
+                "priceValidUntil": "<YYYY-MM-DD>",
+                "availability": "https://schema.org/InStock",
+                "itemCondition": "https://schema.org/NewCondition",
+                "seller": { "@id": "<SITE_URL>#organization" },
+                "shippingDetails": {
+                  "@type": "OfferShippingDetails",
+                  "shippingRate": {
+                    "@type": "MonetaryAmount",
+                    "value": "<SHIPPING_COST>",
+                    "currency": "AUD"
+                  },
+                  "shippingDestination": {
+                    "@type": "DefinedRegion",
+                    "addressCountry": "AU"
+                  },
+                  "deliveryTime": {
+                    "@type": "ShippingDeliveryTime",
+                    "handlingTime": {
+                      "@type": "QuantitativeValue",
+                      "minValue": "<HANDLING_MIN_DAYS>",
+                      "maxValue": "<HANDLING_MAX_DAYS>",
+                      "unitCode": "DAY"
+                    },
+                    "transitTime": {
+                      "@type": "QuantitativeValue",
+                      "minValue": "<TRANSIT_MIN_DAYS>",
+                      "maxValue": "<TRANSIT_MAX_DAYS>",
+                      "unitCode": "DAY"
+                    }
+                  }
+                },
+                "hasMerchantReturnPolicy": { "@id": "<SITE_URL>#return-policy" }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+
+  "3_collection_page": {
+    "_page": "/collections/{handle}",
+    "_notes": "CollectionPage with ItemList. Each product in the list should use its canonical URL. Link back to the organization entity.",
+    "schema": {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "<SITE_URL>/" },
+            { "@type": "ListItem", "position": 2, "name": "<COLLECTION_NAME>" }
+          ]
+        },
+        {
+          "@type": "CollectionPage",
+          "@id": "<COLLECTION_URL>#collection",
+          "url": "<COLLECTION_URL>",
+          "name": "<COLLECTION_NAME>",
+          "description": "<COLLECTION_DESCRIPTION>",
+          "isPartOf": { "@id": "<SITE_URL>#website" },
+          "about": { "@id": "<SITE_URL>#organization" },
+          "inLanguage": "en-AU",
+          "mainEntity": {
+            "@type": "ItemList",
+            "numberOfItems": "<PRODUCT_COUNT>",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "url": "<PRODUCT_1_URL>",
+                "name": "<PRODUCT_1_NAME>"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "url": "<PRODUCT_2_URL>",
+                "name": "<PRODUCT_2_NAME>"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+
+  "4_brand_index_page": {
+    "_page": "/brands",
+    "schema": {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "<SITE_URL>/" },
+            { "@type": "ListItem", "position": 2, "name": "Brands" }
+          ]
+        },
+        {
+          "@type": "CollectionPage",
+          "@id": "<SITE_URL>/brands#page",
+          "url": "<SITE_URL>/brands",
+          "name": "Brands",
+          "description": "<BRANDS_PAGE_DESCRIPTION>",
+          "isPartOf": { "@id": "<SITE_URL>#website" },
+          "inLanguage": "en-AU"
+        },
+        {
+          "@type": "ItemList",
+          "numberOfItems": "<BRAND_COUNT>",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "item": {
+                "@type": "Brand",
+                "name": "<BRAND_1>",
+                "url": "<SITE_URL>/brands/<BRAND_1_SLUG>",
+                "logo": "<BRAND_1_LOGO_URL>"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+
+  "5_brand_detail_page": {
+    "_page": "/brands/{handle}",
+    "_notes": "Combines Brand entity with CollectionPage listing that brand's products. sameAs links to the brand's official site strengthen entity resolution.",
+    "schema": {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "<SITE_URL>/" },
+            { "@type": "ListItem", "position": 2, "name": "Brands", "item": "<SITE_URL>/brands" },
+            { "@type": "ListItem", "position": 3, "name": "<BRAND_NAME>" }
+          ]
+        },
+        {
+          "@type": "Brand",
+          "@id": "<SITE_URL>/brands/<BRAND_SLUG>#brand",
+          "name": "<BRAND_NAME>",
+          "url": "<SITE_URL>/brands/<BRAND_SLUG>",
+          "logo": "<BRAND_LOGO_URL>",
+          "description": "<BRAND_DESCRIPTION>",
+          "sameAs": ["<BRAND_OFFICIAL_WEBSITE>"]
+        },
+        {
+          "@type": "CollectionPage",
+          "url": "<SITE_URL>/brands/<BRAND_SLUG>",
+          "name": "<BRAND_NAME> Products",
+          "description": "<BRAND_COLLECTION_DESCRIPTION>",
+          "isPartOf": { "@id": "<SITE_URL>#website" },
+          "mainEntity": {
+            "@type": "ItemList",
+            "numberOfItems": "<PRODUCT_COUNT>",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "url": "<PRODUCT_1_URL>",
+                "name": "<PRODUCT_1_NAME>"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+
+  "6_faq_page": {
+    "_page": "/faq or /pages/faq",
+    "_notes": "FAQPage is still supported by Google as of 2025. Questions and answers MUST match visible on-page content exactly.",
+    "schema": {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "<SITE_URL>/" },
+            { "@type": "ListItem", "position": 2, "name": "FAQ" }
+          ]
+        },
+        {
+          "@type": "FAQPage",
+          "url": "<SITE_URL>/faq",
+          "name": "Frequently Asked Questions",
+          "description": "<FAQ_DESCRIPTION>",
+          "isPartOf": { "@id": "<SITE_URL>#website" },
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "<QUESTION_1>",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "<ANSWER_1>"
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "<QUESTION_2>",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "<ANSWER_2>"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+
+  "7_about_page": {
+    "_page": "/about",
+    "schema": {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "<SITE_URL>/" },
+            { "@type": "ListItem", "position": 2, "name": "About" }
+          ]
+        },
+        {
+          "@type": "AboutPage",
+          "url": "<SITE_URL>/about",
+          "name": "About <BRAND_NAME>",
+          "description": "<ABOUT_DESCRIPTION>",
+          "isPartOf": { "@id": "<SITE_URL>#website" },
+          "mainEntity": { "@id": "<SITE_URL>#organization" }
+        }
+      ]
+    }
+  },
+
+  "8_contact_page": {
+    "_page": "/contact",
+    "schema": {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "<SITE_URL>/" },
+            { "@type": "ListItem", "position": 2, "name": "Contact" }
+          ]
+        },
+        {
+          "@type": "ContactPage",
+          "url": "<SITE_URL>/contact",
+          "name": "Contact <BRAND_NAME>",
+          "description": "<CONTACT_DESCRIPTION>",
+          "isPartOf": { "@id": "<SITE_URL>#website" },
+          "mainEntity": { "@id": "<SITE_URL>#organization" }
+        }
+      ]
+    }
+  },
+
+  "9_blog_index": {
+    "_page": "/news or /blog",
+    "schema": {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "<SITE_URL>/" },
+            { "@type": "ListItem", "position": 2, "name": "News & Articles" }
+          ]
+        },
+        {
+          "@type": "CollectionPage",
+          "url": "<SITE_URL>/news",
+          "name": "News & Articles",
+          "description": "<BLOG_DESCRIPTION>",
+          "isPartOf": { "@id": "<SITE_URL>#website" },
+          "inLanguage": "en-AU"
+        },
+        {
+          "@type": "Blog",
+          "@id": "<SITE_URL>/news#blog",
+          "url": "<SITE_URL>/news",
+          "name": "News & Articles",
+          "publisher": { "@id": "<SITE_URL>#organization" },
+          "inLanguage": "en-AU",
+          "blogPost": [
+            {
+              "@type": "BlogPosting",
+              "headline": "<ARTICLE_1_TITLE>",
+              "url": "<SITE_URL>/news/<ARTICLE_1_SLUG>",
+              "datePublished": "<ISO_DATE>",
+              "image": "<ARTICLE_1_IMAGE>"
+            }
+          ]
+        }
+      ]
+    }
+  },
+
+  "10_article_page": {
+    "_page": "/news/{handle}",
+    "_notes": "Full BlogPosting with speakable for AI/voice assistant eligibility. Author links to author page. dateModified is critical — update it when content changes.",
+    "schema": {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "<SITE_URL>/" },
+            { "@type": "ListItem", "position": 2, "name": "News", "item": "<SITE_URL>/news" },
+            { "@type": "ListItem", "position": 3, "name": "<ARTICLE_TITLE>" }
+          ]
+        },
+        {
+          "@type": "BlogPosting",
+          "@id": "<ARTICLE_URL>#article",
+          "headline": "<ARTICLE_TITLE>",
+          "description": "<ARTICLE_EXCERPT>",
+          "image": {
+            "@type": "ImageObject",
+            "url": "<ARTICLE_IMAGE_URL>",
+            "width": "<IMG_WIDTH>",
+            "height": "<IMG_HEIGHT>"
+          },
+          "datePublished": "<ISO_DATE>",
+          "dateModified": "<ISO_DATE_MODIFIED>",
+          "wordCount": "<WORD_COUNT>",
+          "inLanguage": "en-AU",
+          "author": {
+            "@type": "Person",
+            "@id": "<SITE_URL>/news/author/<AUTHOR_SLUG>#person",
+            "name": "<AUTHOR_NAME>",
+            "url": "<SITE_URL>/news/author/<AUTHOR_SLUG>"
+          },
+          "publisher": { "@id": "<SITE_URL>#organization" },
+          "isPartOf": { "@id": "<SITE_URL>/news#blog" },
+          "mainEntityOfPage": "<ARTICLE_URL>",
+          "speakable": {
+            "@type": "SpeakableSpecification",
+            "cssSelector": [
+              "article h1",
+              "article .article-intro",
+              "article .article-summary"
+            ]
+          }
+        }
+      ]
+    }
+  },
+
+  "11_author_page": {
+    "_page": "/news/author/{slug}",
+    "schema": {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "<SITE_URL>/" },
+            { "@type": "ListItem", "position": 2, "name": "News", "item": "<SITE_URL>/news" },
+            { "@type": "ListItem", "position": 3, "name": "<AUTHOR_NAME>" }
+          ]
+        },
+        {
+          "@type": "ProfilePage",
+          "url": "<AUTHOR_PAGE_URL>",
+          "name": "<AUTHOR_NAME> | <BRAND_NAME>",
+          "isPartOf": { "@id": "<SITE_URL>#website" },
+          "mainEntity": { "@id": "<AUTHOR_PAGE_URL>#person" }
+        },
+        {
+          "@type": "Person",
+          "@id": "<AUTHOR_PAGE_URL>#person",
+          "name": "<AUTHOR_NAME>",
+          "url": "<AUTHOR_PAGE_URL>",
+          "jobTitle": "<JOB_TITLE>",
+          "worksFor": { "@id": "<SITE_URL>#organization" },
+          "description": "<AUTHOR_BIO>",
+          "image": "<AUTHOR_IMAGE_URL>",
+          "sameAs": [
+            "<AUTHOR_LINKEDIN>",
+            "<AUTHOR_TWITTER>"
+          ]
+        },
+        {
+          "@type": "ItemList",
+          "numberOfItems": "<ARTICLE_COUNT>",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "url": "<SITE_URL>/news/<ARTICLE_SLUG>",
+              "name": "<ARTICLE_TITLE>"
+            }
+          ]
+        }
+      ]
+    }
+  },
+
+  "12_policy_pages": {
+    "_page": "/policies/privacy, /policies/terms, /policies/shipping, /policies/returns",
+    "_notes": "Shipping and returns pages should reinforce the MerchantReturnPolicy and shipping data from the Organization node.",
+    "schema_generic_policy": {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "<SITE_URL>/" },
+            { "@type": "ListItem", "position": 2, "name": "<POLICY_NAME>" }
+          ]
+        },
+        {
+          "@type": "WebPage",
+          "url": "<PAGE_URL>",
+          "name": "<PAGE_TITLE>",
+          "description": "<PAGE_DESCRIPTION>",
+          "isPartOf": { "@id": "<SITE_URL>#website" },
+          "inLanguage": "en-AU",
+          "lastReviewed": "<ISO_DATE>"
+        }
+      ]
+    },
+    "schema_returns_policy_page": {
+      "_notes": "Use this specifically for your returns/refund policy page to reinforce the MerchantReturnPolicy entity.",
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "<SITE_URL>/" },
+            { "@type": "ListItem", "position": 2, "name": "Returns Policy" }
+          ]
+        },
+        {
+          "@type": "WebPage",
+          "url": "<SITE_URL>/policies/returns",
+          "name": "Returns & Refunds Policy",
+          "description": "<RETURNS_PAGE_DESCRIPTION>",
+          "isPartOf": { "@id": "<SITE_URL>#website" },
+          "lastReviewed": "<ISO_DATE>"
+        },
+        {
+          "@type": "OnlineStore",
+          "@id": "<SITE_URL>#organization",
+          "hasMerchantReturnPolicy": {
+            "@type": "MerchantReturnPolicy",
+            "@id": "<SITE_URL>#return-policy",
+            "applicableCountry": "AU",
+            "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+            "merchantReturnDays": "<RETURN_DAYS>",
+            "returnMethod": "https://schema.org/ReturnByMail",
+            "returnFees": "https://schema.org/FreeReturn",
+            "refundType": "https://schema.org/FullRefund",
+            "returnPolicyCountry": "AU",
+            "itemCondition": [
+              "https://schema.org/NewCondition",
+              "https://schema.org/DamagedCondition"
+            ]
+          }
+        }
+      ]
+    }
+  },
+
+  "13_search_page": {
+    "_page": "/search?q=...",
+    "schema": {
+      "@context": "https://schema.org",
+      "@type": "SearchResultsPage",
+      "url": "<SEARCH_URL>",
+      "name": "Search Results for '<SEARCH_QUERY>'",
+      "description": "Search results for <SEARCH_QUERY> at <BRAND_NAME>",
+      "isPartOf": { "@id": "<SITE_URL>#website" },
+      "inLanguage": "en-AU"
+    }
+  },
+
+  "14_reviews_page": {
+    "_page": "/reviews",
+    "schema": {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "<SITE_URL>/" },
+            { "@type": "ListItem", "position": 2, "name": "Customer Reviews" }
+          ]
+        },
+        {
+          "@type": "WebPage",
+          "url": "<SITE_URL>/reviews",
+          "name": "Customer Reviews",
+          "description": "<REVIEWS_DESCRIPTION>",
+          "isPartOf": { "@id": "<SITE_URL>#website" },
+          "inLanguage": "en-AU"
+        }
+      ]
+    }
+  },
+
+  "15_write_review_page": {
+    "_page": "/review",
+    "schema": {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "<SITE_URL>/" },
+            { "@type": "ListItem", "position": 2, "name": "Write a Review" }
+          ]
+        },
+        {
+          "@type": "WebPage",
+          "url": "<SITE_URL>/review",
+          "name": "Write a Review",
+          "description": "<WRITE_REVIEW_DESCRIPTION>",
+          "isPartOf": { "@id": "<SITE_URL>#website" },
+          "inLanguage": "en-AU"
+        }
+      ]
+    }
+  },
+
+  "16_product_with_video": {
+    "_page": "Use as an addition to product schema when product has video content",
+    "_notes": "Nest inside the Product @graph or add as a separate node. VideoObject is a Google-recommended ecommerce type.",
+    "schema_video_node": {
+      "@type": "VideoObject",
+      "name": "<VIDEO_TITLE>",
+      "description": "<VIDEO_DESCRIPTION>",
+      "thumbnailUrl": "<VIDEO_THUMBNAIL_URL>",
+      "uploadDate": "<ISO_DATE>",
+      "duration": "<ISO_8601_DURATION>",
+      "contentUrl": "<VIDEO_FILE_URL>",
+      "embedUrl": "<VIDEO_EMBED_URL>",
+      "publisher": { "@id": "<SITE_URL>#organization" }
+    }
+  },
+
+  "17_member_program": {
+    "_page": "Add to Organization node if you have a loyalty/rewards program",
+    "_notes": "MemberProgram schema highlights loyalty perks in search results.",
+    "schema_member_program_node": {
+      "@type": "MemberProgram",
+      "name": "<PROGRAM_NAME>",
+      "url": "<PROGRAM_URL>",
+      "provider": { "@id": "<SITE_URL>#organization" },
+      "hasTiers": [
+        {
+          "@type": "MemberProgramTier",
+          "name": "<TIER_NAME>",
+          "url": "<TIER_URL>",
+          "hasTierBenefit": [
+            {
+              "@type": "TierBenefitLoyaltyPrice",
+              "name": "Member Pricing"
+            }
+          ]
+        }
+      ]
+    }
+  },
+
+  "_implementation_checklist": {
+    "critical": [
+      "Server-side render ALL JSON-LD in initial HTML (critical for headless Shopify)",
+      "Only ONE <script type='application/ld+json'> block per page",
+      "All dynamic values (price, rating, availability, stock) must match visible page content",
+      "Validate every template with Google Rich Results Test before deploying",
+      "Ensure @id references are consistent across all pages (#organization, #website, #return-policy)",
+      "Align schema data with Google Merchant Center feed (prices, GTINs, titles, availability)"
+    ],
+    "recommended": [
+      "Add gtin13 or mpn to every product — essential for product matching",
+      "Include shippingDetails on every Offer — unlocks shipping rich results",
+      "Use ProductGroup for any product with variants (size, colour, etc.)",
+      "Add sameAs links to Wikidata, ABR, social profiles for entity disambiguation",
+      "Include speakable on blog articles for AI/voice eligibility",
+      "Add VideoObject for any product with video content",
+      "Set priceValidUntil on Offers",
+      "Add BreadcrumbList to every page (added to all templates above)",
+      "Include inLanguage: en-AU on all page-level types",
+      "Add lastReviewed date to policy pages",
+      "Quarterly audit: validate all templates via Rich Results Test + Search Console enhancements report"
+    ],
+    "nlp_entity_optimisation": [
+      "Ensure Organization sameAs includes all authoritative references (social, Wikidata, ABR, industry directories)",
+      "Use consistent @id URIs across the entire site — this builds Google's Knowledge Graph understanding",
+      "Brand pages should include sameAs to the brand's official website",
+      "Author pages should include sameAs to LinkedIn/social for E-E-A-T signals",
+      "Use Google Product Category taxonomy values in the category field",
+      "Product descriptions should use entity-rich language matching your target keywords"
+    ]
+  }
+}

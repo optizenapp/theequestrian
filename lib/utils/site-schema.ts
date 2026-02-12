@@ -10,6 +10,7 @@ interface WebPageSchemaInput {
   title: string;
   description: string;
   type?: 'WebPage' | 'AboutPage' | 'ContactPage' | 'CollectionPage' | 'SearchResultsPage' | 'ProfilePage';
+  lastReviewed?: string;
 }
 
 interface BlogListArticle {
@@ -38,7 +39,7 @@ function toAbsoluteUrl(path: string, siteUrl?: string): string {
 function buildOrganizationEntity(siteUrl?: string) {
   const baseUrl = getSiteUrl(siteUrl);
   return {
-    '@type': 'Organization',
+    '@type': 'OnlineStore',
     '@id': `${baseUrl}#organization`,
     name: 'The Equestrian',
     legalName: 'Equine Marketplace Pty Ltd',
@@ -57,6 +58,39 @@ function buildOrganizationEntity(siteUrl?: string) {
       postalCode: '5153',
       addressCountry: 'AU',
     },
+    hasMerchantReturnPolicy: {
+      '@type': 'MerchantReturnPolicy',
+      '@id': `${baseUrl}#return-policy`,
+      applicableCountry: 'AU',
+      returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+      merchantReturnDays: 30,
+      returnMethod: 'https://schema.org/ReturnByMail',
+      returnFees: 'https://schema.org/FreeReturn',
+      refundType: 'https://schema.org/FullRefund',
+      returnPolicyCountry: 'AU',
+    },
+  };
+}
+
+function buildBreadcrumbSchema(path: string, label: string, siteUrl?: string) {
+  const baseUrl = getSiteUrl(siteUrl);
+  const pageUrl = toAbsoluteUrl(path, siteUrl);
+  return {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: `${baseUrl}/`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: label,
+        item: pageUrl,
+      },
+    ],
   };
 }
 
@@ -80,6 +114,7 @@ export function generateWebPageSchema(input: WebPageSchemaInput, siteUrl?: strin
       '@id': `${baseUrl}#organization`,
     },
     inLanguage: 'en-AU',
+    ...(input.lastReviewed ? { lastReviewed: input.lastReviewed } : {}),
   };
 }
 
@@ -88,6 +123,7 @@ export function generatePolicyPageSchema(input: WebPageSchemaInput, siteUrl?: st
     '@context': 'https://schema.org',
     '@graph': [
       buildOrganizationEntity(siteUrl),
+      buildBreadcrumbSchema(input.path, input.title, siteUrl),
       generateWebPageSchema(input, siteUrl),
     ],
   };
@@ -108,6 +144,7 @@ export function generateFaqPageSchema(path: string, title: string, description: 
     '@context': 'https://schema.org',
     '@graph': [
       buildOrganizationEntity(siteUrl),
+      buildBreadcrumbSchema(path, title, siteUrl),
       pageSchema,
       {
         '@type': 'FAQPage',
@@ -132,6 +169,7 @@ export function generateAboutPageSchema(path: string, title: string, description
     '@context': 'https://schema.org',
     '@graph': [
       buildOrganizationEntity(siteUrl),
+      buildBreadcrumbSchema(path, title, siteUrl),
       generateWebPageSchema(
         {
           path,
@@ -177,6 +215,7 @@ export function generateContactPageSchema(path: string, title: string, descripti
     '@context': 'https://schema.org',
     '@graph': [
       buildOrganizationEntity(siteUrl),
+      buildBreadcrumbSchema(path, title, siteUrl),
       generateWebPageSchema(
         {
           path,
@@ -214,6 +253,7 @@ export function generateBlogIndexSchema(path: string, title: string, description
     '@context': 'https://schema.org',
     '@graph': [
       buildOrganizationEntity(siteUrl),
+      buildBreadcrumbSchema(path, title, siteUrl),
       generateWebPageSchema(
         {
           path,
@@ -263,6 +303,7 @@ export function generateAuthorProfileSchema(
     '@context': 'https://schema.org',
     '@graph': [
       buildOrganizationEntity(siteUrl),
+      buildBreadcrumbSchema(path, authorName, siteUrl),
       generateWebPageSchema(
         {
           path,
@@ -276,6 +317,9 @@ export function generateAuthorProfileSchema(
         '@type': 'Person',
         '@id': `${pageUrl}#person`,
         name: authorName,
+        worksFor: {
+          '@id': `${getSiteUrl(siteUrl)}#organization`,
+        },
         mainEntityOfPage: {
           '@id': `${pageUrl}#webpage`,
         },
@@ -299,6 +343,7 @@ export function generateBrandIndexSchema(path: string, title: string, descriptio
     '@context': 'https://schema.org',
     '@graph': [
       buildOrganizationEntity(siteUrl),
+      buildBreadcrumbSchema(path, title, siteUrl),
       generateWebPageSchema(
         {
           path,
@@ -311,6 +356,7 @@ export function generateBrandIndexSchema(path: string, title: string, descriptio
       {
         '@type': 'ItemList',
         '@id': `${pageUrl}#brands`,
+        numberOfItems: brands.length,
         itemListElement: brands.map((brand, index) => ({
           '@type': 'ListItem',
           position: index + 1,
@@ -332,6 +378,7 @@ export function generateSearchPageSchema(path: string, title: string, descriptio
     '@context': 'https://schema.org',
     '@graph': [
       buildOrganizationEntity(siteUrl),
+      buildBreadcrumbSchema(path, title, siteUrl),
       {
         '@type': 'SearchResultsPage',
         '@id': `${pageUrl}#webpage`,
@@ -360,6 +407,7 @@ export function generateSimplePageSchema(path: string, title: string, descriptio
     '@context': 'https://schema.org',
     '@graph': [
       buildOrganizationEntity(siteUrl),
+      buildBreadcrumbSchema(path, title, siteUrl),
       generateWebPageSchema(
         {
           path,

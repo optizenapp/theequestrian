@@ -37,6 +37,7 @@ interface CollectionSchemaFastParams {
   
   // Performance: Limit number of products in schema (default: 12)
   maxProducts?: number;
+  canonicalProductUrls?: Map<string, string> | Record<string, string>;
 }
 
 /**
@@ -124,7 +125,18 @@ export function generateCollectionSchemaFast(params: CollectionSchemaFastParams)
     parentCollection,
     siteUrl,
     maxProducts = 12, // Default to 12 products for performance
+    canonicalProductUrls,
   } = params;
+
+  const getCanonicalProductUrl = (handle: string): string | null => {
+    if (!canonicalProductUrls) {
+      return null;
+    }
+    if (canonicalProductUrls instanceof Map) {
+      return canonicalProductUrls.get(handle) || null;
+    }
+    return canonicalProductUrls[handle] || null;
+  };
 
   // Build breadcrumb list elements
   const breadcrumbElements = [
@@ -143,10 +155,12 @@ export function generateCollectionSchemaFast(params: CollectionSchemaFastParams)
   ];
 
   // Build item list elements from products
-  // Use simple URLs for performance - no expensive canonical lookups
+  // Prefer canonical frontend URLs when available.
   const itemListElements = products.slice(0, maxProducts).map((product, index) => {
-    // Simple product URL - no canonical lookup needed
-    const productUrl = `${siteUrl}/products/${product.handle}`;
+    const canonicalPath = getCanonicalProductUrl(product.handle);
+    const productUrl = canonicalPath
+      ? `${siteUrl}${canonicalPath.startsWith('/') ? canonicalPath : `/${canonicalPath}`}`
+      : `${siteUrl}/products/${product.handle}`;
     
     // Get first image if available
     const imageUrl = product.images?.edges?.[0]?.node?.url;
@@ -175,6 +189,14 @@ export function generateCollectionSchemaFast(params: CollectionSchemaFastParams)
     '@id': collectionUrl,
     name: collectionName,
     url: collectionUrl,
+    isPartOf: {
+      '@type': 'WebSite',
+      '@id': `${siteUrl}#website`,
+    },
+    about: {
+      '@id': `${siteUrl}#organization`,
+    },
+    inLanguage: 'en-AU',
     
     // Enhanced: Add additionalType for more specific classification
     additionalType: 'https://schema.org/ProductCollection',
