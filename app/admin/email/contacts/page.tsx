@@ -30,6 +30,8 @@ export default function AdminEmailContactsPage() {
   const [maxOrders, setMaxOrders] = useState('');
   const [minLtv, setMinLtv] = useState('');
   const [maxLtv, setMaxLtv] = useState('');
+  const [dedupeMessage, setDedupeMessage] = useState('');
+  const [dedupeRunning, setDedupeRunning] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -80,6 +82,69 @@ export default function AdminEmailContactsPage() {
         <Link href="/admin/email" className="text-sm font-semibold text-action hover:underline">← Back to Email Platform</Link>
       </div>
       {error ? <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div> : null}
+      <div className="mb-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            disabled={dedupeRunning}
+            onClick={async () => {
+              setDedupeRunning(true);
+              try {
+                const response = await fetch('/api/admin/email/contacts/dedupe', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ dryRun: true }),
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                  throw new Error(data?.error || 'Dedupe preview failed');
+                }
+                setDedupeMessage(
+                  `Preview: ${data.duplicateGroupCount} duplicate groups, ${data.duplicateContactCount} duplicate contacts.`
+                );
+              } catch (err) {
+                setDedupeMessage(err instanceof Error ? err.message : 'Dedupe preview failed');
+              } finally {
+                setDedupeRunning(false);
+              }
+            }}
+            className="rounded border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:border-action hover:text-action disabled:opacity-50"
+          >
+            {dedupeRunning ? 'Running...' : 'Preview De-dupe'}
+          </button>
+          <button
+            type="button"
+            disabled={dedupeRunning}
+            onClick={async () => {
+              if (!confirm('Merge duplicate contacts now? This cannot be easily undone.')) return;
+              setDedupeRunning(true);
+              try {
+                const response = await fetch('/api/admin/email/contacts/dedupe', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ dryRun: false }),
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                  throw new Error(data?.error || 'Dedupe failed');
+                }
+                setDedupeMessage(
+                  `Merged ${data.mergedCount} duplicate contacts across ${data.duplicateGroupCount} groups.`
+                );
+                setPage(1);
+              } catch (err) {
+                setDedupeMessage(err instanceof Error ? err.message : 'Dedupe failed');
+              } finally {
+                setDedupeRunning(false);
+              }
+            }}
+            className="rounded border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:border-red-500 disabled:opacity-50"
+          >
+            Apply De-dupe
+          </button>
+          {dedupeMessage ? <span className="text-sm text-gray-600">{dedupeMessage}</span> : null}
+        </div>
+      </div>
       <div className="mb-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
         <div className="grid gap-3 md:grid-cols-3">
           <input

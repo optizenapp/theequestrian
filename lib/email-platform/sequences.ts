@@ -1,6 +1,7 @@
 import { sql } from '@vercel/postgres';
 import { getTemplateVersion, renderTemplateContent } from '@/lib/email-platform/templates';
 import { Resend } from 'resend';
+import { buildUnsubscribeUrl } from '@/lib/email-platform/unsubscribe';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -225,6 +226,7 @@ async function runStep(
         customerName: (contact.rows[0]?.first_name as string | null) || '',
         siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au',
         email,
+        unsubscribeUrl: await buildUnsubscribeUrl(enrollment.contact_id),
       },
     });
 

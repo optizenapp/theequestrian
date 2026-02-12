@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createTemplate, listTemplates } from '@/lib/email-platform/templates';
-import type { EmailBlock } from '@/lib/email-platform/types';
+import type { EmailBlock, EmailTemplateVisualSettings } from '@/lib/email-platform/types';
 import { logEmailAudit } from '@/lib/email-platform/audit';
 
 export async function GET(request: NextRequest) {
@@ -31,6 +31,10 @@ export async function POST(request: NextRequest) {
     }
 
     const blocks = Array.isArray(body?.blocks) ? (body.blocks as EmailBlock[]) : [];
+    const metadata =
+      body?.metadata && typeof body.metadata === 'object'
+        ? (body.metadata as EmailTemplateVisualSettings & Record<string, unknown>)
+        : {};
     const created = await createTemplate({
       name,
       templateType,
@@ -39,6 +43,7 @@ export async function POST(request: NextRequest) {
       blocks,
       fromName: typeof body?.fromName === 'string' ? body.fromName : undefined,
       fromEmail: typeof body?.fromEmail === 'string' ? body.fromEmail : undefined,
+      metadata,
     });
     await logEmailAudit({
       actor: 'admin',

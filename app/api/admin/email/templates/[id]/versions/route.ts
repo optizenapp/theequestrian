@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createTemplateVersion } from '@/lib/email-platform/templates';
-import type { EmailBlock } from '@/lib/email-platform/types';
+import type { EmailBlock, EmailTemplateVisualSettings } from '@/lib/email-platform/types';
 
 export async function POST(
   request: NextRequest,
@@ -12,6 +12,10 @@ export async function POST(
     const subjectTemplate =
       typeof body?.subjectTemplate === 'string' ? body.subjectTemplate : 'An update from The Equestrian';
     const blocks = Array.isArray(body?.blocks) ? (body.blocks as EmailBlock[]) : [];
+    const metadata =
+      body?.metadata && typeof body.metadata === 'object'
+        ? (body.metadata as EmailTemplateVisualSettings & Record<string, unknown>)
+        : {};
 
     const version = await createTemplateVersion({
       templateId: id,
@@ -21,6 +25,7 @@ export async function POST(
       fromName: typeof body?.fromName === 'string' ? body.fromName : undefined,
       fromEmail: typeof body?.fromEmail === 'string' ? body.fromEmail : undefined,
       setActive: body?.setActive !== false,
+      metadata,
     });
 
     return NextResponse.json({ ok: true, ...version });

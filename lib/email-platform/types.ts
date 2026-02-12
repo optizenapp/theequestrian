@@ -70,5 +70,16 @@ export type EmailBlock =
   | { id: string; type: 'heading'; text: string; level?: 1 | 2 | 3; align?: 'left' | 'center' | 'right' }
   | { id: string; type: 'text'; text: string; align?: 'left' | 'center' | 'right' }
   | { id: string; type: 'cta'; label: string; url: string }
+  | { id: string; type: 'productCards'; mode: 'single' | 'all' }
   | { id: string; type: 'divider' }
   | { id: string; type: 'footer'; text: string };
+
+export type EmailTemplateVisualSettings = {
+  enabled: boolean;
+  delayDays: number;
+  brandPrimary: string;
+  brandDark: string;
+  headerBackground: string;
+  linkColor: string;
+  logoUrl: string | null;
+};

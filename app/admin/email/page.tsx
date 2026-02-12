@@ -27,6 +27,7 @@ export default function AdminEmailPage() {
   const [campaigns, setCampaigns] = useState<CampaignRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isImportingMoosend, setIsImportingMoosend] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -114,6 +115,34 @@ export default function AdminEmailPage() {
             className="rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:border-action hover:text-action"
           >
             Sync Shopify now
+          </button>
+          <button
+            type="button"
+            disabled={isImportingMoosend}
+            onClick={async () => {
+              setIsImportingMoosend(true);
+              try {
+                const response = await fetch('/api/admin/email/import-moosend', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({}),
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                  setError(data?.error || 'Moosend import failed');
+                  return;
+                }
+                setError('');
+                alert(
+                  `Moosend import complete. Lists: ${data.importedLists}, Subscribers: ${data.importedSubscribers}`
+                );
+              } finally {
+                setIsImportingMoosend(false);
+              }
+            }}
+            className="rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:border-action hover:text-action disabled:opacity-50"
+          >
+            {isImportingMoosend ? 'Importing Moosend...' : 'Import Moosend lists'}
           </button>
         </div>
       </div>

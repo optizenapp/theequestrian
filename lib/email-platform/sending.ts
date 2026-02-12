@@ -1,6 +1,7 @@
 import { sql } from '@vercel/postgres';
 import { Resend } from 'resend';
 import { getTemplateVersion, renderTemplateContent } from '@/lib/email-platform/templates';
+import { buildUnsubscribeUrl } from '@/lib/email-platform/unsubscribe';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -156,6 +157,7 @@ export async function sendQueuedCampaignRecipients(input: {
       customerName: '',
       siteUrl: defaultSiteUrl,
       email,
+      unsubscribeUrl: await buildUnsubscribeUrl(contactId),
     };
     const rendered = renderTemplateContent({
       subjectTemplate: templateVersion.subjectTemplate,

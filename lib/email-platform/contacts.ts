@@ -311,11 +311,21 @@ export async function getContactsPage(input: {
 }
 
 export async function addContactsToList(listId: string, contactIds: string[], source = 'manual') {
-  for (const contactId of contactIds) {
-    await sql`
-      INSERT INTO email_list_memberships (list_id, contact_id, source)
-      VALUES (${listId}, ${contactId}, ${source})
-      ON CONFLICT (list_id, contact_id) DO NOTHING
-    `;
+  const uniqueIds = Array.from(new Set(contactIds.filter((id) => typeof id === 'string' && id.length > 0)));
+  if (uniqueIds.length === 0) {
+    return;
+  }
+
+  const chunkSize = 500;
+  for (let start = 0; start < uniqueIds.length; start += chunkSize) {
+    const chunk = uniqueIds.slice(start, start + chunkSize);
+    await sql.query(
+      `
+        INSERT INTO email_list_memberships (list_id, contact_id, source)
+        SELECT $1::uuid, UNNEST($2::uuid[]), $3
+        ON CONFLICT (list_id, contact_id) DO NOTHING
+      `,
+      [listId, chunk, source]
+    );
   }
 }
