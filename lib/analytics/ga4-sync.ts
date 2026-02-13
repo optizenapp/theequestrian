@@ -7,6 +7,7 @@ type QueuedGa4Event = {
   currency: string;
   total_amount: string | number;
   items: unknown;
+  created_at?: string | Date;
 };
 
 const toNumber = (value: string | number | null | undefined) => {
@@ -14,10 +15,20 @@ const toNumber = (value: string | number | null | undefined) => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
+const toTimestampMicros = (value?: string | Date) => {
+  if (!value) return undefined;
+  const date = value instanceof Date ? value : new Date(value);
+  const ms = date.getTime();
+  if (Number.isNaN(ms) || ms <= 0) return undefined;
+  return String(ms * 1000);
+};
+
 const buildPayload = (event: QueuedGa4Event) => {
   const items = Array.isArray(event.items) ? event.items : [];
+  const timestampMicros = toTimestampMicros(event.created_at);
   return {
     client_id: `order-${event.order_id}`,
+    ...(timestampMicros ? { timestamp_micros: timestampMicros } : {}),
     events: [
       {
         name: 'purchase',
@@ -72,6 +83,7 @@ export async function syncQueuedGa4PurchaseEvents(limit = 100) {
       currency: row.currency,
       total_amount: row.total_amount,
       items: row.items,
+      created_at: row.created_at,
     });
 
     try {

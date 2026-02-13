@@ -21,6 +21,7 @@
     "export:sitemap": "tsx scripts/export-sitemap.ts",
     "import:mapping": "tsx scripts/import-mapping.ts",
     "db:init": "tsx scripts/init-database.ts",
+    "ga4:backfill-purchases": "tsx scripts/backfill-ga4-purchases.ts",
     "email:init": "tsx scripts/init-email-platform.ts",
     "db:sync": "tsx scripts/sync-products-to-db.ts",
     "db:stats": "tsx scripts/db-stats.ts",
@@ -97,7 +98,8 @@
     "schema:audit:inventory": "tsx scripts/schema-audit-inventory.ts",
     "schema:validate:contracts": "tsx scripts/schema-validate-contracts.ts",
     "schema:audit:urls": "tsx scripts/schema-audit-url-samples.ts",
-    "schema:ci": "npm run schema:validate:contracts && npm run schema:audit:inventory"
+    "schema:ci": "npm run schema:validate:contracts && npm run schema:audit:inventory",
+    "seo:products:dry": "tsx scripts/dry-run-product-seo.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.73.0",

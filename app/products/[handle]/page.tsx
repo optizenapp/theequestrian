@@ -15,6 +15,7 @@ import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBa
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
 import { createManualRedirect, getManualRedirect } from '@/lib/redirects/manual';
 import { getProductOverrideByHandle, resolveProductHandleFromSlug } from '@/lib/content/product-overrides';
+import { buildProductSeoMetadata } from '@/lib/seo/product-metadata';
 import { cache } from 'react';
 
 export const revalidate = 300;
@@ -271,13 +272,13 @@ export async function generateMetadata({ params }: ProductPageProps) {
   const canonicalUrl = `${siteUrl}${await getProductCanonicalUrl(product)}`;
   
   const displayTitle = override?.use_headless_title ? (override?.title_override || product.title) : product.title;
-  const title = override?.use_headless_meta_title
-    ? (override?.meta_title || `${displayTitle} | The Equestrian`)
-    : `${displayTitle} | The Equestrian`;
-  const description =
-    override?.use_headless_meta_description
-      ? (override?.meta_description || product.description || `Shop ${displayTitle} at The Equestrian. Quality equestrian supplies and equipment.`)
-      : (product.description || `Shop ${displayTitle} at The Equestrian. Quality equestrian supplies and equipment.`);
+  const seoMetadata = buildProductSeoMetadata({
+    displayTitle,
+    productDescription: product.description,
+    override,
+  });
+  const title = seoMetadata.proposedTitle;
+  const description = seoMetadata.proposedDescription;
 
   return {
     title,
