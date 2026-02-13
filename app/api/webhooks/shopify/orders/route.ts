@@ -19,13 +19,14 @@ import {
 } from '@/lib/reviews/email-template';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const SUPPORTED_TOPICS = new Set(['orders/fulfilled', 'orders/cancelled', 'refunds/create']);
+const SUPPORTED_TOPICS = new Set(['orders/create', 'orders/fulfilled', 'orders/cancelled', 'refunds/create']);
 
 /**
  * Shopify Webhook Handler: Review email schedule lifecycle.
  *
  * Supported topics on this endpoint:
- * - orders/fulfilled: schedule/send review email and queue GA4 purchase event
+ * - orders/create: queue GA4 purchase event for server-side sync
+ * - orders/fulfilled: schedule/send review email
  * - orders/cancelled: cancel scheduled review emails for the order
  * - refunds/create: cancel scheduled review emails if refunded before fulfillment
  */
@@ -68,7 +69,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ received: true, ignored: true });
     }
 
+    if (topic === 'orders/create') {
+      await queueGa4PurchaseEvent(payload, topic);
+      return NextResponse.json({ received: true, topic });
+    }
+
     if (topic === 'orders/fulfilled') {
+      // Backstop queue in case orders/create webhook is missing or delayed.
+      await queueGa4PurchaseEvent(payload, topic);
       await handleOrderFulfilled(payload);
       return NextResponse.json({ received: true, topic });
     }
@@ -104,44 +112,6 @@ async function handleOrderFulfilled(order: any): Promise<void> {
     await recomputeCustomerAffinities();
   } catch (orderFactError) {
     console.error('❌ Failed to sync order fact into email platform:', orderFactError);
-  }
-
-  if (customerEmail && lineItems.length > 0) {
-    try {
-      const totalAmount = parseFloat(order.total_price || '0');
-      const currency = order.currency || 'AUD';
-      const items = lineItems.map((item: any) => ({
-        item_id: item.product_id?.toString(),
-        item_name: item.title,
-        quantity: item.quantity,
-        price: parseFloat(item.price || '0'),
-      }));
-
-      await sql`
-        INSERT INTO ga4_purchase_events (
-          order_id,
-          order_number,
-          customer_email,
-          total_amount,
-          currency,
-          items,
-          created_at
-        ) VALUES (
-          ${order.id.toString()},
-          ${orderNumber.toString()},
-          ${customerEmail},
-          ${totalAmount},
-          ${currency},
-          ${JSON.stringify(items)},
-          NOW()
-        )
-        ON CONFLICT (order_id) DO NOTHING
-      `;
-
-      console.log('✅ GA4 purchase event queued for order:', orderNumber);
-    } catch (gaError) {
-      console.error('❌ Failed to queue GA4 purchase event:', gaError);
-    }
   }
 
   if (!customerEmail || lineItems.length === 0) {
@@ -193,6 +163,69 @@ async function handleOrderFulfilled(order: any): Promise<void> {
     productHandle: primaryProduct?.handle || null,
     settings,
   });
+}
+
+async function queueGa4PurchaseEvent(order: any, sourceTopic: string): Promise<void> {
+  const orderId = order?.id?.toString?.();
+  const orderNumber = order?.order_number?.toString?.() || order?.name?.toString?.() || orderId;
+  const customerEmail = order?.email || order?.customer?.email || '';
+  const lineItems = order?.line_items || [];
+
+  if (!orderId || !orderNumber || !customerEmail || lineItems.length === 0) {
+    console.log('⚠️ Skipping GA4 queue (missing required order data):', {
+      sourceTopic,
+      hasOrderId: Boolean(orderId),
+      hasOrderNumber: Boolean(orderNumber),
+      hasCustomerEmail: Boolean(customerEmail),
+      itemCount: lineItems.length,
+    });
+    return;
+  }
+
+  try {
+    const totalAmount = parseFloat(order.total_price || '0');
+    const currency = order.currency || 'AUD';
+    const items = lineItems.map((item: any) => ({
+      item_id: item.product_id?.toString(),
+      item_name: item.title,
+      quantity: item.quantity,
+      price: parseFloat(item.price || '0'),
+    }));
+
+    const insertResult = await sql`
+      INSERT INTO ga4_purchase_events (
+        order_id,
+        order_number,
+        customer_email,
+        total_amount,
+        currency,
+        items,
+        created_at
+      ) VALUES (
+        ${orderId},
+        ${orderNumber},
+        ${customerEmail},
+        ${totalAmount},
+        ${currency},
+        ${JSON.stringify(items)},
+        NOW()
+      )
+      ON CONFLICT (order_id) DO NOTHING
+      RETURNING id
+    `;
+
+    if (insertResult.rows.length > 0) {
+      console.log('✅ GA4 purchase event queued:', { sourceTopic, orderNumber, orderId });
+    } else {
+      console.log('ℹ️ GA4 purchase event already queued:', { sourceTopic, orderNumber, orderId });
+    }
+  } catch (gaError) {
+    console.error('❌ Failed to queue GA4 purchase event:', {
+      sourceTopic,
+      orderId,
+      error: gaError,
+    });
+  }
 }
 
 async function handleOrderCancellationTopic({

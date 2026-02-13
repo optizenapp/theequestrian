@@ -15,6 +15,10 @@
     {
       "path": "/api/cron/gmc-feed",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/ga4-sync",
+      "schedule": "*/15 * * * *"
     }
   ]
 }
