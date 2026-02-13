@@ -51,7 +51,6 @@ const RichContent = dynamicImport(
 
 // ISR Configuration: Revalidate every 15 minutes
 export const revalidate = 900;
-export const dynamic = 'force-static';
 
 interface SubcategoryPageProps {
   params: Promise<{
