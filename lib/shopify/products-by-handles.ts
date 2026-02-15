@@ -1,4 +1,5 @@
 import { shopifyFetch } from './client';
+import { filterExcludedFrontendVendors } from './vendor-visibility';
 import type { ShopifyProductCard } from '@/types/shopify';
 import { getReviewStatsWithCache } from '@/lib/reviews/get-review-stats';
 
@@ -93,8 +94,10 @@ export async function getProductsByHandlesAlt(handles: string[]): Promise<Shopif
       }
     }
 
+    const visibleProducts = filterExcludedFrontendVendors(fetchedProducts);
+
     const orderedProducts = normalizedHandles
-      .map((handle) => fetchedProducts.find((product) => product.handle === handle))
+      .map((handle) => visibleProducts.find((product) => product.handle === handle))
       .filter((product): product is ShopifyProductCard => Boolean(product));
 
     const productsWithReviews = await Promise.all(

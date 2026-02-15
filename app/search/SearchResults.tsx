@@ -2,6 +2,8 @@ import { shopifyFetch } from '@/lib/shopify/client';
 import { ProductCard } from '@/components/ProductCard';
 import type { ShopifyProduct } from '@/types/shopify';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
+import { getProductOverridesByHandles } from '@/lib/content/product-overrides';
+import { isExcludedFrontendVendor } from '@/lib/shopify/vendor-visibility';
 
 const SEARCH_PRODUCTS_QUERY = `
   query SearchProducts($query: String!, $first: Int!) {
@@ -11,6 +13,7 @@ const SEARCH_PRODUCTS_QUERY = `
           id
           handle
           title
+          vendor
           availableForSale
           priceRange {
             minVariantPrice {
@@ -57,7 +60,7 @@ export async function SearchResults({ query }: SearchResultsProps) {
   }>({
     query: SEARCH_PRODUCTS_QUERY,
     variables: { query: `title:*${query}*`, first: 20 },
-    cache: 'force-cache',
+    cache: 'no-store',
     tags: ['search', `search-${query.toLowerCase()}`],
   }).catch((error) => {
     console.error('Search error:', error);
@@ -73,15 +76,21 @@ export async function SearchResults({ query }: SearchResultsProps) {
   }
 
   const products = data.products.edges.map(({ node }) => node);
-  const reviewStatsMap = await getReviewStatsForProducts(products.map((product) => product.handle));
+  const overrideMap = await getProductOverridesByHandles(products.map((product) => product.handle));
+  const visibleProducts = products.filter(
+    (product) =>
+      overrideMap.get(product.handle)?.is_published_headless !== false &&
+      !isExcludedFrontendVendor(product.vendor)
+  );
+  const reviewStatsMap = await getReviewStatsForProducts(visibleProducts.map((product) => product.handle));
 
   // Sort products: In-stock first, out-of-stock last
-  products.sort((a, b) => {
+  visibleProducts.sort((a, b) => {
     if (a.availableForSale === b.availableForSale) return 0;
     return a.availableForSale ? -1 : 1;
   });
 
-  if (products.length === 0) {
+  if (visibleProducts.length === 0) {
     return (
       <div className="text-center py-20">
         <div className="bg-surface rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-sm">
@@ -102,12 +111,12 @@ export async function SearchResults({ query }: SearchResultsProps) {
           Search results for {query}
         </h1>
         <span className="text-gray-500 text-sm bg-surface px-3 py-1 rounded-full shadow-sm">
-          {products.length} items
+          {visibleProducts.length} items
         </span>
       </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {products.map((product) => (
+        {visibleProducts.map((product) => (
           <ProductCard
             key={product.id}
             product={product}

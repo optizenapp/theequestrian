@@ -129,6 +129,7 @@ export const GET_COLLECTION_BY_HANDLE = `
             handle
             title
             availableForSale
+            vendor
             priceRange {
               minVariantPrice {
                 amount
@@ -203,6 +204,7 @@ export const GET_COLLECTION_PRODUCTS_PAGE = `
             handle
             title
             availableForSale
+            vendor
             priceRange {
               minVariantPrice {
                 amount

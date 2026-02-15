@@ -5,6 +5,7 @@
 
 import { shopifyFetch } from './client';
 import { normalizeProductType } from './collection-mapping';
+import { filterExcludedFrontendVendors } from './vendor-visibility';
 import type { ShopifyProduct } from '@/types/shopify';
 
 interface ProductsByTypeResponse {
@@ -30,6 +31,7 @@ const GET_PRODUCTS_BY_COLLECTION_AND_TYPE = `
             id
             handle
             title
+            vendor
             productType
             availableForSale
             priceRange {
@@ -116,7 +118,7 @@ export async function getProductsByCollectionAndType(
         return normalizedProductType === normalizedTarget;
       });
 
-    return products;
+    return filterExcludedFrontendVendors(products);
   } catch (error) {
     console.error('Error fetching products by type:', error);
     return [];

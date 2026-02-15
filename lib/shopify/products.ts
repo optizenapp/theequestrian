@@ -4,6 +4,7 @@ import { GET_PRODUCT_BY_HANDLE, GET_ALL_PRODUCTS, GET_PRODUCTS_BY_QUERY } from '
 import { normalizeColor, isColorValue } from '@/lib/utils/product-options';
 import { getProductAllocationByHandle, getProductAllocationByProductId, getProductAllocationMapByProductIds } from '@/lib/db/product-allocations';
 import { getProductOverridesByHandles, getProductOverrideByHandle } from '@/lib/content/product-overrides';
+import { filterExcludedFrontendVendors, isExcludedFrontendVendor } from './vendor-visibility';
 import type { ShopifyProduct, ProductWithPrimaryCollection } from '@/types/shopify';
 
 interface ProductResponse {
@@ -154,6 +155,10 @@ export async function getProductByHandle(
       cache: options?.cache ?? 'force-cache',
     });
 
+    if (!data.product || isExcludedFrontendVendor(data.product.vendor)) {
+      return null;
+    }
+
     return data.product;
   } catch (error) {
     console.error('Error fetching product:', error);
@@ -212,15 +217,22 @@ export async function getAllProducts(): Promise<ProductWithPrimaryCollection[]> 
       }
     }
 
-    console.log(`[getAllProducts] ✅ Fetched ${allProducts.length} total products`);
+    const productsWithoutExcludedVendors = filterExcludedFrontendVendors(allProducts);
+    if (productsWithoutExcludedVendors.length !== allProducts.length) {
+      console.log(
+        `[getAllProducts] 🚫 Vendor exclusion applied: ${allProducts.length} → ${productsWithoutExcludedVendors.length} products`
+      );
+    }
+
+    console.log(`[getAllProducts] ✅ Fetched ${productsWithoutExcludedVendors.length} total products`);
     
     // Cache the results
     productsCache = {
-      data: allProducts,
+      data: productsWithoutExcludedVendors,
       timestamp: now,
     };
     
-    return allProducts;
+    return productsWithoutExcludedVendors;
   } catch (error) {
     console.error('Error fetching all products:', error);
     return [];
@@ -392,6 +404,11 @@ export async function getProductsByTypes(
       });
     }
 
+    const beforeVendorFilter = allProductsUnfiltered.length;
+    allProductsUnfiltered = filterExcludedFrontendVendors(allProductsUnfiltered);
+    if (allProductsUnfiltered.length !== beforeVendorFilter) {
+      console.log(`[getProductsByTypes] 🚫 Vendor exclusion applied: ${beforeVendorFilter} → ${allProductsUnfiltered.length} products`);
+    }
     const beforePublishFilter = allProductsUnfiltered.length;
     allProductsUnfiltered = await filterPublishedForHeadless(allProductsUnfiltered);
     if (allProductsUnfiltered.length !== beforePublishFilter) {
@@ -618,7 +635,8 @@ export async function getRecommendedProducts(limit: number = 4, productType?: st
   try {
     let products: ShopifyProduct[] = [];
     const applyRelatedFilters = async (source: ShopifyProduct[]) => {
-      let filtered = await filterPublishedForHeadless(source);
+      let filtered = filterExcludedFrontendVendors(source);
+      filtered = await filterPublishedForHeadless(filtered);
       if (excludeHandle) {
         filtered = filtered.filter((product) => product.handle !== excludeHandle);
       }
@@ -835,6 +853,7 @@ export async function getSmartCartRecommendations(
     
     // Score each candidate product
     const scoredProducts: ScoredProduct[] = Array.from(candidateProducts.values())
+      .filter((product) => !isExcludedFrontendVendor(product.vendor))
       .filter((product) => hasProductImage(product))
       .map(product => {
       let score = 0;
@@ -1276,6 +1295,11 @@ export async function getProductsByCategory(
       });
     }
 
+    const beforeVendorFilter = allProducts.length;
+    allProducts = filterExcludedFrontendVendors(allProducts);
+    if (allProducts.length !== beforeVendorFilter) {
+      console.log(`[getProductsByCategory] 🚫 Vendor exclusion applied: ${beforeVendorFilter} → ${allProducts.length} products`);
+    }
     const beforePublishFilter = allProducts.length;
     allProducts = await filterPublishedForHeadless(allProducts);
     if (allProducts.length !== beforePublishFilter) {

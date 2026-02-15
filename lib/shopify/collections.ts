@@ -1,5 +1,6 @@
 import { shopifyFetch } from './client';
 import { GET_COLLECTION_BY_HANDLE, GET_ALL_COLLECTIONS, GET_COLLECTION_PRODUCTS_PAGE } from './queries';
+import { filterExcludedFrontendVendors } from './vendor-visibility';
 import type { ShopifyCollection, CollectionWithParent, ShopifyProduct } from '@/types/shopify';
 
 interface CollectionResponse {
@@ -70,8 +71,15 @@ export async function getCollectionByHandle(
       }
     }
 
+    const visibleProductEdges = filterExcludedFrontendVendors(collection.products.edges.map((edge) => edge.node))
+      .map((node) => ({ node }));
+
     return {
       ...collection,
+      products: {
+        ...collection.products,
+        edges: visibleProductEdges,
+      },
       parentCollection: parentCollection || undefined,
       pageContent: pageContent || undefined,
       seoDescription: seoDescription || undefined,
@@ -163,8 +171,10 @@ export async function getCollectionWithPagination(
 
   }
 
+  const productsWithoutExcludedVendors = filterExcludedFrontendVendors(allProducts);
+
   // Sort: In-stock first, out-of-stock last
-  allProducts.sort((a, b) => {
+  productsWithoutExcludedVendors.sort((a, b) => {
     if (a.availableForSale === b.availableForSale) return 0;
     return a.availableForSale ? -1 : 1;
   });
@@ -182,13 +192,13 @@ export async function getCollectionWithPagination(
 
   const startIndex = page * limit;
   const endIndex = startIndex + limit;
-  const paginatedProducts = allProducts.slice(startIndex, endIndex);
-  const hasMore = endIndex < allProducts.length;
+  const paginatedProducts = productsWithoutExcludedVendors.slice(startIndex, endIndex);
+  const hasMore = endIndex < productsWithoutExcludedVendors.length;
 
   return {
     collection: collectionWithMetadata,
     products: paginatedProducts,
-    totalCount: allProducts.length,
+    totalCount: productsWithoutExcludedVendors.length,
     pageInfo: {
       hasNextPage: hasMore,
       endCursor: hasMore ? `page:${page + 1}` : null

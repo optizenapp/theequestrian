@@ -3,6 +3,7 @@ import { sql } from '@vercel/postgres';
 import { shopifyFetch } from '@/lib/shopify/client';
 import { getProductTypesForCollection } from '@/lib/mapping/collection-mapping';
 import { getProductOverridesByHandles } from '@/lib/content/product-overrides';
+import { isExcludedFrontendVendor } from '@/lib/shopify/vendor-visibility';
 
 const SEARCH_PRODUCTS_QUERY = `
   query SearchProducts($query: String!, $first: Int!) {
@@ -12,6 +13,7 @@ const SEARCH_PRODUCTS_QUERY = `
           id
           handle
           title
+          vendor
           availableForSale
           priceRange {
             minVariantPrice {
@@ -107,6 +109,7 @@ export async function GET(request: Request) {
             id: string;
             handle: string;
             title: string;
+            vendor: string;
             availableForSale: boolean;
             priceRange: {
               minVariantPrice: {
@@ -161,7 +164,9 @@ export async function GET(request: Request) {
     const productHandles = sortedProducts.map(({ node }) => node.handle);
     const overrideMap = await getProductOverridesByHandles(productHandles);
     const visibleProducts = sortedProducts.filter(
-      ({ node }) => overrideMap.get(node.handle)?.is_published_headless !== false
+      ({ node }) =>
+        overrideMap.get(node.handle)?.is_published_headless !== false &&
+        !isExcludedFrontendVendor(node.vendor)
     );
     const imageVisibleProducts = visibleProducts.filter(
       ({ node }) => Boolean(node.images.edges[0]?.node?.url)
