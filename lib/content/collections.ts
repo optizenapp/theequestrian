@@ -42,7 +42,7 @@ export interface CollectionContent {
 // Cache for content
 let contentCache: Map<string, CollectionContent> | null = null;
 let cacheTimestamp: number | null = null;
-const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
+const CACHE_TTL = Number(process.env.COLLECTION_CONTENT_CACHE_TTL_MS || 60 * 1000); // default 60 seconds
 
 /**
  * Load content from Postgres database with in-memory caching

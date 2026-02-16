@@ -1,0 +1,119 @@
+{
+  "frameworkVersion": "koray-course-notes-v1-2026-02-16",
+  "source": "docs/961244287-Topical-Authority-Course-Notes-Koray.pdf",
+  "rules": [
+    {
+      "id": "K001",
+      "title": "Single Macro Context",
+      "guidance": "Keep one primary topic per page and remove contextual drift.",
+      "tags": ["macro_context", "topical_map"],
+      "appliesTo": ["product", "collection", "serp"],
+      "sourcePages": [1, 2]
+    },
+    {
+      "id": "K002",
+      "title": "Contextual Hierarchy",
+      "guidance": "Structure content from broad context to specific details with clear contextual flow.",
+      "tags": ["hierarchy", "structure"],
+      "appliesTo": ["product", "collection", "serp"],
+      "sourcePages": [1]
+    },
+    {
+      "id": "K003",
+      "title": "Topical Authority Formula",
+      "guidance": "Increase topical authority through historical consistency and topical coverage.",
+      "tags": ["topical_authority", "historical_data"],
+      "appliesTo": ["collection", "serp"],
+      "sourcePages": [1, 2]
+    },
+    {
+      "id": "K004",
+      "title": "Quality Nodes Priority",
+      "guidance": "Treat high-value pages as quality nodes and keep them well linked for crawler access.",
+      "tags": ["crawl_efficiency", "internal_linking"],
+      "appliesTo": ["collection", "serp"],
+      "sourcePages": [1, 2]
+    },
+    {
+      "id": "K005",
+      "title": "Cost of Retrieval",
+      "guidance": "Lower retrieval cost by improving direct answer clarity and structured information density.",
+      "tags": ["retrieval_cost", "information_density"],
+      "appliesTo": ["product", "collection", "serp"],
+      "sourcePages": [2, 3]
+    },
+    {
+      "id": "K006",
+      "title": "Question-Led Signals",
+      "guidance": "Use interrogative structures to match query intent and improve semantic signal clarity.",
+      "tags": ["query_intent", "headings"],
+      "appliesTo": ["collection", "serp"],
+      "sourcePages": [2]
+    },
+    {
+      "id": "K007",
+      "title": "Algorithmic Authorship Certainty",
+      "guidance": "Write with certainty, avoid hedging, and remove contextless wording.",
+      "tags": ["authorship", "clarity"],
+      "appliesTo": ["product", "collection"],
+      "sourcePages": [3]
+    },
+    {
+      "id": "K008",
+      "title": "Numeric Specificity",
+      "guidance": "Use numeric qualifiers and explicit instance counts where they increase precision.",
+      "tags": ["specificity", "numeric_values"],
+      "appliesTo": ["product", "collection"],
+      "sourcePages": [3]
+    },
+    {
+      "id": "K009",
+      "title": "Verb Context Alignment",
+      "guidance": "Choose verbs that align with the intended context and action expectation.",
+      "tags": ["micro_semantics", "verb_context"],
+      "appliesTo": ["product", "collection"],
+      "sourcePages": [3]
+    },
+    {
+      "id": "K010",
+      "title": "Subordinate Text Optimization",
+      "guidance": "Make the first sentence after headings answer the heading directly without delay.",
+      "tags": ["extractive_answers", "subordinate_text"],
+      "appliesTo": ["product", "collection"],
+      "sourcePages": [3]
+    },
+    {
+      "id": "K011",
+      "title": "No Delayed Answers",
+      "guidance": "Answer the question immediately; avoid definition detours on action-oriented pages.",
+      "tags": ["extractive_answers", "howto_alignment"],
+      "appliesTo": ["product", "collection"],
+      "sourcePages": [3]
+    },
+    {
+      "id": "K012",
+      "title": "Anchor To Target Alignment",
+      "guidance": "Match anchor text with destination page topic/title intent.",
+      "tags": ["internal_linking", "anchor_quality"],
+      "appliesTo": ["product", "collection", "serp"],
+      "sourcePages": [3]
+    },
+    {
+      "id": "K013",
+      "title": "EAV Coverage",
+      "guidance": "Cover entity, attribute, and value comprehensively with concrete values.",
+      "tags": ["eav", "coverage"],
+      "appliesTo": ["product", "collection", "serp"],
+      "sourcePages": [1, 3]
+    },
+    {
+      "id": "K014",
+      "title": "Hub-Spoke Context",
+      "guidance": "Use contextual hub-spoke linking between parent, sibling, and child topical nodes.",
+      "tags": ["hub_spoke", "topical_map"],
+      "appliesTo": ["collection", "serp"],
+      "sourcePages": [1]
+    }
+  ]
+}
+

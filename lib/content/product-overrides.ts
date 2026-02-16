@@ -6,7 +6,7 @@ export interface ProductContentOverride {
   meta_title: string | null;
   meta_description: string | null;
   description_html: string | null;
-  bullet_points: any[] | null;
+  bullet_points: unknown[] | null;
   slug_override: string | null;
   top_description_html: string | null;
   bottom_description_html: string | null;
@@ -23,7 +23,7 @@ export interface ProductContentOverride {
 
 let overrideCache: Map<string, ProductContentOverride> | null = null;
 let cacheTimestamp: number | null = null;
-const CACHE_TTL = 15 * 60 * 1000;
+const CACHE_TTL = Number(process.env.PRODUCT_OVERRIDE_CACHE_TTL_MS || 60 * 1000);
 
 async function loadOverrides(): Promise<Map<string, ProductContentOverride>> {
   const now = Date.now();

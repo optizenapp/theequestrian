@@ -6,6 +6,28 @@ interface ShopifyRevalidateOptions {
 }
 
 /**
+ * Trigger a background request to force page regeneration
+ * This ensures the page is rebuilt immediately after revalidation
+ */
+async function triggerPageRebuild(path: string): Promise<void> {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL;
+  if (!baseUrl) return;
+  
+  const url = `${baseUrl}${path}`;
+  
+  // Fire and forget - don't wait for response
+  fetch(url, {
+    method: 'GET',
+    headers: {
+      'User-Agent': 'SEO-Enrichment-Revalidator',
+      'x-prerender-revalidate': process.env.INTERNAL_REVALIDATE_SECRET || '',
+    },
+  }).catch(() => {
+    // Silently fail - this is best-effort
+  });
+}
+
+/**
  * Invalidate storefront caches when Shopify product records change.
  * We use broad-but-safe invalidation here because webhooks do not always include
  * every affected route path.
@@ -39,6 +61,8 @@ export function revalidateShopifyProductCaches(
 
   for (const path of extraPaths) {
     revalidatePath(path);
+    // Trigger immediate rebuild for extra paths (e.g., SEO enrichment)
+    triggerPageRebuild(path);
   }
   for (const tag of extraTags) {
     revalidateTag(tag, 'max');
