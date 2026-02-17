@@ -197,17 +197,38 @@ async function getLiveStatusByProductIds(productIds: string[]): Promise<Map<stri
   currencyCode: string;
 }>> {
   if (productIds.length === 0) return new Map();
+  const timeoutMs = Number(process.env.DB_SERVER_STATUS_TIMEOUT_MS || 1200);
 
-  const data = await shopifyFetch<{ nodes: Array<{
+  let data: { nodes: Array<{
     id: string;
     availableForSale: boolean;
     priceRange?: { minVariantPrice?: { amount?: string; currencyCode?: string } };
     compareAtPriceRange?: { minVariantPrice?: { amount?: string; currencyCode?: string } };
-  } | null> }>({
-    query: LIVE_STATUS_QUERY,
-    variables: { ids: productIds.slice(0, 250) },
-    cache: 'no-store',
-  });
+  } | null> };
+
+  try {
+    const statusPromise = shopifyFetch<{ nodes: Array<{
+      id: string;
+      availableForSale: boolean;
+      priceRange?: { minVariantPrice?: { amount?: string; currencyCode?: string } };
+      compareAtPriceRange?: { minVariantPrice?: { amount?: string; currencyCode?: string } };
+    } | null> }>({
+      query: LIVE_STATUS_QUERY,
+      variables: { ids: productIds.slice(0, 250) },
+      // Soft cache for SSR speed; client hydration still fetches strict live status.
+      cache: 'default',
+    });
+
+    data = await Promise.race([
+      statusPromise,
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error(`status-timeout-${timeoutMs}ms`)), timeoutMs)
+      ),
+    ]);
+  } catch (error) {
+    console.warn('[getProductsByCategoryFromDB] Live status fetch skipped:', error);
+    return new Map();
+  }
 
   const statusMap = new Map<string, {
     available: boolean;
@@ -403,12 +424,14 @@ export async function getProductsByCategoryFromDB(
   `) as unknown as ProductQueryResult[];
 
   const mappedProducts = dbRows.map(dbProductToShopifyFormat);
-  const liveStatus = await getLiveStatusByProductIds(mappedProducts.map((product) => product.id));
+  const [liveStatus, facets] = await Promise.all([
+    getLiveStatusByProductIds(mappedProducts.map((product) => product.id)),
+    getCollectionFacetsFromDb(whereClause),
+  ]);
   const products = applyLiveStatus(mappedProducts, liveStatus);
 
   const hasNextPage = offset + limit < totalCount;
   const endCursor = hasNextPage ? `db:${offset + limit}` : null;
-  const facets = await getCollectionFacetsFromDb(whereClause);
 
   return {
     products,
