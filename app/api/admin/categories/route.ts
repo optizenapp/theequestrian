@@ -1,6 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
 import { getCategoryAllocationCounts } from '@/lib/db/product-allocations';
+import { invalidateCache } from '@/lib/content/collections';
+
+type SqlParam = string | number;
+
+interface CategoryBase {
+  url_path: string;
+  category_level: number;
+  parent_url: string | null;
+}
+
+interface ContentRow extends CategoryBase {
+  id: number;
+  status: string;
+  h1_title: string;
+  meta_title: string;
+  meta_description: string;
+}
 
 const ensureCollectionContentTable = async () => {
   await sql`
@@ -85,7 +102,7 @@ export async function GET(request: NextRequest) {
       .filter(Boolean) as Array<{ url_path: string; category_level: number; parent_url: string | null }>;
 
     let contentQuery = 'SELECT * FROM collection_content WHERE 1=1';
-    const params: any[] = [];
+    const params: SqlParam[] = [];
     let paramIndex = 1;
 
     if (status && status !== 'all') {
@@ -108,16 +125,16 @@ export async function GET(request: NextRequest) {
 
     contentQuery += ' ORDER BY url_path';
     const contentResult = await sql.query(contentQuery, params);
-    const contentRows = contentResult.rows;
+    const contentRows = contentResult.rows as ContentRow[];
 
-    const contentMap = new Map<string, any>();
+    const contentMap = new Map<string, ContentRow>();
     for (const row of contentRows) {
       contentMap.set(row.url_path, row);
     }
 
     const includeMapping = !search && (status === 'all' || !status);
     const pathSet = new Set<string>();
-    const merged: Array<any> = [];
+    const merged: CategoryBase[] = [];
 
     if (includeMapping) {
       for (const mapping of mappingPaths) {
@@ -153,6 +170,7 @@ export async function GET(request: NextRequest) {
         status: content?.status ?? 'missing',
         h1_title: content?.h1_title ?? '',
         meta_title: content?.meta_title ?? '',
+        meta_description: content?.meta_description ?? '',
         product_count: countMap.get(item.url_path) ?? 0,
         has_content: Boolean(content),
       };
@@ -216,6 +234,7 @@ export async function POST(request: NextRequest) {
       RETURNING *
     `;
 
+    invalidateCache();
     return NextResponse.json({ category: result.rows[0] });
   } catch (error) {
     console.error('Error creating category:', error);

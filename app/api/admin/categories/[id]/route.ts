@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
+import { invalidateCache } from '@/lib/content/collections';
 
 const ensureCollectionContentTable = async () => {
   await sql`
@@ -86,25 +87,58 @@ export async function PATCH(
     await ensureCollectionContentTable();
     const { id } = await params;
     const body = await request.json();
-    const urlPath = normalizePath(String(body?.url_path || ''));
-    const hierarchy = buildHierarchyFromPath(urlPath);
+    const existingResult = await sql`
+      SELECT *
+      FROM collection_content
+      WHERE id = ${id}
+      LIMIT 1
+    `;
+
+    const existing = existingResult.rows[0];
+    if (!existing) {
+      return NextResponse.json({ error: 'Category not found' }, { status: 404 });
+    }
+
+    const hasUrlPath = typeof body?.url_path !== 'undefined';
+    const nextUrlPath = hasUrlPath ? normalizePath(String(body?.url_path || '')) : String(existing.url_path);
+    const hierarchy = buildHierarchyFromPath(nextUrlPath);
+
+    const nextParentUrl = typeof body?.parent_url !== 'undefined'
+      ? (body.parent_url ? String(body.parent_url) : null)
+      : hierarchy.parentUrl;
+    const nextCategoryLevel = typeof body?.category_level !== 'undefined'
+      ? Number(body.category_level)
+      : hierarchy.categoryLevel;
+
+    const hasVersion = typeof body?.version !== 'undefined';
+    const hasGeneratedBy = typeof body?.generated_by !== 'undefined';
 
     const result = await sql`
       UPDATE collection_content
       SET
-        url_path = ${urlPath},
-        h1_title = ${String(body?.h1_title || '')},
-        meta_title = ${String(body?.meta_title || '')},
-        meta_description = ${String(body?.meta_description || '')},
-        short_description = ${String(body?.short_description || '')},
-        long_description = ${String(body?.long_description || '')},
-        breadcrumb_label = ${String(body?.breadcrumb_label || '')},
-        parent_url = ${hierarchy.parentUrl},
-        category_level = ${hierarchy.categoryLevel},
-        status = ${String(body?.status || 'published')},
-        default_sort = ${String(body?.default_sort || 'best-selling')},
-        faq_items = ${JSON.stringify(parseJsonArray(body?.faq_items))},
-        related_categories = ${JSON.stringify(parseJsonArray(body?.related_categories))},
+        url_path = ${nextUrlPath},
+        h1_title = ${typeof body?.h1_title !== 'undefined' ? String(body.h1_title || '') : String(existing.h1_title || '')},
+        meta_title = ${typeof body?.meta_title !== 'undefined' ? String(body.meta_title || '') : String(existing.meta_title || '')},
+        meta_description = ${typeof body?.meta_description !== 'undefined' ? String(body.meta_description || '') : String(existing.meta_description || '')},
+        short_description = ${typeof body?.short_description !== 'undefined' ? String(body.short_description || '') : String(existing.short_description || '')},
+        long_description = ${typeof body?.long_description !== 'undefined' ? String(body.long_description || '') : String(existing.long_description || '')},
+        breadcrumb_label = ${typeof body?.breadcrumb_label !== 'undefined' ? String(body.breadcrumb_label || '') : String(existing.breadcrumb_label || '')},
+        parent_url = ${nextParentUrl},
+        category_level = ${nextCategoryLevel},
+        status = ${typeof body?.status !== 'undefined' ? String(body.status || 'published') : String(existing.status || 'published')},
+        default_sort = ${typeof body?.default_sort !== 'undefined' ? String(body.default_sort || 'best-selling') : String(existing.default_sort || 'best-selling')},
+        faq_items = ${
+          typeof body?.faq_items !== 'undefined'
+            ? JSON.stringify(parseJsonArray(body.faq_items))
+            : JSON.stringify(parseJsonArray(existing.faq_items))
+        },
+        related_categories = ${
+          typeof body?.related_categories !== 'undefined'
+            ? JSON.stringify(parseJsonArray(body.related_categories))
+            : JSON.stringify(parseJsonArray(existing.related_categories))
+        },
+        generated_by = ${hasGeneratedBy ? String(body.generated_by || '') : String(existing.generated_by || '')},
+        version = ${hasVersion ? Number(body.version) : Number(existing.version || 1)},
         updated_at = NOW()
       WHERE id = ${id}
       RETURNING *
@@ -114,6 +148,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Category not found' }, { status: 404 });
     }
 
+    invalidateCache();
     return NextResponse.json({ category: result.rows[0] });
   } catch (error) {
     console.error('Error updating category:', error);
@@ -132,6 +167,7 @@ export async function DELETE(
       DELETE FROM collection_content
       WHERE id = ${id}
     `;
+    invalidateCache();
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting category:', error);

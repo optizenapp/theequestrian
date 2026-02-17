@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 
@@ -12,9 +12,13 @@ interface CategoryRow {
   status: string;
   h1_title: string;
   meta_title: string;
+  meta_description: string;
   product_count: number;
   has_content: boolean;
 }
+
+type SortKey = 'url_path' | 'category_level' | 'status' | 'product_count' | 'meta_title';
+type SortDirection = 'asc' | 'desc';
 
 const emptyForm = {
   url_path: '',
@@ -38,12 +42,13 @@ export default function AdminCategoriesPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [formState, setFormState] = useState({ ...emptyForm });
   const [saving, setSaving] = useState(false);
+  const [sortKey, setSortKey] = useState<SortKey>('url_path');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [seoDrafts, setSeoDrafts] = useState<Record<string, { meta_title: string; meta_description: string }>>({});
+  const [savingSeoKey, setSavingSeoKey] = useState<string | null>(null);
+  const [expandedSeoField, setExpandedSeoField] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchCategories();
-  }, [search, status]);
-
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams();
@@ -57,7 +62,25 @@ export default function AdminCategoriesPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [search, status]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
+
+  useEffect(() => {
+    setSeoDrafts((prev) => {
+      const next: Record<string, { meta_title: string; meta_description: string }> = {};
+      for (const category of categories) {
+        const key = category.url_path;
+        next[key] = {
+          meta_title: prev[key]?.meta_title ?? (category.meta_title || ''),
+          meta_description: prev[key]?.meta_description ?? (category.meta_description || ''),
+        };
+      }
+      return next;
+    });
+  }, [categories]);
 
   const handleCreate = async () => {
     setSaving(true);
@@ -80,6 +103,96 @@ export default function AdminCategoriesPage() {
       console.error('Failed to create category:', error);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSort = (key: SortKey) => {
+    setSortKey((prev) => {
+      if (prev === key) {
+        setSortDirection((current) => (current === 'asc' ? 'desc' : 'asc'));
+        return prev;
+      }
+      setSortDirection('asc');
+      return key;
+    });
+  };
+
+  const sortedCategories = useMemo(() => {
+    const next = [...categories];
+    next.sort((a, b) => {
+      const direction = sortDirection === 'asc' ? 1 : -1;
+      if (sortKey === 'category_level' || sortKey === 'product_count') {
+        return ((a[sortKey] as number) - (b[sortKey] as number)) * direction;
+      }
+      const left = String(a[sortKey] ?? '').toLowerCase();
+      const right = String(b[sortKey] ?? '').toLowerCase();
+      return left.localeCompare(right) * direction;
+    });
+    return next;
+  }, [categories, sortDirection, sortKey]);
+
+  const renderSortIndicator = (key: SortKey) => {
+    if (sortKey !== key) return ' \u2195';
+    return sortDirection === 'asc' ? ' \u2191' : ' \u2193';
+  };
+
+  const handleSeoFieldChange = (
+    category: CategoryRow,
+    field: 'meta_title' | 'meta_description',
+    value: string
+  ) => {
+    setSeoDrafts((prev) => ({
+      ...prev,
+      [category.url_path]: {
+        meta_title: prev[category.url_path]?.meta_title ?? (category.meta_title || ''),
+        meta_description: prev[category.url_path]?.meta_description ?? (category.meta_description || ''),
+        [field]: value,
+      },
+    }));
+  };
+
+  const getSeoFieldKey = (category: CategoryRow, field: 'meta_title' | 'meta_description') =>
+    `${category.url_path}:${field}`;
+
+  const handleSaveSeo = async (category: CategoryRow) => {
+    if (!category.id) return;
+    const draft = seoDrafts[category.url_path];
+    if (!draft) return;
+
+    setSavingSeoKey(category.url_path);
+    try {
+      const response = await fetch(`/api/admin/categories/${category.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          meta_title: draft.meta_title,
+          meta_description: draft.meta_description,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        alert(data?.error || 'Failed to save SEO fields');
+        return;
+      }
+
+      const data = await response.json();
+      const updated = data?.category;
+      setCategories((prev) =>
+        prev.map((row) =>
+          row.id === updated?.id
+            ? {
+                ...row,
+                meta_title: updated?.meta_title || '',
+                meta_description: updated?.meta_description || '',
+              }
+            : row
+        )
+      );
+    } catch (error) {
+      console.error('Failed to save SEO fields:', error);
+    } finally {
+      setSavingSeoKey(null);
     }
   };
 
@@ -275,15 +388,37 @@ export default function AdminCategoriesPage() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Path</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Level</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Products</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <button type="button" onClick={() => handleSort('url_path')} className="hover:text-gray-800">
+                      Path{renderSortIndicator('url_path')}
+                    </button>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <button type="button" onClick={() => handleSort('category_level')} className="hover:text-gray-800">
+                      Level{renderSortIndicator('category_level')}
+                    </button>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <button type="button" onClick={() => handleSort('status')} className="hover:text-gray-800">
+                      Status{renderSortIndicator('status')}
+                    </button>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <button type="button" onClick={() => handleSort('product_count')} className="hover:text-gray-800">
+                      Products{renderSortIndicator('product_count')}
+                    </button>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <button type="button" onClick={() => handleSort('meta_title')} className="hover:text-gray-800">
+                      SEO Title{renderSortIndicator('meta_title')}
+                    </button>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SEO Description</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {categories.map((category) => (
+                {sortedCategories.map((category) => (
                   <tr key={category.url_path} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-900">{category.url_path}</div>
@@ -296,17 +431,109 @@ export default function AdminCategoriesPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">{category.product_count}</td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      <textarea
+                        value={seoDrafts[category.url_path]?.meta_title ?? ''}
+                        onChange={(event) => handleSeoFieldChange(category, 'meta_title', event.target.value)}
+                        onFocus={() => setExpandedSeoField(getSeoFieldKey(category, 'meta_title'))}
+                        onBlur={() => setExpandedSeoField((prev) => (prev === getSeoFieldKey(category, 'meta_title') ? null : prev))}
+                        disabled={!category.id}
+                        placeholder={category.id ? 'SEO title' : 'Create content first'}
+                        rows={expandedSeoField === getSeoFieldKey(category, 'meta_title') ? 4 : 1}
+                        className={`w-full rounded-lg border border-gray-300 px-2 py-1 text-xs disabled:bg-gray-50 disabled:text-gray-400 ${
+                          expandedSeoField === getSeoFieldKey(category, 'meta_title')
+                            ? 'min-w-[380px] bg-white shadow-sm md:min-w-[520px]'
+                            : ''
+                        }`}
+                      />
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      <textarea
+                        value={seoDrafts[category.url_path]?.meta_description ?? ''}
+                        onChange={(event) => handleSeoFieldChange(category, 'meta_description', event.target.value)}
+                        onFocus={() => setExpandedSeoField(getSeoFieldKey(category, 'meta_description'))}
+                        onBlur={() =>
+                          setExpandedSeoField((prev) =>
+                            prev === getSeoFieldKey(category, 'meta_description') ? null : prev
+                          )
+                        }
+                        disabled={!category.id}
+                        placeholder={category.id ? 'SEO description' : 'Create content first'}
+                        rows={expandedSeoField === getSeoFieldKey(category, 'meta_description') ? 8 : 2}
+                        className={`w-full rounded-lg border border-gray-300 px-2 py-1 text-xs disabled:bg-gray-50 disabled:text-gray-400 ${
+                          expandedSeoField === getSeoFieldKey(category, 'meta_description')
+                            ? 'min-w-[380px] bg-white shadow-sm md:min-w-[520px]'
+                            : ''
+                        }`}
+                      />
+                    </td>
                     <td className="px-6 py-4 text-right text-sm">
-                      {category.id ? (
-                        <Link
-                          href={`/admin/categories/${category.id}`}
-                          className="text-action hover:text-pink-700"
-                        >
-                          Edit
-                        </Link>
-                      ) : (
-                        <span className="text-xs text-gray-400">No content</span>
-                      )}
+                      <div className="flex items-center justify-end gap-3">
+                        {category.id ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleSaveSeo(category)}
+                              disabled={savingSeoKey === category.url_path}
+                              className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-action hover:text-action disabled:opacity-60"
+                            >
+                              {savingSeoKey === category.url_path ? 'Saving...' : 'Save SEO'}
+                            </button>
+                            <Link
+                              href={`/admin/categories/${category.id}`}
+                              className="text-action hover:text-pink-700"
+                            >
+                              Edit
+                            </Link>
+                            <a
+                              href={category.url_path}
+                              target="_blank"
+                              rel="noreferrer"
+                              title="Open live page in new tab"
+                              aria-label={`Open ${category.url_path} in new tab`}
+                              className="inline-flex items-center text-gray-500 hover:text-action"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                className="h-4 w-4"
+                              >
+                                <path d="M14 3h7v7" />
+                                <path d="M10 14L21 3" />
+                                <path d="M21 14v7H3V3h7" />
+                              </svg>
+                            </a>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-xs text-gray-400">No content</span>
+                            <a
+                              href={category.url_path}
+                              target="_blank"
+                              rel="noreferrer"
+                              title="Open live page in new tab"
+                              aria-label={`Open ${category.url_path} in new tab`}
+                              className="inline-flex items-center text-gray-500 hover:text-action"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                className="h-4 w-4"
+                              >
+                                <path d="M14 3h7v7" />
+                                <path d="M10 14L21 3" />
+                                <path d="M21 14v7H3V3h7" />
+                              </svg>
+                            </a>
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
