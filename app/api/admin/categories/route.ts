@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
 import { getCategoryAllocationCounts } from '@/lib/db/product-allocations';
 import { invalidateCache } from '@/lib/content/collections';
+import { revalidatePath } from 'next/cache';
 
 type SqlParam = string | number;
 
@@ -235,6 +236,7 @@ export async function POST(request: NextRequest) {
     `;
 
     invalidateCache();
+    revalidatePath(urlPath);
     return NextResponse.json({ category: result.rows[0] });
   } catch (error) {
     console.error('Error creating category:', error);

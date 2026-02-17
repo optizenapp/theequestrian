@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
 import { invalidateCache } from '@/lib/content/collections';
+import { revalidatePath } from 'next/cache';
 
 const ensureCollectionContentTable = async () => {
   await sql`
@@ -149,6 +150,10 @@ export async function PATCH(
     }
 
     invalidateCache();
+    revalidatePath(nextUrlPath);
+    if (nextUrlPath !== existing.url_path) {
+      revalidatePath(String(existing.url_path));
+    }
     return NextResponse.json({ category: result.rows[0] });
   } catch (error) {
     console.error('Error updating category:', error);
@@ -163,11 +168,20 @@ export async function DELETE(
   try {
     await ensureCollectionContentTable();
     const { id } = await params;
+    const existing = await sql`
+      SELECT url_path
+      FROM collection_content
+      WHERE id = ${id}
+      LIMIT 1
+    `;
     await sql`
       DELETE FROM collection_content
       WHERE id = ${id}
     `;
     invalidateCache();
+    if (existing.rows[0]?.url_path) {
+      revalidatePath(String(existing.rows[0].url_path));
+    }
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting category:', error);
