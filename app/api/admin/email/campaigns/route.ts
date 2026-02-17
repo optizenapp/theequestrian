@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
-import { getResolvedAudienceContactIds } from '@/lib/email-platform/segments';
+import { getAudienceBreakdown, getResolvedAudienceContactIds } from '@/lib/email-platform/segments';
 import { queueCampaignRecipients } from '@/lib/email-platform/sending';
 import { logEmailAudit } from '@/lib/email-platform/audit';
 
@@ -79,6 +79,7 @@ export async function POST(request: NextRequest) {
     `;
     const campaignId = inserted.rows[0]?.id as string;
 
+    const audienceBreakdown = await getAudienceBreakdown({ listIds, segmentIds });
     const contactIds = await getResolvedAudienceContactIds({ listIds, segmentIds });
     const queued = await queueCampaignRecipients(campaignId, contactIds);
     await logEmailAudit({
@@ -86,10 +87,21 @@ export async function POST(request: NextRequest) {
       action: 'campaign_created',
       entityType: 'email_campaign',
       entityId: campaignId,
-      payload: { name, templateVersionId, audience: { listIds, segmentIds }, queued },
+      payload: {
+        name,
+        templateVersionId,
+        audience: { listIds, segmentIds },
+        queued,
+        audienceBreakdown,
+      },
     });
 
-    return NextResponse.json({ ok: true, id: campaignId, queuedRecipients: queued });
+    return NextResponse.json({
+      ok: true,
+      id: campaignId,
+      queuedRecipients: queued,
+      audienceBreakdown,
+    });
   } catch (error) {
     console.error('Failed to create campaign:', error);
     return NextResponse.json({ error: 'Failed to create campaign' }, { status: 500 });

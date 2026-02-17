@@ -167,6 +167,56 @@ export async function getResolvedAudienceContactIds(input: {
   return Array.from(set);
 }
 
+export async function getAudienceBreakdown(input: {
+  listIds?: string[];
+  segmentIds?: string[];
+}): Promise<{
+  listContacts: number;
+  segmentContacts: number;
+  overlapContacts: number;
+  totalUniqueContacts: number;
+}> {
+  const listSet = new Set<string>();
+  const segmentSet = new Set<string>();
+
+  for (const listId of input.listIds || []) {
+    const listRows = await sql`
+      SELECT contact_id
+      FROM email_list_memberships
+      WHERE list_id = ${listId}
+    `;
+    for (const row of listRows.rows) {
+      listSet.add(row.contact_id as string);
+    }
+  }
+
+  for (const segmentId of input.segmentIds || []) {
+    const segmentRows = await sql`
+      SELECT contact_id
+      FROM email_segment_memberships
+      WHERE segment_id = ${segmentId}
+    `;
+    for (const row of segmentRows.rows) {
+      segmentSet.add(row.contact_id as string);
+    }
+  }
+
+  let overlapContacts = 0;
+  for (const contactId of listSet) {
+    if (segmentSet.has(contactId)) {
+      overlapContacts += 1;
+    }
+  }
+
+  const totalUniqueContacts = new Set<string>([...listSet, ...segmentSet]).size;
+  return {
+    listContacts: listSet.size,
+    segmentContacts: segmentSet.size,
+    overlapContacts,
+    totalUniqueContacts,
+  };
+}
+
 export async function listSegments(limit = 100): Promise<
   Array<{
     id: string;

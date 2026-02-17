@@ -196,6 +196,11 @@ export async function sendQueuedCampaignRecipients(input: {
         to: email,
         subject: rendered.subject,
         html: rendered.html,
+        tags: [
+          { name: 'campaign_id', value: input.campaignId },
+          { name: 'campaign_recipient_id', value: recipientId },
+          { name: 'template_version_id', value: templateVersion.id },
+        ],
       });
       const providerMessageId = extractResendId(providerResult);
 
