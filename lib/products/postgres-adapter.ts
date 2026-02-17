@@ -3,8 +3,51 @@
  * Converts database products to Shopify format for compatibility
  */
 
+import { shopifyFetch } from '@/lib/shopify/client';
 import { searchProducts, type ProductFilters, type ProductQueryResult } from '@/lib/db/queries';
+import { sql } from '@/lib/db/client';
+import { normalizeColor } from '@/lib/utils/product-options';
 import type { ProductWithPrimaryCollection } from '@/types/shopify';
+
+type CategoryFilters = {
+  brands?: string[];
+  sizes?: string[];
+  colors?: string[];
+};
+
+type CollectionFacets = {
+  brands: { value: string; count: number; displayName: string }[];
+  sizes: { value: string; count: number }[];
+  colors: { value: string; count: number; originalValue: string }[];
+  price: { min: number; max: number };
+};
+
+const DEFAULT_CURRENCY = process.env.NEXT_PUBLIC_DEFAULT_CURRENCY || 'AUD';
+const PRICE_FACET_FALLBACK = { min: 0, max: 500 };
+
+const LIVE_STATUS_QUERY = `
+  query GetProductsStatus($ids: [ID!]!) {
+    nodes(ids: $ids) {
+      ... on Product {
+        id
+        availableForSale
+        totalInventory
+        priceRange {
+          minVariantPrice {
+            amount
+            currencyCode
+          }
+        }
+        compareAtPriceRange {
+          minVariantPrice {
+            amount
+            currencyCode
+          }
+        }
+      }
+    }
+  }
+`;
 
 /**
  * Convert database product to Shopify format
@@ -39,11 +82,11 @@ export function dbProductToShopifyFormat(dbProduct: ProductQueryResult): Product
     priceRange: {
       minVariantPrice: {
         amount: '0',
-        currencyCode: 'AUD'
+        currencyCode: DEFAULT_CURRENCY
       },
       maxVariantPrice: {
         amount: '0',
-        currencyCode: 'AUD'
+        currencyCode: DEFAULT_CURRENCY
       }
     },
     
@@ -51,11 +94,11 @@ export function dbProductToShopifyFormat(dbProduct: ProductQueryResult): Product
     compareAtPriceRange: {
       minVariantPrice: {
         amount: '0',
-        currencyCode: 'AUD'
+        currencyCode: DEFAULT_CURRENCY
       },
       maxVariantPrice: {
         amount: '0',
-        currencyCode: 'AUD'
+        currencyCode: DEFAULT_CURRENCY
       }
     },
     
@@ -72,6 +115,310 @@ export function dbProductToShopifyFormat(dbProduct: ProductQueryResult): Product
     // Metafield (not used with Postgres)
     metafield: null,
   } as ProductWithPrimaryCollection;
+}
+
+function normalizePath(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return '/';
+  const withSlash = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+  return withSlash.length > 1 && withSlash.endsWith('/') ? withSlash.slice(0, -1) : withSlash;
+}
+
+function parseDbCursor(after: string | null, limit: number): number {
+  if (!after) return 0;
+  const dbMatch = after.match(/^db:(\d+)$/);
+  if (dbMatch) {
+    return Math.max(0, parseInt(dbMatch[1], 10));
+  }
+  const legacyPageMatch = after.match(/^page:(\d+)$/);
+  if (legacyPageMatch) {
+    return Math.max(0, parseInt(legacyPageMatch[1], 10) * limit);
+  }
+  return 0;
+}
+
+function escapeLiteral(value: string): string {
+  return value.replace(/'/g, "''");
+}
+
+function asLowerArrayLiteral(values: string[]): string {
+  const escaped = values.map((value) => `'${escapeLiteral(value.toLowerCase())}'`).join(',');
+  return `ARRAY[${escaped}]::text[]`;
+}
+
+function buildCategoryWhereClause(categoryPath: string, filters?: CategoryFilters): string {
+  const normalized = normalizePath(categoryPath);
+  const escapedPath = escapeLiteral(normalized);
+  const conditions: string[] = [
+    `(pca.category_path = '${escapedPath}' OR pca.category_path LIKE '${escapedPath}/%')`,
+  ];
+
+  if (filters?.brands && filters.brands.length > 0) {
+    const brands = asLowerArrayLiteral(filters.brands);
+    conditions.push(`(
+      LOWER(COALESCE(p.vendor, '')) = ANY(${brands})
+      OR EXISTS (
+        SELECT 1
+        FROM unnest(COALESCE(p.tags, ARRAY[]::text[])) AS t(tag)
+        WHERE LOWER(tag) = ANY(${brands})
+      )
+    )`);
+  }
+
+  if (filters?.sizes && filters.sizes.length > 0) {
+    const sizes = asLowerArrayLiteral(filters.sizes);
+    conditions.push(`EXISTS (
+      SELECT 1
+      FROM variant_options vo
+      WHERE vo.product_id = p.id
+        AND vo.option_name_normalized = 'size'
+        AND vo.option_value_normalized = ANY(${sizes})
+    )`);
+  }
+
+  if (filters?.colors && filters.colors.length > 0) {
+    const colors = asLowerArrayLiteral(filters.colors.map((color) => normalizeColor(color)));
+    conditions.push(`EXISTS (
+      SELECT 1
+      FROM variant_options vo
+      WHERE vo.product_id = p.id
+        AND vo.option_name_normalized IN ('color', 'colour')
+        AND vo.option_value_normalized = ANY(${colors})
+    )`);
+  }
+
+  return conditions.join(' AND ');
+}
+
+async function getLiveStatusByProductIds(productIds: string[]): Promise<Map<string, {
+  available: boolean;
+  price: string;
+  compareAtPrice?: string;
+  currencyCode: string;
+}>> {
+  if (productIds.length === 0) return new Map();
+
+  const data = await shopifyFetch<{ nodes: Array<{
+    id: string;
+    availableForSale: boolean;
+    priceRange?: { minVariantPrice?: { amount?: string; currencyCode?: string } };
+    compareAtPriceRange?: { minVariantPrice?: { amount?: string; currencyCode?: string } };
+  } | null> }>({
+    query: LIVE_STATUS_QUERY,
+    variables: { ids: productIds.slice(0, 250) },
+    cache: 'no-store',
+  });
+
+  const statusMap = new Map<string, {
+    available: boolean;
+    price: string;
+    compareAtPrice?: string;
+    currencyCode: string;
+  }>();
+
+  for (const node of data.nodes || []) {
+    if (!node?.id) continue;
+    const currencyCode = node.priceRange?.minVariantPrice?.currencyCode || DEFAULT_CURRENCY;
+    statusMap.set(node.id, {
+      available: Boolean(node.availableForSale),
+      price: node.priceRange?.minVariantPrice?.amount || '0',
+      compareAtPrice: node.compareAtPriceRange?.minVariantPrice?.amount,
+      currencyCode,
+    });
+  }
+
+  return statusMap;
+}
+
+function applyLiveStatus(
+  products: ProductWithPrimaryCollection[],
+  statusMap: Map<string, { available: boolean; price: string; compareAtPrice?: string; currencyCode: string }>
+): ProductWithPrimaryCollection[] {
+  if (statusMap.size === 0) return products;
+
+  return products.map((product) => {
+    const live = statusMap.get(product.id);
+    if (!live) return product;
+
+    return {
+      ...product,
+      availableForSale: live.available,
+      priceRange: {
+        minVariantPrice: {
+          amount: live.price,
+          currencyCode: live.currencyCode,
+        },
+        maxVariantPrice: {
+          amount: live.price,
+          currencyCode: live.currencyCode,
+        },
+      },
+      compareAtPriceRange: live.compareAtPrice
+        ? {
+            minVariantPrice: {
+              amount: live.compareAtPrice,
+              currencyCode: live.currencyCode,
+            },
+            maxVariantPrice: {
+              amount: live.compareAtPrice,
+              currencyCode: live.currencyCode,
+            },
+          }
+        : undefined,
+    };
+  });
+}
+
+async function getCollectionFacetsFromDb(whereClause: string): Promise<CollectionFacets> {
+  const brandRows = await sql.unsafe(`
+    SELECT
+      LOWER(COALESCE(p.vendor, '')) AS value,
+      MIN(COALESCE(p.vendor, '')) AS display_name,
+      COUNT(*)::int AS count
+    FROM product_category_assignments pca
+    JOIN products p ON p.id = pca.product_id
+    WHERE ${whereClause}
+      AND COALESCE(p.vendor, '') <> ''
+    GROUP BY LOWER(COALESCE(p.vendor, ''))
+    ORDER BY count DESC
+  `) as unknown as Array<{ value: string; display_name: string; count: number }>;
+
+  const sizeRows = await sql.unsafe(`
+    SELECT
+      vo.option_value AS value,
+      COUNT(*)::int AS count
+    FROM product_category_assignments pca
+    JOIN products p ON p.id = pca.product_id
+    JOIN variant_options vo ON vo.product_id = p.id
+    WHERE ${whereClause}
+      AND vo.option_name_normalized = 'size'
+      AND COALESCE(vo.option_value, '') <> ''
+    GROUP BY vo.option_value
+    ORDER BY count DESC
+  `) as unknown as Array<{ value: string; count: number }>;
+
+  const colorRows = await sql.unsafe(`
+    SELECT
+      vo.option_value_normalized AS value,
+      MIN(vo.option_value) AS original_value,
+      COUNT(*)::int AS count
+    FROM product_category_assignments pca
+    JOIN products p ON p.id = pca.product_id
+    JOIN variant_options vo ON vo.product_id = p.id
+    WHERE ${whereClause}
+      AND vo.option_name_normalized IN ('color', 'colour')
+      AND COALESCE(vo.option_value_normalized, '') <> ''
+    GROUP BY vo.option_value_normalized
+    ORDER BY count DESC
+  `) as unknown as Array<{ value: string; original_value: string; count: number }>;
+
+  const brands = brandRows
+    .filter((row) => row.value)
+    .map((row) => ({
+      value: row.value,
+      count: Number(row.count),
+      displayName: row.display_name || row.value,
+    }))
+    .sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+  const sizes = sizeRows
+    .map((row) => ({ value: row.value, count: Number(row.count) }))
+    .sort((a, b) => {
+      const aNum = parseFloat(a.value);
+      const bNum = parseFloat(b.value);
+      if (!Number.isNaN(aNum) && !Number.isNaN(bNum)) return aNum - bNum;
+      return a.value.localeCompare(b.value);
+    });
+
+  const colors = colorRows
+    .map((row) => ({
+      value: row.value,
+      count: Number(row.count),
+      originalValue: row.original_value,
+    }))
+    .sort((a, b) => a.originalValue.localeCompare(b.originalValue));
+
+  return {
+    brands,
+    sizes,
+    colors,
+    price: PRICE_FACET_FALLBACK,
+  };
+}
+
+export async function getProductsByCategoryFromDB(
+  categoryPath: string,
+  limit: number = 36,
+  after: string | null = null,
+  filters?: CategoryFilters
+): Promise<{
+  products: ProductWithPrimaryCollection[];
+  pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  totalCount: number;
+  facets: CollectionFacets;
+}> {
+  const whereClause = buildCategoryWhereClause(categoryPath, filters);
+  const offset = parseDbCursor(after, limit);
+
+  const countRows = await sql.unsafe(`
+    SELECT COUNT(*)::int AS total
+    FROM product_category_assignments pca
+    JOIN products p ON p.id = pca.product_id
+    WHERE ${whereClause}
+  `) as unknown as Array<{ total: number }>;
+  const totalCount = Number(countRows[0]?.total || 0);
+
+  if (totalCount === 0) {
+    return {
+      products: [],
+      pageInfo: { hasNextPage: false, endCursor: null },
+      totalCount: 0,
+      facets: {
+        brands: [],
+        sizes: [],
+        colors: [],
+        price: PRICE_FACET_FALLBACK,
+      },
+    };
+  }
+
+  const dbRows = await sql.unsafe(`
+    SELECT
+      p.id,
+      p.handle,
+      p.title,
+      p.description,
+      p.vendor,
+      p.product_type,
+      p.tags,
+      p.image_url,
+      p.image_alt,
+      p.available_for_sale,
+      p.shopify_created_at
+    FROM product_category_assignments pca
+    JOIN products p ON p.id = pca.product_id
+    WHERE ${whereClause}
+    ORDER BY p.available_for_sale DESC, p.shopify_created_at DESC NULLS LAST, p.updated_at DESC
+    LIMIT ${limit} OFFSET ${offset}
+  `) as unknown as ProductQueryResult[];
+
+  const mappedProducts = dbRows.map(dbProductToShopifyFormat);
+  const liveStatus = await getLiveStatusByProductIds(mappedProducts.map((product) => product.id));
+  const products = applyLiveStatus(mappedProducts, liveStatus);
+
+  const hasNextPage = offset + limit < totalCount;
+  const endCursor = hasNextPage ? `db:${offset + limit}` : null;
+  const facets = await getCollectionFacetsFromDb(whereClause);
+
+  return {
+    products,
+    pageInfo: {
+      hasNextPage,
+      endCursor,
+    },
+    totalCount,
+    facets,
+  };
 }
 
 /**

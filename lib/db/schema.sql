@@ -104,6 +104,36 @@ COMMENT ON COLUMN products.available_for_sale IS 'General availability flag (upd
 COMMENT ON TABLE facet_cache IS 'Pre-computed facets for popular filter combinations (optional optimization)';
 COMMENT ON TABLE sync_log IS 'Tracks all sync operations for monitoring and debugging';
 
+-- Variant projection tables for accurate size/color facets in Postgres
+CREATE TABLE IF NOT EXISTS product_variants (
+  variant_id TEXT PRIMARY KEY,
+  product_id TEXT NOT NULL,
+  product_handle TEXT,
+  title TEXT,
+  available_for_sale BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_pv_product_id ON product_variants(product_id);
+CREATE INDEX IF NOT EXISTS idx_pv_product_handle ON product_variants(product_handle);
+
+CREATE TABLE IF NOT EXISTS variant_options (
+  id SERIAL PRIMARY KEY,
+  variant_id TEXT NOT NULL,
+  product_id TEXT NOT NULL,
+  option_name TEXT NOT NULL,
+  option_name_normalized TEXT NOT NULL,
+  option_value TEXT NOT NULL,
+  option_value_normalized TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_vo_variant_id ON variant_options(variant_id);
+CREATE INDEX IF NOT EXISTS idx_vo_product_id ON variant_options(product_id);
+CREATE INDEX IF NOT EXISTS idx_vo_name_value ON variant_options(option_name_normalized, option_value_normalized);
+CREATE INDEX IF NOT EXISTS idx_vo_product_name ON variant_options(product_id, option_name_normalized);
+
 -- Google Merchant Center integration (single-row config)
 CREATE TABLE gmc_integration (
   id INTEGER PRIMARY KEY DEFAULT 1,

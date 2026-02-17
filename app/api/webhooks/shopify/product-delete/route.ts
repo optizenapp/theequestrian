@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
+import { deleteProductVariantsByProductId } from '@/lib/db/product-variants';
 import crypto from 'crypto';
 
 /**
@@ -46,6 +47,7 @@ export async function POST(request: NextRequest) {
     const productId = `gid://shopify/Product/${product.id}`;
     
     // Delete from database
+    await deleteProductVariantsByProductId(productId);
     await sql`DELETE FROM products WHERE id = ${productId}`;
     
     console.log('[Webhook] ✅ Product deleted:', productId);

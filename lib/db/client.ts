@@ -59,7 +59,24 @@ function sqlTemplateTag(strings: TemplateStringsArray, ...values: any[]) {
   return result;
 }
 
-export const sql = sqlTemplateTag as ReturnType<typeof neon>;
+type NeonSql = ReturnType<typeof neon>;
+type NeonSqlWithUnsafe = NeonSql & {
+  unsafe: (query: string) => Promise<unknown>;
+};
+
+const sqlWithUnsafe = sqlTemplateTag as NeonSqlWithUnsafe;
+sqlWithUnsafe.unsafe = (query: string) => {
+  const result = (getSql() as NeonSqlWithUnsafe).unsafe(query);
+  if (result && typeof (result as Promise<unknown>).then === 'function') {
+    return (result as Promise<unknown>).catch((err: unknown) => {
+      if (isQuotaError(err)) resetDbClient();
+      throw err;
+    });
+  }
+  return Promise.resolve(result);
+};
+
+export const sql = sqlWithUnsafe;
 
 /**
  * Test database connection
@@ -183,6 +200,41 @@ export async function initializeSchema(): Promise<void> {
     await sql`CREATE INDEX IF NOT EXISTS idx_pca_parent_category ON product_category_assignments(parent_category)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_pca_subcategory ON product_category_assignments(subcategory_handle)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_pca_product_handle ON product_category_assignments(product_handle)`;
+
+    // Create product_variants table
+    console.log('[DB] Creating product_variants table...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS product_variants (
+        variant_id TEXT PRIMARY KEY,
+        product_id TEXT NOT NULL,
+        product_handle TEXT,
+        title TEXT,
+        available_for_sale BOOLEAN DEFAULT true,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_pv_product_id ON product_variants(product_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_pv_product_handle ON product_variants(product_handle)`;
+
+    // Create variant_options table
+    console.log('[DB] Creating variant_options table...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS variant_options (
+        id SERIAL PRIMARY KEY,
+        variant_id TEXT NOT NULL,
+        product_id TEXT NOT NULL,
+        option_name TEXT NOT NULL,
+        option_name_normalized TEXT NOT NULL,
+        option_value TEXT NOT NULL,
+        option_value_normalized TEXT NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_vo_variant_id ON variant_options(variant_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_vo_product_id ON variant_options(product_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_vo_name_value ON variant_options(option_name_normalized, option_value_normalized)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_vo_product_name ON variant_options(product_id, option_name_normalized)`;
 
     // Create product_content_overrides table
     console.log('[DB] Creating product_content_overrides table...');
