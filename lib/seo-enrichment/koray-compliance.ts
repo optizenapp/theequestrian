@@ -101,24 +101,47 @@ export function evaluateKorayCompliance(
   payload: ProductEnrichmentPayload | CollectionEnrichmentPayload
 ): KorayComplianceResult {
   const checks: KorayComplianceCheck[] = [];
-  const topText = pageType === 'product'
-    ? `${payload.title_override} ${payload.meta_title} ${payload.meta_description} ${payload.description_html}`
-    : `${payload.h1_title} ${payload.meta_title} ${payload.meta_description} ${payload.long_description}`;
+  if (pageType === 'product') {
+    const productPayload = payload as ProductEnrichmentPayload;
+    const topText = `${productPayload.title_override} ${productPayload.meta_title} ${productPayload.meta_description} ${productPayload.description_html}`;
 
-  checks.push(evaluateMacroContext(
-    pageType === 'product' ? payload.title_override : payload.h1_title,
-    pageType === 'product' ? payload.description_html : payload.long_description
-  ));
-  checks.push(evaluateExtractiveAnswers(pageType === 'product' ? payload.bottom_description_html : payload.long_description));
-  checks.push(
-    evaluateEav(
-      pageType === 'product'
-        ? payload.bullet_points
-        : payload.faq_items.map((f) => `${f.question}: ${f.answer}`)
-    )
-  );
-  checks.push(evaluateInternalLinks(payload.internal_link_suggestions.map((l) => l.target_path)));
-  checks.push(evaluateFluff(stripHtml(topText)));
+    checks.push(
+      evaluateMacroContext(
+        productPayload.title_override,
+        productPayload.description_html
+      )
+    );
+    checks.push(evaluateExtractiveAnswers(productPayload.bottom_description_html));
+    checks.push(evaluateEav(productPayload.bullet_points));
+    checks.push(
+      evaluateInternalLinks(
+        productPayload.internal_link_suggestions.map((l) => l.target_path)
+      )
+    );
+    checks.push(evaluateFluff(stripHtml(topText)));
+  } else {
+    const collectionPayload = payload as CollectionEnrichmentPayload;
+    const topText = `${collectionPayload.h1_title} ${collectionPayload.meta_title} ${collectionPayload.meta_description} ${collectionPayload.long_description}`;
+
+    checks.push(
+      evaluateMacroContext(
+        collectionPayload.h1_title,
+        collectionPayload.long_description
+      )
+    );
+    checks.push(evaluateExtractiveAnswers(collectionPayload.long_description));
+    checks.push(
+      evaluateEav(
+        collectionPayload.faq_items.map((f) => `${f.question}: ${f.answer}`)
+      )
+    );
+    checks.push(
+      evaluateInternalLinks(
+        collectionPayload.internal_link_suggestions.map((l) => l.target_path)
+      )
+    );
+    checks.push(evaluateFluff(stripHtml(topText)));
+  }
 
   const score = Math.round(average(checks.map((c) => c.score)));
   const issues = checks.filter((c) => !c.passed).map((c) => `${c.label}: ${c.detail}`);

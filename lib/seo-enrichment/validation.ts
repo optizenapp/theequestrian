@@ -8,7 +8,10 @@ const internalLinkSuggestionSchema = z.object({
   target_path: z.string().min(1).max(500),
   anchor_text: z.string().min(1).max(200),
   context: z.string().max(500).optional().default(''),
-  link_type: z.string().optional().default('contextual'),
+  link_type: z
+    .enum(['contextual', 'navigational', 'hub_spoke', 'related', 'breadcrumb'])
+    .optional()
+    .default('contextual'),
 });
 
 const productSchema = z.object({

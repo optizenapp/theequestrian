@@ -77,52 +77,80 @@ export class EnrichmentWriter {
 
     if (shouldApply) {
       if (result.pageType === 'product') {
+        const productPayload = payload as EnrichmentResult['payload'] & {
+          title_override: string;
+          description_html: string;
+          top_description_html: string;
+          bottom_description_html: string;
+          bullet_points: string[];
+        };
         await writeProductEnrichment(result.pageIdentifier, {
-          meta_title: payload.meta_title,
-          meta_description: payload.meta_description,
-          title_override: payload.title_override,
-          description_html: payload.description_html,
-          top_description_html: payload.top_description_html,
-          bottom_description_html: payload.bottom_description_html,
-          bullet_points: payload.bullet_points,
+          meta_title: productPayload.meta_title,
+          meta_description: productPayload.meta_description,
+          title_override: productPayload.title_override,
+          description_html: productPayload.description_html,
+          top_description_html: productPayload.top_description_html,
+          bottom_description_html: productPayload.bottom_description_html,
+          bullet_points: productPayload.bullet_points,
         });
         const sourcePath = `/products/${result.pageIdentifier}`;
-        await writeInternalLinkSuggestions(sourcePath, payload.internal_link_suggestions || []);
+        await writeInternalLinkSuggestions(sourcePath, productPayload.internal_link_suggestions || []);
       } else {
+        const collectionPayload = payload as EnrichmentResult['payload'] & {
+          h1_title: string;
+          short_description: string;
+          long_description: string;
+          faq_items: Array<{ question: string; answer: string }>;
+          related_categories: Array<{ url: string; title: string; description?: string }>;
+        };
         await writeCollectionEnrichment(result.pageIdentifier, {
-          h1_title: payload.h1_title,
-          meta_title: payload.meta_title,
-          meta_description: payload.meta_description,
-          short_description: payload.short_description,
-          long_description: payload.long_description,
-          faq_items: payload.faq_items,
-          related_categories: payload.related_categories,
+          h1_title: collectionPayload.h1_title,
+          meta_title: collectionPayload.meta_title,
+          meta_description: collectionPayload.meta_description,
+          short_description: collectionPayload.short_description,
+          long_description: collectionPayload.long_description,
+          faq_items: collectionPayload.faq_items,
+          related_categories: collectionPayload.related_categories,
         });
-        await writeInternalLinkSuggestions(result.pageIdentifier, payload.internal_link_suggestions || []);
+        await writeInternalLinkSuggestions(result.pageIdentifier, collectionPayload.internal_link_suggestions || []);
       }
       applied = true;
     }
 
     const afterContent = (() => {
       if (result.pageType === 'product') {
+        const productPayload = payload as EnrichmentResult['payload'] & {
+          title_override: string;
+          description_html: string;
+          top_description_html: string;
+          bottom_description_html: string;
+          bullet_points: string[];
+        };
         return {
-          meta_title: payload.meta_title,
-          meta_description: payload.meta_description,
-          title_override: payload.title_override,
-          description_html: payload.description_html,
-          top_description_html: payload.top_description_html,
-          bottom_description_html: payload.bottom_description_html,
-          bullet_points: payload.bullet_points,
+          meta_title: productPayload.meta_title,
+          meta_description: productPayload.meta_description,
+          title_override: productPayload.title_override,
+          description_html: productPayload.description_html,
+          top_description_html: productPayload.top_description_html,
+          bottom_description_html: productPayload.bottom_description_html,
+          bullet_points: productPayload.bullet_points,
         };
       }
+      const collectionPayload = payload as EnrichmentResult['payload'] & {
+        h1_title: string;
+        short_description: string;
+        long_description: string;
+        faq_items: Array<{ question: string; answer: string }>;
+        related_categories: Array<{ url: string; title: string; description?: string }>;
+      };
       return {
-        h1_title: payload.h1_title,
-        meta_title: payload.meta_title,
-        meta_description: payload.meta_description,
-        short_description: payload.short_description,
-        long_description: payload.long_description,
-        faq_items: payload.faq_items,
-        related_categories: payload.related_categories,
+        h1_title: collectionPayload.h1_title,
+        meta_title: collectionPayload.meta_title,
+        meta_description: collectionPayload.meta_description,
+        short_description: collectionPayload.short_description,
+        long_description: collectionPayload.long_description,
+        faq_items: collectionPayload.faq_items,
+        related_categories: collectionPayload.related_categories,
       };
     })();
 
