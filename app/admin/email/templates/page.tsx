@@ -68,7 +68,11 @@ function getDefaultBlocks(category: TemplateCategory): EmailBlock[] {
         products: [{ id: generateId(), handle: '', title: '', imageUrl: '', url: '' }],
       },
       { id: generateId(), type: 'cta', label: 'Shop now', url: '{{siteUrl}}' },
-      { id: generateId(), type: 'footer', text: 'The Equestrian\nAustralian Owned | Global Brands\n{{siteUrl}}' },
+      {
+        id: generateId(),
+        type: 'footer',
+        text: 'The Equestrian\nAustralian Owned | Global Brands\n{{siteUrl}}\n\nUnsubscribe: {{unsubscribeUrl}}',
+      },
     ];
   }
   return [
@@ -84,7 +88,11 @@ function getDefaultBlocks(category: TemplateCategory): EmailBlock[] {
     { id: generateId(), type: 'productCards', mode: 'all' },
     { id: generateId(), type: 'divider' },
     { id: generateId(), type: 'text', align: 'center', text: 'Order #{{orderNumber}}' },
-    { id: generateId(), type: 'footer', text: 'The Equestrian\nAustralian Owned | Global Brands\n{{siteUrl}}' },
+    {
+      id: generateId(),
+      type: 'footer',
+      text: 'The Equestrian\nAustralian Owned | Global Brands\n{{siteUrl}}\n\nUnsubscribe: {{unsubscribeUrl}}',
+    },
   ];
 }
 
@@ -740,6 +748,7 @@ export default function AdminEmailTemplatesPage() {
                 { label: 'Compare at price', token: '{{productCompareAtPrice}}' },
                 { label: 'Save %', token: '{{productSavePercent}}' },
                 { label: 'Site URL', token: '{{siteUrl}}' },
+                { label: 'Unsubscribe URL', token: '{{unsubscribeUrl}}' },
               ].map((item) => (
                 <button key={item.token} type="button" onClick={() => {
                   if (!lastFocusedInput) {

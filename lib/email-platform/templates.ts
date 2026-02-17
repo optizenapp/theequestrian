@@ -37,12 +37,14 @@ function escapeHtml(value: string): string {
 }
 
 function renderTextWithStyledLinks(value: string, linkColor: string): string {
-  const urlPattern = /(https?:\/\/[^\s]+)/g;
-  const parts = value.split(urlPattern);
+  const linkTokenPattern = /\{\{(?:siteUrl|unsubscribeUrl|productUrl)\}\}/;
+  const urlPattern = /https?:\/\/[^\s]+/;
+  const combinedPattern = /(https?:\/\/[^\s]+|\{\{(?:siteUrl|unsubscribeUrl|productUrl)\}\})/g;
+  const parts = value.split(combinedPattern);
   return parts
     .map((part) => {
       if (!part) return '';
-      if (/^https?:\/\//.test(part)) {
+      if (urlPattern.test(part) || linkTokenPattern.test(part)) {
         const href = escapeHtml(part);
         return `<a href="${href}" style="color:${linkColor};text-decoration:underline;">${href}</a>`;
       }
@@ -304,9 +306,16 @@ export function renderTemplateBlocksHtml(input: {
     ? `<img src="${escapeHtml(visual.logoUrl)}" alt="Logo" style="max-width:180px;height:auto;margin:0 auto;display:block;" />`
     : '<h1 style="color:#111827;margin:0;font-size:26px;">The Equestrian</h1>';
 
+  const unsubscribeSection = `<div style="padding:0 28px 24px 28px;text-align:center;">
+    <a href="{{unsubscribeUrl}}" style="color:${visual.linkColor};text-decoration:underline;font-size:12px;">
+      Unsubscribe
+    </a>
+  </div>`;
+
   return `<div style="font-family:${SITE_FONT_STACK};font-size:${visual.baseFontSize || 16}px;line-height:1.5;color:#111827;max-width:600px;margin:0 auto;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;background:#ffffff;">
     <div style="background:${visual.headerBackground};padding:24px 20px;text-align:center;">${logoSection}</div>
     <div style="padding:28px;">${chunks.join('')}</div>
+    ${unsubscribeSection}
   </div>`;
 }
 

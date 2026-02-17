@@ -114,7 +114,8 @@
     "seo:enrichment:report": "tsx scripts/seo-enrichment-report.ts",
     "seo:enrichment:status": "tsx scripts/seo-enrichment-status.ts",
     "seo:enrichment:daily-report": "tsx scripts/daily-enrichment-report.ts",
-    "seo:enrichment:fix-constraint": "tsx scripts/fix-internal-link-constraint.ts"
+    "seo:enrichment:fix-constraint": "tsx scripts/fix-internal-link-constraint.ts",
+    "test:valueserp": "tsx scripts/test-valueserp.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.73.0",
