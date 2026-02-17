@@ -59,22 +59,12 @@ function sqlTemplateTag(strings: TemplateStringsArray, ...values: any[]) {
   return result;
 }
 
-type NeonSql = ReturnType<typeof neon>;
-type NeonSqlWithUnsafe = NeonSql & {
-  unsafe: (query: string) => Promise<unknown>;
-};
-
-const sqlWithUnsafe = sqlTemplateTag as NeonSqlWithUnsafe;
-sqlWithUnsafe.unsafe = (query: string) => {
-  const result = (getSql() as NeonSqlWithUnsafe).unsafe(query);
-  if (result && typeof (result as Promise<unknown>).then === 'function') {
-    return (result as Promise<unknown>).catch((err: unknown) => {
-      if (isQuotaError(err)) resetDbClient();
-      throw err;
-    });
-  }
-  return Promise.resolve(result);
-};
+const sqlWithUnsafe = sqlTemplateTag as ReturnType<typeof neon>;
+Object.defineProperty(sqlWithUnsafe, 'unsafe', {
+  get() {
+    return getSql().unsafe;
+  },
+});
 
 export const sql = sqlWithUnsafe;
 
