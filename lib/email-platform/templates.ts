@@ -37,6 +37,11 @@ function escapeHtml(value: string): string {
 }
 
 function renderTextWithStyledLinks(value: string, linkColor: string): string {
+  const preserveWhitespace = (text: string): string =>
+    escapeHtml(text)
+      .replace(/ {2,}/g, (spaces) => ` ${'&nbsp;'.repeat(spaces.length - 1)}`)
+      .replace(/\n/g, '<br />');
+
   const linkTokenPattern = /\{\{(?:siteUrl|unsubscribeUrl|productUrl)\}\}/;
   const urlPattern = /https?:\/\/[^\s]+/;
   const combinedPattern = /(https?:\/\/[^\s]+|\{\{(?:siteUrl|unsubscribeUrl|productUrl)\}\})/g;
@@ -48,7 +53,7 @@ function renderTextWithStyledLinks(value: string, linkColor: string): string {
         const href = escapeHtml(part);
         return `<a href="${href}" style="color:${linkColor};text-decoration:underline;">${href}</a>`;
       }
-      return escapeHtml(part);
+      return preserveWhitespace(part);
     })
     .join('');
 }
@@ -217,7 +222,7 @@ export function renderTemplateBlocksHtml(input: {
       )}</h${level}>`;
     }
     if (block.type === 'text') {
-      return `<p style="margin:0 0 12px 0;text-align:${block.align || 'left'};color:${visual.brandDark};white-space:pre-line;font-size:${block.fontSize || 16}px;">${renderTextWithStyledLinks(
+      return `<p style="margin:0 0 12px 0;text-align:${block.align || 'left'};color:${visual.brandDark};font-size:${block.fontSize || 16}px;">${renderTextWithStyledLinks(
         block.text,
         visual.linkColor
       )}</p>`;
@@ -294,7 +299,7 @@ export function renderTemplateBlocksHtml(input: {
       return `<hr style="border:0;border-top:1px solid #e5e7eb;margin:${dividerMargin};width:65%;" />`;
     }
     if (block.type === 'footer') {
-      return `<p style="margin:16px 0 0 0;font-size:${block.fontSize || 12}px;color:${visual.linkColor};white-space:pre-line;text-align:${block.align || 'left'};">${renderTextWithStyledLinks(
+      return `<p style="margin:16px 0 0 0;font-size:${block.fontSize || 12}px;color:${visual.linkColor};text-align:${block.align || 'left'};">${renderTextWithStyledLinks(
         block.text,
         visual.linkColor
       )}</p>`;
