@@ -35,7 +35,7 @@ export const seoEnrichmentConfig = {
   gscServiceAccountJson: process.env.GSC_SERVICE_ACCOUNT_JSON || '',
   ga4ServiceAccountJson: process.env.GA4_SERVICE_ACCOUNT_JSON || '',
   ga4PropertyId: process.env.GA4_PROPERTY_ID || '',
-  serpApiKey: process.env.SERPAPI_API_KEY || '',
+  serpApiKey: process.env.VALUESERP_API_KEY || process.env.SERPAPI_API_KEY || '',
   openaiModel: process.env.SEO_ENRICHMENT_MODEL || 'gpt-4o',
   openaiMaxTokens: toInt(process.env.SEO_ENRICHMENT_MAX_TOKENS, 3000),
   korayComplianceThreshold: toInt(process.env.SEO_ENRICHMENT_KORAY_COMPLIANCE_THRESHOLD, 72),

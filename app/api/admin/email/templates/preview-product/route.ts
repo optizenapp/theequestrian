@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
 
+function toMoney(value: string | number | undefined): string {
+  const parsed = typeof value === 'number' ? value : Number(value || 0);
+  if (!Number.isFinite(parsed)) return '$0.00';
+  return `$${parsed.toFixed(2)}`;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -16,11 +22,19 @@ export async function POST(request: NextRequest) {
 
     const canonical = await getProductCanonicalUrl(product);
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
+    const priceValue = Number(product.priceRange?.minVariantPrice?.amount || 0);
+    const compareValue = Number(product.compareAtPriceRange?.minVariantPrice?.amount || 0);
+    const hasDiscount = compareValue > priceValue && priceValue > 0;
+    const savePercent = hasDiscount ? `${Math.round(((compareValue - priceValue) / compareValue) * 100)}%` : '';
     return NextResponse.json({
       product: {
         title: product.title,
         imageUrl: product.images?.edges?.[0]?.node?.url || null,
         url: `${siteUrl}${canonical}`,
+        price: toMoney(priceValue),
+        compareAtPrice: hasDiscount ? toMoney(compareValue) : '',
+        savePercent,
+        freeShippingBadge: true,
       },
     });
   } catch (error) {

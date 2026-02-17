@@ -98,10 +98,10 @@ export class SerpAnalyzer {
   }
 
   private async crawlSerp(query: string): Promise<SerpResult[]> {
-    const apiKey = process.env.SERPAPI_API_KEY;
+    const apiKey = process.env.VALUESERP_API_KEY || process.env.SERPAPI_API_KEY;
 
     if (!apiKey) {
-      log('warn', 'SerpAPI API key missing', { query });
+      log('warn', 'ValueSERP API key missing', { query });
       return [];
     }
 
@@ -117,14 +117,14 @@ export class SerpAnalyzer {
         num: '10',
       });
 
-      const url = `https://serpapi.com/search.json?${params.toString()}`;
+      const url = `https://api.valueserp.com/search?${params.toString()}`;
       const response = await fetch(url, {
         signal: AbortSignal.timeout(15000),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        log('error', 'SerpAPI error', {
+        log('error', 'ValueSERP error', {
           query,
           status: response.status,
           error: errorText.slice(0, 200),
@@ -142,10 +142,10 @@ export class SerpAnalyzer {
         position: item.position || index + 1,
       }));
 
-      log('info', 'SerpAPI results', { query, count: results.length });
+      log('info', 'ValueSERP results', { query, count: results.length });
       return results;
     } catch (error) {
-      log('error', 'SerpAPI request failed', { query, error: String(error) });
+      log('error', 'ValueSERP request failed', { query, error: String(error) });
       return [];
     }
   }

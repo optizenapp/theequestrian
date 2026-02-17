@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createTemplate, listTemplates } from '@/lib/email-platform/templates';
-import type { EmailBlock, EmailTemplateVisualSettings } from '@/lib/email-platform/types';
+import {
+  createTemplate,
+  listTemplates,
+  normalizeEmailBlocks,
+  normalizeTemplateMetadata,
+} from '@/lib/email-platform/templates';
 import { logEmailAudit } from '@/lib/email-platform/audit';
 
 export async function GET(request: NextRequest) {
@@ -30,11 +34,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'name is required' }, { status: 400 });
     }
 
-    const blocks = Array.isArray(body?.blocks) ? (body.blocks as EmailBlock[]) : [];
-    const metadata =
+    const blocks = normalizeEmailBlocks(body?.blocks);
+    const metadata = normalizeTemplateMetadata(
       body?.metadata && typeof body.metadata === 'object'
-        ? (body.metadata as EmailTemplateVisualSettings & Record<string, unknown>)
-        : {};
+        ? (body.metadata as Record<string, unknown>)
+        : {}
+    );
     const created = await createTemplate({
       name,
       templateType,
