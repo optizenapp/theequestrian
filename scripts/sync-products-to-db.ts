@@ -18,6 +18,7 @@ config({ path: resolve(process.cwd(), '.env') });
 
 import { sql } from '@/lib/db/client';
 import { getAllProducts } from '@/lib/shopify/products';
+import { upsertProductVariantsFromStorefront } from '@/lib/db/product-variants';
 import type { ProductWithPrimaryCollection } from '@/types/shopify';
 
 interface SyncStats {
@@ -83,6 +84,13 @@ async function syncProduct(product: ProductWithPrimaryCollection): Promise<'inse
         shopify_created_at = EXCLUDED.shopify_created_at,
         updated_at = NOW()
     `;
+
+    // Keep structured variant/options projection in Postgres for accurate facets.
+    await upsertProductVariantsFromStorefront({
+      id: product.id,
+      handle: product.handle,
+      variants: product.variants,
+    });
     
     return 'inserted';
   } catch (error) {

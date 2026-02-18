@@ -1148,6 +1148,19 @@ export async function getProductsByCategory(
   };
 
   try {
+    // Feature-flagged DB-first path for local validation.
+    // Disabled by default so we can build and test safely before migration.
+    const useDbFirstCollections = process.env.USE_DB_COLLECTIONS_FROM_POSTGRES === 'true';
+    if (useDbFirstCollections) {
+      try {
+        const { getProductsByCategoryFromDB } = await import('@/lib/products/postgres-adapter');
+        console.log(`[getProductsByCategory] 🧪 DB-first path enabled for ${categoryPath}`);
+        return getProductsByCategoryFromDB(categoryPath, limit, after, filters);
+      } catch (dbError) {
+        console.error('[getProductsByCategory] DB-first path failed, falling back to Shopify path:', dbError);
+      }
+    }
+
     // Check cache first
     const now = Date.now();
     const cached = productsByCategoryCache.get(categoryPath);
