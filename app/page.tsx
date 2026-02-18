@@ -439,6 +439,9 @@ export default async function Home() {
             );
 
           case 'faqs':
+            if (!section.faqs || section.faqs.length === 0) {
+              return null;
+            }
             return (
               <LazySection
                 key={section.key}
