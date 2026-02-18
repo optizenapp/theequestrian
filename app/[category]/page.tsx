@@ -53,6 +53,7 @@ const RichContent = dynamicImport(
 
 // ISR Configuration: Revalidate every 15 minutes
 export const revalidate = 900;
+export const preferredRegion = 'syd1';
 
 interface CategoryPageProps {
   params: Promise<{
