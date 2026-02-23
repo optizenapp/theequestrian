@@ -1,0 +1,923 @@
+{
+  "date": "2026-02-23",
+  "submitted": 85,
+  "errors": 115,
+  "skipped": 0,
+  "urls": [
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/breeches",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tights",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tops",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/casual",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/jeans",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/leggings",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/jackets",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/jeans",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/show-shirts",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/breeches",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/trousers",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/casual",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/kids",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/kids/footwear",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/kids/breeches",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/kids/show-jackets",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/kids/tops",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/kids/show-shirts",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/kids/casual",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/kids/jackets",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/hats",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/belts",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/socks",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/caps",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/scarves",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/ties",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/boots",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/western",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/riding-boots",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/casual",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/mens",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/womens",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/tall-boots",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/ankle-boots",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/accessories",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/ugg-boots",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/shirts",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/show-shirts",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/tshirts",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/sweaters",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/knitwear",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/polo-shirts",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/vests",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/tanks",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/long-sleeve",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/outerwear",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/outerwear/jackets",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/outerwear/show-jackets",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/outerwear/oilskins",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/outerwear/riding-jackets",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/sleepwear",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/activewear",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/bottoms/shorts",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/bell-boots",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/tendon-boots",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/ice-boots",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/bandages",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/magnetic",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/therapy",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/fetlock",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/overreach",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/accessories",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/exercise",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/eventing",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/float",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/travel",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/polos-wraps",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/stable",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/jumping",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/fly-boots",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bits",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bits/accessories",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/show-prep",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/brushes",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/coat-care",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/products",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/bags",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/plaiting",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/shampoo",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/supplements",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/wither-pads",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/western",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/gel-pads",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/dressage",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/half-pads",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/wither-relief",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/jumping",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/all-purpose",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/leads",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/lead-ropes",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/racing",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/racing/harness",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/veterinary",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/veterinary/first-aid",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/leather-care",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/farrier",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/treats",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/diy",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/clippers",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/fly-control",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/feed-storage",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/instruments",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/wormers",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/feeding",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/paddock",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/jumps",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/hay-nets",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/feed",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/insect-repellent",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/fly-repellent",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/rug-racks",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/wrap-bags",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/storage",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/bags",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/hoof-care",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/tail-bags",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/training",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/training/lungeing",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/training/lunge-equipment",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/training/ropes",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stock-western",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/summer",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/winter",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/accessories",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/hoods",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/tail-protectors",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/cotton",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/mesh",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/flag",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/travel",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/rain",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/riding",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/girths",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/stirrup-irons",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/number-holders",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/stirrup-leathers",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/reins",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/nosebands",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/breastplates",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/martingales",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/stirrups",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/accessories",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/saddles",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/saddles/dressage",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/saddles/accessories",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/saddles/all-purpose",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/saddles/jumping",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/saddles/stock-western",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bonnets",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bonnets/fly-masks",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/accessories",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/giftware",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/bracelets",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/necklaces",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/pendants",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/rings",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/lockets",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/charms",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/cuffs",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/gloves",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/eyewear",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/spurs",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/spurs/accessories",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/wallets",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/bags",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/handbags",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/hair",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/keychains",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/studs",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/hatbands",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/hats",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/whips",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/stocks",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/headbands",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/whips",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/chaps",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/body-protectors",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/dog",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/dog/collars-and-leads",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/dog/toys",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/dog/treats",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/dog/grooming",
+      "status": "error",
+      "detail": "HTTP 429"
+    }
+  ]
+}

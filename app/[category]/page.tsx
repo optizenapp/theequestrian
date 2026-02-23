@@ -246,6 +246,11 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   
   // Get rich content from database
   const content = await getCategoryContent(category);
+
+  // Use database breadcrumb_label for the last breadcrumb item if set
+  if (content?.breadcrumb_label && breadcrumbs.length > 0) {
+    breadcrumbs[breadcrumbs.length - 1].label = content.breadcrumb_label;
+  }
   
   // Use database content if available, otherwise fallback to mapping
   const pageTitle = content?.h1_title || mappingTitle;

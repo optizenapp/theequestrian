@@ -63,22 +63,17 @@ export function MobileStickyBar({ product, selectedVariant, isAvailable }: Mobil
           </span>
         </div>
 
-        {/* Action Buttons - Compact */}
-        <div className="space-y-2">
-          {/* Wrap buttons to override their default styling */}
-          <div className="[&>button]:py-2.5 [&>button]:text-base">
-            <AddToCartButton
-              variantId={selectedVariant?.id || ''}
-              disabled={!isAvailable || !selectedVariant}
-            />
-          </div>
+        {/* Action Buttons - Compact for mobile */}
+        <div className="space-y-2 [&>button]:!py-2.5 [&>button]:!text-base">
+          <AddToCartButton
+            variantId={selectedVariant?.id || ''}
+            disabled={!isAvailable || !selectedVariant}
+          />
           
-          <div className="[&>button]:py-2.5 [&>button]:text-base">
-            <BuyNowButton
-              variantId={selectedVariant?.id || ''}
-              disabled={!isAvailable || !selectedVariant}
-            />
-          </div>
+          <BuyNowButton
+            variantId={selectedVariant?.id || ''}
+            disabled={!isAvailable || !selectedVariant}
+          />
         </div>
       </div>
     </div>
