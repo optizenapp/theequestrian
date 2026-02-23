@@ -18,6 +18,9 @@
     "export:product-types": "tsx scripts/export-product-types.ts",
     "export:collections": "tsx scripts/export-collections.ts",
     "export:sitemap": "tsx scripts/export-sitemap.ts",
+    "gsc:index-categories": "tsx scripts/gsc-index-categories.ts",
+    "gsc:index-products": "tsx scripts/gsc-api-index-products.ts",
+    "gsc:index-products:dry-run": "tsx scripts/gsc-api-index-products.ts -- --dry-run",
     "import:mapping": "tsx scripts/import-mapping.ts",
     "db:init": "tsx scripts/init-database.ts",
     "db:sync": "tsx scripts/sync-products-to-db.ts",
@@ -126,6 +129,7 @@
     "dotenv": "^17.2.3",
     "eslint": "^9",
     "eslint-config-next": "16.0.1",
+    "puppeteer": "^24.37.5",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5"

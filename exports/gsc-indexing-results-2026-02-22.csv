@@ -1,0 +1,241 @@
+URL,Status,Detail,Timestamp
+https://www.theequestrian.com.au/clothing/womens,error,"Timed out (60s) waiting for GSC status",2026-02-22T09:38:40.936Z
+https://www.theequestrian.com.au/clothing/womens,error,"Timed out (60s) waiting for GSC status",2026-02-22T09:43:22.702Z
+https://www.theequestrian.com.au/clothing/womens/breeches,error,"Timed out (60s) waiting for GSC status",2026-02-22T09:44:27.844Z
+https://www.theequestrian.com.au/clothing/womens,error,"Timed out (60s) waiting for GSC status",2026-02-22T09:46:24.105Z
+https://www.theequestrian.com.au/clothing/womens/breeches,error,"Timed out (60s) waiting for GSC status",2026-02-22T09:47:28.831Z
+https://www.theequestrian.com.au/clothing/womens,error,"Timed out (60s) waiting for GSC status",2026-02-22T09:49:41.923Z
+https://www.theequestrian.com.au/clothing/womens/breeches,error,"Timed out (60s) waiting for GSC status",2026-02-22T09:50:47.877Z
+https://www.theequestrian.com.au/clothing/womens,indexed,"URL is on Google",2026-02-22T09:52:10.959Z
+https://www.theequestrian.com.au/clothing/womens/breeches,indexed,"URL is on Google",2026-02-22T09:52:20.256Z
+https://www.theequestrian.com.au/clothing/womens/tights,indexed,"URL is on Google",2026-02-22T09:52:29.812Z
+https://www.theequestrian.com.au/clothing/womens/tops,indexing_requested,"Indexing requested. Was: URL is not on Google",2026-02-22T09:52:39.314Z
+https://www.theequestrian.com.au/clothing/womens/casual,indexed,"URL is on Google",2026-02-22T09:52:55.862Z
+https://www.theequestrian.com.au/clothing/womens/jeans,indexed,"URL is on Google",2026-02-22T09:53:05.418Z
+https://www.theequestrian.com.au/clothing/womens/leggings,indexing_requested,"Indexing requested. Was: URL is not on Google",2026-02-22T09:53:15.073Z
+https://www.theequestrian.com.au/clothing/womens/jackets,indexed,"URL is on Google",2026-02-22T09:53:31.754Z
+https://www.theequestrian.com.au/clothing/mens,indexed,"URL is on Google",2026-02-22T09:53:41.381Z
+https://www.theequestrian.com.au/clothing/mens/jeans,indexed,"URL is on Google",2026-02-22T09:53:50.653Z
+https://www.theequestrian.com.au/clothing/mens/show-shirts,indexing_requested,"Indexing requested. Was: URL is not on Google",2026-02-22T09:54:00.370Z
+https://www.theequestrian.com.au/clothing/mens/breeches,indexing_requested,"Indexing requested. Was: URL is not on Google",2026-02-22T09:54:17.091Z
+https://www.theequestrian.com.au/clothing/mens/trousers,indexing_requested,"Indexing requested. Was: URL is not on Google",2026-02-22T09:54:33.792Z
+https://www.theequestrian.com.au/clothing/mens/casual,indexing_requested,"Indexing requested. Was: URL is not on Google",2026-02-22T09:54:50.607Z
+https://www.theequestrian.com.au/clothing/kids,indexing_requested,"Indexing requested. Was: URL is not on Google",2026-02-22T09:55:07.262Z
+https://www.theequestrian.com.au/clothing/kids/footwear,indexed,"URL is on Google",2026-02-22T09:55:23.586Z
+https://www.theequestrian.com.au/clothing/kids/breeches,indexed,"URL is on Google",2026-02-22T09:55:33.360Z
+https://www.theequestrian.com.au/clothing/kids/show-jackets,indexed,"URL is on Google",2026-02-22T09:55:42.918Z
+https://www.theequestrian.com.au/clothing/kids/tops,indexed,"URL is on Google",2026-02-22T09:55:52.573Z
+https://www.theequestrian.com.au/clothing/kids/show-shirts,indexing_requested,"Indexing requested. Was: URL is not on Google",2026-02-22T09:56:01.959Z
+https://www.theequestrian.com.au/clothing/kids/casual,indexing_requested,"Indexing requested. Was: URL is not on Google",2026-02-22T09:56:18.634Z
+https://www.theequestrian.com.au/clothing/kids/jackets,indexing_requested,"Indexing requested. Was: URL is not on Google",2026-02-22T09:56:35.164Z
+https://www.theequestrian.com.au/clothing/accessories,indexing_requested,"Indexing requested. Was: URL is not on Google",2026-02-22T09:56:51.885Z
+https://www.theequestrian.com.au/clothing/accessories/hats,indexing_requested,"Indexing requested. Was: URL is not on Google",2026-02-22T09:57:08.618Z
+https://www.theequestrian.com.au/clothing/accessories/belts,indexed,"URL is on Google",2026-02-22T09:57:25.338Z
+https://www.theequestrian.com.au/clothing/accessories/socks,indexed,"URL is on Google",2026-02-22T09:57:35.004Z
+https://www.theequestrian.com.au/clothing/accessories/caps,indexed,"URL is on Google",2026-02-22T09:57:44.684Z
+https://www.theequestrian.com.au/clothing/accessories/scarves,indexing_requested,"Indexing requested. Was: URL is not on Google",2026-02-22T09:57:54.306Z
+https://www.theequestrian.com.au/clothing/accessories/ties,indexing_requested,"Indexing requested. Was: URL is not on Google",2026-02-22T09:58:11.106Z
+https://www.theequestrian.com.au/clothing/footwear,indexing_requested,"Indexing requested. Was: URL is not on Google",2026-02-22T09:58:27.793Z
+https://www.theequestrian.com.au/clothing/footwear/boots,indexing_requested,"Indexing requested. Was: URL is not on Google",2026-02-22T09:58:44.360Z
+https://www.theequestrian.com.au/clothing/footwear/western,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/clothing/footwear/riding-boots,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/clothing/footwear/casual,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/clothing/footwear/mens,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/clothing/footwear/womens,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/clothing/footwear/tall-boots,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/clothing/footwear/ankle-boots,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/clothing/footwear/accessories,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/clothing/footwear/ugg-boots,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/clothing/tops,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/clothing/tops/shirts,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/clothing/tops/show-shirts,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/clothing/tops/tshirts,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/clothing/tops/sweaters,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/clothing/tops/knitwear,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/clothing/tops/polo-shirts,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/clothing/tops/vests,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/clothing/tops/tanks,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/clothing/tops/long-sleeve,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/clothing/outerwear,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/clothing/outerwear/jackets,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/clothing/outerwear/show-jackets,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/clothing/outerwear/oilskins,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/clothing/outerwear/riding-jackets,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/clothing/sleepwear,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/clothing/activewear,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/clothing/bottoms/shorts,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/boots,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/boots/bell-boots,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/boots/tendon-boots,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/boots/ice-boots,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/boots/bandages,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/boots/magnetic,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/boots/therapy,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/boots/fetlock,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/boots/overreach,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/boots/accessories,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/boots/exercise,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/boots/eventing,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/boots/float,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/boots/travel,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/boots/polos-wraps,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/boots/stable,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/boots/jumping,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/boots/fly-boots,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/bits,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/bits/accessories,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/grooming,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/grooming/show-prep,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/grooming/brushes,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/grooming/coat-care,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/grooming/products,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/grooming/bags,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/grooming/plaiting,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/grooming/shampoo,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/supplements,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/pads,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/pads/wither-pads,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/pads/western,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/pads/gel-pads,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/pads/dressage,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/pads/half-pads,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/pads/wither-relief,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/pads/jumping,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/pads/all-purpose,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/halters,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/halters/leads,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/halters/lead-ropes,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/racing,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/racing/harness,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/veterinary,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/veterinary/first-aid,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/stable,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/stable/leather-care,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/stable/farrier,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/stable/treats,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/stable/diy,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/stable/clippers,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/stable/fly-control,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/stable/feed-storage,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/stable/instruments,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/stable/wormers,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/stable/feeding,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/stable/paddock,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/stable/jumps,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/stable/hay-nets,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/stable/feed,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/stable/insect-repellent,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/stable/fly-repellent,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/stable/rug-racks,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/stable/wrap-bags,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/stable/storage,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/stable/bags,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/stable/hoof-care,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/stable/tail-bags,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/training,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/training/lungeing,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/training/lunge-equipment,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/training/ropes,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/stock-western,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/rugs,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/rugs/summer,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/rugs/winter,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/rugs/accessories,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/rugs/hoods,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/rugs/tail-protectors,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/rugs/cotton,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/rugs/mesh,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/rugs/flag,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/rugs/travel,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/rugs/rain,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/rugs/riding,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/tack,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/tack/girths,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/tack/stirrup-irons,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/tack/number-holders,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/tack/stirrup-leathers,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/tack/bridles,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/tack/reins,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/tack/nosebands,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/tack/breastplates,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/tack/martingales,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/tack/stirrups,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/tack/accessories,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/saddles,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/saddles/dressage,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/saddles/accessories,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/saddles/all-purpose,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/saddles/jumping,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/saddles/stock-western,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/bonnets,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/horse/bonnets/fly-masks,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/helmets,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/helmets/accessories,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/giftware,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/jewellery,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/jewellery/bracelets,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/jewellery/necklaces,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/jewellery/earrings,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/jewellery/pendants,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/jewellery/rings,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/jewellery/lockets,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/jewellery/charms,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/jewellery/cuffs,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/gloves,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/eyewear,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/spurs,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/spurs/accessories,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/luggage,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/luggage/wallets,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/luggage/bags,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/luggage/handbags,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/accessories,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/accessories/hair,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/accessories/keychains,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/accessories/studs,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/accessories/hatbands,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/accessories/hats,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/accessories/whips,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/accessories/stocks,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/accessories/headbands,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/whips,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/chaps,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/rider/body-protectors,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/dog,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/dog/collars-and-leads,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/dog/toys,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/dog/treats,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/dog/grooming,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/dog/accessories,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/dog/skin-care,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/dog/walking,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/dog/veterinary,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/dog/coats-and-rugs,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/dog/kennels,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/dog/bedding,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/dog/food,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/dog/supplements,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/cat,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/cat/toys,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/cat/accessories,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/cat/food,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/cat/litter,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/cat/skin-care,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/bird,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/bird/toys,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/bird/cages,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/bird/food,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/bird/care,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/small-animal,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/poultry,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/supplements,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/supplements/probiotics,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/pet/pony,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/accessories/collectibles,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/accessories/collectibles/resin,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/accessories/brands/horseware,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/accessories/books,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/accessories/books/bookmarks,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/accessories/gifts,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/accessories/gift-cards,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
+https://www.theequestrian.com.au/accessories/tools,quota_exceeded,"Daily GSC indexing quota reached — will retry tomorrow",2026-02-22T09:59:12.881Z
