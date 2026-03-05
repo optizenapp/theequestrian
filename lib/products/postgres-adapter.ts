@@ -6,7 +6,6 @@
 import { shopifyFetch } from '@/lib/shopify/client';
 import { searchProducts, type ProductFilters, type ProductQueryResult } from '@/lib/db/queries';
 import { sql } from '@/lib/db/client';
-import { normalizeColor } from '@/lib/utils/product-options';
 import type { ProductWithPrimaryCollection } from '@/types/shopify';
 
 type CategoryFilters = {
@@ -177,7 +176,10 @@ function buildCategoryWhereClause(categoryPath: string, filters?: CategoryFilter
   }
 
   if (filters?.colors && filters.colors.length > 0) {
-    const colors = asLowerArrayLiteral(filters.colors.map((color) => normalizeColor(color)));
+    // Filter values come from option_value_normalized in the facet (already lowercased).
+    // Do NOT apply normalizeColor() here — it strips multi-word prefixes like "beetle "
+    // from "beetle khaki green", corrupting the WHERE clause.
+    const colors = asLowerArrayLiteral(filters.colors);
     conditions.push(`EXISTS (
       SELECT 1
       FROM variant_options vo
