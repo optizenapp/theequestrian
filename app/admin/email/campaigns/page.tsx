@@ -93,6 +93,11 @@ export default function AdminEmailCampaignsPage() {
   const [previewHandle, setPreviewHandle] = useState('');
   const [previewLoading, setPreviewLoading] = useState(false);
 
+  // Test email state
+  const [testEmailAddress, setTestEmailAddress] = useState('');
+  const [isSendingTest, setIsSendingTest] = useState(false);
+  const [testEmailStatus, setTestEmailStatus] = useState('');
+
   const editorCardRef = useRef<HTMLDivElement | null>(null);
   const nameInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -182,6 +187,44 @@ export default function AdminEmailCampaignsPage() {
     return () => clearTimeout(t);
   }, [fetchPreviewHtml]);
 
+  const sendTestEmail = async () => {
+    if (!testEmailAddress.trim()) {
+      setTestEmailStatus('Enter an email address first.');
+      return;
+    }
+    setIsSendingTest(true);
+    setTestEmailStatus('');
+    try {
+      const res = await fetch('/api/admin/email/templates/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: testEmailAddress.trim(),
+          subjectTemplate: contentSubject,
+          blocks: contentBlocks,
+          fromName: contentFromName,
+          fromEmail: contentFromEmail,
+          handle: previewHandle || null,
+          metadata: {
+            ...contentMetadata,
+            logoUrl: contentLogoUrl || null,
+            linkColor: contentLinkColor,
+            brandPrimary: contentBrandPrimary,
+            headerBackground: contentHeaderBg,
+          },
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || 'Failed to send test email');
+      setTestEmailStatus(`Test email sent to ${testEmailAddress.trim()}`);
+    } catch (err) {
+      setTestEmailStatus(err instanceof Error ? err.message : 'Failed to send test email');
+    } finally {
+      setIsSendingTest(false);
+      setTimeout(() => setTestEmailStatus(''), 5000);
+    }
+  };
+
   // Load template content when templateVersionId changes (only in edit mode)
   useEffect(() => {
     if (!templateVersionId || !editingCampaignId) {
@@ -270,6 +313,8 @@ export default function AdminEmailCampaignsPage() {
     setPreviewHtml('');
     setPreviewLoaded(false);
     setPreviewHandle('');
+    setTestEmailAddress('');
+    setTestEmailStatus('');
     setError('');
     setStatusMessage('');
   }
@@ -898,7 +943,7 @@ export default function AdminEmailCampaignsPage() {
                   </div>
                 </div>
 
-                {/* ── Right: live preview ── */}
+                {/* ── Right: live preview + test send ── */}
                 <div className="space-y-3 rounded-xl border border-gray-200 bg-white p-4">
                   <div className="flex items-center justify-between">
                     <h4 className="text-sm font-semibold text-gray-900">Live Preview</h4>
@@ -928,7 +973,7 @@ export default function AdminEmailCampaignsPage() {
                     </button>
                   </div>
                   {previewLoaded ? (
-                    <div className="overflow-auto rounded-xl border border-gray-100 bg-gray-50 p-2" style={{ maxHeight: '70vh' }}>
+                    <div className="overflow-auto rounded-xl border border-gray-100 bg-gray-50 p-2" style={{ maxHeight: '60vh' }}>
                       <iframe srcDoc={previewHtml} title="Email preview" className="w-full border-0" style={{ minHeight: '600px' }} />
                     </div>
                   ) : (
@@ -936,6 +981,33 @@ export default function AdminEmailCampaignsPage() {
                       Loading preview…
                     </div>
                   )}
+
+                  {/* Send test email */}
+                  <div className="border-t border-gray-100 pt-3">
+                    <p className="mb-2 text-xs font-semibold text-gray-700">Send test email</p>
+                    <div className="flex gap-2">
+                      <input
+                        type="email"
+                        placeholder="your@email.com"
+                        value={testEmailAddress}
+                        onChange={(e) => setTestEmailAddress(e.target.value)}
+                        className="flex-1 rounded border border-gray-300 px-3 py-1.5 text-sm"
+                      />
+                      <button
+                        type="button"
+                        disabled={isSendingTest}
+                        onClick={sendTestEmail}
+                        className="rounded border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:border-action hover:text-action disabled:opacity-60"
+                      >
+                        {isSendingTest ? 'Sending…' : 'Send test'}
+                      </button>
+                    </div>
+                    {testEmailStatus ? (
+                      <p className={`mt-1.5 text-xs ${testEmailStatus.startsWith('Test email sent') ? 'text-emerald-600' : 'text-red-600'}`}>
+                        {testEmailStatus}
+                      </p>
+                    ) : null}
+                  </div>
                 </div>
 
               </div>
