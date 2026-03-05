@@ -115,6 +115,50 @@ export default function AdminEmailCampaignsPage() {
     loadAll().catch((err) => setError(err instanceof Error ? err.message : 'Failed to load campaign data'));
   }, []);
 
+  function clearEditor() {
+    setName('');
+    setTemplateVersionId('');
+    setSelectedListIds([]);
+    setSelectedSegmentIds([]);
+    setEditingCampaignId(null);
+    setDuplicatedCampaignId(null);
+    setError('');
+    setStatusMessage('');
+  }
+
+  const updateCampaign = async () => {
+    if (!editingCampaignId) return;
+    if (!name.trim() || !templateVersionId) {
+      setError('Campaign name and template are required');
+      return;
+    }
+    setError('');
+    setStatusMessage('');
+    setIsPreparing(true);
+    try {
+      const updateResponse = await fetch(`/api/admin/email/campaigns/${editingCampaignId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name.trim(),
+          templateVersionId,
+          audience: { listIds: selectedListIds, segmentIds: selectedSegmentIds },
+        }),
+      });
+      const updatePayload = await updateResponse.json();
+      if (!updateResponse.ok) {
+        throw new Error(updatePayload?.error || 'Failed to update campaign');
+      }
+      setStatusMessage(`Campaign "${name.trim()}" updated. Use "Send queued" to send it.`);
+      clearEditor();
+      await loadAll();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update campaign');
+    } finally {
+      setIsPreparing(false);
+    }
+  };
+
   const prepareCampaign = async () => {
     if (!name.trim() || !templateVersionId) {
       setError('Campaign name and template are required');
@@ -177,11 +221,7 @@ export default function AdminEmailCampaignsPage() {
       });
 
       setStatusMessage('Campaign prepared. Review summary and click Send campaign.');
-      setName('');
-      setTemplateVersionId('');
-      setSelectedListIds([]);
-      setSelectedSegmentIds([]);
-      setEditingCampaignId(null);
+      clearEditor();
       await loadAll();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to prepare campaign');
@@ -254,7 +294,7 @@ export default function AdminEmailCampaignsPage() {
       setPreparedCampaign(null);
       setEditingCampaignId(newCampaignId || null);
       setStatusMessage(
-        `Duplicated "${campaign.name}". Edit the copied campaign settings, then create/send when ready.`
+        `Duplicated "${campaign.name}". Update the name/template/lists above then click Save changes.`
       );
       await loadAll();
       editorCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -280,10 +320,23 @@ export default function AdminEmailCampaignsPage() {
       ) : null}
 
       <div ref={editorCardRef} className="mb-6 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-        <h3 className="text-sm font-semibold text-gray-900">Create campaign</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-gray-900">
+            {editingCampaignId ? 'Edit draft campaign' : 'Create campaign'}
+          </h3>
+          {editingCampaignId ? (
+            <button
+              type="button"
+              onClick={clearEditor}
+              className="text-xs font-medium text-gray-500 hover:text-gray-700 underline"
+            >
+              Cancel editing
+            </button>
+          ) : null}
+        </div>
         {editingCampaignId ? (
-          <p className="mt-1 text-xs font-medium text-blue-700">
-            Editing campaign draft: {editingCampaignId}
+          <p className="mt-1 text-xs text-blue-700">
+            Editing draft — change the name, template, or audience below, then click <strong>Save changes</strong>.
           </p>
         ) : null}
         <div className="mt-3 grid gap-2 md:grid-cols-2">
@@ -366,14 +419,27 @@ export default function AdminEmailCampaignsPage() {
             </select>
           </label>
         </div>
-        <button
-          type="button"
-          disabled={isPreparing}
-          className="mt-3 rounded bg-action px-4 py-2 text-sm font-semibold text-white"
-          onClick={prepareCampaign}
-        >
-          {isPreparing ? 'Preparing...' : 'Create campaign'}
-        </button>
+        <div className="mt-3 flex items-center gap-3">
+          {editingCampaignId ? (
+            <button
+              type="button"
+              disabled={isPreparing}
+              className="rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+              onClick={updateCampaign}
+            >
+              {isPreparing ? 'Saving...' : 'Save changes'}
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={isPreparing}
+              className="rounded bg-action px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+              onClick={prepareCampaign}
+            >
+              {isPreparing ? 'Preparing...' : 'Create campaign'}
+            </button>
+          )}
+        </div>
       </div>
 
       {preparedCampaign ? (
