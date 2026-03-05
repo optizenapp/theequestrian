@@ -1,5 +1,5 @@
 import { sql } from '@vercel/postgres';
-import { getTemplateVersion, renderTemplateContent } from '@/lib/email-platform/templates';
+import { getTemplateVersion, renderTemplateContent, addUtmParamsToEmailHtml } from '@/lib/email-platform/templates';
 import { Resend } from 'resend';
 import { buildUnsubscribeUrl } from '@/lib/email-platform/unsubscribe';
 
@@ -219,7 +219,7 @@ async function runStep(
       return { status: 'failed', details: { reason: 'contact_missing_email' } };
     }
 
-    const rendered = renderTemplateContent({
+    const renderedRaw = renderTemplateContent({
       subjectTemplate: templateVersion.subjectTemplate,
       htmlTemplate: templateVersion.htmlTemplate,
       variables: {
@@ -229,6 +229,14 @@ async function runStep(
         unsubscribeUrl: await buildUnsubscribeUrl(enrollment.contact_id),
       },
     });
+    const rendered = {
+      ...renderedRaw,
+      html: addUtmParamsToEmailHtml(renderedRaw.html, {
+        source: 'email',
+        medium: 'sequence',
+        campaign: 'equestrian-sequence',
+      }),
+    };
 
     try {
       const provider = await resend.emails.send({

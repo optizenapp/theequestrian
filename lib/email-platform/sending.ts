@@ -1,6 +1,6 @@
 import { sql } from '@vercel/postgres';
 import { Resend } from 'resend';
-import { getTemplateVersion, renderTemplateContent } from '@/lib/email-platform/templates';
+import { getTemplateVersion, renderTemplateContent, addUtmParamsToEmailHtml } from '@/lib/email-platform/templates';
 import { buildUnsubscribeUrl } from '@/lib/email-platform/unsubscribe';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -88,11 +88,12 @@ export async function sendQueuedCampaignRecipients(input: {
   const frequencyCapDays = input.frequencyCapDays ?? 7;
 
   const campaignResult = await sql`
-    SELECT id, template_version_id
+    SELECT id, name, template_version_id
     FROM email_campaigns
     WHERE id = ${input.campaignId}
     LIMIT 1
   `;
+  const campaignName = (campaignResult.rows[0]?.name as string | undefined) || 'campaign';
   const templateVersionId = campaignResult.rows[0]?.template_version_id as string | undefined;
   if (!templateVersionId) {
     throw new Error('Campaign has no template version');
@@ -159,11 +160,19 @@ export async function sendQueuedCampaignRecipients(input: {
       email,
       unsubscribeUrl: await buildUnsubscribeUrl(contactId),
     };
-    const rendered = renderTemplateContent({
+    const renderedRaw = renderTemplateContent({
       subjectTemplate: templateVersion.subjectTemplate,
       htmlTemplate: templateVersion.htmlTemplate,
       variables,
     });
+    const rendered = {
+      ...renderedRaw,
+      html: addUtmParamsToEmailHtml(renderedRaw.html, {
+        source: 'email',
+        medium: 'newsletter',
+        campaign: campaignName,
+      }),
+    };
 
     const sendRecord = await sql`
       INSERT INTO email_sends (
@@ -196,6 +205,10 @@ export async function sendQueuedCampaignRecipients(input: {
         to: email,
         subject: rendered.subject,
         html: rendered.html,
+        headers: {
+          'List-Unsubscribe': `<${variables.unsubscribeUrl}>`,
+          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+        },
         tags: [
           { name: 'campaign_id', value: input.campaignId },
           { name: 'campaign_recipient_id', value: recipientId },

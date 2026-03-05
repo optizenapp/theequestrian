@@ -36,6 +36,49 @@ function escapeHtml(value: string): string {
     .replaceAll("'", '&#39;');
 }
 
+function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+/**
+ * Appends UTM parameters to all HTTP(S) links in rendered email HTML.
+ * Skips {{tokens}}, unsubscribe links, mailto:, and anchor links.
+ * Must be called AFTER renderTemplateContent so tokens are already resolved.
+ */
+export function addUtmParamsToEmailHtml(
+  html: string,
+  utm: { source: string; medium: string; campaign: string; content?: string }
+): string {
+  return html.replace(/href="([^"]+)"/g, (match, rawHref: string) => {
+    if (
+      rawHref.startsWith('{{') ||
+      rawHref.startsWith('mailto:') ||
+      rawHref.startsWith('#') ||
+      rawHref.includes('unsubscribe')
+    ) {
+      return match;
+    }
+    if (!rawHref.startsWith('http://') && !rawHref.startsWith('https://')) {
+      return match;
+    }
+    try {
+      // href values in HTML have & encoded as &amp; — decode before parsing
+      const url = new URL(rawHref.replace(/&amp;/g, '&'));
+      if (!url.searchParams.has('utm_source')) url.searchParams.set('utm_source', utm.source);
+      if (!url.searchParams.has('utm_medium')) url.searchParams.set('utm_medium', utm.medium);
+      if (!url.searchParams.has('utm_campaign')) url.searchParams.set('utm_campaign', slugify(utm.campaign));
+      if (utm.content && !url.searchParams.has('utm_content')) url.searchParams.set('utm_content', utm.content);
+      // Re-encode & as &amp; for valid HTML attribute
+      return `href="${url.toString().replace(/&/g, '&amp;')}"`;
+    } catch {
+      return match;
+    }
+  });
+}
+
 function renderTextWithStyledLinks(value: string, linkColor: string): string {
   const preserveWhitespace = (text: string): string =>
     escapeHtml(text)
