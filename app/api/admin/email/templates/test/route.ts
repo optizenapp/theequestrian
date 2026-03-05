@@ -6,6 +6,7 @@ import {
   renderTemplateBlocksHtml,
   renderTemplateContent,
   addUtmParamsToEmailHtml,
+  proxyEmailImages,
 } from '@/lib/email-platform/templates';
 import { getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
 
@@ -95,11 +96,14 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const htmlWithUtm = addUtmParamsToEmailHtml(rendered.html, {
-      source: 'email',
-      medium: 'newsletter',
-      campaign: 'test-email',
-    });
+    const htmlWithUtm = proxyEmailImages(
+      addUtmParamsToEmailHtml(rendered.html, {
+        source: 'email',
+        medium: 'newsletter',
+        campaign: 'test-email',
+      }),
+      siteUrl
+    );
 
     await resend.emails.send({
       from: `${fromName} <${fromEmail}>`,

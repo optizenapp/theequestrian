@@ -44,6 +44,20 @@ function slugify(value: string): string {
 }
 
 /**
+ * Rewrites Shopify CDN image src attributes to route through the site's
+ * own /api/image-proxy endpoint, so all images in the email are served
+ * from theequestrian.com.au rather than cdn.shopify.com.
+ * This satisfies Resend's "host images on sending domain" recommendation.
+ */
+export function proxyEmailImages(html: string, siteUrl: string): string {
+  const base = siteUrl.replace(/\/$/, '');
+  return html.replace(/src="(https?:\/\/cdn\.shopify\.com\/[^"]+)"/g, (_match, imgUrl: string) => {
+    const proxied = `${base}/api/image-proxy?url=${encodeURIComponent(imgUrl)}`;
+    return `src="${proxied}"`;
+  });
+}
+
+/**
  * Appends UTM parameters to all HTTP(S) links in rendered email HTML.
  * Skips {{tokens}}, unsubscribe links, mailto:, and anchor links.
  * Must be called AFTER renderTemplateContent so tokens are already resolved.

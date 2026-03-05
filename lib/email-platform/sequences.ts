@@ -1,5 +1,5 @@
 import { sql } from '@vercel/postgres';
-import { getTemplateVersion, renderTemplateContent, addUtmParamsToEmailHtml } from '@/lib/email-platform/templates';
+import { getTemplateVersion, renderTemplateContent, addUtmParamsToEmailHtml, proxyEmailImages } from '@/lib/email-platform/templates';
 import { Resend } from 'resend';
 import { buildUnsubscribeUrl } from '@/lib/email-platform/unsubscribe';
 
@@ -229,14 +229,16 @@ async function runStep(
         unsubscribeUrl: await buildUnsubscribeUrl(enrollment.contact_id),
       },
     });
-    const rendered = {
-      ...renderedRaw,
-      html: addUtmParamsToEmailHtml(renderedRaw.html, {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
+    const renderedHtml = proxyEmailImages(
+      addUtmParamsToEmailHtml(renderedRaw.html, {
         source: 'email',
         medium: 'sequence',
         campaign: 'equestrian-sequence',
       }),
-    };
+      siteUrl
+    );
+    const rendered = { ...renderedRaw, html: renderedHtml };
 
     try {
       const provider = await resend.emails.send({

@@ -109,7 +109,7 @@ function getDefaultSettings(category: TemplateCategory): TemplateVisualSettings 
         : '[RE] How is your recent purchase going? - {{productTitle}}?',
     blocks: getDefaultBlocks(category),
     fromName: 'The Equestrian',
-    fromEmail: 'noreply@theequestrian.com.au',
+    fromEmail: 'hello@theequestrian.com.au',
     brandPrimary: '#000000',
     brandDark: '#000000',
     headerBackground: '#ffffff',

@@ -1,6 +1,6 @@
 import { sql } from '@vercel/postgres';
 import { Resend } from 'resend';
-import { getTemplateVersion, renderTemplateContent, addUtmParamsToEmailHtml } from '@/lib/email-platform/templates';
+import { getTemplateVersion, renderTemplateContent, addUtmParamsToEmailHtml, proxyEmailImages } from '@/lib/email-platform/templates';
 import { buildUnsubscribeUrl } from '@/lib/email-platform/unsubscribe';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -165,14 +165,15 @@ export async function sendQueuedCampaignRecipients(input: {
       htmlTemplate: templateVersion.htmlTemplate,
       variables,
     });
-    const rendered = {
-      ...renderedRaw,
-      html: addUtmParamsToEmailHtml(renderedRaw.html, {
+    const renderedHtml = proxyEmailImages(
+      addUtmParamsToEmailHtml(renderedRaw.html, {
         source: 'email',
         medium: 'newsletter',
         campaign: campaignName,
       }),
-    };
+      defaultSiteUrl
+    );
+    const rendered = { ...renderedRaw, html: renderedHtml };
 
     const sendRecord = await sql`
       INSERT INTO email_sends (
