@@ -29,6 +29,7 @@ import { generateBreadcrumbSchema } from '@/lib/utils/breadcrumb-schema';
 import { generateProductSchemaGraph } from '@/lib/utils/product-schema';
 import { getReviewStatsWithCache } from '@/lib/reviews/get-review-stats';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
+import { getAllowedBrandVendors } from '@/lib/filters/brand-filter-helper';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
 import { LazySection } from '@/components/LazySection';
@@ -337,7 +338,7 @@ async function renderSubSubcategoryPage(
 ) {
   // Fetch products allocated to this sub-subcategory from product_category_assignments table
   const categoryPath = `/${category}/${subcategory}/${subsubcategory}`;
-  const { products: filteredProducts, pageInfo, totalCount } = await getProductsByCategory(
+  const { products: filteredProducts, pageInfo, facets, totalCount } = await getProductsByCategory(
     categoryPath,
     36, 
     afterCursor,
@@ -357,6 +358,15 @@ async function renderSubSubcategoryPage(
     const { redirect } = await import('next/navigation');
     redirect(`/${category}/${subcategory}`);
   }
+
+  // Allowed brands for the filter sidebar (same logic as 2nd-level pages)
+  const allowedBrands = (category === 'pet' || category === 'accessories')
+    ? undefined
+    : getAllowedBrandVendors();
+
+  // Review stats for product cards
+  const productHandles = filteredProducts.map((p) => p.handle);
+  const reviewStatsMap = await getReviewStatsForProducts(productHandles);
 
   // Get sibling sub-subcategories (for pills)
   const allSubSubcategories = await getMappingSubcategories(category, subcategory);
@@ -451,7 +461,10 @@ async function renderSubSubcategoryPage(
             currentSubcategory={subcategory}
             pageInfo={pageInfo}
             totalCount={totalProductCount}
+            allowedBrands={allowedBrands}
+            serverFacets={facets}
             productUrls={productUrls}
+            reviewStatsMap={reviewStatsMap}
           />
         </Suspense>
 
