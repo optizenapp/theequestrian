@@ -11,6 +11,8 @@ type CampaignRow = {
   templateVersionId: string | null;
   audience: { listIds?: string[]; segmentIds?: string[] };
   scheduledAt: string | null;
+  startedAt?: string | null;
+  completedAt?: string | null;
 };
 
 type ListRow = { id: string; name: string };
@@ -45,8 +47,32 @@ export default function AdminEmailCampaignsPage() {
   const [statusMessage, setStatusMessage] = useState('');
   const [isPreparing, setIsPreparing] = useState(false);
   const [isSendingCampaign, setIsSendingCampaign] = useState(false);
+  const [isDuplicatingCampaign, setIsDuplicatingCampaign] = useState(false);
   const [deletingCampaignId, setDeletingCampaignId] = useState<string | null>(null);
   const [preparedCampaign, setPreparedCampaign] = useState<PreparedCampaign | null>(null);
+  const [duplicatedCampaignId, setDuplicatedCampaignId] = useState<string | null>(null);
+
+  function extractAudienceIds(
+    audience: CampaignRow['audience'] | null | undefined
+  ): { listIds: string[]; segmentIds: string[] } {
+    const listIds = Array.isArray(audience?.listIds)
+      ? audience.listIds.filter((value): value is string => typeof value === 'string')
+      : [];
+    const segmentIds = Array.isArray(audience?.segmentIds)
+      ? audience.segmentIds.filter((value): value is string => typeof value === 'string')
+      : [];
+    return { listIds, segmentIds };
+  }
+
+  function applyCampaignToEditor(campaign: CampaignRow) {
+    const { listIds, segmentIds } = extractAudienceIds(campaign.audience);
+    setName(campaign.name);
+    setTemplateVersionId(campaign.templateVersionId || '');
+    setSelectedListIds(listIds);
+    setSelectedSegmentIds(segmentIds);
+    setPreparedCampaign(null);
+    setStatusMessage(`Editing campaign "${campaign.name}". Update audience/template and create a new send.`);
+  }
 
   async function loadAll() {
     const [campaignRes, listRes, segmentRes, templateRes] = await Promise.all([
@@ -174,6 +200,53 @@ export default function AdminEmailCampaignsPage() {
       setIsSendingCampaign(false);
     }
   };
+
+  const duplicateCampaign = async (campaign: CampaignRow) => {
+    if (!campaign.templateVersionId) {
+      setError('Cannot duplicate campaign without a template version');
+      return;
+    }
+
+    setError('');
+    setStatusMessage('');
+    setIsDuplicatingCampaign(true);
+    try {
+      const { listIds, segmentIds } = extractAudienceIds(campaign.audience);
+      const duplicateName = `${campaign.name} (Copy ${new Date().toLocaleDateString('en-AU')})`;
+      const response = await fetch('/api/admin/email/campaigns', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: duplicateName,
+          templateVersionId: campaign.templateVersionId,
+          audience: { listIds, segmentIds },
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload?.error || 'Failed to duplicate campaign');
+      }
+
+      const newCampaignId = String(payload.id || '');
+      setDuplicatedCampaignId(newCampaignId || null);
+      setName(duplicateName);
+      setTemplateVersionId(campaign.templateVersionId);
+      setSelectedListIds(listIds);
+      setSelectedSegmentIds(segmentIds);
+      setPreparedCampaign(null);
+      setStatusMessage(
+        `Duplicated "${campaign.name}". Edit the copied campaign settings, then create/send when ready.`
+      );
+      await loadAll();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to duplicate campaign');
+    } finally {
+      setIsDuplicatingCampaign(false);
+    }
+  };
+
+  const mostRecentCompletedCampaign =
+    campaigns.find((campaign) => campaign.status === 'completed' || campaign.status === 'processing') || null;
 
   return (
     <AdminLayout title="Email Campaigns" subtitle="One-off bulk sends with list/segment audiences">
@@ -311,6 +384,15 @@ export default function AdminEmailCampaignsPage() {
               >
                 Send queued
               </button>
+              {campaign.status === 'draft' ? (
+                <button
+                  type="button"
+                  className="ml-2 rounded-full border border-blue-200 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:border-blue-400"
+                  onClick={() => applyCampaignToEditor(campaign)}
+                >
+                  {duplicatedCampaignId === campaign.id ? 'Edit duplicate' : 'Edit'}
+                </button>
+              ) : null}
               {(campaign.status === 'draft' || campaign.status === 'scheduled') ? (
                 <button
                   type="button"
@@ -351,6 +433,31 @@ export default function AdminEmailCampaignsPage() {
           </div>
         ))}
       </div>
+
+      {mostRecentCompletedCampaign ? (
+        <div className="mt-8 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+            Most recent completed campaign
+          </p>
+          <div className="mt-2 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-gray-900">{mostRecentCompletedCampaign.name}</p>
+              <p className="text-xs text-gray-500">
+                Lists: {(mostRecentCompletedCampaign.audience.listIds || []).length} | Segments:{' '}
+                {(mostRecentCompletedCampaign.audience.segmentIds || []).length}
+              </p>
+            </div>
+            <button
+              type="button"
+              disabled={isDuplicatingCampaign}
+              className="rounded-full border border-action px-3 py-1.5 text-xs font-semibold text-action hover:bg-action hover:text-white disabled:opacity-60"
+              onClick={() => duplicateCampaign(mostRecentCompletedCampaign)}
+            >
+              {isDuplicatingCampaign ? 'Duplicating...' : 'Duplicate'}
+            </button>
+          </div>
+        </div>
+      ) : null}
     </AdminLayout>
   );
 }

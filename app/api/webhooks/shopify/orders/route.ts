@@ -364,13 +364,23 @@ async function sendReviewRequestEmail({
         ${productTitle},
         ${products[0]?.handle || null},
         ${scheduledAtDate},
-        ${scheduledAt ? 'scheduled' : 'sent'}
+        'scheduled'
       )
+      ON CONFLICT DO NOTHING
       RETURNING id;
     `;
     emailSendId = result.rows[0]?.id || null;
+    if (!emailSendId) {
+      console.log('ℹ️ Skipping duplicate review request schedule for order:', {
+        orderId,
+        orderNumber,
+        customerEmail,
+      });
+      return;
+    }
   } catch (dbError) {
     console.error('❌ Failed to log email send to database:', dbError);
+    return;
   }
 
   try {

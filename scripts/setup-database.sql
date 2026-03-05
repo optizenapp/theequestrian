@@ -83,6 +83,9 @@ CREATE INDEX IF NOT EXISTS idx_review_email_sends_resend_email_id ON review_emai
 CREATE INDEX IF NOT EXISTS idx_review_email_sends_sent_at ON review_email_sends(sent_at DESC);
 CREATE INDEX IF NOT EXISTS idx_review_email_sends_status ON review_email_sends(status);
 CREATE INDEX IF NOT EXISTS idx_review_email_sends_created_at ON review_email_sends(created_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_review_email_sends_one_scheduled_per_order
+  ON review_email_sends(order_id)
+  WHERE status = 'scheduled';
 
 -- Function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
