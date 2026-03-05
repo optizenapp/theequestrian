@@ -27,7 +27,7 @@ export function AttributeFilter({
   const searchParams = useSearchParams();
   const [showAll, setShowAll] = useState(false);
 
-  // Get selected values from URL
+  // Get selected values from URL (for checkbox display only)
   const selectedValues = useMemo(() => {
     const param = searchParams.get(paramName);
     return param ? param.split(',') : [];
@@ -35,15 +35,20 @@ export function AttributeFilter({
 
   const toggleValue = useCallback(
     (value: string) => {
-      const params = new URLSearchParams(searchParams.toString());
-      const currentValues = selectedValues;
+      // Read from window.location.search (always the real current URL) rather than
+      // useSearchParams(), which can be stale during a Next.js server re-render
+      // transition. Without this, clicking two options quickly within the same facet
+      // causes the second click to read stale state and overwrite the first selection.
+      const params = new URLSearchParams(
+        typeof window !== 'undefined' ? window.location.search : searchParams.toString()
+      );
+      const currentParam = params.get(paramName);
+      const currentValues = currentParam ? currentParam.split(',') : [];
 
       let newValues: string[];
       if (currentValues.includes(value)) {
-        // Remove value
         newValues = currentValues.filter((v) => v !== value);
       } else {
-        // Add value
         newValues = [...currentValues, value];
       }
 
@@ -55,7 +60,7 @@ export function AttributeFilter({
 
       router.push(`?${params.toString()}`, { scroll: false });
     },
-    [router, searchParams, paramName, selectedValues]
+    [router, searchParams, paramName]
   );
 
   const displayOptions = showAll ? options : options.slice(0, maxVisible);
