@@ -157,6 +157,7 @@ export default function AdminEmailCampaignsPage() {
           setContentSubject(data.version.subjectTemplate || '');
           setContentFromName(data.version.fromName || 'The Equestrian');
           setContentFromEmail(data.version.fromEmail || 'noreply@theequestrian.com.au');
+          setContentEditorOpen(true);
         }
         const tpl = templates.find((t) => t.activeVersionId === templateVersionId);
         setContentTemplateId(tpl?.id || null);
@@ -534,8 +535,11 @@ export default function AdminEmailCampaignsPage() {
               onClick={() => setContentEditorOpen((v) => !v)}
               className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:border-action hover:text-action"
             >
-              {contentEditorOpen ? '▲' : '▼'}{' '}
-              {isLoadingContent ? 'Loading email content…' : 'Edit email content (subject, blocks, text)'}
+              {isLoadingContent
+                ? '⏳ Loading email content…'
+                : contentEditorOpen
+                  ? '▲ Hide email content editor'
+                  : '▼ Edit email content (subject, blocks, text)'}
             </button>
 
             {contentEditorOpen && !isLoadingContent ? (
