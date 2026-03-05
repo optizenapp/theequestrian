@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import type { EmailBlock, CuratedProductCard } from '@/lib/email-platform/types';
@@ -74,6 +74,7 @@ export default function AdminEmailCampaignsPage() {
   const [contentFromName, setContentFromName] = useState('');
   const [contentFromEmail, setContentFromEmail] = useState('');
   const [contentTemplateId, setContentTemplateId] = useState<string | null>(null);
+  const [contentMetadata, setContentMetadata] = useState<Record<string, unknown>>({});
   const [isLoadingContent, setIsLoadingContent] = useState(false);
   const [contentEditorOpen, setContentEditorOpen] = useState(false);
   const [newCuratedHandles, setNewCuratedHandles] = useState<Record<string, string>>({});
@@ -81,6 +82,12 @@ export default function AdminEmailCampaignsPage() {
     blockId: string;
     field: 'text' | 'label' | 'url';
   } | null>(null);
+
+  // Live preview state
+  const [previewHtml, setPreviewHtml] = useState('');
+  const [previewLoaded, setPreviewLoaded] = useState(false);
+  const [previewHandle, setPreviewHandle] = useState('');
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   const editorCardRef = useRef<HTMLDivElement | null>(null);
   const nameInputRef = useRef<HTMLInputElement | null>(null);
@@ -137,6 +144,34 @@ export default function AdminEmailCampaignsPage() {
     updateBlock(blockId, { products } as Partial<EmailBlock>);
   };
 
+  // Live preview
+  const fetchPreviewHtml = useCallback(async () => {
+    if (!contentEditorOpen || contentBlocks.length === 0) return;
+    try {
+      const res = await fetch('/api/admin/email/templates/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          handle: previewHandle || null,
+          subjectTemplate: contentSubject,
+          blocks: contentBlocks,
+          metadata: contentMetadata,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.html) setPreviewHtml(data.html);
+    } catch {
+      // silent
+    } finally {
+      setPreviewLoaded(true);
+    }
+  }, [contentEditorOpen, contentBlocks, contentSubject, contentMetadata, previewHandle]);
+
+  useEffect(() => {
+    const t = setTimeout(() => { fetchPreviewHtml(); }, 600);
+    return () => clearTimeout(t);
+  }, [fetchPreviewHtml]);
+
   // Load template content when templateVersionId changes (only in edit mode)
   useEffect(() => {
     if (!templateVersionId || !editingCampaignId) {
@@ -157,6 +192,12 @@ export default function AdminEmailCampaignsPage() {
           setContentSubject(data.version.subjectTemplate || '');
           setContentFromName(data.version.fromName || 'The Equestrian');
           setContentFromEmail(data.version.fromEmail || 'noreply@theequestrian.com.au');
+          setContentMetadata(
+            data.version.metadata && typeof data.version.metadata === 'object'
+              ? (data.version.metadata as Record<string, unknown>)
+              : {}
+          );
+          setPreviewLoaded(false);
           setContentEditorOpen(true);
         }
         const tpl = templates.find((t) => t.activeVersionId === templateVersionId);
@@ -206,7 +247,11 @@ export default function AdminEmailCampaignsPage() {
     setContentFromName('');
     setContentFromEmail('');
     setContentTemplateId(null);
+    setContentMetadata({});
     setContentEditorOpen(false);
+    setPreviewHtml('');
+    setPreviewLoaded(false);
+    setPreviewHandle('');
     setError('');
     setStatusMessage('');
   }
@@ -543,349 +588,253 @@ export default function AdminEmailCampaignsPage() {
             </button>
 
             {contentEditorOpen && !isLoadingContent ? (
-              <div className="mt-3 space-y-4 rounded-xl border border-blue-100 bg-blue-50/40 p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">
-                  Email content — changes save as a new version of the template
-                </p>
+              <div className="mt-3 grid grid-cols-1 gap-6 lg:grid-cols-2">
 
-                {/* Subject / From */}
-                <div className="grid gap-3 md:grid-cols-3">
-                  <div className="md:col-span-3">
+                {/* ── Left: editor ── */}
+                <div className="space-y-4 rounded-xl border border-blue-100 bg-blue-50/40 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">
+                    Email content — saves as a new template version
+                  </p>
+
+                  {/* Subject / From */}
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div className="md:col-span-2">
+                      <label className="block text-xs font-medium text-gray-700">
+                        Subject line
+                        <input
+                          type="text"
+                          value={contentSubject}
+                          onChange={(e) => setContentSubject(e.target.value)}
+                          className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                        />
+                      </label>
+                    </div>
                     <label className="block text-xs font-medium text-gray-700">
-                      Subject line
+                      From name
                       <input
                         type="text"
-                        value={contentSubject}
-                        onChange={(e) => setContentSubject(e.target.value)}
+                        value={contentFromName}
+                        onChange={(e) => setContentFromName(e.target.value)}
+                        className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                      />
+                    </label>
+                    <label className="block text-xs font-medium text-gray-700">
+                      From email
+                      <input
+                        type="email"
+                        value={contentFromEmail}
+                        onChange={(e) => setContentFromEmail(e.target.value)}
                         className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm"
                       />
                     </label>
                   </div>
-                  <label className="block text-xs font-medium text-gray-700">
-                    From name
-                    <input
-                      type="text"
-                      value={contentFromName}
-                      onChange={(e) => setContentFromName(e.target.value)}
-                      className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm"
-                    />
-                  </label>
-                  <label className="block text-xs font-medium text-gray-700 md:col-span-2">
-                    From email
-                    <input
-                      type="email"
-                      value={contentFromEmail}
-                      onChange={(e) => setContentFromEmail(e.target.value)}
-                      className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm"
-                    />
-                  </label>
-                </div>
 
-                {/* Token buttons */}
-                <div>
-                  <p className="mb-1.5 text-xs font-medium text-gray-600">Click to insert token into focused field:</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {[
-                      { label: 'Customer name', token: '{{customerName}}' },
-                      { label: 'Order number', token: '{{orderNumber}}' },
-                      { label: 'Product title', token: '{{productTitle}}' },
-                      { label: 'Product URL', token: '{{productUrl}}' },
-                      { label: 'Site URL', token: '{{siteUrl}}' },
-                      { label: 'Unsubscribe URL', token: '{{unsubscribeUrl}}' },
-                    ].map((item) => (
-                      <button
-                        key={item.token}
-                        type="button"
-                        onClick={() => {
-                          if (!lastFocusedInput) {
-                            navigator.clipboard.writeText(item.token);
-                            return;
-                          }
-                          const block = contentBlocks.find((b) => b.id === lastFocusedInput.blockId);
-                          if (!block) return;
-                          const field = lastFocusedInput.field;
-                          const input = document.querySelector(
-                            `[data-block-id="${block.id}"][data-field="${field}"]`
-                          ) as HTMLInputElement | HTMLTextAreaElement | null;
-                          if (!input) return;
-                          const start = input.selectionStart ?? (input.value || '').length;
-                          const end = input.selectionEnd ?? (input.value || '').length;
-                          const current = input.value || '';
-                          const updated = current.slice(0, start) + item.token + current.slice(end);
-                          if (block.type === 'heading' || block.type === 'text' || block.type === 'footer') {
-                            updateBlock(block.id, { text: updated });
-                          } else if (block.type === 'cta') {
-                            updateBlock(block.id, { [field]: updated });
-                          }
-                        }}
-                        className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-600 hover:border-action hover:text-action"
-                      >
-                        {item.label}
+                  {/* Token buttons */}
+                  <div>
+                    <p className="mb-1.5 text-xs font-medium text-gray-600">Click to insert token into focused field:</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        { label: 'Customer name', token: '{{customerName}}' },
+                        { label: 'Order number', token: '{{orderNumber}}' },
+                        { label: 'Product title', token: '{{productTitle}}' },
+                        { label: 'Product URL', token: '{{productUrl}}' },
+                        { label: 'Site URL', token: '{{siteUrl}}' },
+                        { label: 'Unsubscribe URL', token: '{{unsubscribeUrl}}' },
+                      ].map((item) => (
+                        <button
+                          key={item.token}
+                          type="button"
+                          onClick={() => {
+                            if (!lastFocusedInput) {
+                              navigator.clipboard.writeText(item.token);
+                              return;
+                            }
+                            const block = contentBlocks.find((b) => b.id === lastFocusedInput.blockId);
+                            if (!block) return;
+                            const field = lastFocusedInput.field;
+                            const input = document.querySelector(
+                              `[data-block-id="${block.id}"][data-field="${field}"]`
+                            ) as HTMLInputElement | HTMLTextAreaElement | null;
+                            if (!input) return;
+                            const start = input.selectionStart ?? (input.value || '').length;
+                            const end = input.selectionEnd ?? (input.value || '').length;
+                            const current = input.value || '';
+                            const updated = current.slice(0, start) + item.token + current.slice(end);
+                            if (block.type === 'heading' || block.type === 'text' || block.type === 'footer') {
+                              updateBlock(block.id, { text: updated });
+                            } else if (block.type === 'cta') {
+                              updateBlock(block.id, { [field]: updated });
+                            }
+                          }}
+                          className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-600 hover:border-action hover:text-action"
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Block list */}
+                  <div className="space-y-2">
+                    {contentBlocks.map((block, idx) => (
+                      <div key={block.id} className="rounded-lg border border-gray-200 bg-white p-3">
+                        <div className="mb-2 flex items-center justify-between">
+                          <span className="text-xs font-semibold uppercase text-gray-500">
+                            {blockTypeLabels[block.type]}
+                          </span>
+                          <div className="flex items-center gap-1">
+                            <button type="button" onClick={() => moveBlock(block.id, 'up')} disabled={idx === 0} className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30">↑</button>
+                            <button type="button" onClick={() => moveBlock(block.id, 'down')} disabled={idx === contentBlocks.length - 1} className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30">↓</button>
+                            <button type="button" onClick={() => removeBlock(block.id)} className="p-1 text-red-400 hover:text-red-600">×</button>
+                          </div>
+                        </div>
+
+                        {block.type === 'heading' && (
+                          <div className="space-y-2">
+                            <div className="flex gap-2">
+                              <select value={block.level || 2} onChange={(e) => updateBlock(block.id, { level: Number(e.target.value) as 1 | 2 | 3 })} className="w-20 rounded border border-gray-300 px-2 py-1 text-sm">
+                                <option value={1}>H1</option><option value={2}>H2</option><option value={3}>H3</option>
+                              </select>
+                              <select value={block.align || 'left'} onChange={(e) => updateBlock(block.id, { align: e.target.value as 'left' | 'center' | 'right' })} className="w-28 rounded border border-gray-300 px-2 py-1 text-sm">
+                                <option value="left">Left</option><option value="center">Center</option><option value="right">Right</option>
+                              </select>
+                            </div>
+                            <input type="text" value={block.text} onChange={(e) => updateBlock(block.id, { text: e.target.value })} onFocus={() => setLastFocusedInput({ blockId: block.id, field: 'text' })} data-block-id={block.id} data-field="text" className="w-full rounded border border-gray-300 px-3 py-2 text-sm" />
+                          </div>
+                        )}
+
+                        {block.type === 'text' && (
+                          <div className="space-y-2">
+                            <select value={block.align || 'left'} onChange={(e) => updateBlock(block.id, { align: e.target.value as 'left' | 'center' | 'right' })} className="w-28 rounded border border-gray-300 px-2 py-1 text-sm">
+                              <option value="left">Left</option><option value="center">Center</option><option value="right">Right</option>
+                            </select>
+                            <textarea value={block.text} onChange={(e) => updateBlock(block.id, { text: e.target.value })} onFocus={() => setLastFocusedInput({ blockId: block.id, field: 'text' })} data-block-id={block.id} data-field="text" rows={4} className="w-full rounded border border-gray-300 px-3 py-2 text-sm" />
+                          </div>
+                        )}
+
+                        {block.type === 'cta' && (
+                          <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                            <input type="text" placeholder="Button label" value={block.label} onChange={(e) => updateBlock(block.id, { label: e.target.value })} onFocus={() => setLastFocusedInput({ blockId: block.id, field: 'label' })} data-block-id={block.id} data-field="label" className="rounded border border-gray-300 px-3 py-2 text-sm" />
+                            <input type="text" placeholder="Button URL" value={block.url} onChange={(e) => updateBlock(block.id, { url: e.target.value })} onFocus={() => setLastFocusedInput({ blockId: block.id, field: 'url' })} data-block-id={block.id} data-field="url" className="rounded border border-gray-300 px-3 py-2 text-sm" />
+                            <select value={block.align || 'center'} onChange={(e) => updateBlock(block.id, { align: e.target.value as 'left' | 'center' | 'right' })} className="rounded border border-gray-300 px-2 py-1 text-sm md:col-span-2">
+                              <option value="left">Align left</option><option value="center">Align center</option><option value="right">Align right</option>
+                            </select>
+                          </div>
+                        )}
+
+                        {block.type === 'productCards' && (
+                          <div className="flex gap-2">
+                            <select value={block.mode} onChange={(e) => updateBlock(block.id, { mode: e.target.value as 'single' | 'all' })} className="rounded border border-gray-300 px-3 py-2 text-sm">
+                              <option value="single">Single product</option><option value="all">All products</option>
+                            </select>
+                            <p className="self-center text-xs text-gray-500">Populated from order data at send time</p>
+                          </div>
+                        )}
+
+                        {block.type === 'curatedProducts' && (
+                          <div className="space-y-2">
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                placeholder="Add product by handle"
+                                value={newCuratedHandles[block.id] || ''}
+                                onChange={(e) => setNewCuratedHandles((prev) => ({ ...prev, [block.id]: e.target.value }))}
+                                className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm"
+                              />
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  const handle = (newCuratedHandles[block.id] || '').trim();
+                                  if (!handle || block.type !== 'curatedProducts') return;
+                                  const res = await fetch('/api/admin/email/templates/preview-product', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ handle }),
+                                  });
+                                  const data = await res.json();
+                                  const p = data.product || {};
+                                  updateCuratedProducts(block.id, [...block.products, { id: generateId(), handle, title: p.title || '', imageUrl: p.imageUrl || '', url: p.url || '', price: p.price || '', compareAtPrice: p.compareAtPrice || '', savePercent: p.savePercent || '', freeShippingBadge: p.freeShippingBadge !== false }]);
+                                  setNewCuratedHandles((prev) => ({ ...prev, [block.id]: '' }));
+                                }}
+                                className="rounded border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 hover:border-action hover:text-action"
+                              >
+                                + Add
+                              </button>
+                            </div>
+                            {block.type === 'curatedProducts' && block.products.map((product) => (
+                              <div key={product.id} className="flex items-center gap-2 rounded border border-gray-200 bg-gray-50 p-2">
+                                {product.imageUrl ? <img src={product.imageUrl} alt={product.title || product.handle} className="h-10 w-10 rounded object-cover" /> : null}
+                                <div className="flex-1 min-w-0">
+                                  <p className="truncate text-xs font-medium text-gray-800">{product.title || product.handle || '(untitled)'}</p>
+                                  {product.price ? <p className="text-xs text-gray-500">{product.price}</p> : null}
+                                </div>
+                                <button type="button" onClick={() => updateCuratedProducts(block.id, block.type === 'curatedProducts' ? block.products.filter((p) => p.id !== product.id) : [])} className="text-xs text-red-500 hover:text-red-700">Remove</button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {block.type === 'footer' && (
+                          <textarea value={block.text} onChange={(e) => updateBlock(block.id, { text: e.target.value })} onFocus={() => setLastFocusedInput({ blockId: block.id, field: 'text' })} data-block-id={block.id} data-field="text" rows={3} className="w-full rounded border border-gray-300 px-3 py-2 text-sm" />
+                        )}
+
+                        {block.type === 'divider' && (
+                          <p className="text-xs italic text-gray-400">Horizontal divider line</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Add block buttons */}
+                  <div className="flex flex-wrap gap-2">
+                    {(['heading', 'text', 'cta', 'productCards', 'curatedProducts', 'divider', 'footer'] as const).map((type) => (
+                      <button key={type} type="button" onClick={() => addBlock(type)} className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:border-action hover:text-action">
+                        + {blockTypeLabels[type]}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Block list */}
-                <div className="space-y-2">
-                  {contentBlocks.map((block, idx) => (
-                    <div key={block.id} className="rounded-lg border border-gray-200 bg-white p-3">
-                      <div className="mb-2 flex items-center justify-between">
-                        <span className="text-xs font-semibold uppercase text-gray-500">
-                          {blockTypeLabels[block.type]}
-                        </span>
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            onClick={() => moveBlock(block.id, 'up')}
-                            disabled={idx === 0}
-                            className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
-                          >
-                            ↑
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => moveBlock(block.id, 'down')}
-                            disabled={idx === contentBlocks.length - 1}
-                            className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
-                          >
-                            ↓
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => removeBlock(block.id)}
-                            className="p-1 text-red-400 hover:text-red-600"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      </div>
-
-                      {block.type === 'heading' && (
-                        <div className="space-y-2">
-                          <div className="flex gap-2">
-                            <select
-                              value={block.level || 2}
-                              onChange={(e) => updateBlock(block.id, { level: Number(e.target.value) as 1 | 2 | 3 })}
-                              className="w-20 rounded border border-gray-300 px-2 py-1 text-sm"
-                            >
-                              <option value={1}>H1</option>
-                              <option value={2}>H2</option>
-                              <option value={3}>H3</option>
-                            </select>
-                            <select
-                              value={block.align || 'left'}
-                              onChange={(e) => updateBlock(block.id, { align: e.target.value as 'left' | 'center' | 'right' })}
-                              className="w-28 rounded border border-gray-300 px-2 py-1 text-sm"
-                            >
-                              <option value="left">Left</option>
-                              <option value="center">Center</option>
-                              <option value="right">Right</option>
-                            </select>
-                          </div>
-                          <input
-                            type="text"
-                            value={block.text}
-                            onChange={(e) => updateBlock(block.id, { text: e.target.value })}
-                            onFocus={() => setLastFocusedInput({ blockId: block.id, field: 'text' })}
-                            data-block-id={block.id}
-                            data-field="text"
-                            className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
-                          />
-                        </div>
-                      )}
-
-                      {block.type === 'text' && (
-                        <div className="space-y-2">
-                          <select
-                            value={block.align || 'left'}
-                            onChange={(e) => updateBlock(block.id, { align: e.target.value as 'left' | 'center' | 'right' })}
-                            className="w-28 rounded border border-gray-300 px-2 py-1 text-sm"
-                          >
-                            <option value="left">Left</option>
-                            <option value="center">Center</option>
-                            <option value="right">Right</option>
-                          </select>
-                          <textarea
-                            value={block.text}
-                            onChange={(e) => updateBlock(block.id, { text: e.target.value })}
-                            onFocus={() => setLastFocusedInput({ blockId: block.id, field: 'text' })}
-                            data-block-id={block.id}
-                            data-field="text"
-                            rows={4}
-                            className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
-                          />
-                        </div>
-                      )}
-
-                      {block.type === 'cta' && (
-                        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                          <input
-                            type="text"
-                            placeholder="Button label"
-                            value={block.label}
-                            onChange={(e) => updateBlock(block.id, { label: e.target.value })}
-                            onFocus={() => setLastFocusedInput({ blockId: block.id, field: 'label' })}
-                            data-block-id={block.id}
-                            data-field="label"
-                            className="rounded border border-gray-300 px-3 py-2 text-sm"
-                          />
-                          <input
-                            type="text"
-                            placeholder="Button URL"
-                            value={block.url}
-                            onChange={(e) => updateBlock(block.id, { url: e.target.value })}
-                            onFocus={() => setLastFocusedInput({ blockId: block.id, field: 'url' })}
-                            data-block-id={block.id}
-                            data-field="url"
-                            className="rounded border border-gray-300 px-3 py-2 text-sm"
-                          />
-                          <select
-                            value={block.align || 'center'}
-                            onChange={(e) => updateBlock(block.id, { align: e.target.value as 'left' | 'center' | 'right' })}
-                            className="rounded border border-gray-300 px-2 py-1 text-sm md:col-span-2"
-                          >
-                            <option value="left">Align left</option>
-                            <option value="center">Align center</option>
-                            <option value="right">Align right</option>
-                          </select>
-                        </div>
-                      )}
-
-                      {block.type === 'productCards' && (
-                        <div className="flex gap-2">
-                          <select
-                            value={block.mode}
-                            onChange={(e) => updateBlock(block.id, { mode: e.target.value as 'single' | 'all' })}
-                            className="rounded border border-gray-300 px-3 py-2 text-sm"
-                          >
-                            <option value="single">Single product</option>
-                            <option value="all">All products</option>
-                          </select>
-                          <p className="self-center text-xs text-gray-500">Populated from order data at send time</p>
-                        </div>
-                      )}
-
-                      {block.type === 'curatedProducts' && (
-                        <div className="space-y-2">
-                          <div className="flex gap-2">
-                            <input
-                              type="text"
-                              placeholder="Add product by handle"
-                              value={newCuratedHandles[block.id] || ''}
-                              onChange={(e) =>
-                                setNewCuratedHandles((prev) => ({ ...prev, [block.id]: e.target.value }))
-                              }
-                              className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm"
-                            />
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                const handle = (newCuratedHandles[block.id] || '').trim();
-                                if (!handle) return;
-                                if (block.type !== 'curatedProducts') return;
-                                const res = await fetch('/api/admin/email/templates/preview-product', {
-                                  method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ handle }),
-                                });
-                                const data = await res.json();
-                                const p = data.product || {};
-                                updateCuratedProducts(block.id, [
-                                  ...block.products,
-                                  {
-                                    id: generateId(),
-                                    handle,
-                                    title: p.title || '',
-                                    imageUrl: p.imageUrl || '',
-                                    url: p.url || '',
-                                    price: p.price || '',
-                                    compareAtPrice: p.compareAtPrice || '',
-                                    savePercent: p.savePercent || '',
-                                    freeShippingBadge: p.freeShippingBadge !== false,
-                                  },
-                                ]);
-                                setNewCuratedHandles((prev) => ({ ...prev, [block.id]: '' }));
-                              }}
-                              className="rounded border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 hover:border-action hover:text-action"
-                            >
-                              + Add
-                            </button>
-                          </div>
-                          {block.type === 'curatedProducts' &&
-                            block.products.map((product) => (
-                              <div
-                                key={product.id}
-                                className="flex items-center gap-2 rounded border border-gray-200 bg-gray-50 p-2"
-                              >
-                                {product.imageUrl ? (
-                                  <img
-                                    src={product.imageUrl}
-                                    alt={product.title || product.handle}
-                                    className="h-10 w-10 rounded object-cover"
-                                  />
-                                ) : null}
-                                <div className="flex-1 min-w-0">
-                                  <p className="truncate text-xs font-medium text-gray-800">
-                                    {product.title || product.handle || '(untitled)'}
-                                  </p>
-                                  {product.price ? (
-                                    <p className="text-xs text-gray-500">{product.price}</p>
-                                  ) : null}
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    updateCuratedProducts(
-                                      block.id,
-                                      block.type === 'curatedProducts'
-                                        ? block.products.filter((p) => p.id !== product.id)
-                                        : []
-                                    )
-                                  }
-                                  className="text-xs text-red-500 hover:text-red-700"
-                                >
-                                  Remove
-                                </button>
-                              </div>
-                            ))}
-                        </div>
-                      )}
-
-                      {block.type === 'footer' && (
-                        <textarea
-                          value={block.text}
-                          onChange={(e) => updateBlock(block.id, { text: e.target.value })}
-                          onFocus={() => setLastFocusedInput({ blockId: block.id, field: 'text' })}
-                          data-block-id={block.id}
-                          data-field="text"
-                          rows={3}
-                          className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
-                        />
-                      )}
-
-                      {block.type === 'divider' && (
-                        <p className="text-xs italic text-gray-400">Horizontal divider line</p>
-                      )}
+                {/* ── Right: live preview ── */}
+                <div className="space-y-3 rounded-xl border border-gray-200 bg-white p-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-semibold text-gray-900">Live Preview</h4>
+                    <button
+                      type="button"
+                      onClick={fetchPreviewHtml}
+                      className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-600 hover:border-action hover:text-action"
+                    >
+                      Refresh
+                    </button>
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Preview product handle (optional)"
+                      value={previewHandle}
+                      onChange={(e) => setPreviewHandle(e.target.value)}
+                      className="flex-1 rounded border border-gray-300 px-3 py-1.5 text-sm"
+                    />
+                    <button
+                      type="button"
+                      disabled={previewLoading}
+                      onClick={fetchPreviewHtml}
+                      className="rounded border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:border-action hover:text-action disabled:opacity-60"
+                    >
+                      {previewLoading ? 'Loading…' : 'Load'}
+                    </button>
+                  </div>
+                  {previewLoaded ? (
+                    <div className="overflow-auto rounded-xl border border-gray-100 bg-gray-50 p-2" style={{ maxHeight: '70vh' }}>
+                      <iframe srcDoc={previewHtml} title="Email preview" className="w-full border-0" style={{ minHeight: '600px' }} />
                     </div>
-                  ))}
-                </div>
-
-                {/* Add block buttons */}
-                <div className="flex flex-wrap gap-2">
-                  {(['heading', 'text', 'cta', 'productCards', 'curatedProducts', 'divider', 'footer'] as const).map(
-                    (type) => (
-                      <button
-                        key={type}
-                        type="button"
-                        onClick={() => addBlock(type)}
-                        className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:border-action hover:text-action"
-                      >
-                        + {blockTypeLabels[type]}
-                      </button>
-                    )
+                  ) : (
+                    <div className="flex items-center justify-center py-16 text-sm text-gray-400">
+                      Loading preview…
+                    </div>
                   )}
                 </div>
+
               </div>
             ) : null}
           </div>
