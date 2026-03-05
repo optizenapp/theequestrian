@@ -42,20 +42,38 @@ function renderTextWithStyledLinks(value: string, linkColor: string): string {
       .replace(/ {2,}/g, (spaces) => ` ${'&nbsp;'.repeat(spaces.length - 1)}`)
       .replace(/\n/g, '<br />');
 
-  const linkTokenPattern = /\{\{(?:siteUrl|unsubscribeUrl|productUrl)\}\}/;
-  const urlPattern = /https?:\/\/[^\s]+/;
-  const combinedPattern = /(https?:\/\/[^\s]+|\{\{(?:siteUrl|unsubscribeUrl|productUrl)\}\})/g;
-  const parts = value.split(combinedPattern);
-  return parts
-    .map((part) => {
-      if (!part) return '';
-      if (urlPattern.test(part) || linkTokenPattern.test(part)) {
-        const href = escapeHtml(part);
-        return `<a href="${href}" style="color:${linkColor};text-decoration:underline;">${href}</a>`;
-      }
-      return preserveWhitespace(part);
-    })
-    .join('');
+  const linkStyle = `color:${linkColor};text-decoration:underline;`;
+
+  // Combined pattern: markdown links [text](url) first, then bare URLs/tokens
+  const combinedPattern =
+    /(\[([^\]]+)\]\(([^)]+)\)|https?:\/\/[^\s)]+|\{\{(?:siteUrl|unsubscribeUrl|productUrl)\}\})/g;
+
+  const result: string[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = combinedPattern.exec(value)) !== null) {
+    if (match.index > lastIndex) {
+      result.push(preserveWhitespace(value.slice(lastIndex, match.index)));
+    }
+    const mdAnchor = match[2]; // [anchor](url) — anchor text
+    const mdHref = match[3];   // [anchor](url) — href
+    if (mdAnchor && mdHref) {
+      // Markdown link [anchor text](url)
+      result.push(`<a href="${escapeHtml(mdHref)}" style="${linkStyle}">${escapeHtml(mdAnchor)}</a>`);
+    } else {
+      // Bare URL or token
+      const href = escapeHtml(match[1]);
+      result.push(`<a href="${href}" style="${linkStyle}">${href}</a>`);
+    }
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < value.length) {
+    result.push(preserveWhitespace(value.slice(lastIndex)));
+  }
+
+  return result.join('');
 }
 
 function normalizeTemplateCategory(source: Record<string, unknown>): TemplateCategory {

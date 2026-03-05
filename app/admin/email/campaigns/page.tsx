@@ -75,6 +75,10 @@ export default function AdminEmailCampaignsPage() {
   const [contentFromEmail, setContentFromEmail] = useState('');
   const [contentTemplateId, setContentTemplateId] = useState<string | null>(null);
   const [contentMetadata, setContentMetadata] = useState<Record<string, unknown>>({});
+  const [contentLogoUrl, setContentLogoUrl] = useState('');
+  const [contentLinkColor, setContentLinkColor] = useState('#de8e94');
+  const [contentBrandPrimary, setContentBrandPrimary] = useState('#000000');
+  const [contentHeaderBg, setContentHeaderBg] = useState('#ffffff');
   const [isLoadingContent, setIsLoadingContent] = useState(false);
   const [contentEditorOpen, setContentEditorOpen] = useState(false);
   const [newCuratedHandles, setNewCuratedHandles] = useState<Record<string, string>>({});
@@ -155,7 +159,13 @@ export default function AdminEmailCampaignsPage() {
           handle: previewHandle || null,
           subjectTemplate: contentSubject,
           blocks: contentBlocks,
-          metadata: contentMetadata,
+          metadata: {
+            ...contentMetadata,
+            logoUrl: contentLogoUrl || null,
+            linkColor: contentLinkColor,
+            brandPrimary: contentBrandPrimary,
+            headerBackground: contentHeaderBg,
+          },
         }),
       });
       const data = await res.json();
@@ -165,7 +175,7 @@ export default function AdminEmailCampaignsPage() {
     } finally {
       setPreviewLoaded(true);
     }
-  }, [contentEditorOpen, contentBlocks, contentSubject, contentMetadata, previewHandle]);
+  }, [contentEditorOpen, contentBlocks, contentSubject, contentMetadata, contentLogoUrl, contentLinkColor, contentBrandPrimary, contentHeaderBg, previewHandle]);
 
   useEffect(() => {
     const t = setTimeout(() => { fetchPreviewHtml(); }, 600);
@@ -192,11 +202,15 @@ export default function AdminEmailCampaignsPage() {
           setContentSubject(data.version.subjectTemplate || '');
           setContentFromName(data.version.fromName || 'The Equestrian');
           setContentFromEmail(data.version.fromEmail || 'noreply@theequestrian.com.au');
-          setContentMetadata(
+          const meta =
             data.version.metadata && typeof data.version.metadata === 'object'
               ? (data.version.metadata as Record<string, unknown>)
-              : {}
-          );
+              : {};
+          setContentMetadata(meta);
+          setContentLogoUrl(typeof meta.logoUrl === 'string' ? meta.logoUrl : 'https://www.theequestrian.com.au/email-logo.png');
+          setContentLinkColor(typeof meta.linkColor === 'string' ? meta.linkColor : '#de8e94');
+          setContentBrandPrimary(typeof meta.brandPrimary === 'string' ? meta.brandPrimary : '#000000');
+          setContentHeaderBg(typeof meta.headerBackground === 'string' ? meta.headerBackground : '#ffffff');
           setPreviewLoaded(false);
           setContentEditorOpen(true);
         }
@@ -248,6 +262,10 @@ export default function AdminEmailCampaignsPage() {
     setContentFromEmail('');
     setContentTemplateId(null);
     setContentMetadata({});
+    setContentLogoUrl('');
+    setContentLinkColor('#de8e94');
+    setContentBrandPrimary('#000000');
+    setContentHeaderBg('#ffffff');
     setContentEditorOpen(false);
     setPreviewHtml('');
     setPreviewLoaded(false);
@@ -282,6 +300,13 @@ export default function AdminEmailCampaignsPage() {
     try {
       // If content was edited, save a new template version first
       if (contentEditorOpen && contentTemplateId && contentBlocks.length > 0) {
+        const mergedMetadata = {
+          ...contentMetadata,
+          logoUrl: contentLogoUrl || null,
+          linkColor: contentLinkColor,
+          brandPrimary: contentBrandPrimary,
+          headerBackground: contentHeaderBg,
+        };
         const versionRes = await fetch(`/api/admin/email/templates/${contentTemplateId}/versions`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -290,6 +315,7 @@ export default function AdminEmailCampaignsPage() {
             blocks: contentBlocks,
             fromName: contentFromName,
             fromEmail: contentFromEmail,
+            metadata: mergedMetadata,
             setActive: true,
           }),
         });
@@ -629,9 +655,54 @@ export default function AdminEmailCampaignsPage() {
                     </label>
                   </div>
 
-                  {/* Token buttons */}
+                  {/* Branding */}
+                  <div className="rounded-lg border border-gray-200 bg-white p-3">
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Branding</p>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div className="md:col-span-2">
+                        <label className="block text-xs font-medium text-gray-700">
+                          Logo URL (public image URL)
+                          <input
+                            type="text"
+                            value={contentLogoUrl}
+                            onChange={(e) => setContentLogoUrl(e.target.value)}
+                            placeholder="https://www.theequestrian.com.au/email-logo.png"
+                            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                          />
+                        </label>
+                        {contentLogoUrl ? (
+                          <img src={contentLogoUrl} alt="Logo preview" className="mt-2 max-h-12" />
+                        ) : null}
+                      </div>
+                      <label className="block text-xs font-medium text-gray-700">
+                        Button colour
+                        <div className="mt-1 flex items-center gap-2">
+                          <input type="color" value={contentBrandPrimary} onChange={(e) => setContentBrandPrimary(e.target.value)} className="h-9 w-10 rounded border border-gray-300" />
+                          <input type="text" value={contentBrandPrimary} onChange={(e) => setContentBrandPrimary(e.target.value)} className="flex-1 rounded border border-gray-300 px-2 py-1.5 text-sm" />
+                        </div>
+                      </label>
+                      <label className="block text-xs font-medium text-gray-700">
+                        Link / accent colour
+                        <div className="mt-1 flex items-center gap-2">
+                          <input type="color" value={contentLinkColor} onChange={(e) => setContentLinkColor(e.target.value)} className="h-9 w-10 rounded border border-gray-300" />
+                          <input type="text" value={contentLinkColor} onChange={(e) => setContentLinkColor(e.target.value)} className="flex-1 rounded border border-gray-300 px-2 py-1.5 text-sm" />
+                        </div>
+                      </label>
+                      <label className="block text-xs font-medium text-gray-700">
+                        Header background
+                        <div className="mt-1 flex items-center gap-2">
+                          <input type="color" value={contentHeaderBg} onChange={(e) => setContentHeaderBg(e.target.value)} className="h-9 w-10 rounded border border-gray-300" />
+                          <input type="text" value={contentHeaderBg} onChange={(e) => setContentHeaderBg(e.target.value)} className="flex-1 rounded border border-gray-300 px-2 py-1.5 text-sm" />
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Token buttons + Insert link */}
                   <div>
-                    <p className="mb-1.5 text-xs font-medium text-gray-600">Click to insert token into focused field:</p>
+                    <p className="mb-1.5 text-xs font-medium text-gray-600">
+                      Click to insert into focused field. For links: <code className="rounded bg-gray-100 px-1 text-xs">[Link text](https://url.com)</code> renders as a styled link.
+                    </p>
                     <div className="flex flex-wrap gap-1.5">
                       {[
                         { label: 'Customer name', token: '{{customerName}}' },
@@ -671,6 +742,38 @@ export default function AdminEmailCampaignsPage() {
                           {item.label}
                         </button>
                       ))}
+                      {/* Insert link button */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const anchor = window.prompt('Link text (anchor):') || 'Click here';
+                          const href = window.prompt('URL:', 'https://') || 'https://';
+                          const token = `[${anchor}](${href})`;
+                          if (!lastFocusedInput) {
+                            navigator.clipboard.writeText(token);
+                            return;
+                          }
+                          const block = contentBlocks.find((b) => b.id === lastFocusedInput.blockId);
+                          if (!block) return;
+                          const field = lastFocusedInput.field;
+                          const input = document.querySelector(
+                            `[data-block-id="${block.id}"][data-field="${field}"]`
+                          ) as HTMLInputElement | HTMLTextAreaElement | null;
+                          if (!input) return;
+                          const start = input.selectionStart ?? (input.value || '').length;
+                          const end = input.selectionEnd ?? (input.value || '').length;
+                          const current = input.value || '';
+                          const updated = current.slice(0, start) + token + current.slice(end);
+                          if (block.type === 'heading' || block.type === 'text' || block.type === 'footer') {
+                            updateBlock(block.id, { text: updated });
+                          } else if (block.type === 'cta') {
+                            updateBlock(block.id, { [field]: updated });
+                          }
+                        }}
+                        className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 hover:border-blue-400"
+                      >
+                        🔗 Insert link
+                      </button>
                     </div>
                   </div>
 
