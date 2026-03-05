@@ -50,7 +50,7 @@ const ProductReviewSection = dynamicImport(
 
 // ISR Configuration: Revalidate every 15 minutes
 export const revalidate = 900;
-export const dynamic = 'force-static';
+export const preferredRegion = 'syd1';
 
 interface PageProps {
   params: Promise<{
