@@ -290,15 +290,27 @@ function applyLiveStatus(
   });
 }
 
-async function getCollectionFacetsFromDb(whereClause: string): Promise<CollectionFacets> {
+/**
+ * Disjunctive facet queries: each dimension's counts are computed WITHOUT
+ * filtering by that same dimension. This means:
+ * - Size options always show all available sizes (filtered by active colour/brand)
+ * - Colour options always show all available colours (filtered by active size/brand)
+ * - Brand options always show all available brands (filtered by active size/colour)
+ * Counts use COUNT(DISTINCT p.id) to count products, not variant rows.
+ */
+async function getCollectionFacetsFromDb(
+  sizeWhereClause: string,  // category + colour + brand (no size filter)
+  colorWhereClause: string, // category + size + brand (no colour filter)
+  brandWhereClause: string, // category + size + colour (no brand filter)
+): Promise<CollectionFacets> {
   const brandRows = await sql.unsafe(`
     SELECT
       LOWER(COALESCE(p.vendor, '')) AS value,
       MIN(COALESCE(p.vendor, '')) AS display_name,
-      COUNT(*)::int AS count
+      COUNT(DISTINCT p.id)::int AS count
     FROM product_category_assignments pca
     JOIN products p ON p.id = pca.product_id
-    WHERE ${whereClause}
+    WHERE ${brandWhereClause}
       AND COALESCE(p.vendor, '') <> ''
     GROUP BY LOWER(COALESCE(p.vendor, ''))
     ORDER BY count DESC
@@ -307,11 +319,11 @@ async function getCollectionFacetsFromDb(whereClause: string): Promise<Collectio
   const sizeRows = await sql.unsafe(`
     SELECT
       vo.option_value AS value,
-      COUNT(*)::int AS count
+      COUNT(DISTINCT p.id)::int AS count
     FROM product_category_assignments pca
     JOIN products p ON p.id = pca.product_id
     JOIN variant_options vo ON vo.product_id = p.id
-    WHERE ${whereClause}
+    WHERE ${sizeWhereClause}
       AND vo.option_name_normalized = 'size'
       AND COALESCE(vo.option_value, '') <> ''
     GROUP BY vo.option_value
@@ -322,11 +334,11 @@ async function getCollectionFacetsFromDb(whereClause: string): Promise<Collectio
     SELECT
       vo.option_value_normalized AS value,
       MIN(vo.option_value) AS original_value,
-      COUNT(*)::int AS count
+      COUNT(DISTINCT p.id)::int AS count
     FROM product_category_assignments pca
     JOIN products p ON p.id = pca.product_id
     JOIN variant_options vo ON vo.product_id = p.id
-    WHERE ${whereClause}
+    WHERE ${colorWhereClause}
       AND vo.option_name_normalized IN ('color', 'colour')
       AND COALESCE(vo.option_value_normalized, '') <> ''
     GROUP BY vo.option_value_normalized
@@ -378,7 +390,13 @@ export async function getProductsByCategoryFromDB(
   totalCount: number;
   facets: CollectionFacets;
 }> {
+  // Full filter where clause (for products + count)
   const whereClause = buildCategoryWhereClause(categoryPath, filters);
+  // Per-dimension where clauses for disjunctive facets:
+  // each omits its own dimension so all options remain visible
+  const sizeWhereClause = buildCategoryWhereClause(categoryPath, { colors: filters?.colors, brands: filters?.brands });
+  const colorWhereClause = buildCategoryWhereClause(categoryPath, { sizes: filters?.sizes, brands: filters?.brands });
+  const brandWhereClause = buildCategoryWhereClause(categoryPath, { sizes: filters?.sizes, colors: filters?.colors });
   const offset = parseDbCursor(after, limit);
 
   const countRows = await sql.unsafe(`
@@ -426,7 +444,7 @@ export async function getProductsByCategoryFromDB(
   const mappedProducts = dbRows.map(dbProductToShopifyFormat);
   const [liveStatus, facets] = await Promise.all([
     getLiveStatusByProductIds(mappedProducts.map((product) => product.id)),
-    getCollectionFacetsFromDb(whereClause),
+    getCollectionFacetsFromDb(sizeWhereClause, colorWhereClause, brandWhereClause),
   ]);
   const products = applyLiveStatus(mappedProducts, liveStatus);
 
