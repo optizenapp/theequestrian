@@ -294,14 +294,34 @@ export default function AdminEmailCampaignsPage() {
             placeholder="Campaign name"
             className="rounded border border-gray-300 px-3 py-2 text-sm"
           />
-          <select value={templateVersionId} onChange={(e) => setTemplateVersionId(e.target.value)} className="rounded border border-gray-300 px-3 py-2 text-sm">
-            <option value="">Select template version</option>
-            {templates.map((template) => (
-              <option key={template.id} value={template.activeVersionId || ''}>
-                {template.name} {template.activeVersionId ? '' : '(no active version)'}
-              </option>
-            ))}
-          </select>
+          <div className="flex flex-col gap-1">
+            <select value={templateVersionId} onChange={(e) => setTemplateVersionId(e.target.value)} className="rounded border border-gray-300 px-3 py-2 text-sm">
+              <option value="">Select template version</option>
+              {templates.map((template) => (
+                <option key={template.id} value={template.activeVersionId || ''}>
+                  {template.name} {template.activeVersionId ? '' : '(no active version)'}
+                </option>
+              ))}
+            </select>
+            {templateVersionId ? (() => {
+              const tpl = templates.find((t) => t.activeVersionId === templateVersionId);
+              return tpl ? (
+                <Link
+                  href="/admin/email/templates"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-action hover:underline"
+                >
+                  ✏️ Edit template content for &ldquo;{tpl.name}&rdquo; →
+                </Link>
+              ) : null;
+            })() : (
+              <Link
+                href="/admin/email/templates"
+                className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-action hover:underline"
+              >
+                ✏️ Go to template editor to create or edit content →
+              </Link>
+            )}
+          </div>
         </div>
         <div className="mt-3 grid gap-2 md:grid-cols-2">
           <label className="text-sm text-gray-700">
