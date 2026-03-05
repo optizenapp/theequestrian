@@ -55,6 +55,13 @@ export default function AdminEmailCampaignsPage() {
   const editorCardRef = useRef<HTMLDivElement | null>(null);
   const nameInputRef = useRef<HTMLInputElement | null>(null);
 
+  function toggleSelectedId(current: string[], id: string): string[] {
+    if (current.includes(id)) {
+      return current.filter((value) => value !== id);
+    }
+    return [...current, id];
+  }
+
   function extractAudienceIds(
     audience: CampaignRow['audience'] | null | undefined
   ): { listIds: string[]; segmentIds: string[] } {
@@ -299,20 +306,27 @@ export default function AdminEmailCampaignsPage() {
         <div className="mt-3 grid gap-2 md:grid-cols-2">
           <label className="text-sm text-gray-700">
             Lists
-            <select
-              multiple
-              className="mt-1 h-32 w-full rounded border border-gray-300 px-2 py-1 text-sm"
-              value={selectedListIds}
-              onChange={(e) =>
-                setSelectedListIds(Array.from(e.target.selectedOptions).map((option) => option.value))
-              }
-            >
-              {lists.map((list) => (
-                <option key={list.id} value={list.id}>
-                  {list.name}
-                </option>
-              ))}
-            </select>
+            <div className="mt-1 max-h-40 space-y-1 overflow-auto rounded border border-gray-300 px-2 py-2">
+              {lists.length === 0 ? (
+                <p className="text-xs text-gray-500">No lists available.</p>
+              ) : (
+                lists.map((list) => (
+                  <label key={list.id} className="flex cursor-pointer items-center gap-2 text-sm text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={selectedListIds.includes(list.id)}
+                      onChange={() =>
+                        setSelectedListIds((current) => toggleSelectedId(current, list.id))
+                      }
+                    />
+                    <span>{list.name}</span>
+                  </label>
+                ))
+              )}
+            </div>
+            <p className="mt-1 text-xs text-gray-500">
+              Selected lists: {selectedListIds.length}
+            </p>
           </label>
           <label className="text-sm text-gray-700">
             Segments
