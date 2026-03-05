@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 
@@ -51,6 +51,9 @@ export default function AdminEmailCampaignsPage() {
   const [deletingCampaignId, setDeletingCampaignId] = useState<string | null>(null);
   const [preparedCampaign, setPreparedCampaign] = useState<PreparedCampaign | null>(null);
   const [duplicatedCampaignId, setDuplicatedCampaignId] = useState<string | null>(null);
+  const [editingCampaignId, setEditingCampaignId] = useState<string | null>(null);
+  const editorCardRef = useRef<HTMLDivElement | null>(null);
+  const nameInputRef = useRef<HTMLInputElement | null>(null);
 
   function extractAudienceIds(
     audience: CampaignRow['audience'] | null | undefined
@@ -66,12 +69,16 @@ export default function AdminEmailCampaignsPage() {
 
   function applyCampaignToEditor(campaign: CampaignRow) {
     const { listIds, segmentIds } = extractAudienceIds(campaign.audience);
+    setError('');
     setName(campaign.name);
     setTemplateVersionId(campaign.templateVersionId || '');
     setSelectedListIds(listIds);
     setSelectedSegmentIds(segmentIds);
     setPreparedCampaign(null);
+    setEditingCampaignId(campaign.id);
     setStatusMessage(`Editing campaign "${campaign.name}". Update audience/template and create a new send.`);
+    editorCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(() => nameInputRef.current?.focus(), 50);
   }
 
   async function loadAll() {
@@ -164,6 +171,10 @@ export default function AdminEmailCampaignsPage() {
 
       setStatusMessage('Campaign prepared. Review summary and click Send campaign.');
       setName('');
+      setTemplateVersionId('');
+      setSelectedListIds([]);
+      setSelectedSegmentIds([]);
+      setEditingCampaignId(null);
       await loadAll();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to prepare campaign');
@@ -234,10 +245,13 @@ export default function AdminEmailCampaignsPage() {
       setSelectedListIds(listIds);
       setSelectedSegmentIds(segmentIds);
       setPreparedCampaign(null);
+      setEditingCampaignId(newCampaignId || null);
       setStatusMessage(
         `Duplicated "${campaign.name}". Edit the copied campaign settings, then create/send when ready.`
       );
       await loadAll();
+      editorCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setTimeout(() => nameInputRef.current?.focus(), 50);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to duplicate campaign');
     } finally {
@@ -258,10 +272,21 @@ export default function AdminEmailCampaignsPage() {
         <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">{statusMessage}</div>
       ) : null}
 
-      <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div ref={editorCardRef} className="mb-6 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
         <h3 className="text-sm font-semibold text-gray-900">Create campaign</h3>
+        {editingCampaignId ? (
+          <p className="mt-1 text-xs font-medium text-blue-700">
+            Editing campaign draft: {editingCampaignId}
+          </p>
+        ) : null}
         <div className="mt-3 grid gap-2 md:grid-cols-2">
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Campaign name" className="rounded border border-gray-300 px-3 py-2 text-sm" />
+          <input
+            ref={nameInputRef}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Campaign name"
+            className="rounded border border-gray-300 px-3 py-2 text-sm"
+          />
           <select value={templateVersionId} onChange={(e) => setTemplateVersionId(e.target.value)} className="rounded border border-gray-300 px-3 py-2 text-sm">
             <option value="">Select template version</option>
             {templates.map((template) => (
