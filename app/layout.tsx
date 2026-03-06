@@ -78,7 +78,9 @@ export default function RootLayout({
                 function gtag(){dataLayer.push(arguments);}
                 gtag('js', new Date());
                 gtag('config', '${gaMeasurementId}', {
-                  page_path: window.location.pathname,
+                  // Include query params so GA4 can attribute UTMs
+                  page_path: window.location.pathname + window.location.search,
+                  page_location: window.location.href,
                 });
               `}
             </Script>
