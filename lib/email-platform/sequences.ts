@@ -231,11 +231,15 @@ async function runStep(
     });
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
     const renderedHtml = proxyEmailImages(
-      addUtmParamsToEmailHtml(renderedRaw.html, {
-        source: 'email',
-        medium: 'sequence',
-        campaign: 'equestrian-sequence',
-      }),
+      addUtmParamsToEmailHtml(
+        renderedRaw.html,
+        {
+          source: 'email',
+          medium: 'sequence',
+          campaign: 'equestrian-sequence',
+        },
+        siteUrl
+      ),
       siteUrl
     );
     const rendered = { ...renderedRaw, html: renderedHtml };

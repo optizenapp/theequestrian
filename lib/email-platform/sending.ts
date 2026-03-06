@@ -166,11 +166,15 @@ export async function sendQueuedCampaignRecipients(input: {
       variables,
     });
     const renderedHtml = proxyEmailImages(
-      addUtmParamsToEmailHtml(renderedRaw.html, {
-        source: 'email',
-        medium: 'newsletter',
-        campaign: campaignName,
-      }),
+      addUtmParamsToEmailHtml(
+        renderedRaw.html,
+        {
+          source: 'email',
+          medium: 'newsletter',
+          campaign: campaignName,
+        },
+        defaultSiteUrl
+      ),
       defaultSiteUrl
     );
     const rendered = { ...renderedRaw, html: renderedHtml };

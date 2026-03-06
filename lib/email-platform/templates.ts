@@ -64,8 +64,10 @@ export function proxyEmailImages(html: string, siteUrl: string): string {
  */
 export function addUtmParamsToEmailHtml(
   html: string,
-  utm: { source: string; medium: string; campaign: string; content?: string }
+  utm: { source: string; medium: string; campaign: string; content?: string },
+  baseUrl?: string
 ): string {
+  const normalizedBase = baseUrl ? baseUrl.replace(/\/$/, '') : '';
   return html.replace(/href="([^"]+)"/g, (match, rawHref: string) => {
     if (
       rawHref.startsWith('{{') ||
@@ -75,12 +77,24 @@ export function addUtmParamsToEmailHtml(
     ) {
       return match;
     }
-    if (!rawHref.startsWith('http://') && !rawHref.startsWith('https://')) {
-      return match;
+    // href values in HTML have & encoded as &amp; — decode before parsing
+    let decodedHref = rawHref.replace(/&amp;/g, '&');
+    if (decodedHref.startsWith('//')) {
+      decodedHref = `https:${decodedHref}`;
+    }
+    if (normalizedBase && decodedHref.startsWith('/')) {
+      decodedHref = `${normalizedBase}${decodedHref}`;
+    }
+    if (!decodedHref.startsWith('http://') && !decodedHref.startsWith('https://')) {
+      // Try to coerce bare domains like "www.example.com/path"
+      if (normalizedBase && /^[\w.-]+\.[a-z]{2,}/i.test(decodedHref)) {
+        decodedHref = `https://${decodedHref}`;
+      } else {
+        return match;
+      }
     }
     try {
-      // href values in HTML have & encoded as &amp; — decode before parsing
-      const url = new URL(rawHref.replace(/&amp;/g, '&'));
+      const url = new URL(decodedHref);
       if (!url.searchParams.has('utm_source')) url.searchParams.set('utm_source', utm.source);
       if (!url.searchParams.has('utm_medium')) url.searchParams.set('utm_medium', utm.medium);
       if (!url.searchParams.has('utm_campaign')) url.searchParams.set('utm_campaign', slugify(utm.campaign));

@@ -97,11 +97,15 @@ export async function POST(request: NextRequest) {
     });
 
     const htmlWithUtm = proxyEmailImages(
-      addUtmParamsToEmailHtml(rendered.html, {
-        source: 'email',
-        medium: 'newsletter',
-        campaign: 'test-email',
-      }),
+      addUtmParamsToEmailHtml(
+        rendered.html,
+        {
+          source: 'email',
+          medium: 'newsletter',
+          campaign: 'test-email',
+        },
+        siteUrl
+      ),
       siteUrl
     );
 
