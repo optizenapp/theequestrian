@@ -244,7 +244,7 @@ export default function AdminEmailCampaignsPage() {
           setContentBlocks(Array.isArray(data.version.blocks) ? data.version.blocks : []);
           setContentSubject(data.version.subjectTemplate || '');
           setContentFromName(data.version.fromName || 'The Equestrian');
-          setContentFromEmail(data.version.fromEmail || 'hello@theequestrian.com.au');
+          setContentFromEmail(data.version.fromEmail || 'support@theequestrian.com.au');
           const meta =
             data.version.metadata && typeof data.version.metadata === 'object'
               ? (data.version.metadata as Record<string, unknown>)
