@@ -15,6 +15,9 @@ export default function AdminEmailListsPage() {
   const [lists, setLists] = useState<ListRow[]>([]);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [targetListId, setTargetListId] = useState('');
+  const [memberEmail, setMemberEmail] = useState('');
+  const [statusMessage, setStatusMessage] = useState('');
   const [error, setError] = useState('');
 
   async function loadLists() {
@@ -23,11 +26,20 @@ export default function AdminEmailListsPage() {
     if (!response.ok) {
       throw new Error(data?.error || 'Failed to load lists');
     }
-    setLists(Array.isArray(data.lists) ? data.lists : []);
+    const rows = Array.isArray(data.lists) ? data.lists : [];
+    setLists(rows);
+    setTargetListId((prev) => prev || rows[0]?.id || '');
   }
 
   useEffect(() => {
-    loadLists().catch((err) => setError(err instanceof Error ? err.message : 'Failed to load lists'));
+    const init = async () => {
+      try {
+        await loadLists();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load lists');
+      }
+    };
+    init();
   }, []);
 
   return (
@@ -36,6 +48,11 @@ export default function AdminEmailListsPage() {
         <Link href="/admin/email" className="text-sm font-semibold text-action hover:underline">← Back to Email Platform</Link>
       </div>
       {error ? <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div> : null}
+      {statusMessage ? (
+        <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
+          {statusMessage}
+        </div>
+      ) : null}
       <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
         <h3 className="text-sm font-semibold text-gray-900">Create list</h3>
         <div className="mt-3 grid gap-2 md:grid-cols-3">
@@ -62,6 +79,59 @@ export default function AdminEmailListsPage() {
             }}
           >
             Create
+          </button>
+        </div>
+      </div>
+      <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+        <h3 className="text-sm font-semibold text-gray-900">Add member email to list</h3>
+        <div className="mt-3 grid gap-2 md:grid-cols-3">
+          <select
+            value={targetListId}
+            onChange={(e) => setTargetListId(e.target.value)}
+            className="rounded border border-gray-300 px-3 py-2 text-sm"
+          >
+            <option value="">Select list</option>
+            {lists.map((list) => (
+              <option key={list.id} value={list.id}>
+                {list.name}
+              </option>
+            ))}
+          </select>
+          <input
+            value={memberEmail}
+            onChange={(e) => setMemberEmail(e.target.value)}
+            placeholder="Email address (e.g. jono@silicondales.com)"
+            className="rounded border border-gray-300 px-3 py-2 text-sm"
+          />
+          <button
+            type="button"
+            className="rounded bg-action px-3 py-2 text-sm font-semibold text-white"
+            onClick={async () => {
+              if (!targetListId) {
+                setError('Please select a list');
+                return;
+              }
+              if (!memberEmail.trim()) {
+                setError('Please enter an email address');
+                return;
+              }
+              const response = await fetch(`/api/admin/email/lists/${targetListId}/members`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ emails: [memberEmail.trim()] }),
+              });
+              const data = await response.json();
+              if (!response.ok) {
+                setError(data?.error || 'Failed to add member email');
+                return;
+              }
+              setError('');
+              setStatusMessage(`Added ${memberEmail.trim().toLowerCase()} to the selected list.`);
+              setMemberEmail('');
+              await loadLists();
+            }}
+          >
+            Add email
           </button>
         </div>
       </div>

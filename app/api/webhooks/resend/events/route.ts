@@ -9,6 +9,17 @@ type ResendEventPayload = {
     email_id?: string;
     to?: string[];
     recipient?: string;
+    click?: {
+      link?: string;
+      ip_address?: string;
+      user_agent?: string;
+      timestamp?: string;
+    };
+    open?: {
+      ip_address?: string;
+      user_agent?: string;
+      timestamp?: string;
+    };
   };
 };
 
@@ -68,6 +79,42 @@ export async function POST(request: NextRequest) {
               updated_at = NOW()
           WHERE id = ${sendId}
         `;
+      }
+
+      if (eventType === 'email.opened') {
+        const openedAt = payload.data?.open?.timestamp || payload.created_at || new Date().toISOString();
+        await sql`
+          UPDATE email_sends
+          SET opened_at = COALESCE(opened_at, ${openedAt}::timestamptz),
+              open_count = COALESCE(open_count, 0) + 1,
+              updated_at = NOW()
+          WHERE id = ${sendId}
+        `;
+      }
+
+      if (eventType === 'email.clicked') {
+        const clickedAt = payload.data?.click?.timestamp || payload.created_at || new Date().toISOString();
+        await sql`
+          UPDATE email_sends
+          SET clicked_at = COALESCE(clicked_at, ${clickedAt}::timestamptz),
+              click_count = COALESCE(click_count, 0) + 1,
+              updated_at = NOW()
+          WHERE id = ${sendId}
+        `;
+
+        const clickedUrl = payload.data?.click?.link;
+        if (clickedUrl) {
+          await sql`
+            INSERT INTO email_link_clicks (send_id, clicked_url, ip_address, user_agent, clicked_at)
+            VALUES (
+              ${sendId},
+              ${clickedUrl},
+              ${payload.data?.click?.ip_address || null},
+              ${payload.data?.click?.user_agent || null},
+              ${clickedAt}::timestamptz
+            )
+          `;
+        }
       }
     }
 

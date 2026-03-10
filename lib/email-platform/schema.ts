@@ -311,6 +311,10 @@ export async function ensureEmailPlatformSchema(): Promise<void> {
       scheduled_at TIMESTAMPTZ,
       sent_at TIMESTAMPTZ,
       delivered_at TIMESTAMPTZ,
+      opened_at TIMESTAMPTZ,
+      clicked_at TIMESTAMPTZ,
+      open_count INTEGER NOT NULL DEFAULT 0,
+      click_count INTEGER NOT NULL DEFAULT 0,
       cancelled_at TIMESTAMPTZ,
       error_message TEXT,
       metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
@@ -318,6 +322,11 @@ export async function ensureEmailPlatformSchema(): Promise<void> {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `;
+
+  await sql`ALTER TABLE email_sends ADD COLUMN IF NOT EXISTS opened_at TIMESTAMPTZ`;
+  await sql`ALTER TABLE email_sends ADD COLUMN IF NOT EXISTS clicked_at TIMESTAMPTZ`;
+  await sql`ALTER TABLE email_sends ADD COLUMN IF NOT EXISTS open_count INTEGER NOT NULL DEFAULT 0`;
+  await sql`ALTER TABLE email_sends ADD COLUMN IF NOT EXISTS click_count INTEGER NOT NULL DEFAULT 0`;
 
   await sql`
     CREATE TABLE IF NOT EXISTS email_events (
@@ -329,6 +338,17 @@ export async function ensureEmailPlatformSchema(): Promise<void> {
       payload JSONB NOT NULL DEFAULT '{}'::jsonb,
       occurred_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS email_link_clicks (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      send_id UUID NOT NULL REFERENCES email_sends(id) ON DELETE CASCADE,
+      clicked_url TEXT NOT NULL,
+      ip_address TEXT,
+      user_agent TEXT,
+      clicked_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `;
 
@@ -357,5 +377,10 @@ export async function ensureEmailPlatformSchema(): Promise<void> {
   await sql`CREATE INDEX IF NOT EXISTS idx_email_sequence_enrollments_next_run ON email_sequence_enrollments(next_run_at)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_email_sends_recipient_email ON email_sends(recipient_email)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_email_sends_provider_message_id ON email_sends(provider_message_id)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_email_sends_campaign_recipient_id ON email_sends(campaign_recipient_id)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_email_sends_opened_at ON email_sends(opened_at)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_email_sends_clicked_at ON email_sends(clicked_at)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_email_events_provider_message_id ON email_events(provider_message_id)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_email_link_clicks_send_id ON email_link_clicks(send_id)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_email_link_clicks_clicked_at ON email_link_clicks(clicked_at DESC)`;
 }

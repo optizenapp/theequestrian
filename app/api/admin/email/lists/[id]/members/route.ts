@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
 import { addContactsToList } from '@/lib/email-platform/contacts';
+import { upsertEmailContact } from '@/lib/email-platform/contacts';
 
 export async function GET(
   _request: NextRequest,
@@ -47,15 +48,45 @@ export async function POST(
   try {
     const { id } = await params;
     const body = await request.json();
-    const contactIds = Array.isArray(body?.contactIds)
+    const contactIdsInput = Array.isArray(body?.contactIds)
       ? body.contactIds.filter((value: unknown): value is string => typeof value === 'string')
       : [];
+    const emailsInput: string[] = Array.isArray(body?.emails)
+      ? body.emails.filter((value: unknown): value is string => typeof value === 'string')
+      : [];
+
+    const normalizedEmails = Array.from(
+      new Set(
+        emailsInput
+          .map((email: string) => email.trim().toLowerCase())
+          .filter((email: string) => email.includes('@') && email.includes('.'))
+      )
+    );
+
+    const upsertedContactIds: string[] = [];
+    for (const email of normalizedEmails) {
+      const contact = await upsertEmailContact({
+        email,
+        source: 'manual_list_add',
+        acceptsMarketing: true,
+      });
+      upsertedContactIds.push(contact.contactId);
+    }
+
+    const contactIds = Array.from(new Set([...contactIdsInput, ...upsertedContactIds]));
     if (contactIds.length === 0) {
-      return NextResponse.json({ error: 'contactIds[] is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Provide at least one contact ID or valid email in contactIds[] or emails[]' },
+        { status: 400 }
+      );
     }
 
     await addContactsToList(id, contactIds, 'manual');
-    return NextResponse.json({ ok: true, added: contactIds.length });
+    return NextResponse.json({
+      ok: true,
+      added: contactIds.length,
+      createdOrUpdatedContacts: upsertedContactIds.length,
+    });
   } catch (error) {
     console.error('Failed to add members to list:', error);
     return NextResponse.json({ error: 'Failed to add members to list' }, { status: 500 });

@@ -35,6 +35,18 @@ type PreparedCampaign = {
   };
 };
 
+type CampaignStats = {
+  sentCount: number;
+  deliveredCount: number;
+  uniqueOpenedCount: number;
+  totalOpenCount: number;
+  uniqueClickedCount: number;
+  totalClickCount: number;
+  openRate: number;
+  clickRate: number;
+  clickToOpenRate: number;
+};
+
 const blockTypeLabels: Record<EmailBlock['type'], string> = {
   heading: 'Heading',
   text: 'Text',
@@ -67,6 +79,8 @@ export default function AdminEmailCampaignsPage() {
   const [preparedCampaign, setPreparedCampaign] = useState<PreparedCampaign | null>(null);
   const [duplicatedCampaignId, setDuplicatedCampaignId] = useState<string | null>(null);
   const [editingCampaignId, setEditingCampaignId] = useState<string | null>(null);
+  const [campaignStatsById, setCampaignStatsById] = useState<Record<string, CampaignStats>>({});
+  const [campaignStatsLoading, setCampaignStatsLoading] = useState<Record<string, boolean>>({});
 
   // Inline content editor state
   const [contentBlocks, setContentBlocks] = useState<EmailBlock[]>([]);
@@ -291,6 +305,63 @@ export default function AdminEmailCampaignsPage() {
   useEffect(() => {
     loadAll().catch((err) => setError(err instanceof Error ? err.message : 'Failed to load campaign data'));
   }, []);
+
+  useEffect(() => {
+    const campaignIds = campaigns
+      .filter((campaign) => campaign.status !== 'draft' && campaign.status !== 'scheduled')
+      .map((campaign) => campaign.id);
+    if (campaignIds.length === 0) {
+      setCampaignStatsById({});
+      setCampaignStatsLoading({});
+      return;
+    }
+
+    let isCancelled = false;
+    setCampaignStatsLoading((prev) => {
+      const next = { ...prev };
+      for (const campaignId of campaignIds) {
+        next[campaignId] = true;
+      }
+      return next;
+    });
+
+    Promise.all(
+      campaignIds.map(async (campaignId) => {
+        const response = await fetch(`/api/admin/email/campaigns/${campaignId}/stats`);
+        const data = await response.json();
+        if (!response.ok || !data?.stats) {
+          throw new Error(data?.error || `Failed to load stats for campaign ${campaignId}`);
+        }
+        return { campaignId, stats: data.stats as CampaignStats };
+      })
+    )
+      .then((statsRows) => {
+        if (isCancelled) return;
+        const next: Record<string, CampaignStats> = {};
+        for (const row of statsRows) {
+          next[row.campaignId] = row.stats;
+        }
+        setCampaignStatsById(next);
+      })
+      .catch((err) => {
+        if (isCancelled) return;
+        console.error('Failed to load campaign stats:', err);
+      })
+      .finally(() => {
+        if (isCancelled) return;
+        setCampaignStatsLoading((prev) => {
+          const next = { ...prev };
+          for (const campaignId of campaignIds) {
+            next[campaignId] = false;
+          }
+          return next;
+        });
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [campaigns]);
 
   function clearEditor() {
     setName('');
@@ -1089,6 +1160,24 @@ export default function AdminEmailCampaignsPage() {
       <div className="space-y-3">
         {campaigns.map((campaign) => (
           <div key={campaign.id} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+            {campaign.status !== 'draft' && campaign.status !== 'scheduled' ? (
+              <div className="mb-2 rounded-lg border border-gray-100 bg-gray-50 p-2">
+                {campaignStatsLoading[campaign.id] ? (
+                  <p className="text-xs text-gray-500">Loading engagement stats...</p>
+                ) : campaignStatsById[campaign.id] ? (
+                  <p className="text-xs text-gray-600">
+                    Sent: <span className="font-semibold">{campaignStatsById[campaign.id].sentCount}</span> | Delivered:{' '}
+                    <span className="font-semibold">{campaignStatsById[campaign.id].deliveredCount}</span> | Opens:{' '}
+                    <span className="font-semibold">{campaignStatsById[campaign.id].uniqueOpenedCount}</span> (
+                    {campaignStatsById[campaign.id].openRate}%) | Clicks:{' '}
+                    <span className="font-semibold">{campaignStatsById[campaign.id].uniqueClickedCount}</span> (
+                    {campaignStatsById[campaign.id].clickRate}%)
+                  </p>
+                ) : (
+                  <p className="text-xs text-gray-500">No engagement data yet.</p>
+                )}
+              </div>
+            ) : null}
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <h4 className="text-sm font-semibold text-gray-900">{campaign.name}</h4>
