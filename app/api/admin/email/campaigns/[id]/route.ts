@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
 import { logEmailAudit } from '@/lib/email-platform/audit';
+import { getAudienceBreakdown, getResolvedAudienceContactIds } from '@/lib/email-platform/segments';
+import { queueCampaignRecipients } from '@/lib/email-platform/sending';
 
 export async function PATCH(
   request: NextRequest,
@@ -40,15 +42,26 @@ export async function PATCH(
       WHERE id = ${id}
     `;
 
+    // Rebuild queued recipients whenever audience changes on a draft campaign.
+    // This prevents stale recipients from previous list/segment selections.
+    await sql`
+      DELETE FROM email_campaign_recipients
+      WHERE campaign_id = ${id}
+    `;
+
+    const audienceBreakdown = await getAudienceBreakdown({ listIds, segmentIds });
+    const contactIds = await getResolvedAudienceContactIds({ listIds, segmentIds });
+    const queuedRecipients = await queueCampaignRecipients(id, contactIds);
+
     await logEmailAudit({
       actor: 'admin',
       action: 'campaign_updated',
       entityType: 'email_campaign',
       entityId: id,
-      payload: { name, templateVersionId, listIds, segmentIds },
+      payload: { name, templateVersionId, listIds, segmentIds, queuedRecipients, audienceBreakdown },
     });
 
-    return NextResponse.json({ ok: true, id });
+    return NextResponse.json({ ok: true, id, queuedRecipients, audienceBreakdown });
   } catch (error) {
     console.error('Failed to update campaign:', error);
     return NextResponse.json({ error: 'Failed to update campaign' }, { status: 500 });

@@ -88,11 +88,15 @@ export async function sendQueuedCampaignRecipients(input: {
   const frequencyCapDays = input.frequencyCapDays ?? 7;
 
   const campaignResult = await sql`
-    SELECT id, name, template_version_id
+    SELECT id, name, status, template_version_id
     FROM email_campaigns
     WHERE id = ${input.campaignId}
     LIMIT 1
   `;
+  const campaignStatus = (campaignResult.rows[0]?.status as string | undefined) || 'draft';
+  if (campaignStatus === 'cancelled') {
+    throw new Error('Campaign is cancelled and cannot be sent');
+  }
   const campaignName = (campaignResult.rows[0]?.name as string | undefined) || 'campaign';
   const templateVersionId = campaignResult.rows[0]?.template_version_id as string | undefined;
   if (!templateVersionId) {
@@ -124,7 +128,30 @@ export async function sendQueuedCampaignRecipients(input: {
   let failed = 0;
   let skipped = 0;
 
-  for (const row of recipients.rows) {
+  for (let index = 0; index < recipients.rows.length; index += 1) {
+    if (index === 0 || index % 20 === 0) {
+      const statusCheck = await sql`
+        SELECT status
+        FROM email_campaigns
+        WHERE id = ${input.campaignId}
+        LIMIT 1
+      `;
+      const liveStatus = (statusCheck.rows[0]?.status as string | undefined) || 'draft';
+      if (liveStatus === 'cancelled') {
+        const cancelledQueued = await sql`
+          UPDATE email_campaign_recipients
+          SET status = 'cancelled',
+              skip_reason = 'campaign_cancelled',
+              updated_at = NOW()
+          WHERE campaign_id = ${input.campaignId}
+            AND status = 'queued'
+        `;
+        skipped += Number(cancelledQueued.rowCount || 0);
+        break;
+      }
+    }
+
+    const row = recipients.rows[index];
     const recipientId = row.id as string;
     const contactId = row.contact_id as string;
     const email = row.email as string;
@@ -266,12 +293,19 @@ export async function sendQueuedCampaignRecipients(input: {
       AND status = 'queued'
   `;
   const queuedCount = Number(remaining.rows[0]?.queued_count || 0);
-  const status = queuedCount > 0 ? 'processing' : 'completed';
+  const finalStatusCheck = await sql`
+    SELECT status
+    FROM email_campaigns
+    WHERE id = ${input.campaignId}
+    LIMIT 1
+  `;
+  const currentStatus = (finalStatusCheck.rows[0]?.status as string | undefined) || 'draft';
+  const status = currentStatus === 'cancelled' ? 'cancelled' : queuedCount > 0 ? 'processing' : 'completed';
 
   await sql`
     UPDATE email_campaigns
     SET status = ${status},
-        completed_at = CASE WHEN ${status} = 'completed' THEN NOW() ELSE completed_at END,
+        completed_at = CASE WHEN ${status} IN ('completed', 'cancelled') THEN NOW() ELSE completed_at END,
         updated_at = NOW()
     WHERE id = ${input.campaignId}
   `;

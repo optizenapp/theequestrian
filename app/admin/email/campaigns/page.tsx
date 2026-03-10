@@ -76,6 +76,7 @@ export default function AdminEmailCampaignsPage() {
   const [isSendingCampaign, setIsSendingCampaign] = useState(false);
   const [isDuplicatingCampaign, setIsDuplicatingCampaign] = useState(false);
   const [deletingCampaignId, setDeletingCampaignId] = useState<string | null>(null);
+  const [cancellingCampaignId, setCancellingCampaignId] = useState<string | null>(null);
   const [preparedCampaign, setPreparedCampaign] = useState<PreparedCampaign | null>(null);
   const [duplicatedCampaignId, setDuplicatedCampaignId] = useState<string | null>(null);
   const [editingCampaignId, setEditingCampaignId] = useState<string | null>(null);
@@ -1206,6 +1207,40 @@ export default function AdminEmailCampaignsPage() {
                 >
                   Send queued
                 </button>
+                {campaign.status === 'processing' ? (
+                  <button
+                    type="button"
+                    disabled={cancellingCampaignId === campaign.id}
+                    className="rounded-full border border-amber-300 px-3 py-1.5 text-xs font-semibold text-amber-700 hover:border-amber-500 disabled:opacity-60"
+                    onClick={async () => {
+                      const confirmed = window.confirm(
+                        `Cancel sending campaign "${campaign.name}"? Remaining queued recipients will be cancelled.`
+                      );
+                      if (!confirmed) return;
+                      setCancellingCampaignId(campaign.id);
+                      setError('');
+                      setStatusMessage('');
+                      try {
+                        const response = await fetch(`/api/admin/email/campaigns/${campaign.id}/cancel`, {
+                          method: 'POST',
+                        });
+                        const data = await response.json();
+                        if (!response.ok) {
+                          setError(data?.error || 'Failed to cancel campaign');
+                          return;
+                        }
+                        setStatusMessage(
+                          `Campaign "${campaign.name}" cancelled. ${data.cancelledQueuedRecipients || 0} queued recipients were cancelled.`
+                        );
+                        await loadAll();
+                      } finally {
+                        setCancellingCampaignId(null);
+                      }
+                    }}
+                  >
+                    {cancellingCampaignId === campaign.id ? 'Cancelling…' : 'Cancel send'}
+                  </button>
+                ) : null}
                 {campaign.status === 'draft' ? (
                   <button
                     type="button"
