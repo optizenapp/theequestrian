@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
+import { Resend } from 'resend';
 import { markSuppressedByEmail } from '@/lib/email-platform/sending';
+
+const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
 
 type ResendEventPayload = {
   type?: string;
@@ -25,15 +28,45 @@ type ResendEventPayload = {
 
 export async function POST(request: NextRequest) {
   try {
+    const rawBody = await request.text();
     const secret = process.env.RESEND_WEBHOOK_SECRET;
     if (secret) {
-      const headerSecret = request.headers.get('x-resend-signature');
-      if (!headerSecret || headerSecret !== secret) {
+      const svixId = request.headers.get('svix-id');
+      const svixTimestamp = request.headers.get('svix-timestamp');
+      const svixSignature = request.headers.get('svix-signature');
+
+      let verified = false;
+
+      if (svixId && svixTimestamp && svixSignature) {
+        try {
+          resend.webhooks.verify({
+            payload: rawBody,
+            webhookSecret: secret,
+            headers: {
+              id: svixId,
+              timestamp: svixTimestamp,
+              signature: svixSignature,
+            },
+          });
+          verified = true;
+        } catch (error) {
+          console.error('Resend Svix webhook verification failed:', error);
+        }
+      }
+
+      if (!verified) {
+        const legacySignature = request.headers.get('x-resend-signature');
+        if (legacySignature && legacySignature === secret) {
+          verified = true;
+        }
+      }
+
+      if (!verified) {
         return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 401 });
       }
     }
 
-    const payload = (await request.json()) as ResendEventPayload;
+    const payload = JSON.parse(rawBody) as ResendEventPayload;
     const eventType = payload.type || 'unknown';
     const messageId = payload.data?.email_id || null;
     const recipient = payload.data?.recipient || payload.data?.to?.[0] || null;
