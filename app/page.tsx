@@ -307,7 +307,7 @@ export default async function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
       />
-      {sectionsWithProducts.map((section) => {
+      {sectionsWithProducts.map((section, index) => {
         switch (section.type) {
           case 'hero':
             return (
@@ -505,6 +505,62 @@ export default async function Home() {
               >
                 <HomeFAQ section={section} />
               </LazySection>
+            );
+
+          case 'rich_text':
+            // Render consecutive rich_text entries as one responsive grid.
+            if (sectionsWithProducts[index - 1]?.type === 'rich_text') {
+              return null;
+            }
+
+            const richTextGroup = sectionsWithProducts.slice(index).filter((item, itemIndex, arr) => {
+              if (itemIndex === 0) return item.type === 'rich_text';
+              return arr[itemIndex - 1]?.type === 'rich_text' && item.type === 'rich_text';
+            });
+
+            if (!richTextGroup.length) return null;
+
+            return (
+              <section key={section.key} className="bg-white py-6 sm:py-8">
+                <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+                  <div className="grid gap-6 md:grid-cols-2">
+                    {richTextGroup.map((item) => (
+                      <article
+                        key={item.key}
+                        className="rounded-3xl border border-primary/20 bg-gradient-to-br from-white via-primary-pale/20 to-secondary-pale/30 p-6 shadow-sm sm:p-8"
+                      >
+                        <div className="mb-5 flex items-center gap-3">
+                          <span className="h-2.5 w-2.5 rounded-full bg-primary" />
+                          <span className="h-px flex-1 bg-primary/25" />
+                        </div>
+                        <div className="text-center">
+                          {item.eyebrow && (
+                            <p className="mb-3 text-xs font-semibold tracking-[0.35em] uppercase text-primary-dark">
+                              {item.eyebrow}
+                            </p>
+                          )}
+                          {item.title_html && (
+                            <h2 className="text-2xl font-bold leading-tight text-gray-900 sm:text-3xl">
+                              <InlineHtml html={item.title_html} />
+                            </h2>
+                          )}
+                          {item.subtitle_html && (
+                            <p className="mt-3 text-gray-700">
+                              <InlineHtml html={item.subtitle_html} />
+                            </p>
+                          )}
+                        </div>
+                        {item.body_html && (
+                          <div
+                            className="prose prose-lg mt-5 max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 [&_p]:mb-5 [&_p]:leading-8 [&_a]:font-medium [&_a]:text-[#E91E8C] [&_a]:underline [&_a]:decoration-[#E91E8C] [&_a]:underline-offset-2 hover:[&_a]:text-[#d01a7d]"
+                            dangerouslySetInnerHTML={{ __html: item.body_html }}
+                          />
+                        )}
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              </section>
             );
 
           case 'seen_in':

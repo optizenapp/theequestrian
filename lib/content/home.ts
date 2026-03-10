@@ -21,7 +21,8 @@ export type HomeSectionType =
   | 'signup'
   | 'recent_articles'
   | 'faqs'
-  | 'seen_in';
+  | 'seen_in'
+  | 'rich_text';
  
 export interface HomeMostWantedItem {
   title: string;
@@ -160,6 +161,7 @@ function normalizeSectionType(type: string): HomeSectionType | null {
     case 'recent_articles':
     case 'faqs':
     case 'seen_in':
+    case 'rich_text':
       return t;
     default:
       return null;
