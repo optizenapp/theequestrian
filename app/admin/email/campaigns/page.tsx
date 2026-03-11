@@ -1279,42 +1279,40 @@ export default function AdminEmailCampaignsPage() {
                     {duplicatedCampaignId === campaign.id ? 'Edit duplicate' : 'Edit'}
                   </button>
                 ) : null}
-                {campaign.status === 'draft' || campaign.status === 'scheduled' || campaign.status === 'cancelled' ? (
-                  <button
-                    type="button"
-                    disabled={deletingCampaignId === campaign.id}
-                    className="rounded-full border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-700 hover:border-red-400 disabled:opacity-60"
-                    onClick={async () => {
-                      const recipientCount = campaignStatsById[campaign.id]?.remainingQueued || 0;
-                      const message = recipientCount > 0
-                        ? `Delete campaign "${campaign.name}"? This will cancel ${recipientCount} queued recipients and permanently remove this campaign.`
-                        : `Delete campaign "${campaign.name}"? This will permanently remove this campaign.`;
-                      const confirmed = window.confirm(message);
-                      if (!confirmed) return;
-                      setDeletingCampaignId(campaign.id);
-                      setError('');
-                      try {
-                        const response = await fetch(`/api/admin/email/campaigns/${campaign.id}`, {
-                          method: 'DELETE',
-                        });
-                        const data = await response.json();
-                        if (!response.ok) {
-                          setError(data?.error || 'Failed to delete campaign');
-                          return;
-                        }
-                        if (preparedCampaign?.id === campaign.id) setPreparedCampaign(null);
-                        setStatusMessage(
-                          `Deleted campaign "${campaign.name}" (${data.deletedRecipientCount || 0} recipients removed).`
-                        );
-                        await loadAll();
-                      } finally {
-                        setDeletingCampaignId(null);
+                <button
+                  type="button"
+                  disabled={deletingCampaignId === campaign.id}
+                  className="rounded-full border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-700 hover:border-red-400 disabled:opacity-60"
+                  onClick={async () => {
+                    const recipientCount = campaignStatsById[campaign.id]?.remainingQueued || 0;
+                    const message = recipientCount > 0
+                      ? `Delete campaign "${campaign.name}"? This will cancel ${recipientCount} queued recipients and permanently remove this campaign.`
+                      : `Delete campaign "${campaign.name}"? This will permanently remove this campaign.`;
+                    const confirmed = window.confirm(message);
+                    if (!confirmed) return;
+                    setDeletingCampaignId(campaign.id);
+                    setError('');
+                    try {
+                      const response = await fetch(`/api/admin/email/campaigns/${campaign.id}`, {
+                        method: 'DELETE',
+                      });
+                      const data = await response.json();
+                      if (!response.ok) {
+                        setError(data?.error || 'Failed to delete campaign');
+                        return;
                       }
-                    }}
-                  >
-                    {deletingCampaignId === campaign.id ? 'Deleting…' : 'Delete'}
-                  </button>
-                ) : null}
+                      if (preparedCampaign?.id === campaign.id) setPreparedCampaign(null);
+                      setStatusMessage(
+                        `Deleted campaign "${campaign.name}" (${data.deletedRecipientCount || 0} recipients removed).`
+                      );
+                      await loadAll();
+                    } finally {
+                      setDeletingCampaignId(null);
+                    }
+                  }}
+                >
+                  {deletingCampaignId === campaign.id ? 'Deleting…' : 'Delete'}
+                </button>
               </div>
             </div>
           </div>

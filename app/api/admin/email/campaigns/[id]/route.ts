@@ -86,31 +86,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Campaign not found' }, { status: 404 });
     }
 
-    const status = String(campaign.status || '');
-    if (status !== 'draft' && status !== 'scheduled' && status !== 'cancelled') {
-      return NextResponse.json(
-        { error: 'Only draft, scheduled, or cancelled campaigns can be deleted' },
-        { status: 409 }
-      );
-    }
-
-    // For draft/scheduled: prevent deletion if sends have already started
-    // For cancelled: allow deletion even if sends started (that's expected)
-    if (status === 'draft' || status === 'scheduled') {
-      const sentRecipientCountResult = await sql`
-        SELECT COUNT(*) AS count
-        FROM email_campaign_recipients
-        WHERE campaign_id = ${id}
-          AND status IN ('sent', 'delivered', 'failed')
-      `;
-      const sentRecipientCount = Number(sentRecipientCountResult.rows[0]?.count || 0);
-      if (sentRecipientCount > 0) {
-        return NextResponse.json(
-          { error: 'Campaign cannot be deleted after send processing has started' },
-          { status: 409 }
-        );
-      }
-    }
+    // All campaign statuses can be deleted - no restrictions
+    // This allows cleaning up completed, cancelled, draft, etc.
 
     const recipientCountResult = await sql`
       SELECT COUNT(*) AS count
