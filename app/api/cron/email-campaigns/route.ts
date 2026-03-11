@@ -19,7 +19,8 @@ export async function POST(request: NextRequest) {
 async function handleCron(request: NextRequest) {
   try {
     // Verify this is a legitimate Vercel cron request
-    const vercelCronSecret = request.headers.get('x-vercel-cron-secret');
+    // Vercel sends: Authorization: Bearer <CRON_SECRET>
+    const authHeader = request.headers.get('authorization');
     const envSecret = process.env.CRON_SECRET;
 
     if (!envSecret) {
@@ -27,8 +28,8 @@ async function handleCron(request: NextRequest) {
       return NextResponse.json({ error: 'Cron not configured' }, { status: 500 });
     }
 
-    // Vercel sends this header automatically when cron triggers
-    if (vercelCronSecret !== envSecret) {
+    const token = authHeader?.replace('Bearer ', '');
+    if (token !== envSecret) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
