@@ -19,6 +19,10 @@
     {
       "path": "/api/cron/ga4-sync",
       "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/email-campaigns",
+      "schedule": "*/5 * * * *"
     }
   ]
 }
