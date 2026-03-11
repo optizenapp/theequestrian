@@ -1,0 +1,55 @@
+Category Enrichment Run — 2026-02-23T23:27:56.134Z
+Mode: apply | Concurrency: 4
+Total: 50 | Succeeded: 50 | Failed: 0 | Cost: $1.1905
+
+Completed pages:
+  ✓ /horse/pads/gel-pads                                    koray=93  $0.0244  applied
+  ✓ /horse/pads/dressage                                    koray=93  $0.0240  applied
+  ✓ /horse/pads/bare                                        koray=84  $0.0203  applied
+  ✓ /horse/pads/bareback                                    koray=81  $0.0205  applied
+  ✓ /horse/pads/jumping                                     koray=88  $0.0237  applied
+  ✓ /horse/pads/half-pads                                   koray=88  $0.0243  applied
+  ✓ /horse/pads/mattes                                      koray=79  $0.0219  applied
+  ✓ /horse/pads/matchy-sets                                 koray=85  $0.0210  applied
+  ✓ /horse/pads/western                                     koray=93  $0.0258  applied
+  ✓ /horse/pads/sheepskin                                   koray=81  $0.0237  applied
+  ✓ /horse/pads/wither-pads                                 koray=93  $0.0252  applied
+  ✓ /horse/pads/wither-relief                               koray=90  $0.0255  applied
+  ✓ /horse/racing                                           koray=79  $0.0249  applied
+  ✓ /horse/rugs                                             koray=86  $0.0268  applied
+  ✓ /horse/rugs/accessories                                 koray=93  $0.0252  applied
+  ✓ /horse/racing/harness                                   koray=93  $0.0237  applied
+  ✓ /horse/rugs/cotton                                      koray=88  $0.0250  applied
+  ✓ /horse/rugs/canvas                                      koray=84  $0.0229  applied
+  ✓ /horse/rugs/eurohunter                                  koray=82  $0.0243  applied
+  ✓ /horse/rugs/flag                                        koray=93  $0.0226  applied
+  ✓ /horse/rugs/hoods                                       koray=91  $0.0262  applied
+  ✓ /horse/rugs/kentucky                                    koray=89  $0.0217  applied
+  ✓ /horse/rugs/mesh                                        koray=89  $0.0225  applied
+  ✓ /horse/rugs/rain                                        koray=88  $0.0222  applied
+  ✓ /horse/rugs/riding                                      koray=84  $0.0228  applied
+  ✓ /horse/rugs/summer                                      koray=88  $0.0239  applied
+  ✓ /horse/rugs/show                                        koray=81  $0.0216  applied
+  ✓ /horse/rugs/tail-protectors                             koray=88  $0.0224  applied
+  ✓ /horse/rugs/winter                                      koray=88  $0.0244  applied
+  ✓ /horse/rugs/travel                                      koray=84  $0.0227  applied
+  ✓ /horse/rugs/woolen                                      koray=84  $0.0212  applied
+  ✓ /horse/saddles/accessories                              koray=88  $0.0282  applied
+  ✓ /horse/saddles                                          koray=85  $0.0277  applied
+  ✓ /horse/saddles/all-purpose                              koray=93  $0.0229  applied
+  ✓ /horse/saddles/arena                                    koray=89  $0.0231  applied
+  ✓ /horse/saddles/equipe                                   koray=82  $0.0231  applied
+  ✓ /horse/saddles/jumping                                  koray=88  $0.0261  applied
+  ✓ /horse/saddles/dressage                                 koray=87  $0.0278  applied
+  ✓ /horse/saddles/stock-western                            koray=93  $0.0259  applied
+  ✓ /horse/stable                                           koray=85  $0.0258  applied
+  ✓ /horse/stable/clippers                                  koray=93  $0.0236  applied
+  ✓ /horse/stable/bags                                      koray=93  $0.0228  applied
+  ✓ /horse/stable/diy                                       koray=87  $0.0263  applied
+  ✓ /horse/stable/farrier                                   koray=93  $0.0237  applied
+  ✓ /horse/stable/feed                                      koray=93  $0.0227  applied
+  ✓ /horse/stable/feed-storage                              koray=89  $0.0235  applied
+  ✓ /horse/stable/fly-control                               koray=88  $0.0236  applied
+  ✓ /horse/stable/fly-repellent                             koray=88  $0.0233  applied
+  ✓ /horse/stable/hay-feeders                               koray=81  $0.0215  applied
+  ✓ /horse/stable/feeding                                   koray=85  $0.0216  applied

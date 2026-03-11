@@ -18,7 +18,13 @@ export const EnrichmentQueries = {
         'collection'::text AS page_type,
         cc.url_path AS page_identifier,
         cc.url_path AS canonical_path,
-        cc.updated_at AS last_enriched_at,
+        (
+          SELECT MAX(el.created_at)
+          FROM enrichment_log el
+          WHERE el.page_type = 'collection'
+            AND el.page_identifier = cc.url_path
+            AND el.applied = TRUE
+        ) AS last_enriched_at,
         (cc.status = 'published') AS is_active
       FROM collection_content cc
     ),

@@ -1,0 +1,808 @@
+{
+  "date": "2026-03-05",
+  "submitted": 200,
+  "errors": 0,
+  "skipped": 0,
+  "urls": [
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/terrain-with-mips",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/accessories/gifts/breyer-mane-beauty-lil-beauties-koda",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/hoof-care/academy-plastic-hoof-pick-green",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/accessories/stc-cotton-drill-rug-bib",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/number-holders/zilco-competition-number-set",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/accessories/shoe-stretch",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/spurs/zilco-solid-roller-ball-spur",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/mcalister-competition-bridle-black-full",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/ice-boots/maximus-ice-boot-black-single-full",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/necklaces/leather-lariat-necklace-with-stirrup-horse-and-horseshoe",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/clippers/clipper-set-liveryman-clipper-brushless-harmony-plus",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bits/accessories/lami-cell-neoprene-bit-guard",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/belts/just-country-womens-bridle-buffalo-textured-leather-brown-belt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/pilbara-mens-zipper-closed-front-fleece-pullover",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/whips/zilco-economy-driving-whip",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/horze-maddox-scraper",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/belts/just-country-mens-genuine-leather-brown-belt-cutout-floral-and-turquoise",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/necklaces/braided-horse-tail-hair-necklace-and-pendant",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/sweaters/pilbara-womens-zipper-closed-front-fleece-pullover",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/pvc-event-bridle-with-hanoverian-noseband-black-full",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/outerwear/oilskins/high-country-oilskin-adults",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/vests/vest-woof-wear-heated-quilted-navy",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/training/lunge-equipment/horze-lunging-aid",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/hats/akubra-avalon",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/clippers/clipper-set-liveryman-trimmer-classic-brushless-motor",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/vests/vest-bare-equestrian-winter-series-sienna-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/bell-boots/horze-lincoln-bell-boots-with-fur",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/vests/vest-woof-wear-powerbank-for-heated-vest",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/little-star-bridle-customer-return",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/fort-worth-nylon-headstall-red-purple-cob",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/reins/grip-leather-reins-with-brass-full",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/pvc-event-bridle-with-hanoverian-noseband-blue-full",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/kids/pilbara-kids-closed-front-long-sleeve-shirt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/pvc-hanoverian-event-bridle-pink-pony",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/feed-storage/eh-canvas-hay",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/eyewear/sunglass-equator-blue",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bits/accessories/black-rubber-bit-guards-1",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/eyewear/sunglass-equator-blaze",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/bandages/eurohunter-glitter-bandage-set",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/violet-ice-blue-rose-black-velvet-sheen-saddle-pad-eurofit-large-size",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/eyewear/warrego-sunglasses-grn",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/show-shirts/timeless-short-sleeve-show-shirt-navy",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/caps/horze-romy-cap",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/girths/prolite-short-girth-narrow-gauge",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/jumping/grainge-velvet-jump-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/shirts/ojai-shirt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/show-shirts/bvertigo-kayla-show-shirt-vdb",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/activewear/soccer-ball",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/summer/eureka-summer-ripstop-rug",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/jeans/wmns-suzie-slimmer-leg-jean28l-10",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/bags/sports-bag",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/belts/ringers-western-james-belt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/astra-sidepull-bridle",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/shirts/ariat-sunstopper-2-0-navy",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/shirts/elite-performance-series-training-shirt-blueberry",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/penelope-lyona-saddle-pad",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/rubber-massage-curry-comb",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/ariat-sunstopper-2-0-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tops/penelope-las-honey-longsleeve-competition-shirt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/vests/balma-women-bodywarmer",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/split-leather-foot-pads",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/stirrup-leathers/platinum-series-oxbows-leather-on-tread",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/fly-repellent/vetsense-flygon-1",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/hats/will-bear-levi-wool-beanie-tusk",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/shirts/pure-western-women-s-tahnee-print-long-sleeve-shirt-10",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/accessories/kentucky-quarter-guard",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/caps/ariat-uni-cotton-print-cap-charcoal-bit-print",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/saddles/saddle",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/charms/necklace-bead-charm-purple",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/stirrup-irons/nickel-plate-2-bar-stirrups-12cm",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/casual/eureka-childs-leather-clogs",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/caps/ariat-uni-tri-factor-cap-relic",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/breeches/luxe-breeches-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/tc-unisex-pony-slippers",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/canvas-drover-m",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bits/zilco-curved-mth-5-5-snaffle",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/defenze-helmet",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/hats/wanderer-crushable-hat-57-fawn",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/bandages/abbeyshield-spray-bandage",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/body-protectors/ouraye-airbag-harcour-x-hit-air",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/hats/will-bear-tasman-soft-wool-beanie-moss",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/wormers/jurox-promectin-plus-allwormer-paste-for-horses-32-4g",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/kids/tops/thomas-cook-buttercup-girls-tee",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/saddles/accessories/cair-insert",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/outerwear/jackets/priska-women-waterproof-jacket",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/small-fleece-boot-black-blue-pony",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/wormers/prazivec-all-wormer-6-42",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/accessories/gift-cards/gift-card-3",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/breeches/penelope-elegance-ladies-breeches",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/stallion-magnet-single",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/headbands/horze-addison-womens-fleece-headband",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/grainge-deluxe-ap-saddlepad",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/supplements/nutriblend-1-8kg",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/supplements/zenblend-new-formula-1-2kg",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/shirts/callie-blouse-short-sleeve",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/socks/technical-riding-sock-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/whips/zilco-training-flag-whip-110cm",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/milrey-cap-sleeve-darla-top-washed-blue",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/breeches/jaltika-woman-breeches-fix-system-rider",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/aria-women-jogging",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/feed-storage/eurohunter-canvas-hay-feed-bag",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/long-sleeve/callie-blouse-long-sleeve",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/leggings/lova-legging-full-seat-women",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/accessories/tools/eureka-bot-egg-knife",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bits/zilco-eggbutt-training-bradoon",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/breeches/luce-woman-breeches-fix-grip",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/stirrup-irons/zilco-black-2-bar-treads",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bits/zilco-pony-training-snaffle",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/stirrup-irons/zilco-white-fillis-treads",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/outerwear/jackets/mens-black-bonded-jacket-mwj1009000",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/mesh/zilco-econo-air-combo-2",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/stirrup-leathers/mcalister-stock-leathers-brass-58",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bits/accessories/eureka-rubber-bit-guards",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bits/pessoa-gag",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/sweaters/samy-sweat-unisexe",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/feed-storage/eureka-d-feed-bin-with-brackets",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/belts/thomas-cook-silver-twin-keeper-belt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/whips/snowbee-pony-club-whip",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/hats/akubra-dusty-dawn",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/hats/akubra-outback-club",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/eurohunter-cattai-helmet",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/hats/stetson-colorado-granite",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/breeches/horze-junior-active-full-seat-breeches",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/stirrup-leathers/zilco-stock-stirrup-straps-pn-leather-1-1-4",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/jeans/pure-western-girls-emma-boot-cut-jean",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/dog/toys/eureka-horseplay-star-ball",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bits/zilco-sweet-iron-snaffle-fine",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/leggings/louna-legging-full-seat-women",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/outerwear/jackets/wrangler-mens-logo-soft-shell-jacket",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bits/zilco-rugby-training-pelham",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/saphir-tapis-de-selle",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/stirrup-irons/grainge-stirrup-tread-white",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/outerwear/show-jackets/jismy-woman-competition-jacket",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/socks/casual-barn-slouch-sock",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bits/showcraft-ss-oval-link-training-bit-14mm",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/stirrup-irons/rubber-slanting-fillis-pads",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bits/zilco-tom-thumb",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/outerwear/jackets/jako-man-jacket",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/dressage/eurohunter-dressage-saddlepad",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/outerwear/jackets/simhat-woman-jacket-rider",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/stirrup-leathers/zilco-black-pvc-stirrup-straps-1x56",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/shadow-box-pet-memorial-keepsake-with-ashes",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/polo-shirts/tess-woman-technical-polo",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/polo-shirts/stella-woman-competition-polo-ls",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/samshield-miss-shield-2-0-crystal-bloom",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/samshield-miss-glossy-2-0-ultra-fine-rock-front-band",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/kask-star-lady-wg11-in-and-out-swarovski",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/samshield-shadow-glossy-2-0-alcantara-matt-trim-5-swarovski",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/breeches/jaltika-woman-breeches",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/breeches/samshield-chloe-crystal-breeches-fw24",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/instruments/zilco-revolving-leather-punch",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/western/mens-groundbreaker-wide-square-toe-st",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/kep-cromo-2-0-shine-luminor-collection",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/kep-cromo-2-0-shine-helmet-with-crystal-logo",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/soft-tapis-saddle-pad",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/western/kids-heritage-roper-wide-square-toe",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/kask-star-lady-pure-shine-wg11-in-and-out-swarovski",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bonnets/fablir-bonnet",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/karembar-saddle-pad",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/breeches/ludivine-woman-breeches-full-seat",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/bracelets/resin-bangle-rb001-cabaret",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/outerwear/jackets/robertah-woman-long-parka-rider",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/kask-star-lady-pure-shine-wg11-swarovski-midnight",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tops/samshield-louison-crystal-long-sleeve-competition-shirt-fw24",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/hats/samshield-mira-crystal-beanie-fw24",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/outerwear/show-jackets/samshield-olympe-crystal-jacket-fw24",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/samshield-miss-shield-glossy-2-0-crystal-bloom-front-band",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/samshield-miss-shield-2-0-tiara-front-band",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/kask-star-lady-pure-shine-swarovski-frame-wg11",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/accessories/gifts/horseshoe-wedding-frame-gift",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/polo-shirts/shine-women-competition-polo-ss",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/caps/cap-ambassadeur-softshell",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/show-shirts/samshield-smith-mens-long-sleeve-competition-shirt-fw24",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/samshield-miss-shield-2-0-crystal-intarsia",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/kask-star-lady-jessica-springsteen-limited-edition",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/breeches/samshield-adele-premium-breeches-fw24",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/samshield-miss-glossy-2-0-crystal-bloom",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/samshield-mens-ryan-waterproof-jacket-fw24",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/outerwear/show-jackets/oria-woman-competition-jacket",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bits/showcraft-loose-ring-training-snaffle",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/polo-shirts/samshield-brunella-training-polo-fw24",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/samshield-miss-glossy-2-0-crystal-fabric-front-band",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/socks/hickstead-chaussettes-rider-x1pair",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/whips/eurohunter-deluxe-lunge-whip-blue-180cm",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/show-shirts/samshield-simon-short-sleeve-competition-shirt-fw24",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/kask-star-lady-wg11-swarovski-carpet",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/rings/resin-ring-rr01-cabaret",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/outerwear/show-jackets/samshield-victorine-premium-jacket-fw24",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/samshield-suzanne-pullover-fw24",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/belts/thomas-cook-copper-twin-keeper-belt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/training/lunge-equipment/eureka-nylon-lunge-lead-30ft",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/hair/samshield-stock-crystal-fabric-ss25",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/whips/in-hand-training-whip-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/vests/adults-diamantina-sherpa-vest",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/eureka-canvas-winter-rug",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/outerwear/jackets/samshield-lisa-pull-over-ss25",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/breeches/samshield-chloe-crystal-breeches-ss25",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/martingales/hinterland-ultimate-martingale-havana",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/gloves/jodz-deluxe-work-glove",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/samshield-brunella-long-sleeve-training-polo-ss25",
+      "status": "ok"
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+Category Enrichment Run — 2026-02-23T06:50:26.365Z
+Mode: apply | Concurrency: 4
+Total: 50 | Succeeded: 50 | Failed: 0 | Cost: $1.2458
+
+Completed pages:
+  ✓ /horse/bits/accessories                                 koray=88  $0.0245  applied
+  ✓ /horse/bits                                             koray=80  $0.0254  applied
+  ✓ /horse                                                  koray=89  $0.0235  applied
+  ✓ /clothing/womens/tops                                   koray=89  $0.0244  applied
+  ✓ /horse/bits/bombers                                     koray=79  $0.0245  applied
+  ✓ /horse/bits/dr-bristol                                  koray=89  $0.0232  applied
+  ✓ /horse/bits/gag                                         koray=81  $0.0247  applied
+  ✓ /horse/bits/myler                                       koray=89  $0.0263  applied
+  ✓ /horse/bits/pelham-bits                                 koray=89  $0.0198  applied
+  ✓ /horse/bits/sprenger                                    koray=89  $0.0246  applied
+  ✓ /horse/bits/trust                                       koray=89  $0.0229  applied
+  ✓ /horse/bits/snaffle                                     koray=89  $0.0256  applied
+  ✓ /horse/bonnets                                          koray=85  $0.0257  applied
+  ✓ /horse/boots                                            koray=89  $0.0267  applied
+  ✓ /horse/bonnets/fly-masks                                koray=93  $0.0255  applied
+  ✓ /horse/bonnets/fly-veils                                koray=89  $0.0243  applied
+  ✓ /horse/boots/bandages                                   koray=82  $0.0268  applied
+  ✓ /horse/boots/accessories                                koray=89  $0.0257  applied
+  ✓ /horse/boots/bell-boots                                 koray=89  $0.0261  applied
+  ✓ /horse/boots/eventing                                   koray=89  $0.0250  applied
+  ✓ /horse/boots/exercise                                   koray=89  $0.0233  applied
+  ✓ /horse/boots/fetlock                                    koray=89  $0.0259  applied
+  ✓ /horse/boots/float                                      koray=89  $0.0222  applied
+  ✓ /horse/boots/fly-boots                                  koray=89  $0.0230  applied
+  ✓ /horse/boots/jumping                                    koray=89  $0.0232  applied
+  ✓ /horse/boots/ice-boots                                  koray=89  $0.0252  applied
+  ✓ /horse/boots/magnetic                                   koray=89  $0.0246  applied
+  ✓ /horse/boots/kentucky                                   koray=89  $0.0233  applied
+  ✓ /horse/boots/overreach                                  koray=89  $0.0266  applied
+  ✓ /horse/boots/stable                                     koray=89  $0.0229  applied
+  ✓ /horse/boots/polos-wraps                                koray=89  $0.0251  applied
+  ✓ /horse/boots/tendon-boots                               koray=89  $0.0275  applied
+  ✓ /horse/boots/therapy                                    koray=89  $0.0231  applied
+  ✓ /horse/boots/travel                                     koray=84  $0.0241  applied
+  ✓ /horse/boots/woof-wear                                  koray=89  $0.0255  applied
+  ✓ /horse/boots/zandona                                    koray=89  $0.0269  applied
+  ✓ /horse/grooming                                         koray=86  $0.0234  applied
+  ✓ /horse/grooming/bags                                    koray=92  $0.0273  applied
+  ✓ /horse/grooming/brushes                                 koray=92  $0.0278  applied
+  ✓ /horse/grooming/coat-care                               koray=88  $0.0243  applied
+  ✓ /horse/grooming/products                                koray=82  $0.0273  applied
+  ✓ /horse/grooming/plaiting                                koray=86  $0.0282  applied
+  ✓ /horse/grooming/show-prep                               koray=88  $0.0244  applied
+  ✓ /horse/grooming/shampoo                                 koray=89  $0.0260  applied
+  ✓ /horse/halters                                          koray=89  $0.0256  applied
+  ✓ /horse/halters/breakaway                                koray=89  $0.0233  applied
+  ✓ /horse/halters/leads                                    koray=89  $0.0241  applied
+  ✓ /horse/halters/lead-ropes                               koray=89  $0.0253  applied
+  ✓ /horse/pads                                             koray=93  $0.0259  applied
+  ✓ /horse/pads/all-purpose                                 koray=93  $0.0249  applied

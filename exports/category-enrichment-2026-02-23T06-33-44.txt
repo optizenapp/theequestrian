@@ -1,0 +1,55 @@
+Category Enrichment Run — 2026-02-23T06:33:44.291Z
+Mode: apply | Concurrency: 4
+Total: 50 | Succeeded: 50 | Failed: 0 | Cost: $1.2206
+
+Completed pages:
+  ✓ /clothing/footwear/boots                                koray=89  $0.0246  applied
+  ✓ /clothing/footwear/casual                               koray=84  $0.0238  applied
+  ✓ /clothing/footwear/cavallo                              koray=89  $0.0242  applied
+  ✓ /clothing/footwear/ariat                                koray=89  $0.0259  applied
+  ✓ /clothing/footwear/ego-7                                koray=97  $0.0215  applied
+  ✓ /clothing/footwear/mens                                 koray=89  $0.0232  applied
+  ✓ /clothing/footwear/riding-boots                         koray=85  $0.0285  applied
+  ✓ /clothing/footwear/tall-boots                           koray=85  $0.0257  applied
+  ✓ /clothing/footwear/western                              koray=89  $0.0261  applied
+  ✓ /clothing/footwear/tucci                                koray=89  $0.0241  applied
+  ✓ /clothing/footwear/ugg-boots                            koray=80  $0.0246  applied
+  ✓ /clothing/footwear/womens                               koray=84  $0.0221  applied
+  ✓ /clothing/kids                                          koray=93  $0.0240  applied
+  ✓ /clothing/kids/breeches                                 koray=89  $0.0256  applied
+  ✓ /clothing/kids/casual                                   koray=89  $0.0235  applied
+  ✓ /clothing/kids/footwear                                 koray=89  $0.0261  applied
+  ✓ /clothing/kids/jackets                                  koray=90  $0.0218  applied
+  ✓ /clothing/kids/show-jackets                             koray=83  $0.0242  applied
+  ✓ /clothing/kids/tops                                     koray=93  $0.0226  applied
+  ✓ /clothing/kids/show-shirts                              koray=85  $0.0229  applied
+  ✓ /clothing/mens/show-shirts                              koray=89  $0.0239  applied
+  ✓ /clothing/mens                                          koray=85  $0.0284  applied
+  ✓ /clothing/mens/casual                                   koray=89  $0.0233  applied
+  ✓ /clothing/mens/jeans                                    koray=89  $0.0263  applied
+  ✓ /clothing/outerwear                                     koray=89  $0.0250  applied
+  ✓ /clothing/outerwear/jackets                             koray=89  $0.0245  applied
+  ✓ /clothing/mens/trousers                                 koray=85  $0.0247  applied
+  ✓ /clothing/outerwear/oilskins                            koray=89  $0.0248  applied
+  ✓ /clothing/outerwear/riding-jackets                      koray=93  $0.0233  applied
+  ✓ /clothing/outerwear/show-jackets                        koray=93  $0.0230  applied
+  ✓ /clothing/tops                                          koray=89  $0.0258  applied
+  ✓ /clothing/sleepwear                                     koray=91  $0.0242  applied
+  ✓ /clothing/tops/knitwear                                 koray=93  $0.0238  applied
+  ✓ /clothing/tops/base-layers                              koray=89  $0.0200  applied
+  ✓ /clothing/tops/long-sleeve                              koray=89  $0.0253  applied
+  ✓ /clothing/tops/polo-shirts                              koray=93  $0.0244  applied
+  ✓ /clothing/tops/show-shirts                              koray=85  $0.0222  applied
+  ✓ /clothing/tops/shirts                                   koray=85  $0.0254  applied
+  ✓ /clothing/tops/sweaters                                 koray=93  $0.0234  applied
+  ✓ /clothing/tops/tanks                                    koray=89  $0.0236  applied
+  ✓ /clothing/tops/tshirts                                  koray=91  $0.0279  applied
+  ✓ /clothing/tops/vests                                    koray=86  $0.0256  applied
+  ✓ /clothing/womens                                        koray=89  $0.0259  applied
+  ✓ /clothing/unisex                                        koray=84  $0.0214  applied
+  ✓ /clothing/womens/casual                                 koray=85  $0.0217  applied
+  ✓ /clothing/womens/breeches                               koray=84  $0.0273  applied
+  ✓ /clothing/womens/jeans                                  koray=85  $0.0258  applied
+  ✓ /clothing/womens/jackets                                koray=93  $0.0240  applied
+  ✓ /clothing/womens/tights                                 koray=89  $0.0263  applied
+  ✓ /clothing/womens/leggings                               koray=89  $0.0239  applied

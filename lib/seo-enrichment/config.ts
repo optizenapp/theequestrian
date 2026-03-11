@@ -47,6 +47,8 @@ export const seoEnrichmentConfig = {
   revalidateBaseUrl: process.env.SEO_ENRICHMENT_REVALIDATE_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || '',
   writeMetricsHistory: toBool(process.env.SEO_ENRICHMENT_WRITE_METRICS_HISTORY, true),
   logVerbose: toBool(process.env.SEO_ENRICHMENT_VERBOSE, false),
+  // Minimum collection pages guaranteed per daily batch (front-loads categories each cycle)
+  collectionMinSlots: toInt(process.env.SEO_ENRICHMENT_COLLECTION_MIN_SLOTS, 30),
 } as const;
 
 export function assertSeoEnrichmentEnvForApply() {

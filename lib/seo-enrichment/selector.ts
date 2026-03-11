@@ -150,7 +150,25 @@ export class EnrichmentSelector {
     }
 
     withMetrics.sort((a, b) => b.priorityScore - a.priorityScore);
-    const finalBatch = withMetrics.slice(0, batchSize);
+
+    // Reserve guaranteed slots for collection pages so they are always front-loaded
+    // each enrichment cycle rather than drowned out by the larger product backlog.
+    const minCollectionSlots = Math.min(
+      seoEnrichmentConfig.collectionMinSlots,
+      batchSize
+    );
+    const collections = withMetrics.filter((p) => p.pageType === 'collection');
+    const nonCollections = withMetrics.filter((p) => p.pageType !== 'collection');
+    const reservedCollections = collections.slice(0, minCollectionSlots);
+    const remainingSlots = Math.max(0, batchSize - reservedCollections.length);
+    const finalBatch = [...reservedCollections, ...nonCollections.slice(0, remainingSlots)];
+
+    log('info', 'Enrichment batch composition', {
+      collections: reservedCollections.length,
+      products: finalBatch.length - reservedCollections.length,
+      total: finalBatch.length,
+    });
+
     await enqueuePages(finalBatch);
     log('info', 'Enrichment pages enqueued', { count: finalBatch.length });
     return finalBatch.length;

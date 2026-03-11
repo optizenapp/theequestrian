@@ -1,0 +1,808 @@
+{
+  "date": "2026-03-01",
+  "submitted": 200,
+  "errors": 0,
+  "skipped": 0,
+  "urls": [
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/pearl-pink-crystal-saddle-pad",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/brushes/eurohunter-soft-touch-d-brush",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/socks/wild-horses-sox",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/socks/bee-hive-sox",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bits/the-bit-fitter-loose-ring-snaffle-dark-gold",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings/mountain-creek-jewellery-freshwater-pink-pearl-stud-earrings",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/socks/cocky-sox",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/pony/breyer-xmas-2025-stablemates-beautiful-breeds-ornament-shetland-pony",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/shirts/elite-snow-white-and-black-short-sleeve-shirt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bits/accessories/cheekers-bit-guards-neoprene-with-velcro-10mm-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bits/accessories/cheekers-bit-guards-neoprene-with-velcro-6mm-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/dog/skin-care/dental-fresh-enzymatic-plaque-tartar-dental-gel-71ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/summer/air-combo-kool-master-600d-teal-white",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/veterinary/cover-transaction-fee",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/leather-care/all-natural-beeswax-leather-conditioner-100g",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/kids/tee-shirt-ariat-dream-mulberry-ls-girls",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/saddlecloth-jumping-fleece-lined-high-wither",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tights/diamond-hybrid-tights-black-1",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/accessories/gifts/schleich-horse-marwari-mare",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/summer/dakota-lite-combo-white-navy",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/accessories/gifts/schleich-horse-paint-horse-gelding-2025",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/dog/grooming/dog-shampoo-paw-mediderm-200ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/breeches/competition-breeches-diamond-snow-white",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/accessories/gifts/schleich-horse-paint-horse-foal-2025",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/summer/hot-to-trot-fly-mesh-combo-with-surcingles",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/summer/hot-to-trot-hybrid-tearstop-combo",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/accessories/gifts/breyer-xmas-2025-traditional-holiday-horse-christmas-in-bloom",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/accessories/gifts/breyer-xmas-2025-stablemates-musical-snow-globe-joy-of-the-season",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/polo-shirts/top-ariat-polo-team-navy-ss",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/accessories/gifts/schleich-horse-andalusian-stallion-2025",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/veterinary/rspca-victoria",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/accessories/gifts/schleich-horse-marwari-stallion",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/accessories/gifts/schleich-horse-marwari-foal",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/summer/fly-mesh-combo-zebra-print",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/vests/vest-ariat-mens-team-vest-charcoal-heather",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/accessories/gifts/breyer-xmas-2025-stablemates-santa-ornament-showman",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/hairy-pony-hair-repair-raspberry-sweet-pomegranate-250ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/bags/smoothie-cup-stainless-cobalt-check-500ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/accessories/gifts/schleich-horse-andalusian-mare-2025",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/accessories/gifts/breyer-xmas-2025-stablemates-carousel-ornament-victory",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/veterinary/donation-product",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tights/diamond-hybrid-tights-navy-1",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/veterinary/kindness-contribution",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/veterinary/support-rspca-victoria",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/hw-picnic-mat-tropicana-2m-x-2m",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/veterinary/donation",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/tanks/essential-tank-navy",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/polo-shirts/top-ariat-polo-team-black-ss",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/giftware/breyer-xmas-2025-stablemates-lexington-racehorse-ornament",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/kids/polo-ariat-taryn-team-ss-girls",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/shirt-jacket-ariat-chimayo-jacquard-ladies",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/breeches/vestrum-parigi-knee-grip-ladies-breches",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/breeches/breeches-ariat-halo-denim-full-grip-seat-marine-ladies",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/accessories/gifts/christmas-tree",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/tanks/essential-tank-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/giftware/breyer-xmas-2025-stablemates-stirrup-ornament-christmas-in-bloom",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/outerwear/jackets/jacket-ariat-new-team-softshell-fired-brick-ladies",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/girths/girth-leather-padded-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/dog/food/blackhawk-dog-high-meat-australian-poultry-recipe-10kg",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/summer/combo-rug-summer-diamond-rib-weave-sunflower",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/dog/food/blackhawk-dog-air-dried-lamb-2kg",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/cotton-dril-rug-53",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/saddlecloth-dressage-satin-blue",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/saddlecloth-sunflower-yelllow-green",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/cromo-2-0-textured-orange-front-panel",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/shirts/shirt-pilbara-closed-front-long-sleeve-black-ladies",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/cromo-2-0-star-black-front-panel",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/dog/food/blackhawk-dog-high-meat-australian-red-meat-recipe-2kg",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/riding/kentucky-quarter-rug-heavy-fleece",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tops/shirt-pilbara-closed-front-long-sleeve-pale-blue-ladies",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/accessories/gifts/hw-cabbage-bowl-small",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/coat-care/batana-butter",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/dog/food/blackhawk-dog-air-dried-beef-fish-2kg",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/dog/food/blackhawk-dog-air-dried-beef-fish-450gm",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/dog/food/blackhawk-dog-air-dried-chicken-2kg",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/saddles/accessories/lucie-and-co-biothane-saddle-grab-strap",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/inner-pad-for-cromo-2-0",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/kids/tee-shirt-ariat-farm-animal-heather-grey-navy-ls-girls",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tights/tights-woof-wear-competition-riding-teflon-white-ladies",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/saddlecloth-dressage-leopard",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/dog/food/blackhawk-dog-air-dried-lamb-450gm",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/accessories/cromo-2-0-matt-black-polo-visor",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/dog/food/blackhawk-dog-air-dried-chicken-450gm",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/dog/food/blackhawk-dog-high-meat-australian-red-meat-recipe-10kg",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/socks/cavallo-cavalsasha-socks",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/summer/combo-rug-p-cotton-sunflower",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/bags/eurohunter-grooming-box",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tights/tights-ariat-eos-full-seat-navy-ladies",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/cromo-2-0-metal-pink-front-panel",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/dog/food/blackhawk-dog-high-meat-australian-poultry-recipe-2kg",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/saddlecloth-dressage-satin-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tops/shirt-pilbara-closed-front-long-sleeve-watermelon-ladies",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/outerwear/jackets/cavallo-cavalraven-quilted-jacket",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/hats/hw-3x3-fr-horn-sunburst",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/accessories/cromo-2-0-metal-red-cross-visor",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/girths/girth-leather-padded-brown",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/saddlecloth-sunflower-dressage-yelllow-green",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/belts/belt-pilbara-western-rodeo-buckle-tooled-leather-dark-brown",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/saddlecloth-sunflower-yelllow",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/all-purpose/saddlecloth-sunflower-all-purpose-yelllow",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tights/tights-ariat-eos-full-seat-black-ladies",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/saddlecloth-all-purpose-leopard",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/socks/socks-tommy-hilfiger-clifton-pine",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/belts/belt-pilbara-western-dress-buckle-tooled-leather-dark-brown",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/shirt-pilbara-closed-front-long-sleeve-stone-mens",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/shirt-pilbara-closed-front-long-sleeve-ochre-mens",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tops/shirt-pilbara-closed-front-long-sleeve-jade-ladies",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/polo-shirts/tommy-hilfiger-harrison-pique-polo",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/helmet-oscar-aero-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/nrg-bright-white-powder",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/show-shirts/shirt-riding-tommy-hilfiger-eaton-optic-white-mens",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/outerwear/riding-jackets/riding-jacket-tommy-hilfiger-albany-tweed-grey-melange-ladies",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/helmet-oscar-swift-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/show-shirts/shirt-show-tommy-hilfiger-taylor-rhinestone-ls-optic-white-ladies",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/baselayer-tommy-hilfiger-ava-long-sleeve-desert-sky-ladies",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/vests/tommy-hilfiger-lightweight-recycled-down-vest",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/headstall-tommy-hilfiger-lincoln-taupe",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/headstall-tommy-hilfiger-yale-with-lead-desert-sky",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/shirt-pilbara-closed-front-long-sleeve-diesel-mens",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/shirt-pilbara-closed-front-long-sleeve-kelly-green-mens",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/casual/ariat-mens-workhog-wide-square-toe-h2o-bruin-brown-coffee",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/pendants/mountain-creek-jewellery-rose-gold-plated-double-horseshoe-with-cubic-zirconia-studs",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings/mountain-creek-jewellery-sterling-silver-new-unicorn-stud-earrings",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings/mountain-creek-jewellery-sterling-silver-horse-stud-earrings",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings/mountain-creek-jewellery-7mm-pearl-stud-earrings",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/necklaces/mountain-creek-jewellery-stirling-silver-horseshoe-necklace",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings/mountain-creek-jewellery-9mm-pearl-stud-earrings",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings/mountain-creek-jewellery-sterling-silver-and-cubic-zirconia-horseshoe-stud-earrings",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings/mountain-creek-jewellery-sterling-silver-horse-in-horseshoe-earrings",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings/mountain-creek-jewellery-sterling-silver-unicorn-stud-earrings",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/necklaces/mountain-creek-jewellery-stirling-silver-necklace-with-yellow-gold-plated-cubic-zircona-star",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/necklaces/mountain-creek-jewellery-stirling-silver-necklace-with-cubic-zircona-star",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings/mountain-creek-jewellery-multi-colour-cubic-zirconia-unicorn-studs",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/necklaces/mountain-creek-jewellery-stirling-silver-horseshoe-necklace-with-yellow-gold-plating",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings/mountain-creek-jewellery-sterling-silver-snaffle-huggie-earring",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings/mountain-creek-jewellery-sterling-silver-and-cubic-zirconia-large-horseshoe-stud-earrings",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/necklaces/mountain-creek-jewellery-stirling-silver-necklace-with-rose-gold-plated-cubic-zircona-star",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings/mountain-creek-jewellery-12mm-pearl-stud-earrings",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings/mountain-creek-jewellery-sterling-silver-and-rose-gold-plated-set-cubic-zirconia-studs",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/polo-shirts/polo-top-tommy-hilfiger-erwin-long-sleeve-desert-sky-mens",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings/mountain-creek-jewellery-4mm-pearl-stud-earrings",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/whip-holder",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/necklaces/mountain-creek-jewellery-stirling-silver-necklace-with-cubic-zircona-horseshoe",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings/mountain-creek-jewellery-sterling-silver-pearl-rose-gold-plated-with-cubic-zirconia-studs",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/hoodie-tommy-hilfiger-grove-desert-sky-unisex",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings/mountain-creek-jewellery-5mm-pearl-stud-earrings",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/necklaces/mountain-creek-jewellery-stirling-silver-necklace-with-rose-gold-plated-cubic-zircona-horseshoe",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/bracelets/mountain-creek-jewellery-stirling-silver-braclet-with-cubic-zirconia-unicorn",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/necklaces/mountain-creek-jewellery-stirling-silver-necklace-with-yellow-gold-plated-cubic-zircona-horseshoe",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings/mountain-creek-jewellery-sterling-silver-pearl-with-cubic-zirconia-studs",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/plastic-bridle-hook",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/socks/livigno-riding-socks",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings/mountain-creek-jewellery-sterling-silver-and-cubic-zirconia-medium-horseshoe-stud-earrings",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings/mountain-creek-jewellery-sterling-silver-horse-head-stud-earrings",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/bracelets/mountain-creek-jewellery-stirling-silver-bracelet-horseshoe",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings/mountain-creek-jewellery-sterling-silver-stirrup-drop-earrings",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/pendants/mountain-creek-jewellery-sterling-silver-double-horseshoe-with-cubic-zirconia-studs",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/thomas-cook-womens-amber-blouse",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/hair/hamag-crocheted-hair-bun-net-with-pearls",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/pendants/mountain-creek-jewellery-sterling-silver-horse-stirrup-pendant",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/saddles/accessories/oregon-monkey-grip-small",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/bags/ariat-work-cooler-bag",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/cuffs/rustic-solstice-cuff-bracelet",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/supplements/kohnkes-own-troppo-salts-1",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/eyewear/sunglasses-gidgee-sky-rider-opal",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/gloves/roeckl-meura-glove",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/eyewear/sunglasses-gidgee-colt-tan",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/cuffs/timeless-treasure-chiseled-cuff-bracelet",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/supplements/huds-and-toke-calm-os",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/casual/cowbaby-floral-shine",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings/mountain-creek-jewellery-sterling-silver-cactus-studs",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/necklaces/mountain-creek-jewellery-sterling-silver-horseshoe-with-dark-blue-cubic-zirconia-studs",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/eyewear/sunglasses-gidgee-willow-yellowstone",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings/mountain-creek-jewellery-sterling-silver-hoops-with-cubic-zirconia-unicorn",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/eyewear/sunglasses-gidgee-colt-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/treats/huds-and-toke-salt-os",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/jeans/thomas-cook-willa-girls-boot-cut-jean",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/studs/mountain-creek-jewellery-sterling-silver-and-yellow-gold-plated-small-shoe-studs",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/pendants/mountain-creek-jewellery-sterling-silver-unicorn-pendant",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/wallets/bi-fold-wallet-basket-weave-overlay",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/number-holders/hamag-spare-interchangeable-number-insert-for-leather-number-holders-pair",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/bags/cooler-bag",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings/mountain-creek-jewellery-sterling-silver-and-cubic-zircona-unicorns-studs",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings/mountain-creek-jewellery-sterling-silver-open-horse-head-studs",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings/mountain-creek-jewellery-sterling-silver-with-rose-gold-plating-horseshoe-studs",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/mountain-creek-jewellery-yellow-gold-plated-horseshoe-and-star-with-cubic-zirconia-studs",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/wither-relief/stc-hair-felt-saddle-pad-w-wither-relief-31-x-30",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/mountain-creek-jewellery-rose-gold-plated-horseshoe-and-star-with-cubic-zirconia-studs",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/wither-relief/stc-felt-wither-relief-saddle-pad-white-32-x-32",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/bags/kentucky-grooming-backpack",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/scarves/wild-rag-southwest-blue",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/pendants/mountain-creek-jewellery-sterling-silver-prancing-horse-pendant",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/necklaces/mountain-creek-jewellery-sterling-silver-chain-and-rose-gold-plated-snaffle-necklace",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/stc-joddy-clips-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings/mountain-creek-jewellery-sterling-silver-horse-in-horseshoe-huggies",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bonnets/fly-masks/mini-horse-fly-mask-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/studs/mountain-creek-jewellery-sterling-silver-and-yellow-gold-plated-shoe-studs",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/hair/hamag-crocheted-hair-bun-net-with-diamantes",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/eyewear/sunglasses-gidgee-sky-rider-roan",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/eyewear/sunglasses-gidgee-canter-tortoise",
+      "status": "ok"
+    }
+  ]
+}

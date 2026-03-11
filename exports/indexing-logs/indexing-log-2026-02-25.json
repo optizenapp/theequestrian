@@ -1,0 +1,808 @@
+{
+  "date": "2026-02-25",
+  "submitted": 200,
+  "errors": 0,
+  "skipped": 0,
+  "urls": [
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/hatbands/classic-adjustable-horsehair-hatband",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/polo-shirts/hlh-contrast-cotton-long-sleeve-polo-in-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tops/hlh-sleeveless-base-layer-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/helmet-kep-smart-nova-polish-blue-star",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/helmet-kep-smart-nova-polish-blue",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tops/hlh-modern-cap-sleeveless-show-shirt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/products/bense-and-eicke-star-finish-mane-and-tail-detangler",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/shirts/rm-williams-oberon-regular-oxford-shirt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/show-prep/mp-gloss-hd-makeup-enhance-50ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/show-prep/mp-gloss-define-liquid-chalk-pen-brown-10ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/helmet-kep-liner-nova-oval",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/show-prep/mp-gloss-define-liquid-chalk-pen-white-10ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/shirts/rm-williams-parkes-poplin-check-shirt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/boots/rm-williams-baby-booties",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/rm-williams-narran-rugby-top",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/sweaters/rm-williams-retro-logo-sweatshirt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/show-prep/mp-gloss-diamond-gel-black-onyx-100ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/belts/pampeano-belt-otono",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/cat/food/royal-canin-cat-wet-ageing-11-gravy-box-of-12",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/sweaters/rm-williams-trickett-panel-sweatshirt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/sweaters/rm-williams-cradle-rugby-top",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/polo-shirts/rm-williams-bright-polo",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/belts/rm-williams-cate-stitched-belt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/breeches/penelope-majestic-breeches",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/shampoo/mp-gloss-shampoo-diamond-shine-500ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/show-prep/mp-gloss-makeup-sponges-round",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/show-prep/mp-gloss-leg-worxx-100ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/show-prep/mp-gloss-ultimate-black-100ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/show-prep/mp-gloss-diamond-gel-clear-100ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/show-prep/mp-gloss-quarter-marxx-spray-250ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/rm-williams-narran-heritage-rugby",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/show-prep/mp-gloss-plaitz-spray-250ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/show-prep/mp-gloss-diamond-gloss-detangle-spray-250ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/accessories/gifts/breyer-stablemates-2022-snowbird-stirrup-ornament",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/cat/food/royal-canin-cat-ageing-11-2kg",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/shirts/rm-williams-lincoln-regular-oxford-shirt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/keychains/rm-williams-heritage-logo-enamel-keyring",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/sweaters/rm-williams-mulyungarie-1-4-zip-sweatshirt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/show-prep/mp-gloss-top-gloss-250ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/necklaces/mountain-creek-jewellery-horse-snaffle-bit-and-chain-sterling-silver-necklace",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/helmet-kep-nova-polish-black-star",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tops/rm-williams-broderie-linen-shirt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/show-prep/mp-gloss-hd-makeup-mini-stixx-20gm",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/academy-scraper",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/show-prep/mp-gloss-sharksteeth-stencil",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/show-prep/mp-gloss-xtreeme-sox-powder-200gm",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/kep-smart-nova-options-grille",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/polo-shirts/rm-williams-heritage-rugby",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/show-prep/mp-gloss-diamond-gloss-detangle-spray-500ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/hoof-care/hoof-powder",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/show-prep/mp-gloss-define-liquid-chalk-pen-black-10ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/bottoms/shorts/rm-williams-washed-rugby-short",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/rm-williams-robe-linen-check-shirt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/shirts/rm-williams-branded-rugby-shirt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/sweaters/rm-williams-moresby-1-4-zip-merino-knit-jumper",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/coat-care/mp-gloss-diamond-dazzler-coat-spray-500ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/sweaters/rm-williams-heritage-jumper-navy",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/eurohunter-cattai-glitter-helmet-blue",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/body-protectors/body-protector-kd-ballistic-flex-fit",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/summer/supashade-combo-purple",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/helmet-eurohunter-cattai-crossed-crystal-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/veterinary/equine-super-goo-sunblock-cream-500ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/accessories/books/gift-miss-melody-activity-colour-book",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/headstall-plastic-25mm-zilco-full-turquoise",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/socks/socks-woof-bamboo-tech-long-black-grey",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/accessories/books/gift-miss-melody-dress-me-up-rider-book",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tights/tights-hz-dea-full-seat-navy-childs",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/caps/cap-lyndell-hp-trucker-navy",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/accessories/gifts/gift-miss-melody-pad-magnet-closure",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/halter-rope-with-reins-black-white-full",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/tshirts/tee-shirt-henry-short-sleeve-white",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tights/tights-horze-anya-full-seat-white-ladies",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/socks/socks-woof-bamboo-tech-long-sage-steel-medium",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/whips/whip-show-cane-woof-wear-chocolate",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bonnets/fly-masks/fly-mask-wildhorse-super-secure",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/shirt-pilbara-open-front-short-sleeve-stone-mens",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/socks/socks-woof-bamboo-tech-long-navy-grey-medium",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/caps/cap-kinsley-trucker-navy",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/gloves/gloves-eurohunter-summer-mesh-navy",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tights/tights-horze-anya-full-seat-black-ladies",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/jeans/jeans-pilbara-cotton-stretch-black-mens",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/jeans/jeans-pilbara-cotton-stretch-whisky-mens",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/tshirts/tee-shirt-lance-short-sleeve-white",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/eurohunter-cattai-glitter-crystal-helmet-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/whips/whip-show-cane-woof-wear-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/kids/breeches/tights-hz-dea-full-seat-black-childs",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/body-protectors/body-protector-kd-ballistic-flex-fit-pro-junior",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/jeans/jeans-pilbara-cotton-stretch-seagrass-mens",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/gloves/gloves-eurohunter-summer-mesh-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/socks/socks-woof-bamboo-tech-long-navy-rose-medium",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/helmet-kep-nova-polish-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/tshirts/tee-shirt-nathan-short-sleeve-navy",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tights/tights-hz-dea-full-seat-rose-childs",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/helmet-eurohunter-cattai-glitter-crystal-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/socks/socks-woof-bamboo-tech-long-petrol-sage-medium",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/whips/whip-show-whip-woof-wear-chocolate",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/cat/food/royal-canin-cat-wet-ageing-11-jelly-box-of-12",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/kids/kids-fishing-shirt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/helmet-eurohunter-cattai-glitter-blue",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/accessories/books/gift-miss-melody-colour-sequin-book",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/pony-pad-saddle-wintec-pack-pink",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/accessories/books/gift-miss-melody-dress-me-up-world-book",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/stirrup-irons/stirrup-irons-wintec-kids-cage-pink-xs",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/halter-rope-with-reins-navy-red-full",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/fly-repellent/equine-super-cream-repellent-extra-strength-500ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/eurohunter-cattai-crossed-crystal-helmet-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/shirts/shirt-pilbara-open-front-short-sleeve-charcoal-mens",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/accessories/cromo-2-0-configurator-cross-country-visor-options",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/hats/akubra-golden-spur",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/cromo-2-0-configurator-frame-options",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings/paw-print-stud-earrings",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/cromo-2-0-configurator-button-options",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/saddles/dressage/pre-loved-kieffer-rotterdam-dressage-saddle",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/bags/wrangler-denim-patchwork-crossbody-bag",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/accessories/cromo-2-0-configurator-standard-visor-options",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/tshirts/performance-tee-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/tall-boots/boots-tall-eurohunter-kelly-brown",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/wallets/wrangler-denim-patchwork-wallet",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/earrings/mountain-creek-jewellery-freshwater-pearl-stud-earrings-with-cubic-zirconia",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/tanks/performance-tank-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/accessories/gifts/2025-vip-gift",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/saddles/dressage/pre-loved-thorowgood-t4-dressage-17",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/hatbands/leather-and-horsehair-inlaid-hatband-with-tassles-and-adjustable-waxed-cord-slider",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/wallets/rodeo-wallet-tooled-overlay",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/belts/kids-rustic-distressed-belt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/bags/wrangler-feature-buckle-crossbody-bag",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/cromo-2-0-configurator-front-panel-options",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/belts/thomas-cook-black-twin-keeper-belt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/bags/wrangler-rodeo-print-crossbody-bag",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/bags/wrangler-lucia-buckle-handle-bag",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tights/signature-hybrid-tights-navy",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/bags/wrangler-aztec-crossbody-tote-bag",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/training/ropes/eurohunter-training-rope-loop-end",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/bags/wrangler-mini-fun-size-tote",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/cromo-2-0-configurator-shell-options",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/cromo-2-0-configurator-kep-logo-options",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/bags/wrangler-mini-fun-size-tote-bag",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/shirts/performance-long-sleeve-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/cromo-2-0-configurator-grid-options",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/shirts/baggy-button-up-shirt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/cromo-2-0-configurator-rear-panel-options",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/saddles/pre-loved-2024-thorowgood-t8-gp-17",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/belts/thomas-cook-chocolate-twin-keeper-belt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/helmet-equinavia-crown-mips-black-gunmetal-grey",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/necklaces/mountain-creek-jewellery-stirling-silver-chain-with-horseshoe-pendant",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/tanks/essential-tank-hunter-green",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/cromo-2-0-configurator-front-panel-options-2",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/reins/grainge-elite-elastic-side-reins",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/breeches/equiline-ceriek-women-s-b-move-full-grip-breeches-white",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/reins/grainge-deluxe-draw-reins",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/bags/wrangler-talia-aztec-crossbody-bag",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/tshirts/pilbara-western-mens-t-shirt-short-sleeve-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/bags/wrangler-tooled-fringe-shoulder-bag",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tights/signature-hybrid-tights-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/leggings/essential-leggings",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/bags/rm-williams-water-bottle",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/camera-trailer-woof-wear",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bits/the-bit-fitter-egg-butt-dark-gold",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/socks/wine-time-sox",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/hats/kids-cattleman",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/socks/horsing-around-sox",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/helmet-kep-liner-oval",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/veterinary/dr-show-outdoor-protect-shine-750ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/bird/cages/bird-perch-pumice-medium",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/dog/grooming/dog-shampoo-paw-nutriderm-500ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/helmet-equinavia-crown-crystal-mips-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/tanks/essential-tank-navy-first-edition",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/socks/bite-me-sox",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/cat/litter/litter-cat-trouble-trix-beads-anti-bacterial-15lit",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/number-holders/zilco-number-holder-vest",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/socks/sunflower-bloom-sox",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/tshirts/cinch-mens-solid-logo-t-shirt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/socks/wren-of-a-kind-sox",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/socks/you-rooster-sox",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/helmet-equinavia-crown-mips-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/lead-ropes/leather-lead-chain-with-brass-or-silver-fittings",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/socks/something-fishy-sox",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/helmet-equinavia-crown-mips-navy-gold",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/gloves/eurohunter-summer-mesh-gloves",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/breastplates/academy-y-breastplate",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/saddles/dressage/arena-dressage-mono-flap-saddle-black",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/snow-white-crystal-saddle-pad",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/belts/legend-pride-buckle",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/shirts/elite-competition-snow-white-and-black-long-sleeve-shirt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/dog/skin-care/dog-rocks-600gm",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tights/freedom-tights-navy",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/socks/swooping-season-sox",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/accessories/tools/folding-plain-blade-knife",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/belts/girls-genuine-leather-tan-belt-hand-tooled-western-sunf",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/saddles/dressage/arena-dressage-mono-flap-saddle-brown",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/cat/litter/litter-cat-trouble-trix-beads-anti-bacterial-7lit",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/socks/herding-cats-sox",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/shampoo/equinade-showsilk-shampoo-500ml-1",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/feed-storage/academy-feed-scoop",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/hats/akubra-rough-rider-spice",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/tanks/essential-tank-black-first-edition",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/belts/thomas-cook-knife-belt-chocolate",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/show-prep/bright-white-powder-nrg-300gm",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/socks/banksia-sox",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/cat/litter/litter-cat-trouble-trix-clumping-baking-soda-15lit",
+      "status": "ok"
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+Category Enrichment Run — 2026-03-01T23:48:00.907Z
+Mode: apply | Concurrency: 4
+Total: 50 | Succeeded: 50 | Failed: 0 | Cost: $1.2184
+
+Completed pages:
+  ✓ /pet/bird/care                                          koray=89  $0.0235  applied
+  ✓ /pet/bird/food                                          koray=93  $0.0247  applied
+  ✓ /pet/bird                                               koray=89  $0.0236  applied
+  ✓ /pet/bird/cages                                         koray=93  $0.0247  applied
+  ✓ /pet/cat/accessories                                    koray=89  $0.0222  applied
+  ✓ /pet/cat                                                koray=89  $0.0280  applied
+  ✓ /pet/bird/toys                                          koray=93  $0.0237  applied
+  ✓ /pet/cat/food                                           koray=93  $0.0255  applied
+  ✓ /pet/cat/toys                                           koray=93  $0.0259  applied
+  ✓ /pet/cat/litter                                         koray=93  $0.0248  applied
+  ✓ /pet/cat/skin-care                                      koray=84  $0.0249  applied
+  ✓ /pet/dog                                                koray=89  $0.0312  applied
+  ✓ /pet/dog/accessories                                    koray=89  $0.0235  applied
+  ✓ /pet/dog/collars-and-leads                              koray=93  $0.0230  applied
+  ✓ /pet/dog/coats-and-rugs                                 koray=89  $0.0252  applied
+  ✓ /pet/dog/food                                           koray=93  $0.0238  applied
+  ✓ /pet/dog/grooming                                       koray=93  $0.0250  applied
+  ✓ /pet/dog/kennels                                        koray=89  $0.0248  applied
+  ✓ /pet/dog/supplements                                    koray=89  $0.0236  applied
+  ✓ /pet/dog/skin-care                                      koray=93  $0.0239  applied
+  ✓ /pet/dog/toys                                           koray=93  $0.0234  applied
+  ✓ /pet/dog/treats                                         koray=93  $0.0236  applied
+  ✓ /pet/dog/veterinary                                     koray=89  $0.0243  applied
+  ✓ /pet/dog/walking                                        koray=84  $0.0235  applied
+  ✓ /pet/pony                                               koray=80  $0.0227  applied
+  ✓ /pet/poultry                                            koray=93  $0.0228  applied
+  ✓ /pet/small-animal                                       koray=89  $0.0230  applied
+  ✓ /pet/supplements                                        koray=89  $0.0227  applied
+  ✓ /pet/supplements/probiotics                             koray=89  $0.0225  applied
+  ✓ /rider                                                  koray=89  $0.0222  applied
+  ✓ /rider/accessories                                      koray=89  $0.0225  applied
+  ✓ /rider/accessories/hair                                 koray=85  $0.0251  applied
+  ✓ /rider/accessories/hatbands                             koray=89  $0.0245  applied
+  ✓ /rider/accessories/hats                                 koray=89  $0.0235  applied
+  ✓ /rider/accessories/headbands                            koray=86  $0.0238  applied
+  ✓ /rider/accessories/keychains                            koray=82  $0.0246  applied
+  ✓ /rider/accessories/stocks                               koray=89  $0.0238  applied
+  ✓ /rider/accessories/studs                                koray=84  $0.0241  applied
+  ✓ /rider/accessories/water-bottles                        koray=89  $0.0210  applied
+  ✓ /rider/accessories/whips                                koray=93  $0.0238  applied
+  ✓ /rider/body-protectors                                  koray=89  $0.0262  applied
+  ✓ /rider/eyewear                                          koray=89  $0.0252  applied
+  ✓ /rider/chaps                                            koray=89  $0.0230  applied
+  ✓ /rider/giftware                                         koray=82  $0.0244  applied
+  ✓ /rider/gloves                                           koray=92  $0.0258  applied
+  ✓ /rider/helmets                                          koray=87  $0.0282  applied
+  ✓ /rider/helmets/accessories                              koray=89  $0.0252  applied
+  ✓ /rider/helmets/brims                                    koray=89  $0.0224  applied
+  ✓ /rider/jewellery                                        koray=89  $0.0294  applied
+  ✓ /rider/jewellery/bracelets                              koray=91  $0.0261  applied

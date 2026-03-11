@@ -1,0 +1,55 @@
+Category Enrichment Run — 2026-02-25T02:08:32.849Z
+Mode: apply | Concurrency: 4
+Total: 50 | Succeeded: 50 | Failed: 0 | Cost: $1.2128
+
+Completed pages:
+  ✓ /horse/stable/hoof-care                                 koray=93  $0.0236  applied
+  ✓ /horse/stable/instruments                               koray=86  $0.0233  applied
+  ✓ /horse/stable/insect-repellent                          koray=93  $0.0263  applied
+  ✓ /horse/stable/hay-nets                                  koray=85  $0.0259  applied
+  ✓ /horse/stable/leather-care                              koray=93  $0.0240  applied
+  ✓ /horse/stable/jumps                                     koray=93  $0.0251  applied
+  ✓ /horse/stable/rug-racks                                 koray=89  $0.0238  applied
+  ✓ /horse/stable/paddock                                   koray=89  $0.0258  applied
+  ✓ /horse/stable/storage                                   koray=91  $0.0222  applied
+  ✓ /horse/stable/tail-bags                                 koray=88  $0.0224  applied
+  ✓ /horse/stable/wormers                                   koray=86  $0.0243  applied
+  ✓ /horse/stable/treats                                    koray=93  $0.0258  applied
+  ✓ /horse/stock-western                                    koray=89  $0.0251  applied
+  ✓ /horse/stable/wrap-bags                                 koray=88  $0.0262  applied
+  ✓ /horse/supplements                                      koray=94  $0.0259  applied
+  ✓ /horse/supplements/anti-inflammatory                    koray=89  $0.0215  applied
+  ✓ /horse/supplements/biotin                               koray=89  $0.0222  applied
+  ✓ /horse/supplements/calming                              koray=89  $0.0240  applied
+  ✓ /horse/supplements/dynavyte                             koray=89  $0.0219  applied
+  ✓ /horse/supplements/electrolytes                         koray=89  $0.0222  applied
+  ✓ /horse/supplements/joint                                koray=81  $0.0241  applied
+  ✓ /horse/supplements/msm                                  koray=85  $0.0226  applied
+  ✓ /horse/supplements/ranvet                               koray=81  $0.0227  applied
+  ✓ /horse/supplements/kelato                               koray=84  $0.0236  applied
+  ✓ /horse/tack                                             koray=93  $0.0235  applied
+  ✓ /horse/supplements/psyllium-husk                        koray=89  $0.0245  applied
+  ✓ /horse/tack/accessories                                 koray=89  $0.0241  applied
+  ✓ /horse/tack/breastplates                                koray=93  $0.0264  applied
+  ✓ /horse/tack/breastplates-martingales                    koray=89  $0.0213  applied
+  ✓ /horse/tack/bridles                                     koray=91  $0.0285  applied
+  ✓ /horse/tack/browbands                                   koray=89  $0.0220  applied
+  ✓ /horse/tack/freejump-stirrups                           koray=89  $0.0240  applied
+  ✓ /horse/tack/martingales                                 koray=82  $0.0254  applied
+  ✓ /horse/tack/girths                                      koray=89  $0.0262  applied
+  ✓ /horse/tack/nosebands                                   koray=89  $0.0247  applied
+  ✓ /horse/tack/number-holders                              koray=89  $0.0245  applied
+  ✓ /horse/tack/stirrup-irons                               koray=89  $0.0247  applied
+  ✓ /horse/tack/reins                                       koray=93  $0.0249  applied
+  ✓ /horse/tack/stirrup-leathers                            koray=93  $0.0248  applied
+  ✓ /horse/tack/stirrups                                    koray=93  $0.0253  applied
+  ✓ /horse/training                                         koray=85  $0.0257  applied
+  ✓ /horse/training/lunge-equipment                         koray=91  $0.0244  applied
+  ✓ /horse/training/lungeing                                koray=89  $0.0249  applied
+  ✓ /horse/training/ropes                                   koray=89  $0.0245  applied
+  ✓ /horse/veterinary                                       koray=86  $0.0232  applied
+  ✓ /horse/veterinary/therapy-equipment                     koray=84  $0.0200  applied
+  ✓ /horse/veterinary/first-aid                             koray=89  $0.0258  applied
+  ✓ /horse/veterinary/wound-care                            koray=85  $0.0228  applied
+  ✓ /pet                                                    koray=90  $0.0246  applied
+  ✓ /pet/aristopet                                          koray=89  $0.0275  applied

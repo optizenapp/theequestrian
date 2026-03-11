@@ -1,0 +1,1008 @@
+{
+  "date": "2026-03-09",
+  "submitted": 0,
+  "errors": 200,
+  "skipped": 0,
+  "urls": [
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/belts/tack-room-belt",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/dog/treats/huds-and-toke-little-love-heart-cookies",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/tshirts/ariat-western-wear-tee",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/casual/mens-turbo-chelsea-waterproof",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/kids/footwear/monterey-little-kids",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/grazing-muzzle",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/dog/treats/positive-pony-cookies-200g",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/western/mens-booker-ultra-square-toe",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/dog/toys/play-ball",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/coat-care/blue-ribbon-conditioner-1l",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/hoof-care/worlds-best-hoof-oil-1l",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/windsucking-collar",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/kids/footwear/cowbaby-glitter-sparkle",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/western/womens-fatbaby-western-boot",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/kids/footwear/lightning-little-kids",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/tshirts/ariat-diamond-valley-t-shirt",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/hats/beanie-ariat-hansford-unisex-navy",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/tendon-boots/veredus-carbon-gel-vento-save-the-sheep",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/belts/mens-single-piece-belt",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/western/womens-fatbaby-heritage-lilah-western-boot",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/veterinary/electronic-digital-thermometer",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/hats/beanie-ariat-kelston-unisex-tawny-port",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/treats/horse-bix",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/dog/treats/equine-pure-delights-apple",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/therapy/canvas-poultice-boot",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/saddles/accessories/saddle-fit-and-adjustment",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/tubbease-hoof-sock-1",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/black-gag-straps-leather",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/longhorn-bolo-black-enamel-lines",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bits/tpu-mullen-mouth-ring-snaffle",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/stall-float-tie",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/supplements/trm-kurasyn-360x",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/supplements/gen-packs-seaweed-meal",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bits/mouthing-bit-with-players-12-5cm",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/hats/barmah-canvas-drover",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/bolo-tie-steer-head-star",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/bolo-tie-gold-plated-floral-design",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/number-holders/number-holder-vest",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/bolo-tie-steerhead-with-turquoise-inlay",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/hackamore-chrome-plated-1",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/training/zilco-lunge-training-system",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/girths/heavy-duty-nylon-girth-strap-brown",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/hay-nets/haynet",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/bot-egg-knife-1",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/bell-boots/easy-stretch-bell-boots",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/training/twitch-with-plastic-handle",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/shampoo/pure-steed-indiglo-brightening-shampoo",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/veterinary/trm-hoofmaker-concentrated-pellet",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/summer/cotton-show-rug-earlwood-navy-gold",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/summer/cotton-show-rug-earlwood-navy-silver",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/girths/girth-wintec-miracle-brown",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/saddles/accessories/saddle-cover-saddleworld-jump",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/brushes/queens-brush-mane-tail",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/hats/akubra-hat-presentation-gift-box",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/epona-quilted-cloud-cloth",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/hats/beanie-ariat-kelston-unisex-tannin",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tights/tights-bare-equestrian-performance-riding-black-navy-croc",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/saddles/jumping/bates-advanta-jumping-saddle-cair-havana-brown-classic-black",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/headbands/headband-ariat-kelston-unisex-tannin",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/belts/belt-tommy-hilfiger-cambria-stretch-desert-sky",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/girths/girth-prolite-short-narrow-black",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/training/lungeing/lunge-cavesson-converter-equiprene-black",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/bags/luggage-eurohunter-helmet-bag",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/summer/cotton-hood-earlwood-with-zip-navy-silver",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/helmet-eurohunter-cattai-black",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/saddles/accessories/saddle-cover-saddleworld-dressage",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/epona-butterfly-groomer-curry-brush",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/summer/cotton-hood-earlwood-with-zip-navy-gold",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/hats/hat-thomas-cook-crushable-dark-brown",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/browband-lumiere-onyx-crystal-black-wb",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/hats/hat-pure-western-straw-alvarez",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/outerwear/riding-jackets/riding-jacket-anna-softshell-inky-navy-ladies",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/saddles/accessories/monkey-grip-stc-black",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/mens-hugo-ls-shirt",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/mens-beau-ls-shirt",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/bags/luggage-unicorn-bridle-bag-600-denier",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/luggage-unicorn-saddle-carry-bag-600-denier",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/sweaters/womens-freya-jumper",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/winter/kozy-rainsheet-1200d-no-fill-combo-navy-orange",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/huntington-black-gloss-helmet",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/feed-storage/saddleworld-feed-scoop",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/scrunch-neck-cotton-combo",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/jeans/jeans-wrangler-chara-midrise-bootcut-willow-faded-blue-ladies",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/hats/akubra-hat-stretchers",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/hats/akubra-hat-filler-inserts",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/luggage-art-deco-travel-bag-600-denier",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/brushes/akubra-hat-brush",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/jeans/jeans-pure-western-jemma-high-waisted-bootcut-moonshine-8",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/tshirts/womens-giselle-ss-tee",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/caps/ralph-hp-trucker-hat",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/hats/hat-pure-western-straw-guerrero",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/womens-lindsay-ls-blouse",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/saddles/accessories/monkey-grip-stc-brown",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/helmet-aussie-eventer-with-cone-black",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/cinch®-mens-concealed-carry-wooly-bonded-navy-vest",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/kids/breeches/huntington-girls-pull-on-breeches",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/jumping/kentucky-saddle-pad-3d-logo-onion-quilt-jumping",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/luggage-unicorn-hay-bag-feeder-600-denier",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/jeans/jeans-pure-western-elora-bootcut-twilight-ladies",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/training/lunge-equipment/lunge-lead-with-circle-markers-showmaster-black",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/bags/luggage-art-deco-bridle-bag-600-denier",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/dressage/kentucky-glitter-rope-dressage-saddle-pad",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/tshirts/cinch-mens-logo-brown-short-sleeve-graphic-t-shirt",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/hoof-care/worlds-best-hoof-oil-250ml-travel-pack",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/veterinary/soa-soap",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/girths/air-cell-cinch-girth-black",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/bags/luggage-ariat-gear-bag-pvc-black",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/kids/breeches/ruby-girls-jodhpurs-with-full-gel-seat-beige",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/stirrup-irons/thorowgood-tuff-stirrups-child",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/training/large-dressage-cones-12-x-400mm",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/leather-care/oakwood-liquid-saddle-soap",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/tail-protectors/fort-worth-tail-wrap",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/veterinary/epsom-salt",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/polocrosse-helmet",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/hats/chocolate-colorado-1",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/hats/hat-thomas-cook-crushable-light-cream",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/jewellery/silver-and-gold-tone-brass-jewellery",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/jeans/jeans-wrangler-rebecca-ultimate-midrise-bootcut-willow-34inch-leg-ladies",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tops/womens-mavis-ls-shirt",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/stirrup-irons/ammo-oxbows-6-inch-pair",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/cinch-mens-cinch-jean-co-tee",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/shirts/womens-karla-ls-western-shirt",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/kids/kids-horse-snuggle-hoodie",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/accessories/gifts/boot-pencil-holder",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/feather-tooled-felt-saddle-pad",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tops/womens-alice-ls-shirt",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/caps/lisa-trucker-cap",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/gloves/woof-wear-event-glove",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/boots/boot-vase",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/caps/asher-hp-trucker-cap",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/stirrup-irons/eurohunter-aluminium-oxbow-xl",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/whips/eurohunter-deluxe-lunge-whip-black-180cm",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/hoof-care/worlds-best-hoof-oil-show-gloss-125ml",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/womens-lola-zip-up-hoodie",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/stirrup-leathers/aintree-plain-stirrup-leathers",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/jeans/wrangler-mens-cowboy-cut-jeans",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/womens-clarinda-ls-blouse",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tops/womens-emmy-ls-shirt",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/casual/womens-sandy-comfort-shoe",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/girths/fort-worth-fleece-lined-cinch-black",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/jeans/womens-trisha-boot-cut-jean",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/shirts/womens-patria-ls-western-shirt",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/jeans/womens-bridget-boot-cut-jean",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/breastplates/silver-royal-sunflower-breastcollar",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/casual/womens-trish-comfort-shoe",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/tshirts/womens-renee-tee",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/accessories/satin-summer-bib",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/stirrup-irons/compositi-reflex-stirrups-1",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/accessories/gifts/cowboy-welcome-sign",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/stirrup-irons/tech-stirrups-venice-dressage",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/mens-evan-jacket",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/silver-royal-sunflower-browband-headstall",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bonnets/lami-cell-titanium-ear-bonnet",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tops/womens-clara-ls-shirt",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/jeans/womens-alba-boot-cut-jean",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/western/felt-barrel-pad-with-shim-builtup",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/tshirts/men-wrangler-logo-ss-tee",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/sleepwear/girls-blair-pjs",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/rest-and-recovery-therapeutic-rug",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/leather-care/oakwood-glycerine-leather-cleaner-spray",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/contoured-1-2-saddle-pad-cream-w-black-trim-32-x-30",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/accessories/deluxe-quilted-bib",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/fort-worth-barrel-contoured-saddle-pad-1",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/stirrup-irons/stainless-steel-peacock-irons",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/kids/tops/girls-phoebe-check-ls-shirt",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/contoured-saddle-pad",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tops/womens-tahnee-ls-shirt",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/products/cowboy-magic-supa-shine-473ml",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/girths/cord-stock-girth",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/cowboy-magic-rosewater-conditioner-473ml",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/shirts/billie-jean-corded-shirt",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/caps/roper-cap",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bonnets/lami-cell-bonnett-f",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/pinon-henley-top",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/winter/minature-rug-piccolo-turnout-600d-navy-pink",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/tshirts/floral-farm-tee",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/luggage-art-deco-saddle-carry-bag-600-denier",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/kids/five-star-collection-print",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/shirts/homestyle-shirt",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/saddles/dressage/wintec-500-dressage-hart",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/ingalls-top",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/kids/girls-five-star-collection-tee-1",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/products/cowboy-magic-green-spot-remover-473ml-1",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/winter/polar-fleece-rug-dakota-navy",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/womens-pinon-henley-top",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/veterinary/calafea-oil-500ml-1",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/knitwear/ballston-cardigan",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/vests/team-insulated-vest",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/tshirts/varsity-t-shirt",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/shirts/everyday-western-shirt",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/shampoo/cowboy-magic-rosewater-shampoo-473ml",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/tshirts/ariat-lets-ride-t-shirt",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/luggage-unicorn-travel-bag-600-denier",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/belts/two-tone-longhorn-attitude-buckle",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/tshirts/womens-studio-west-collection-tee",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/wisteria-top",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/hats/cattleman-fawn",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/luggage/bags/luggage-art-deco-helmet-bag-600-denier",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/winter/minature-combo-piccolo-turnout-600d-navy-pink",
+      "status": "error",
+      "detail": "HTTP 429"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/womens-heritage-contour-ii-field-zip",
+      "status": "error",
+      "detail": "HTTP 429"
+    }
+  ]
+}
