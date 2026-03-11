@@ -28,7 +28,7 @@ export async function processCampaignQueues(input?: {
 
   // Find campaigns that have queued recipients
   const campaignsWithQueue = await sql`
-    SELECT DISTINCT c.id, c.name, c.status
+    SELECT DISTINCT c.id, c.name, c.status, c.updated_at
     FROM email_campaigns c
     INNER JOIN email_campaign_recipients r ON r.campaign_id = c.id
     WHERE r.status = 'queued'
