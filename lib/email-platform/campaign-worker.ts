@@ -26,13 +26,13 @@ export async function processCampaignQueues(input?: {
   const frequencyCapCount = input?.frequencyCapCount ?? 3;
   const frequencyCapDays = input?.frequencyCapDays ?? 7;
 
-  // Find campaigns that have queued recipients
+  // Find campaigns that have queued recipients and are in active states only
   const campaignsWithQueue = await sql`
     SELECT DISTINCT c.id, c.name, c.status, c.updated_at
     FROM email_campaigns c
     INNER JOIN email_campaign_recipients r ON r.campaign_id = c.id
     WHERE r.status = 'queued'
-      AND c.status IN ('processing', 'scheduled', 'draft')
+      AND c.status = 'processing'
     ORDER BY c.updated_at ASC
     LIMIT ${maxCampaigns}
   `;
@@ -43,6 +43,16 @@ export async function processCampaignQueues(input?: {
     const campaignId = campaignRow.id as string;
     const campaignName = campaignRow.name as string;
     const campaignStatus = campaignRow.status as string;
+
+    // Double-check campaign status right before processing (race condition guard)
+    const statusCheck = await sql`
+      SELECT status FROM email_campaigns WHERE id = ${campaignId} LIMIT 1
+    `;
+    const liveStatus = (statusCheck.rows[0]?.status as string) || 'draft';
+    if (liveStatus === 'cancelled' || liveStatus === 'completed') {
+      console.log(`Skipping campaign ${campaignId} - status is now ${liveStatus}`);
+      continue;
+    }
 
     // Get before stats
     const beforeStats = await sql`
@@ -56,6 +66,11 @@ export async function processCampaignQueues(input?: {
       queued: Number(beforeStats.rows[0]?.queued || 0),
       sent: Number(beforeStats.rows[0]?.sent || 0),
     };
+
+    // Skip if no queued recipients (might have been cancelled between queries)
+    if (before.queued === 0) {
+      continue;
+    }
 
     // Process this campaign's queue
     const result = await sendQueuedCampaignRecipients({
