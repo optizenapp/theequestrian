@@ -37,6 +37,7 @@ type PreparedCampaign = {
 
 type CampaignStats = {
   sentCount: number;
+  remainingQueued: number;
   deliveredCount: number;
   uniqueOpenedCount: number;
   totalOpenCount: number;
@@ -1207,14 +1208,14 @@ export default function AdminEmailCampaignsPage() {
                 >
                   Send queued
                 </button>
-                {campaign.status === 'processing' ? (
+                {(campaign.status === 'processing' || campaign.status === 'scheduled' || campaign.status === 'draft') && campaignStatsById[campaign.id]?.remainingQueued && campaignStatsById[campaign.id]?.remainingQueued > 0 ? (
                   <button
                     type="button"
                     disabled={cancellingCampaignId === campaign.id}
                     className="rounded-full border border-amber-300 px-3 py-1.5 text-xs font-semibold text-amber-700 hover:border-amber-500 disabled:opacity-60"
                     onClick={async () => {
                       const confirmed = window.confirm(
-                        `Cancel sending campaign "${campaign.name}"? Remaining queued recipients will be cancelled.`
+                        `Cancel sending campaign "${campaign.name}"? ${campaignStatsById[campaign.id]?.remainingQueued || 0} queued recipients will be cancelled and will NOT receive this email.`
                       );
                       if (!confirmed) return;
                       setCancellingCampaignId(campaign.id);
@@ -1238,7 +1239,35 @@ export default function AdminEmailCampaignsPage() {
                       }
                     }}
                   >
-                    {cancellingCampaignId === campaign.id ? 'Cancelling…' : 'Cancel send'}
+                    {cancellingCampaignId === campaign.id ? 'Cancelling…' : `Cancel all (${campaignStatsById[campaign.id]?.remainingQueued || 0})`}
+                  </button>
+                ) : null}
+                {campaign.status === 'processing' && campaignStatsById[campaign.id]?.remainingQueued === 0 ? (
+                  <button
+                    type="button"
+                    className="rounded-full border border-green-300 px-3 py-1.5 text-xs font-semibold text-green-700 hover:border-green-500"
+                    onClick={async () => {
+                      const confirmed = window.confirm(
+                        `Mark campaign "${campaign.name}" as completed? All recipients have been sent to.`
+                      );
+                      if (!confirmed) return;
+                      try {
+                        const response = await fetch(`/api/admin/email/campaigns/${campaign.id}/complete`, {
+                          method: 'POST',
+                        });
+                        const data = await response.json();
+                        if (!response.ok) {
+                          setError(data?.error || 'Failed to complete campaign');
+                          return;
+                        }
+                        setStatusMessage(`Campaign "${campaign.name}" marked as completed.`);
+                        await loadAll();
+                      } catch (err) {
+                        setError(err instanceof Error ? err.message : 'Failed to complete campaign');
+                      }
+                    }}
+                  >
+                    Mark completed
                   </button>
                 ) : null}
                 {campaign.status === 'draft' ? (

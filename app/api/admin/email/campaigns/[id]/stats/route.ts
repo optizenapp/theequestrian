@@ -31,7 +31,8 @@ export async function GET(
 
     const totals = await sql`
       SELECT
-        COUNT(*) FILTER (WHERE s.status IN ('sent', 'delivered', 'failed', 'cancelled'))::int AS sent_count,
+        COUNT(*) FILTER (WHERE r.status IN ('sent', 'delivered', 'failed', 'cancelled'))::int AS sent_count,
+        COUNT(*) FILTER (WHERE r.status = 'queued')::int AS remaining_queued,
         COUNT(*) FILTER (WHERE s.status = 'delivered')::int AS delivered_count,
         COUNT(*) FILTER (WHERE s.opened_at IS NOT NULL)::int AS unique_opened_count,
         COALESCE(SUM(s.open_count), 0)::int AS total_open_count,
@@ -57,6 +58,7 @@ export async function GET(
 
     const row = totals.rows[0] ?? {};
     const sentCount = toNumber(row.sent_count);
+    const remainingQueued = toNumber(row.remaining_queued);
     const deliveredCount = toNumber(row.delivered_count);
     const uniqueOpenedCount = toNumber(row.unique_opened_count);
     const totalOpenCount = toNumber(row.total_open_count);
@@ -71,6 +73,7 @@ export async function GET(
       },
       stats: {
         sentCount,
+        remainingQueued,
         deliveredCount,
         uniqueOpenedCount,
         totalOpenCount,
