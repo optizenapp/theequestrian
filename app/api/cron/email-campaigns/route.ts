@@ -25,16 +25,23 @@ export async function POST(request: NextRequest) {
 
 async function handleCron(request: NextRequest) {
   try {
-    // Verify cron secret
+    // Verify cron secret (from query param or Vercel's internal cron)
     const urlSecret = request.nextUrl.searchParams.get('secret');
     const envSecret = process.env.CRON_SECRET;
+    const vercelCronSecret = request.headers.get('x-vercel-cron-secret');
 
-    if (!envSecret) {
-      console.error('CRON_SECRET not configured');
-      return NextResponse.json({ error: 'Cron not configured' }, { status: 500 });
+    let authorized = false;
+
+    // Check Vercel's internal cron signature (when using Vercel crons)
+    if (vercelCronSecret && vercelCronSecret === envSecret) {
+      authorized = true;
+    }
+    // Check query param secret (for external cron services)
+    else if (urlSecret && urlSecret === envSecret) {
+      authorized = true;
     }
 
-    if (!urlSecret || urlSecret !== envSecret) {
+    if (!authorized) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
