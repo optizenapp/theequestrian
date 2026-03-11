@@ -87,25 +87,29 @@ export async function DELETE(
     }
 
     const status = String(campaign.status || '');
-    if (status !== 'draft' && status !== 'scheduled') {
+    if (status !== 'draft' && status !== 'scheduled' && status !== 'cancelled') {
       return NextResponse.json(
-        { error: 'Only draft or scheduled campaigns can be deleted' },
+        { error: 'Only draft, scheduled, or cancelled campaigns can be deleted' },
         { status: 409 }
       );
     }
 
-    const sentRecipientCountResult = await sql`
-      SELECT COUNT(*) AS count
-      FROM email_campaign_recipients
-      WHERE campaign_id = ${id}
-        AND status IN ('sent', 'delivered', 'failed')
-    `;
-    const sentRecipientCount = Number(sentRecipientCountResult.rows[0]?.count || 0);
-    if (sentRecipientCount > 0) {
-      return NextResponse.json(
-        { error: 'Campaign cannot be deleted after send processing has started' },
-        { status: 409 }
-      );
+    // For draft/scheduled: prevent deletion if sends have already started
+    // For cancelled: allow deletion even if sends started (that's expected)
+    if (status === 'draft' || status === 'scheduled') {
+      const sentRecipientCountResult = await sql`
+        SELECT COUNT(*) AS count
+        FROM email_campaign_recipients
+        WHERE campaign_id = ${id}
+          AND status IN ('sent', 'delivered', 'failed')
+      `;
+      const sentRecipientCount = Number(sentRecipientCountResult.rows[0]?.count || 0);
+      if (sentRecipientCount > 0) {
+        return NextResponse.json(
+          { error: 'Campaign cannot be deleted after send processing has started' },
+          { status: 409 }
+        );
+      }
     }
 
     const recipientCountResult = await sql`
