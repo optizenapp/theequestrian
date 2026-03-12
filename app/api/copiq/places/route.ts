@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyCopiqApiKey } from '@/lib/copiq-auth';
 import { sql } from '@/lib/db/client';
 
+type PlaceRow = { name: unknown; slug: unknown; type: unknown };
+
+function toPlaceList(rows: unknown): { name: unknown; slug: unknown; type: unknown }[] {
+  const arr = Array.isArray(rows) ? rows : [];
+  return arr.map((p) => ({
+    name: (p as PlaceRow).name,
+    slug: (p as PlaceRow).slug,
+    type: (p as PlaceRow).type,
+  }));
+}
+
 export async function GET(request: NextRequest) {
   const apiKey = request.headers.get('Authorization')?.replace('Bearer ', '') || null;
 
@@ -23,15 +34,11 @@ export async function GET(request: NextRequest) {
         SELECT name, slug, type FROM place
         ORDER BY type ASC, name ASC
       `;
-      const places = Array.isArray(rows) ? rows : [];
+      const places = toPlaceList(rows);
       return NextResponse.json({
         success: true,
         count: places.length,
-        places: places.map((p: Record<string, unknown>) => ({
-          name: p.name,
-          slug: p.slug,
-          type: p.type,
-        })),
+        places,
       });
     }
 
@@ -42,15 +49,11 @@ export async function GET(request: NextRequest) {
         ORDER BY name ASC
         LIMIT ${limit}
       `;
-      const places = Array.isArray(rows) ? rows : [];
+      const places = toPlaceList(rows);
       return NextResponse.json({
         success: true,
         count: places.length,
-        places: places.map((p: Record<string, unknown>) => ({
-          name: p.name,
-          slug: p.slug,
-          type: p.type,
-        })),
+        places,
       });
     }
 
@@ -61,15 +64,11 @@ export async function GET(request: NextRequest) {
       ORDER BY name ASC
       LIMIT ${limit}
     `;
-    const places = Array.isArray(rows) ? rows : [];
+    const places = toPlaceList(rows);
     return NextResponse.json({
       success: true,
       count: places.length,
-      places: places.map((p: Record<string, unknown>) => ({
-        name: p.name,
-        slug: p.slug,
-        type: p.type,
-      })),
+      places,
     });
   } catch (error) {
     console.error('[Copiq API] Places failed:', error);
