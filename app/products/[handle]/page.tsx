@@ -127,6 +127,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   // Fetch review stats for related products (server-side batch)
   const relatedHandles = relatedProducts.map(p => p.handle);
   const relatedReviewStatsMap = await getReviewStatsForProducts(relatedHandles);
+  const relatedReviewStats = Object.fromEntries(relatedReviewStatsMap);
 
   // Get product-specific bullet points
   let overrideBullets: string[] = [];
@@ -235,9 +236,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
         />
 
         {/* Related Products */}
-        <RelatedProducts 
-          products={relatedProducts} 
-          reviewStatsMap={relatedReviewStatsMap}
+        <RelatedProducts
+          products={relatedProducts}
+          reviewStatsMap={relatedReviewStats}
         />
       </div>
     </div>

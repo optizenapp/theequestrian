@@ -224,12 +224,16 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   
   // Generate canonical URLs for all products (fast with Neon DB)
   // Product cards will link directly to category-based URLs
-  const productUrls = await getProductCanonicalUrls(filteredProducts);
+  const productUrlsMap = await getProductCanonicalUrls(filteredProducts);
 
   // Fetch review stats for all products in one batch (server-side)
   // This avoids 36+ client-side API calls
   const productHandles = filteredProducts.map(p => p.handle);
   const reviewStatsMap = await getReviewStatsForProducts(productHandles);
+
+  // Serialize Maps to plain objects for Client Components (Maps are not JSON-serializable in RSC)
+  const productUrls = Object.fromEntries(productUrlsMap);
+  const reviewStats = Object.fromEntries(reviewStatsMap);
   
   // Get allowed brand vendors from brand-mapping.csv (only for equestrian categories)
   // For pet/accessories categories, show all brands
@@ -266,7 +270,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     collectionDescription: content?.meta_description || `Shop premium ${pageTitle.toLowerCase()} from top equestrian brands. Quality products with fast shipping across Australia.`,
     breadcrumbs,
     products: filteredProducts,
-    canonicalProductUrls: productUrls,
+    canonicalProductUrls: productUrlsMap,
     siteUrl,
     maxProducts: 12, // Limit schema to 12 products for performance
   });
@@ -317,7 +321,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             allowedBrands={allowedBrands}
             serverFacets={facets}
             productUrls={productUrls}
-            reviewStatsMap={reviewStatsMap}
+            reviewStatsMap={reviewStats}
           />
         </Suspense>
 

@@ -75,11 +75,15 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
   
   // Generate canonical URLs for all products (fast with Neon DB)
   // Product cards will link directly to category-based URLs
-  const productUrls = await getProductCanonicalUrls(products);
+  const productUrlsMap = await getProductCanonicalUrls(products);
 
   // Fetch review stats for all products in one batch (server-side)
   const productHandles = products.map(p => p.handle);
   const reviewStatsMap = await getReviewStatsForProducts(productHandles);
+
+  // Serialize Maps to plain objects for Client Components (Maps are not JSON-serializable in RSC)
+  const productUrls = Object.fromEntries(productUrlsMap);
+  const reviewStats = Object.fromEntries(reviewStatsMap);
   
   // Parse content
   const pageTitle = brand.h1_title || brand.title;
@@ -110,7 +114,7 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
     collectionDescription: brand.meta_description || `Shop premium ${brand.title} equestrian products. Official retailer with fast shipping across Australia.`,
     breadcrumbs,
     products,
-    canonicalProductUrls: productUrls,
+    canonicalProductUrls: productUrlsMap,
     siteUrl,
     maxProducts: 12, // Limit schema to 12 products for performance
   });
@@ -188,7 +192,7 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
             }}
             totalCount={totalProductCount}
             productUrls={productUrls}
-            reviewStatsMap={reviewStatsMap}
+            reviewStatsMap={reviewStats}
           />
 
           {/* Long Description (Rich Content) */}

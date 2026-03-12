@@ -138,11 +138,15 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const totalProductCount = totalCount;
   
   // Generate canonical frontend URLs for schema and product cards
-  const productUrls = await getProductCanonicalUrls(filteredProducts);
+  const productUrlsMap = await getProductCanonicalUrls(filteredProducts);
 
   // Fetch review stats for all products in one batch (server-side)
   const productHandles = filteredProducts.map(p => p.handle);
   const reviewStatsMap = await getReviewStatsForProducts(productHandles);
+
+  // Serialize Maps to plain objects for Client Components (Maps are not JSON-serializable in RSC)
+  const productUrls = Object.fromEntries(productUrlsMap);
+  const reviewStats = Object.fromEntries(reviewStatsMap);
   
   // Get allowed brand vendors from brand-mapping.csv
   const allowedBrands = (category === 'pet' || category === 'accessories') 
@@ -172,7 +176,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     collectionDescription: content?.meta_description || `Shop premium ${pageTitle.toLowerCase()} from top equestrian brands. Quality products with fast shipping across Australia.`,
     breadcrumbs,
     products: filteredProducts,
-    canonicalProductUrls: productUrls,
+    canonicalProductUrls: productUrlsMap,
     siteUrl,
     maxProducts: 12,
   });
@@ -221,7 +225,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             allowedBrands={allowedBrands}
             serverFacets={facets}
             productUrls={productUrls}
-            reviewStatsMap={reviewStatsMap}
+            reviewStatsMap={reviewStats}
           />
         </Suspense>
 

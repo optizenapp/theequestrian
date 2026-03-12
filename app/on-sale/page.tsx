@@ -60,11 +60,15 @@ export default async function OnSalePage({
   
   // Generate canonical URLs for all products (fast with Neon DB)
   // Product cards will link directly to category-based URLs
-  const productUrls = await getProductCanonicalUrls(products);
+  const productUrlsMap = await getProductCanonicalUrls(products);
 
   // Fetch review stats for all products in one batch (server-side)
   const productHandles = products.map(p => p.handle);
   const reviewStatsMap = await getReviewStatsForProducts(productHandles);
+
+  // Serialize Maps to plain objects for Client Components (Maps are not JSON-serializable in RSC)
+  const productUrls = Object.fromEntries(productUrlsMap);
+  const reviewStats = Object.fromEntries(reviewStatsMap);
   
   // Parse content
   const pageTitle = pageData?.h1_title || 'Good Deals';
@@ -94,7 +98,7 @@ export default async function OnSalePage({
     collectionDescription: pageData?.meta_description || 'Shop premium equestrian products on sale. Quality items at discounted prices with fast shipping across Australia.',
     breadcrumbs,
     products,
-    canonicalProductUrls: productUrls,
+    canonicalProductUrls: productUrlsMap,
     siteUrl,
     maxProducts: 12, // Limit schema to 12 products for performance
   });
@@ -147,7 +151,7 @@ export default async function OnSalePage({
             }}
             totalCount={totalCount}
             productUrls={productUrls}
-            reviewStatsMap={reviewStatsMap}
+            reviewStatsMap={reviewStats}
           />
 
           {/* Long Description (Rich Content) */}

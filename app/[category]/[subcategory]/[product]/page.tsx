@@ -196,6 +196,7 @@ async function renderProductPage(product: ShopifyProduct, canonicalPath?: string
   // Fetch review stats for related products (server-side batch)
   const relatedHandles = relatedProducts.map(p => p.handle);
   const relatedReviewStatsMap = await getReviewStatsForProducts(relatedHandles);
+  const relatedReviewStats = Object.fromEntries(relatedReviewStatsMap);
 
   // Get product-specific bullet points
   let overrideBullets: string[] = [];
@@ -317,7 +318,7 @@ async function renderProductPage(product: ShopifyProduct, canonicalPath?: string
         {/* Related Products - Already has intersection observer built-in */}
         <RelatedProducts 
           products={relatedProducts} 
-          reviewStatsMap={relatedReviewStatsMap}
+          reviewStatsMap={relatedReviewStats}
         />
       </div>
     </div>
@@ -391,7 +392,11 @@ async function renderSubSubcategoryPage(
   // Generate canonical URLs for all products (fast with Neon DB)
   // Product cards will link directly to category-based URLs
   const { getProductCanonicalUrls } = await import('@/lib/shopify/products');
-  const productUrls = await getProductCanonicalUrls(filteredProducts);
+  const productUrlsMap = await getProductCanonicalUrls(filteredProducts);
+
+  // Serialize Maps to plain objects for Client Components (Maps are not JSON-serializable in RSC)
+  const productUrls = Object.fromEntries(productUrlsMap);
+  const reviewStats = Object.fromEntries(reviewStatsMap);
   
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
 
@@ -406,7 +411,7 @@ async function renderSubSubcategoryPage(
     collectionDescription: content?.meta_description || `Shop premium ${pageTitle.toLowerCase()} from top equestrian brands. Quality products with fast shipping across Australia.`,
     breadcrumbs,
     products: filteredProducts,
-    canonicalProductUrls: productUrls,
+    canonicalProductUrls: productUrlsMap,
     parentCollection: {
       name: parentCollectionTitle,
       url: `${siteUrl}/${category}/${subcategory}`,
@@ -464,7 +469,7 @@ async function renderSubSubcategoryPage(
             allowedBrands={allowedBrands}
             serverFacets={facets}
             productUrls={productUrls}
-            reviewStatsMap={reviewStatsMap}
+            reviewStatsMap={reviewStats}
           />
         </Suspense>
 

@@ -7,7 +7,7 @@ import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
 
 interface RelatedProductsProps {
   products: ShopifyProduct[];
-  reviewStatsMap?: Map<string, ReviewStats>;
+  reviewStatsMap?: Record<string, ReviewStats>; // plain object for RSC serialization
 }
 
 export function RelatedProducts({ products, reviewStatsMap }: RelatedProductsProps) {
@@ -31,7 +31,7 @@ export function RelatedProducts({ products, reviewStatsMap }: RelatedProductsPro
               product={product}
               // Use fallback URL for related products as they might be from different categories
               canonicalUrl={`/products/${product.handle}`}
-              reviewStats={reviewStatsMap?.get(product.handle)}
+              reviewStats={reviewStatsMap?.[product.handle]}
             />
           ))}
         </div>

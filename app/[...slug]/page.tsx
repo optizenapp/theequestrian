@@ -148,6 +148,7 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
   // Fetch related products and review stats (server-side batch)
   const relatedProducts = await getRecommendedProducts(4, product.productType, product.handle);
   const relatedReviewStatsMap = await getReviewStatsForProducts(relatedProducts.map((p) => p.handle));
+  const relatedReviewStats = Object.fromEntries(relatedReviewStatsMap);
 
   return (
     <>
@@ -243,7 +244,7 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <RelatedProducts
           products={relatedProducts}
-          reviewStatsMap={relatedReviewStatsMap}
+          reviewStatsMap={relatedReviewStats}
         />
       </div>
     </>

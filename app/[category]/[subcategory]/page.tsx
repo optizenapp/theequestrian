@@ -119,11 +119,15 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
   
   // Generate canonical URLs for all products (fast with Neon DB)
   // Product cards will link directly to category-based URLs
-  const productUrls = await getProductCanonicalUrls(filteredProducts);
+  const productUrlsMap = await getProductCanonicalUrls(filteredProducts);
 
   // Fetch review stats for all products in one batch (server-side)
   const productHandles = filteredProducts.map(p => p.handle);
   const reviewStatsMap = await getReviewStatsForProducts(productHandles);
+
+  // Serialize Maps to plain objects for Client Components (Maps are not JSON-serializable in RSC)
+  const productUrls = Object.fromEntries(productUrlsMap);
+  const reviewStats = Object.fromEntries(reviewStatsMap);
 
   // Get sub-subcategories from our mapping (third level)
   const subSubcategories = await getMappingSubcategories(category, subcategory);
@@ -157,7 +161,7 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
     collectionDescription: content?.meta_description || `Shop premium ${pageTitle.toLowerCase()} from top equestrian brands. Quality products with fast shipping across Australia.`,
     breadcrumbs,
     products: filteredProducts,
-    canonicalProductUrls: productUrls,
+    canonicalProductUrls: productUrlsMap,
     parentCollection: {
       name: parentCollectionTitle,
       url: `${siteUrl}/${category}`,
@@ -212,7 +216,7 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
             allowedBrands={allowedBrands}
             serverFacets={facets}
             productUrls={productUrls}
-            reviewStatsMap={reviewStatsMap}
+            reviewStatsMap={reviewStats}
           />
         </Suspense>
 

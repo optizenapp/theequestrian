@@ -50,8 +50,8 @@ interface ProductGridWithFiltersProps {
     colors: { value: string; count: number; originalValue: string }[];
     price: { min: number; max: number };
   };
-  productUrls?: Map<string, string>; // Map of product.id -> canonical URL
-  reviewStatsMap?: Map<string, ReviewStats>; // Map of product.handle -> review stats
+  productUrls?: Record<string, string>; // product.id -> canonical URL (plain object for RSC serialization)
+  reviewStatsMap?: Record<string, ReviewStats>; // product.handle -> review stats (plain object for RSC serialization)
 }
 
 export function ProductGridWithFilters({
@@ -471,8 +471,8 @@ export function ProductGridWithFilters({
                     key={product.id}
                     product={product}
                     priority={index < 6}
-                    canonicalUrl={productUrls?.get(product.id)}
-                    reviewStats={reviewStatsMap?.get(product.handle)}
+                    canonicalUrl={productUrls?.[product.id]}
+                    reviewStats={reviewStatsMap?.[product.handle]}
                   />
                 ))}
               </div>
