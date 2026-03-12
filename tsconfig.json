@@ -32,6 +32,7 @@
   ],
   "exclude": [
     "node_modules",
+    "docs/**/*",
     "scripts/**/*",
     "services/webkul-price-offset/**/*",
     "services/shopify-price-offset/**/*"

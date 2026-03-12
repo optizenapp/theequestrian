@@ -1,21 +1,47 @@
 /**
  * S3 storage for article images (Copiq uploads, featured images).
- * Uses AWS SDK and env: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, AWS_S3_BUCKET_NAME.
+ * Uses article-specific env when set, else fallback to shared AWS_*:
+ *   AWS_ARTICLES_ACCESS_KEY_ID, AWS_ARTICLES_SECRET_ACCESS_KEY (or AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+ *   AWS_ARTICLES_S3_BUCKET_NAME or AWS_S3_BUCKET_NAME or AWS_S3_BUCKET
+ *   AWS_REGION (default ap-southeast-2)
  */
 
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import crypto from 'crypto';
 
-const s3Client = new S3Client({
-  region: process.env.AWS_REGION || 'ap-southeast-2',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
-  },
-});
+let _s3Client: S3Client | null = null;
 
-const BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME || process.env.AWS_S3_BUCKET || '';
+function getS3Client(): S3Client {
+  if (!_s3Client) {
+    const accessKeyId = (
+      process.env.AWS_ARTICLES_ACCESS_KEY_ID ?? process.env.AWS_ACCESS_KEY_ID
+    )?.trim();
+    const secretAccessKey = (
+      process.env.AWS_ARTICLES_SECRET_ACCESS_KEY ?? process.env.AWS_SECRET_ACCESS_KEY
+    )?.trim();
+    if (!accessKeyId || !secretAccessKey) {
+      throw new Error(
+        'Missing AWS credentials for article images. Set AWS_ARTICLES_ACCESS_KEY_ID and AWS_ARTICLES_SECRET_ACCESS_KEY (or AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY) in .env.local.'
+      );
+    }
+    const region = process.env.AWS_REGION || 'ap-southeast-2';
+    _s3Client = new S3Client({
+      region,
+      credentials: { accessKeyId, secretAccessKey },
+    });
+  }
+  return _s3Client;
+}
+
+function getBucketName(): string {
+  const raw =
+    process.env.AWS_ARTICLES_S3_BUCKET_NAME ||
+    process.env.AWS_S3_BUCKET_NAME ||
+    process.env.AWS_S3_BUCKET ||
+    '';
+  return raw && raw !== 'articles' ? raw : 'theequestrian-articles-images';
+}
 
 /**
  * Server-side upload from buffer (e.g. Copiq image ingestion).
@@ -28,18 +54,20 @@ export async function uploadBufferToS3(
   const hash = crypto.createHash('md5').update(buffer).digest('hex');
   const ext = contentType.split('/')[1] || 'jpg';
   const uniqueKey = `${folder}/${hash}.${ext}`;
+  const bucket = getBucketName();
+  const client = getS3Client();
 
   const command = new PutObjectCommand({
-    Bucket: BUCKET_NAME,
+    Bucket: bucket,
     Key: uniqueKey,
     Body: buffer,
     ContentType: contentType,
     CacheControl: 'max-age=31536000',
   });
 
-  await s3Client.send(command);
+  await client.send(command);
   const region = process.env.AWS_REGION || 'ap-southeast-2';
-  return `https://${BUCKET_NAME}.s3.${region}.amazonaws.com/${uniqueKey}`;
+  return `https://${bucket}.s3.${region}.amazonaws.com/${uniqueKey}`;
 }
 
 /**
@@ -52,15 +80,58 @@ export async function getPresignedUploadUrl(
 ): Promise<{ uploadUrl: string; publicUrl: string; key: string }> {
   const ext = filename.split('.').pop() || 'jpg';
   const uniqueKey = `${folder}/${crypto.randomUUID()}.${ext}`;
+  const bucket = getBucketName();
+  const client = getS3Client();
 
   const command = new PutObjectCommand({
-    Bucket: BUCKET_NAME,
+    Bucket: bucket,
     Key: uniqueKey,
     ContentType: contentType,
   });
 
-  const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+  const uploadUrl = await getSignedUrl(client, command, { expiresIn: 3600 });
   const region = process.env.AWS_REGION || 'ap-southeast-2';
-  const publicUrl = `https://${BUCKET_NAME}.s3.${region}.amazonaws.com/${uniqueKey}`;
+  const publicUrl = `https://${bucket}.s3.${region}.amazonaws.com/${uniqueKey}`;
   return { uploadUrl, publicUrl, key: uniqueKey };
+}
+
+const IMAGE_EXT = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif']);
+
+/**
+ * List image keys in the article bucket (optionally under a prefix).
+ * Returns public URLs for use in the editor.
+ */
+export async function listArticleImages(
+  prefix: string = 'articles/',
+  maxKeys: number = 200
+): Promise<{ url: string; key: string }[]> {
+  const bucket = getBucketName();
+  const region = process.env.AWS_REGION || 'ap-southeast-2';
+  const client = getS3Client();
+  const out: { url: string; key: string }[] = [];
+  let continuationToken: string | undefined;
+
+  do {
+    const command = new ListObjectsV2Command({
+      Bucket: bucket,
+      Prefix: prefix,
+      MaxKeys: maxKeys,
+      ContinuationToken: continuationToken,
+    });
+    const response = await client.send(command);
+    const items = response.Contents ?? [];
+    for (const item of items) {
+      const key = item.Key;
+      const ext = key?.split('.').pop()?.toLowerCase();
+      if (!key || !ext || !IMAGE_EXT.has(ext)) continue;
+      out.push({
+        key,
+        url: `https://${bucket}.s3.${region}.amazonaws.com/${key}`,
+      });
+    }
+    continuationToken = response.NextContinuationToken;
+  } while (continuationToken);
+
+  // Newest first (S3 list is arbitrary; we don't have LastModified in type for sort)
+  return out;
 }

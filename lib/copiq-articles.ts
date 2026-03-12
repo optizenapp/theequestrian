@@ -142,7 +142,9 @@ export async function saveCopiqArticle(data: CopiqArticle) {
   const existingRows = await sql`
     SELECT article_id, copiq_social_posts FROM article WHERE copiq_id = ${data.id} LIMIT 1
   `;
-  const existing = Array.isArray(existingRows) ? existingRows[0] : null;
+  const existing = (Array.isArray(existingRows) ? existingRows[0] : null) as
+    | { article_id: string; copiq_social_posts: unknown }
+    | null;
   const mergedSocialPosts =
     socialPostsData && existing?.copiq_social_posts
       ? mergeSocialPosts(
@@ -177,7 +179,7 @@ export async function saveCopiqArticle(data: CopiqArticle) {
         updated_at = NOW(),
         copiq_social_posts = ${mergedSocialPosts ? JSON.stringify(mergedSocialPosts) : null},
         pr_contacts = ${prContactsData ? JSON.stringify(prContactsData) : null}
-      WHERE article_id = ${(existing as { article_id: string }).article_id}
+      WHERE article_id = ${existing.article_id}
     `;
   } else {
     await sql`

@@ -5,6 +5,47 @@
 import { sql } from '@/lib/db/client';
 import type { Article, ArticleCategory, ArticleWithRelations, Place } from './types';
 
+type ArticleRow = {
+  article_id: unknown;
+  slug: unknown;
+  title: unknown;
+  excerpt: unknown;
+  content: unknown;
+  article_type: unknown;
+  status: unknown;
+  published_at: unknown;
+  updated_at: unknown;
+  author_id: unknown;
+  author_name: unknown;
+  author_bio: unknown;
+  author_image_url: unknown;
+  meta_title: unknown;
+  meta_description: unknown;
+  featured_image_url: unknown;
+  featured_image_alt: unknown;
+  exclude_from_place_hubs: unknown;
+  primary_category_id: unknown;
+  copiq_id: unknown;
+  copiq_social_posts: unknown;
+  pr_contacts: unknown;
+  created_at: unknown;
+  view_count: unknown;
+  cat_id: unknown;
+  cat_slug: unknown;
+  cat_name: unknown;
+};
+
+type ArticlePlaceRow = {
+  article_place_id: unknown;
+  article_id: unknown;
+  place_id: unknown;
+  primary_place: unknown;
+  p_place_id: unknown;
+  p_slug: unknown;
+  p_name: unknown;
+  p_type: unknown;
+};
+
 export async function getArticleById(articleId: string): Promise<ArticleWithRelations | null> {
   const rows = await sql`
     SELECT
@@ -19,7 +60,7 @@ export async function getArticleById(articleId: string): Promise<ArticleWithRela
     WHERE a.article_id = ${articleId}
     LIMIT 1
   `;
-  const row = Array.isArray(rows) ? rows[0] : null;
+  const row = (Array.isArray(rows) ? rows[0] : null) as ArticleRow | null;
   if (!row) return null;
 
   const articlePlaces = await sql`
@@ -29,7 +70,7 @@ export async function getArticleById(articleId: string): Promise<ArticleWithRela
     JOIN place p ON p.place_id = ap.place_id
     WHERE ap.article_id = ${articleId}
   `;
-  const places = Array.isArray(articlePlaces) ? articlePlaces : [];
+  const places = (Array.isArray(articlePlaces) ? articlePlaces : []) as ArticlePlaceRow[];
 
   return {
     article_id: row.article_id,
@@ -67,7 +108,7 @@ export async function getArticleById(articleId: string): Promise<ArticleWithRela
           created_at: null,
         }
       : null,
-    article_place: places.map((p: Record<string, unknown>) => ({
+    article_place: places.map((p) => ({
       article_place_id: p.article_place_id,
       article_id: p.article_id,
       place_id: p.place_id,
@@ -275,7 +316,7 @@ export async function listArticles(options: {
         JOIN place p ON p.place_id = ap.place_id
         WHERE ap.article_id = ${articleId}
       `;
-      const placeList = Array.isArray(places) ? places : [];
+      const placeList = (Array.isArray(places) ? places : []) as ArticlePlaceRow[];
       return {
         article_id: row.article_id,
         slug: row.slug,
@@ -312,7 +353,7 @@ export async function listArticles(options: {
               created_at: null,
             }
           : null,
-        article_place: placeList.map((p: Record<string, unknown>) => ({
+        article_place: placeList.map((p) => ({
           article_place_id: p.article_place_id,
           article_id: p.article_id,
           place_id: p.place_id,
@@ -321,7 +362,7 @@ export async function listArticles(options: {
             place_id: p.p_place_id,
             slug: p.p_slug,
             name: p.p_name,
-            type: '',
+            type: (p.p_type as string) ?? '',
           },
         })),
       } as ArticleWithRelations;

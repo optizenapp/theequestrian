@@ -3,6 +3,20 @@ import { verifyCopiqApiKey } from '@/lib/copiq-auth';
 import { sql } from '@/lib/db/client';
 import { getArticleUrl } from '@/lib/articles';
 
+type ArticleSearchRow = {
+  article_id: unknown;
+  title: unknown;
+  slug: unknown;
+  excerpt: unknown;
+  content: unknown;
+  featured_image_url: unknown;
+  article_type: unknown;
+  published_at: unknown;
+  exclude_from_place_hubs: unknown;
+  cat_slug: unknown;
+  cat_name: unknown;
+};
+
 export async function GET(request: NextRequest) {
   const apiKey = request.headers.get('Authorization')?.replace('Bearer ', '') || null;
 
@@ -48,7 +62,7 @@ export async function GET(request: NextRequest) {
         ORDER BY a.published_at DESC NULLS LAST
         LIMIT ${limit}
       `;
-      const articles = Array.isArray(rows) ? rows : [];
+      const articles = (Array.isArray(rows) ? rows : []) as ArticleSearchRow[];
       for (const art of articles) {
         const url = getArticleUrl({ slug: art.slug as string });
         results.push({
