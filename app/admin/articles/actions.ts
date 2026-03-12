@@ -213,8 +213,8 @@ export async function publishSocialPostsAction(
 
   try {
     const rows = await sql`SELECT copiq_social_posts FROM article WHERE article_id = ${articleId} LIMIT 1`;
-    const current = Array.isArray(rows) ? rows[0] : null;
-    const currentPosts = (current?.copiq_social_posts as Record<string, unknown>) || {};
+    const current = Array.isArray(rows) ? (rows[0] as { copiq_social_posts?: Record<string, unknown> } | undefined) : null;
+    const currentPosts = current?.copiq_social_posts ?? {};
     const updated = { ...currentPosts };
     for (const [platform, result] of Object.entries(results)) {
       if (updated[platform]) {
