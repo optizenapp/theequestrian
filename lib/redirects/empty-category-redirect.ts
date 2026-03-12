@@ -2,13 +2,15 @@
  * Empty category redirect: when a category has no products, redirect to parent.
  *
  * Uses existing:
- * - getCollectionContent(urlPath) – category exists in collection_content
+ * - getCollectionContent(urlPath) – optional, for parent_url when path is in collection_content
  * - getProductsByCategory(categoryPath) – product count by path (DB allocations)
  *
- * Redirect only when:
- * - Path is a known category (has collection_content row)
- * - Category has 0 products (no filters, no cursor)
- * - Redirect target is parent (content.parent_url or path with last segment dropped)
+ * Redirect when:
+ * - Path has 0 products (getProductsByCategory returns totalCount 0).
+ * - Target = content.parent_url if path is in collection_content, else path with last segment dropped.
+ *
+ * So even if the path is not in collection_content (e.g. /pet/dog/accessories/dog-bandanas),
+ * we still redirect to parent when there are no products allocated to that path.
  */
 
 import { getCollectionContent } from '@/lib/content/collections';
@@ -30,33 +32,33 @@ function parentPath(path: string): string {
 }
 
 /**
- * If the given path is a known category with 0 products, returns the parent path to redirect to.
+ * If the given path has 0 products, returns the parent path to redirect to.
  * Otherwise returns null (no redirect).
  *
- * Used by:
- * - Catch-all route for 4+ segment URLs when last segment is not a product
- * - (Existing empty redirects in [category], [subcategory], [subcategory]/[product] stay as-is)
+ * Does not require the path to exist in collection_content; any deep path with
+ * no products (e.g. /pet/dog/accessories/dog-bandanas) will redirect to parent.
  */
 export async function getEmptyCategoryRedirectTarget(path: string): Promise<string | null> {
   const normalized = normalizePath(path);
+  const segments = normalized.split('/').filter(Boolean);
+  if (segments.length <= 1) return null;
+
+  let redirectTarget: string;
   const content = await getCollectionContent(normalized);
-  if (!content || content.status !== 'published') {
-    return null;
+  if (content?.status === 'published' && content.parent_url?.trim()) {
+    redirectTarget = normalizePath(content.parent_url.trim());
+  } else {
+    redirectTarget = parentPath(normalized);
   }
+
+  if (redirectTarget === normalized) return null;
 
   try {
     const { totalCount } = await getProductsByCategory(normalized, 1, null, undefined);
-    if (totalCount > 0) {
-      return null;
-    }
+    if (totalCount > 0) return null;
   } catch {
     return null;
   }
 
-  const target = content.parent_url && content.parent_url.trim() ? content.parent_url.trim() : parentPath(normalized);
-  const targetNormalized = normalizePath(target);
-  if (targetNormalized === normalized) {
-    return null;
-  }
-  return targetNormalized;
+  return redirectTarget;
 }
