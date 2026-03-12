@@ -11,6 +11,7 @@ import { getBreadcrumbsForProduct } from '@/lib/mapping/collection-mapping';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
 import { getManualRedirect } from '@/lib/redirects/manual';
+import { getEmptyCategoryRedirectTarget } from '@/lib/redirects/empty-category-redirect';
 import { getProductOverrideByHandle, resolveProductHandleFromSlug } from '@/lib/content/product-overrides';
 import ProductReviewSection from '@/components/reviews/ProductReviewSection';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
@@ -63,6 +64,14 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
   const { handle, product } = await getResolvedProduct(rawHandle);
   
   if (!product) {
+    // When path has 4+ segments, may be an empty category (e.g. /pet/dog/accessories/dog-bandanas)
+    // Redirect to parent if this path is a known category with 0 products
+    if (slug.length >= 4) {
+      const emptyRedirect = await getEmptyCategoryRedirectTarget(requestedPath);
+      if (emptyRedirect) {
+        redirect(emptyRedirect);
+      }
+    }
     notFound();
   }
   if (!hasProductImage(product)) {
