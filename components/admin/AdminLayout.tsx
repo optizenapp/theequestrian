@@ -19,6 +19,7 @@
   const navItems = useMemo(
     () => [
       { href: '/admin', label: 'Dashboard', icon: 'home' },
+      { href: '/admin/articles', label: 'Articles', icon: 'feed' },
       { href: '/admin/analytics', label: 'GA4 Analytics', icon: 'chart' },
       { href: '/admin/performance', label: 'Performance', icon: 'performance' },
       { href: '/admin/404', label: '404 Monitor', icon: 'alert' },

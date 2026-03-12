@@ -1,0 +1,330 @@
+// Article System Models - Extracted from Yorkshire.com
+// These models define the article/blog system with Copiq integration
+// Copy these into your schema.prisma and adapt as needed
+
+// ============================================================================
+// ARTICLE MODELS
+// ============================================================================
+
+model article {
+  article_id              String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug                    String                  @unique @db.VarChar(255)
+  title                   String                  @db.VarChar(1000)
+  excerpt                 String?
+  content                 String
+  article_type            String                  @db.VarChar(50)  // 'news', 'inspiration', 'history', 'guide', 'walk', etc.
+  status                  String?                 @default("draft") @db.VarChar(20)  // 'draft', 'published', 'archived'
+  published_at            DateTime?               @db.Timestamptz(6)
+  updated_at              DateTime?               @default(now()) @db.Timestamptz(6)
+  
+  // Authorship
+  author_id               String?                 @db.Uuid
+  author_name             String?                 @db.VarChar(255)  // Byline override
+  author_bio              String?
+  author_image_url        String?                 @db.VarChar(1000)
+  
+  // SEO
+  meta_title              String?                 @db.VarChar(255)
+  meta_description        String?
+  featured_image_url      String?                 @db.VarChar(2000)
+  featured_image_alt      String?
+  
+  // Legacy WordPress
+  legacy_wp_id            Int?
+  legacy_post_type        String?                 @db.VarChar(50)
+  
+  // Engagement Metrics
+  view_count              Int?                    @default(0)
+  last_viewed_at          DateTime?               @db.Timestamptz(6)
+  
+  // Google Metrics
+  ga_page_views           Int?                    @default(0)
+  ga_unique_visitors      Int?                    @default(0)
+  ga_avg_session_duration Int?                    @default(0)
+  ga_bounce_rate          Decimal?                @db.Decimal(5, 2)
+  gsc_clicks              Int?                    @default(0)
+  gsc_impressions         Int?                    @default(0)
+  gsc_avg_position        Decimal?                @db.Decimal(5, 2)
+  gsc_ctr                 Decimal?                @db.Decimal(5, 2)
+  gsc_last_synced_at      DateTime?               @db.Timestamptz(6)
+  
+  // Content Scoring
+  content_score           Decimal?                @db.Decimal(5, 2)
+  needs_improvement       Boolean?                @default(false)
+  improvement_reason      String?
+  
+  created_at              DateTime?               @default(now()) @db.Timestamptz(6)
+  exclude_from_place_hubs Boolean?                @default(false)
+  primary_category_id     String?                 @db.Uuid
+  is_trending             Boolean?                @default(false)
+  human_quality_score     Int?                    @default(0)
+  last_audited_at         DateTime?               @db.Timestamptz(6)
+  audit_notes             String?
+  
+  // Copiq Integration
+  copiq_id                String?                 @unique @db.VarChar(255)
+  copiq_social_posts      Json?                   // Stores social post drafts/status from Copiq
+  pr_contacts             Json?                   // PR notification emails and sent status
+  
+  // Relations
+  article_category        article_category?       @relation(fields: [primary_category_id], references: [category_id], onDelete: NoAction, onUpdate: NoAction)
+  author                  User?                   @relation("article_author", fields: [author_id], references: [id], onUpdate: NoAction, map: "fk_article_author")
+  article_category_link   article_category_link[]
+  article_comment         article_comment[]
+  article_entity          article_entity[]        // Optional: Link articles to entities/businesses
+  article_person          article_person[]
+  article_place           article_place[]         // Optional: Link articles to places/locations
+  article_tag_link        article_tag_link[]
+  article_walk_details    article_walk_details?   // Optional: For walk/hike articles
+  image_usage             image_usage[]           // Optional: Track image usage
+
+  @@index([content_score(sort: Desc)], map: "idx_article_content_score")
+  @@index([copiq_id], map: "idx_article_copiq_id")
+  @@index([legacy_wp_id], map: "idx_article_legacy_wp_id")
+  @@index([primary_category_id], map: "idx_article_primary")
+  @@index([published_at(sort: Desc)], map: "idx_article_published_at")
+  @@index([slug], map: "idx_article_slug")
+  @@index([status], map: "idx_article_status")
+  @@index([article_type], map: "idx_article_type")
+}
+
+// ============================================================================
+// CATEGORIES (Hierarchical)
+// ============================================================================
+
+model article_category {
+  category_id            String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug                   String                  @unique @db.VarChar(100)
+  name                   String                  @db.VarChar(255)
+  description            String?
+  parent_category_id     String?                 @db.Uuid
+  sort_order             Int?                    @default(0)
+  legacy_wp_id           Int?
+  created_at             DateTime?               @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  article                article[]
+  article_category       article_category?       @relation("article_categoryToarticle_category", fields: [parent_category_id], references: [category_id], onUpdate: NoAction)
+  other_article_category article_category[]      @relation("article_categoryToarticle_category")
+  article_category_link  article_category_link[]
+
+  @@index([parent_category_id], map: "idx_article_category_parent")
+  @@index([slug], map: "idx_article_category_slug")
+}
+
+model article_category_link {
+  article_id       String           @db.Uuid
+  category_id      String           @db.Uuid
+  is_primary       Boolean?         @default(false)
+  article          article          @relation(fields: [article_id], references: [article_id], onDelete: Cascade, onUpdate: NoAction)
+  article_category article_category @relation(fields: [category_id], references: [category_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([article_id, category_id])
+}
+
+// ============================================================================
+// COMMENTS
+// ============================================================================
+
+model article_comment {
+  comment_id            String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  article_id            String                 @db.Uuid
+  user_id               String?                @db.Uuid
+  parent_id             String?                @db.Uuid
+  content               String
+  status                String?                @default("approved") @db.VarChar(50)  // 'approved', 'pending', 'rejected'
+  created_at            DateTime?              @default(now()) @db.Timestamptz(6)
+  score                 Int?                   @default(0)
+  guest_email           String?                @db.VarChar(255)
+  guest_name            String?                @db.VarChar(255)
+  legacy_wp_id          Int?                   @unique
+  
+  // Relations
+  article               article                @relation(fields: [article_id], references: [article_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_article")
+  article_comment       article_comment?       @relation("article_commentToarticle_comment", fields: [parent_id], references: [comment_id], onUpdate: NoAction, map: "fk_parent")
+  other_article_comment article_comment[]      @relation("article_commentToarticle_comment")
+  User                  User?                  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user")
+  article_comment_vote  article_comment_vote[]
+
+  @@index([article_id], map: "idx_comment_article")
+}
+
+model article_comment_vote {
+  vote_id         String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  comment_id      String          @db.Uuid
+  user_id         String          @db.Uuid
+  vote_type       Int             @db.SmallInt  // 1 = upvote, -1 = downvote
+  created_at      DateTime?       @default(now()) @db.Timestamptz(6)
+  article_comment article_comment @relation(fields: [comment_id], references: [comment_id], onDelete: Cascade, onUpdate: NoAction)
+  User            User            @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([comment_id, user_id])
+}
+
+// ============================================================================
+// ENTITY LINKING (Optional - for linking articles to businesses/entities)
+// ============================================================================
+
+model article_entity {
+  article_entity_id String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  article_id        String    @db.Uuid
+  entity_id         String    @db.Uuid  // References your entity/business table
+  featured          Boolean?  @default(false)
+  order_position    Int?
+  mention_type      String?   @db.VarChar(50)  // 'featured', 'mentioned', 'related'
+  created_at        DateTime? @default(now()) @db.Timestamptz(6)
+  article           article   @relation(fields: [article_id], references: [article_id], onDelete: Cascade, onUpdate: NoAction)
+  // entity relation omitted - adapt to your entity model
+
+  @@unique([article_id, entity_id])
+  @@index([article_id], map: "idx_article_entity_article")
+  @@index([entity_id], map: "idx_article_entity_entity")
+}
+
+// ============================================================================
+// PEOPLE (For sponsored athletes, celebrities, authors mentioned)
+// ============================================================================
+
+model article_person {
+  article_id String  @db.Uuid
+  person_id  String  @db.Uuid
+  role       String? @db.VarChar(100)  // 'subject', 'author', 'mentioned'
+  article    article @relation(fields: [article_id], references: [article_id], onDelete: Cascade, onUpdate: NoAction)
+  // person relation omitted - adapt to your person/author model
+
+  @@id([article_id, person_id])
+}
+
+// ============================================================================
+// PLACE LINKING (Optional - for location-based articles)
+// ============================================================================
+
+model article_place {
+  article_place_id String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  article_id       String    @db.Uuid
+  place_id         String    @db.Uuid  // References your place/location table
+  primary_place    Boolean?  @default(false)
+  created_at       DateTime? @default(now()) @db.Timestamptz(6)
+  article          article   @relation(fields: [article_id], references: [article_id], onDelete: Cascade, onUpdate: NoAction)
+  // place relation omitted - adapt to your place model
+
+  @@unique([article_id, place_id])
+  @@index([article_id], map: "idx_article_place_article")
+  @@index([place_id], map: "idx_article_place_place")
+}
+
+// ============================================================================
+// TAGS (Flat taxonomy)
+// ============================================================================
+
+model article_tag {
+  tag_id           String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug             String             @unique @db.VarChar(100)
+  name             String             @db.VarChar(255)
+  use_count        Int?               @default(0)
+  legacy_wp_id     Int?
+  created_at       DateTime?          @default(now()) @db.Timestamptz(6)
+  article_tag_link article_tag_link[]
+
+  @@index([slug], map: "idx_article_tag_slug")
+}
+
+model article_tag_link {
+  article_id  String      @db.Uuid
+  tag_id      String      @db.Uuid
+  article     article     @relation(fields: [article_id], references: [article_id], onDelete: Cascade, onUpdate: NoAction)
+  article_tag article_tag @relation(fields: [tag_id], references: [tag_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([article_id, tag_id])
+}
+
+// ============================================================================
+// WALK DETAILS (Optional - for hike/walk articles)
+// ============================================================================
+
+model article_walk_details {
+  walk_id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  article_id       String    @unique @db.Uuid
+  gpx_url          String?   @db.VarChar(2000)
+  os_map_id        String?   @db.VarChar(255)
+  distance_km      Decimal?  @db.Decimal(6, 2)
+  distance_miles   Decimal?  @db.Decimal(6, 2)
+  difficulty       String?   @db.VarChar(50)
+  duration_mins    Int?
+  ascent_m         Int?
+  descent_m        Int?
+  route_type       String?   @db.VarChar(50)
+  start_point_lat  Decimal?  @db.Decimal(10, 8)
+  start_point_lng  Decimal?  @db.Decimal(11, 8)
+  finish_point_lat Decimal?  @db.Decimal(10, 8)
+  finish_point_lng Decimal?  @db.Decimal(11, 8)
+  what3words_start String?   @db.VarChar(255)
+  created_at       DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime? @default(now()) @db.Timestamptz(6)
+  article          article   @relation(fields: [article_id], references: [article_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([article_id], map: "idx_walk_details_article_id")
+}
+
+// ============================================================================
+// OPTIONAL: Image usage tracking (requires entity_image model)
+// ============================================================================
+
+model image_usage {
+  usage_id   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  image_id   String   @db.Uuid
+  article_id String   @db.Uuid
+  usage_type String   @db.VarChar(50)  // 'featured', 'inline'
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  article    article  @relation(fields: [article_id], references: [article_id], onDelete: Cascade, onUpdate: NoAction)
+  // entity_image relation omitted - adapt to your image model
+
+  @@index([article_id], map: "idx_image_usage_article")
+  @@index([image_id], map: "idx_image_usage_image")
+}
+
+// ============================================================================
+// REQUIRED: Minimal User model for authorship
+// ============================================================================
+
+model User {
+  id                      String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                    String?           @db.VarChar(255)
+  email                   String?           @unique @db.VarChar(255)
+  emailVerified           DateTime?         @db.Timestamptz(6)
+  image                   String?
+  role                    String?           @default("B2C_USER") @db.VarChar(50)  // 'B2C_USER', 'EDITOR', 'ADMIN'
+  created_at              DateTime?         @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime?         @default(now()) @db.Timestamptz(6)
+  
+  // Author fields
+  bio                     String?
+  is_author               Boolean           @default(false)
+  
+  // Relations
+  authored_articles       article[]         @relation("article_author")
+  article_comment         article_comment[]
+  
+  // Add your other user relations here...
+}
+
+// ============================================================================
+// REQUIRED: Minimal Place model for location linking
+// Adapt this to your existing location taxonomy
+// ============================================================================
+
+model place {
+  place_id    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug        String    @unique @db.VarChar(255)
+  name        String    @db.VarChar(255)
+  type        String    @db.VarChar(50)  // 'city', 'town', 'region', 'country'
+  description String?
+  image_url   String?   @db.VarChar(500)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_at  DateTime? @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  article_place article_place[]
+  
+  // Add your other place fields and relations...
+}
