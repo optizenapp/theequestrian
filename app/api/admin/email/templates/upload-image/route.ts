@@ -25,7 +25,9 @@ export async function POST(request: NextRequest) {
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const contentType = file.type || 'image/jpeg';
-    const url = await uploadBufferToS3(buffer, 'email/uploads', contentType);
+    // Reuse the proven uploads prefix used by the existing admin article uploader.
+    // Some production IAM policies are scoped to articles/* and reject other prefixes.
+    const url = await uploadBufferToS3(buffer, 'articles/uploads', contentType);
     return NextResponse.json({ url });
   } catch (error) {
     console.error('[email/templates/upload-image]', error);

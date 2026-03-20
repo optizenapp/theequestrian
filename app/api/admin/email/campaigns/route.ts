@@ -9,12 +9,25 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const limit = Math.min(Math.max(Number(searchParams.get('limit') || 100), 1), 1000);
-    const result = await sql`
-      SELECT id, name, status, template_version_id, audience, scheduled_at, started_at, completed_at, metadata, updated_at, created_by
-      FROM email_campaigns
-      ORDER BY (created_by = 'auto-weekly') DESC, updated_at DESC
-      LIMIT ${limit}
-    `;
+    let result;
+    try {
+      result = await sql`
+        SELECT id, name, status, template_version_id, audience, scheduled_at, started_at, completed_at, metadata, updated_at, created_by
+        FROM email_campaigns
+        ORDER BY (created_by = 'auto-weekly') DESC, updated_at DESC
+        LIMIT ${limit}
+      `;
+    } catch (error) {
+      const message = error instanceof Error ? error.message.toLowerCase() : '';
+      if (!message.includes('created_by')) throw error;
+      // Backward-compatible fallback for environments where created_by is not migrated yet.
+      result = await sql`
+        SELECT id, name, status, template_version_id, audience, scheduled_at, started_at, completed_at, metadata, updated_at
+        FROM email_campaigns
+        ORDER BY updated_at DESC
+        LIMIT ${limit}
+      `;
+    }
 
     const campaigns = result.rows.map((row) => ({
       id: row.id as string,
@@ -27,7 +40,11 @@ export async function GET(request: NextRequest) {
       completedAt: row.completed_at ? new Date(row.completed_at as string).toISOString() : null,
       metadata: (row.metadata as Record<string, unknown>) || {},
       updatedAt: new Date(row.updated_at as string).toISOString(),
-      createdBy: (row.created_by as string | null) ?? null,
+      createdBy:
+        (row.created_by as string | null) ??
+        (typeof (row.metadata as Record<string, unknown> | undefined)?.createdBy === 'string'
+          ? ((row.metadata as Record<string, unknown>).createdBy as string)
+          : null),
     }));
 
     // For pending_approval auto campaigns, attach product usage (previous campaigns that used each product)
@@ -89,27 +106,52 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'name and templateVersionId are required' }, { status: 400 });
     }
 
-    const inserted = await sql`
-      INSERT INTO email_campaigns (
-        name,
-        status,
-        template_version_id,
-        audience,
-        scheduled_at,
-        created_by,
-        updated_at
-      )
-      VALUES (
-        ${name},
-        ${body?.scheduledAt ? 'scheduled' : 'draft'},
-        ${templateVersionId},
-        ${JSON.stringify({ listIds, segmentIds })},
-        ${body?.scheduledAt || null},
-        'admin',
-        NOW()
-      )
-      RETURNING id
-    `;
+    let inserted;
+    try {
+      inserted = await sql`
+        INSERT INTO email_campaigns (
+          name,
+          status,
+          template_version_id,
+          audience,
+          scheduled_at,
+          created_by,
+          updated_at
+        )
+        VALUES (
+          ${name},
+          ${body?.scheduledAt ? 'scheduled' : 'draft'},
+          ${templateVersionId},
+          ${JSON.stringify({ listIds, segmentIds })},
+          ${body?.scheduledAt || null},
+          'admin',
+          NOW()
+        )
+        RETURNING id
+      `;
+    } catch (error) {
+      const message = error instanceof Error ? error.message.toLowerCase() : '';
+      if (!message.includes('created_by')) throw error;
+      inserted = await sql`
+        INSERT INTO email_campaigns (
+          name,
+          status,
+          template_version_id,
+          audience,
+          scheduled_at,
+          updated_at
+        )
+        VALUES (
+          ${name},
+          ${body?.scheduledAt ? 'scheduled' : 'draft'},
+          ${templateVersionId},
+          ${JSON.stringify({ listIds, segmentIds })},
+          ${body?.scheduledAt || null},
+          NOW()
+        )
+        RETURNING id
+      `;
+    }
     const campaignId = inserted.rows[0]?.id as string;
 
     const audienceBreakdown = await getAudienceBreakdown({ listIds, segmentIds });
