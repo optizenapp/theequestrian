@@ -306,6 +306,24 @@ export function normalizeEmailBlocks(blocks: unknown): EmailBlock[] {
           align: block.align === 'left' || block.align === 'right' ? block.align : 'center',
         };
       }
+      if (type === 'image') {
+        const url = typeof block.url === 'string' ? block.url.trim() : '';
+        return {
+          id,
+          type: 'image',
+          url,
+          alt: typeof block.alt === 'string' ? block.alt.trim() : '',
+          linkUrl:
+            typeof block.linkUrl === 'string' && block.linkUrl.trim()
+              ? block.linkUrl.trim()
+              : undefined,
+          align: block.align === 'left' || block.align === 'right' ? block.align : 'center',
+          maxWidth:
+            typeof block.maxWidth === 'number' && !Number.isNaN(block.maxWidth)
+              ? Math.max(100, Math.min(600, Math.floor(block.maxWidth)))
+              : undefined,
+        };
+      }
       if (type === 'footer') {
         return {
           id,
@@ -411,6 +429,19 @@ export function renderTemplateBlocksHtml(input: {
         })
         .join('');
       return `<div style="margin:20px 0;display:block;">${cards}</div>`;
+    }
+    if (block.type === 'image') {
+      const imgMaxWidth = block.maxWidth ?? 220;
+      const imgStyle = `max-width:${imgMaxWidth}px;width:100%;height:auto;border-radius:8px;margin:0 auto 12px;display:block;`;
+      const imgTag = block.url
+        ? `<img src="${escapeHtml(block.url)}" alt="${escapeHtml(block.alt || '')}" style="${imgStyle}" />`
+        : '';
+      const wrapped = imgTag
+        ? block.linkUrl
+          ? `<a href="${escapeHtml(block.linkUrl)}" style="display:block;text-align:${block.align || 'center'};">${imgTag}</a>`
+          : `<div style="text-align:${block.align || 'center'};">${imgTag}</div>`
+        : '';
+      return wrapped ? `<div style="margin:20px 0;">${wrapped}</div>` : '';
     }
     if (block.type === 'divider') {
       const dividerMargin =

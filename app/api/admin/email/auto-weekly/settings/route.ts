@@ -55,8 +55,8 @@ export async function PATCH(request: NextRequest) {
       settings.templateVersionId = v || null;
     }
     if (body?.audience !== undefined && body.audience !== null) {
-      const listIds = Array.isArray(body.audience.listIds) ? body.audience.listIds.filter((x): x is string => typeof x === 'string') : [];
-      const segmentIds = Array.isArray(body.audience.segmentIds) ? body.audience.segmentIds.filter((x): x is string => typeof x === 'string') : [];
+      const listIds = Array.isArray(body.audience.listIds) ? body.audience.listIds.filter((x: unknown): x is string => typeof x === 'string') : [];
+      const segmentIds = Array.isArray(body.audience.segmentIds) ? body.audience.segmentIds.filter((x: unknown): x is string => typeof x === 'string') : [];
       await setAutoWeeklyAudience({ listIds, segmentIds });
       settings.audience = { listIds, segmentIds };
     }

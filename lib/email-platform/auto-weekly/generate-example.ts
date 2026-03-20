@@ -60,9 +60,9 @@ export async function generateExampleEmail(input: GenerateExampleInput): Promise
   const slot = getNextSendSlotInUTC();
   const sendDateLabel = slot?.label ?? 'Mon 17 Mar 2025 at 9:00 AEST';
 
-  const llmIntroBlock = blocks.find((b): b is { type: 'llmIntro'; prompt?: string } => b.type === 'llmIntro');
-  const llmHeadingBlock = blocks.find((b): b is { type: 'llmHeading'; prompt?: string; text?: string } => b.type === 'llmHeading');
-  const curatedBlock = blocks.find((b): b is { type: 'curatedProducts'; prompt?: string } => b.type === 'curatedProducts');
+  const llmIntroBlock = blocks.find((b): b is Extract<EmailBlock, { type: 'llmIntro' }> => b.type === 'llmIntro');
+  const llmHeadingBlock = blocks.find((b): b is Extract<EmailBlock, { type: 'llmHeading' }> => b.type === 'llmHeading');
+  const curatedBlock = blocks.find((b): b is Extract<EmailBlock, { type: 'curatedProducts' }> => b.type === 'curatedProducts');
   const subjectPromptFromMeta = typeof rawMetadata?.subjectPrompt === 'string' && rawMetadata.subjectPrompt.trim() ? rawMetadata.subjectPrompt.trim() : null;
 
   const introPrompt = llmIntroBlock?.prompt?.trim() || null;

@@ -1,6 +1,7 @@
 import { sql } from '@vercel/postgres';
 import { Resend } from 'resend';
 import { getProductsByHandles } from '@/lib/shopify/products-by-handles';
+import type { EmailBlock } from '@/lib/email-platform/types';
 import { getTemplateVersion } from '@/lib/email-platform/templates';
 import { getAutoWeeklySettings, isAutoWeeklyFlowEnabled } from './settings';
 import { ensureAutoWeeklyFlowTemplate, getAutoWeeklyFlowVersionId } from './template';
@@ -145,12 +146,12 @@ export async function buildAutoWeeklyCampaign(): Promise<BuildResult> {
   const subjectPromptFromTemplate = typeof templateMetadata.subjectPrompt === 'string' && templateMetadata.subjectPrompt.trim() ? templateMetadata.subjectPrompt.trim() : null;
   const subjectPromptToUse = subjectPromptFromTemplate ?? settings.subjectPrompt;
 
-  const llmIntroBlock = blocks.find((b): b is { type: 'llmIntro'; prompt?: string } => b.type === 'llmIntro');
+  const llmIntroBlock = blocks.find((b): b is Extract<EmailBlock, { type: 'llmIntro' }> => b.type === 'llmIntro');
   const introPromptOverride = llmIntroBlock?.prompt?.trim() || null;
   const introPromptToUse = introPromptOverride ?? settings.introPrompt;
-  const llmHeadingBlock = blocks.find((b): b is { type: 'llmHeading'; prompt?: string } => b.type === 'llmHeading');
+  const llmHeadingBlock = blocks.find((b): b is Extract<EmailBlock, { type: 'llmHeading' }> => b.type === 'llmHeading');
   const headingPromptToUse = llmHeadingBlock?.prompt?.trim() || null;
-  const curatedBlock = blocks.find((b): b is { type: 'curatedProducts'; prompt?: string } => b.type === 'curatedProducts');
+  const curatedBlock = blocks.find((b): b is Extract<EmailBlock, { type: 'curatedProducts' }> => b.type === 'curatedProducts');
   const curationPrompt = curatedBlock?.prompt?.trim() || null;
 
   const productHandles = await selectProductsForAutoWeekly(slot.scheduledAt, curationPrompt);

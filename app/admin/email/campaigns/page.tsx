@@ -59,6 +59,9 @@ const blockTypeLabels: Record<EmailBlock['type'], string> = {
   cta: 'Button',
   productCards: 'Product Cards',
   curatedProducts: 'Curated Products',
+  llmIntro: 'LLM Intro',
+  llmHeading: 'LLM Heading',
+  image: 'Image',
   divider: 'Divider',
   footer: 'Footer',
 };
@@ -168,6 +171,7 @@ export default function AdminEmailCampaignsPage() {
       if (type === 'productCards') return [...prev, { id, type, mode: 'all' as const }];
       if (type === 'curatedProducts')
         return [...prev, { id, type, showDividers: false, products: [{ id: generateId(), handle: '', title: '', imageUrl: '', url: '' }] }];
+      if (type === 'image') return [...prev, { id, type, url: '', alt: '', align: 'center' as const }];
       if (type === 'divider') return [...prev, { id, type, align: 'center' as const }];
       if (type === 'footer') return [...prev, { id, type, text: 'The Equestrian\n{{siteUrl}}\n\nUnsubscribe: {{unsubscribeUrl}}', align: 'left' as const }];
       return prev;
@@ -1021,6 +1025,77 @@ export default function AdminEmailCampaignsPage() {
                           </div>
                         )}
 
+                        {block.type === 'image' && (
+                          <div className="space-y-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <input
+                                type="text"
+                                placeholder="Image URL"
+                                value={block.url}
+                                onChange={(e) => updateBlock(block.id, { url: e.target.value })}
+                                className="min-w-0 flex-1 rounded border border-gray-300 px-3 py-2 text-sm"
+                              />
+                              <label className="rounded border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:border-action hover:text-action cursor-pointer">
+                                Upload
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="sr-only"
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    e.target.value = '';
+                                    if (!file || block.type !== 'image') return;
+                                    try {
+                                      const form = new FormData();
+                                      form.set('file', file);
+                                      const res = await fetch('/api/admin/email/templates/upload-image', { method: 'POST', body: form });
+                                      const data = await res.json();
+                                      if (!res.ok) throw new Error(data?.error || 'Upload failed');
+                                      if (data?.url) updateBlock(block.id, { url: data.url });
+                                    } catch (err) {
+                                      setStatusMessage(err instanceof Error ? err.message : 'Upload failed');
+                                      setTimeout(() => setStatusMessage(''), 3000);
+                                    }
+                                  }}
+                                />
+                              </label>
+                            </div>
+                            <input
+                              type="text"
+                              placeholder="Alt text"
+                              value={block.alt ?? ''}
+                              onChange={(e) => updateBlock(block.id, { alt: e.target.value })}
+                              className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                            />
+                            <input
+                              type="text"
+                              placeholder="Link URL (optional)"
+                              value={block.linkUrl ?? ''}
+                              onChange={(e) => updateBlock(block.id, { linkUrl: e.target.value || undefined })}
+                              className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                            />
+                            <div className="flex flex-wrap items-center gap-2">
+                              <select value={block.align || 'center'} onChange={(e) => updateBlock(block.id, { align: e.target.value as 'left' | 'center' | 'right' })} className="rounded border border-gray-300 px-2 py-1 text-sm">
+                                <option value="left">Left</option>
+                                <option value="center">Center</option>
+                                <option value="right">Right</option>
+                              </select>
+                              <label className="flex items-center gap-1 text-xs text-gray-600">
+                                Max width
+                                <input
+                                  type="number"
+                                  min={100}
+                                  max={600}
+                                  value={block.maxWidth ?? 220}
+                                  onChange={(e) => updateBlock(block.id, { maxWidth: e.target.value ? Number(e.target.value) : undefined })}
+                                  className="w-20 rounded border border-gray-300 px-2 py-1 text-sm"
+                                />
+                                px
+                              </label>
+                            </div>
+                          </div>
+                        )}
+
                         {block.type === 'footer' && (
                           <textarea value={block.text} onChange={(e) => updateBlock(block.id, { text: e.target.value })} onFocus={() => setLastFocusedInput({ blockId: block.id, field: 'text' })} data-block-id={block.id} data-field="text" rows={3} className="w-full rounded border border-gray-300 px-3 py-2 text-sm" />
                         )}
@@ -1034,7 +1109,7 @@ export default function AdminEmailCampaignsPage() {
 
                   {/* Add block buttons */}
                   <div className="flex flex-wrap gap-2">
-                    {(['heading', 'text', 'cta', 'productCards', 'curatedProducts', 'divider', 'footer'] as const).map((type) => (
+                    {(['heading', 'text', 'cta', 'productCards', 'curatedProducts', 'image', 'divider', 'footer'] as const).map((type) => (
                       <button key={type} type="button" onClick={() => addBlock(type)} className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:border-action hover:text-action">
                         + {blockTypeLabels[type]}
                       </button>

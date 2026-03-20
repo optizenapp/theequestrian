@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 /**
  * Cron: release scheduled campaigns. Finds campaigns with status=scheduled and scheduled_at <= now,
  * queues their recipients and sets status to processing. Existing email-campaigns cron then sends.
- * Schedule: every 5–15 min (e.g. */10 * * * *)
+ * Schedule: every 5–15 min (e.g. every 10 min)
  */
 export async function GET(request: NextRequest) {
   return handleCron(request);

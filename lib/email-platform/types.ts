@@ -100,6 +100,15 @@ export type EmailBlock =
       prompt?: string;
     }
   | { id: string; type: 'divider'; align?: 'left' | 'center' | 'right' }
+  | {
+      id: string;
+      type: 'image';
+      url: string;
+      alt: string;
+      linkUrl?: string;
+      align?: 'left' | 'center' | 'right';
+      maxWidth?: number;
+    }
   | { id: string; type: 'footer'; text: string; align?: 'left' | 'center' | 'right'; fontSize?: number };
 
 export type EmailTemplateVisualSettings = {

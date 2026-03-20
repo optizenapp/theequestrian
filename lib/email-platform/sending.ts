@@ -119,16 +119,22 @@ export async function sendQueuedCampaignRecipients(input: {
   const introText = campaignMetadata.introText;
   const generatedHeading = campaignMetadata.generatedHeading;
   const productHandles = campaignMetadata.productHandles;
-  if (
-    (typeof introText === 'string' && introText.length > 0) ||
-    (typeof generatedHeading === 'string' && generatedHeading.length > 0) ||
-    (Array.isArray(productHandles) && productHandles.length > 0)
-  ) {
+  const hasIntro = typeof introText === 'string' && introText.length > 0;
+  const hasHeading = typeof generatedHeading === 'string' && generatedHeading.length > 0;
+  const validHandles =
+    Array.isArray(productHandles) && productHandles.every((x: unknown): x is string => typeof x === 'string')
+      ? productHandles
+      : undefined;
+  if (hasIntro || hasHeading || (validHandles && validHandles.length > 0)) {
     const { buildCampaignHtmlWithOverrides } = await import('@/lib/email-platform/auto-weekly/render');
     htmlTemplateToUse = await buildCampaignHtmlWithOverrides({
       blocks: templateVersion.blocks,
       templateMetadata: templateVersion.metadata,
-      overrides: { introText, generatedHeading, productHandles },
+      overrides: {
+        introText: hasIntro ? introText : undefined,
+        generatedHeading: hasHeading ? generatedHeading : undefined,
+        productHandles: validHandles?.length ? validHandles : undefined,
+      },
       siteUrl: defaultSiteUrl,
     });
   }
