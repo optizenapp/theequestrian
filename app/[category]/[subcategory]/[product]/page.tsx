@@ -212,6 +212,7 @@ async function renderProductPage(product: ShopifyProduct, canonicalPath?: string
   const featureHighlights = override?.use_headless_bullets && overrideBullets.length > 0
     ? overrideBullets
     : getProductBulletPoints(product.id);
+  const showArcEquineGelPromo = product.handle === 'arcequine-complete-kit';
 
   return (
     <div className="bg-background min-h-screen pb-20">
@@ -248,6 +249,18 @@ async function renderProductPage(product: ShopifyProduct, canonicalPath?: string
               </div>
             ))}
           </div>
+          {showArcEquineGelPromo && (
+            <div className="mt-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
+              <div className="flex items-start gap-2">
+                <svg className="h-5 w-5 flex-shrink-0 text-green-500 mt-0.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3.5a2.5 2.5 0 01-2 2.45V16a1 1 0 01-1 1H6a1 1 0 01-1-1V8.95A2.5 2.5 0 013 6.5V3zm2 2v1.5a.5.5 0 00.5.5H9V5H5zm6 0v2h3.5a.5.5 0 00.5-.5V5h-4zM9 9H7v6h2V9zm2 0v6h2V9h-2z" />
+                </svg>
+                <p className="text-sm font-semibold text-green-900">
+                  Get a FREE Bonus ArcEquine Conductive Gel with every order.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="lg:grid lg:grid-cols-12 lg:gap-12 items-start">
@@ -285,6 +298,18 @@ async function renderProductPage(product: ShopifyProduct, canonicalPath?: string
                   </div>
                 ))}
               </div>
+              {showArcEquineGelPromo && (
+                <div className="mt-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
+                  <div className="flex items-start gap-2">
+                    <svg className="h-5 w-5 flex-shrink-0 text-green-500 mt-0.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3.5a2.5 2.5 0 01-2 2.45V16a1 1 0 01-1 1H6a1 1 0 01-1-1V8.95A2.5 2.5 0 013 6.5V3zm2 2v1.5a.5.5 0 00.5.5H9V5H5zm6 0v2h3.5a.5.5 0 00.5-.5V5h-4zM9 9H7v6h2V9zm2 0v6h2V9h-2z" />
+                    </svg>
+                    <p className="text-sm font-semibold text-green-900">
+                      Get a FREE Bonus ArcEquine Conductive Gel with every order.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Buy Box */}
