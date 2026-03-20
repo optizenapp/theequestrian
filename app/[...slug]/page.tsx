@@ -1,5 +1,5 @@
 import { notFound, permanentRedirect, redirect } from 'next/navigation';
-import { getProductByHandle, getProductCanonicalUrl, getRecommendedProducts, hasProductImage } from '@/lib/shopify/products';
+import { getProductByHandle, getProductById, getProductCanonicalUrl, getRecommendedProducts, hasProductImage } from '@/lib/shopify/products';
 import { ProductImageGallery } from '@/components/ProductImageGallery';
 import { ProductBreadcrumbs } from '@/components/ProductBreadcrumbs';
 import { ProductBuyBox } from '@/components/product/ProductBuyBox';
@@ -13,6 +13,7 @@ import { getProductBulletPoints } from '@/lib/products/bullet-points';
 import { getManualRedirect } from '@/lib/redirects/manual';
 import { getEmptyCategoryRedirectTarget } from '@/lib/redirects/empty-category-redirect';
 import { getProductOverrideByHandle, resolveProductHandleFromSlug } from '@/lib/content/product-overrides';
+import { getProductAllocationByHandle } from '@/lib/db/product-allocations';
 import ProductReviewSection from '@/components/reviews/ProductReviewSection';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { getReviewStatsWithCache } from '@/lib/reviews/get-review-stats';
@@ -62,8 +63,16 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
   // Last segment is the product handle
   const rawHandle = slug[slug.length - 1];
   const { handle, product } = await getResolvedProduct(rawHandle);
+  let resolvedProduct = product;
+  const allocationByHandle = await getProductAllocationByHandle(handle);
+
+  // Fallback: for allocated products, prefer ID lookup if handle lookup misses.
+  // This avoids false "empty category" redirects when handle-based Storefront fetch lags.
+  if (!resolvedProduct && allocationByHandle?.product_id) {
+    resolvedProduct = await getProductById(allocationByHandle.product_id);
+  }
   
-  if (!product) {
+  if (!resolvedProduct) {
     // When path has 4+ segments, may be an empty category (e.g. /pet/dog/accessories/dog-bandanas)
     // Redirect to parent if this path is a known category with 0 products
     if (slug.length >= 4) {
@@ -74,20 +83,20 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
     }
     notFound();
   }
-  if (!hasProductImage(product)) {
+  if (!hasProductImage(resolvedProduct)) {
     notFound();
   }
   const override = await getProductOverrideByHandle(handle);
   if (override?.is_published_headless === false) {
     notFound();
   }
-  const displayTitle = override?.use_headless_title ? (override?.title_override || product.title) : product.title;
+  const displayTitle = override?.use_headless_title ? (override?.title_override || resolvedProduct.title) : resolvedProduct.title;
   const descriptionHtml = override?.use_headless_description
-    ? (override?.description_html || product.descriptionHtml)
-    : product.descriptionHtml;
+    ? (override?.description_html || resolvedProduct.descriptionHtml)
+    : resolvedProduct.descriptionHtml;
 
   // Get the canonical URL for this product
-  const canonicalUrl = await getProductCanonicalUrl(product);
+  const canonicalUrl = await getProductCanonicalUrl(resolvedProduct);
   
   // If the requested path doesn't match the canonical URL, redirect
   // BUT: Only if the canonical is NOT /products/{handle} (which would create a loop)
@@ -107,8 +116,8 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
 
   // Build breadcrumb paths from product type using mapping
   const breadcrumbPaths = await getBreadcrumbsForProduct(
-    product.productType || '',
-    product.id
+    resolvedProduct.productType || '',
+    resolvedProduct.id
   );
   
   // Primary breadcrumb path (most specific/longest path first)
@@ -138,8 +147,8 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
   }
   const featureHighlights = override?.use_headless_bullets && overrideBullets.length > 0
     ? overrideBullets
-    : getProductBulletPoints(product.id);
-  const reviewStats = await getReviewStatsWithCache(product.handle);
+    : getProductBulletPoints(resolvedProduct.id);
+  const reviewStats = await getReviewStatsWithCache(resolvedProduct.handle);
   const reviewBadgeStats = reviewStats
     ? {
         total_reviews: reviewStats.reviewCount,
@@ -147,7 +156,7 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
       }
     : null;
   const schemaGraph = generateProductSchemaGraph(
-    { ...product, title: displayTitle },
+    { ...resolvedProduct, title: displayTitle },
     canonicalUrl,
     breadcrumbSchemas,
     siteUrl,
@@ -155,7 +164,7 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
   );
 
   // Fetch related products and review stats (server-side batch)
-  const relatedProducts = await getRecommendedProducts(4, product.productType, product.handle);
+  const relatedProducts = await getRecommendedProducts(4, resolvedProduct.productType, resolvedProduct.handle);
   const relatedReviewStatsMap = await getReviewStatsForProducts(relatedProducts.map((p) => p.handle));
   const relatedReviewStats = Object.fromEntries(relatedReviewStatsMap);
 
@@ -181,8 +190,8 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
         <div className="lg:hidden mt-4 mb-8 space-y-2">
           <h1 className="text-3xl font-bold text-gray-900">{displayTitle}</h1>
           <ProductPageReviewBadge
-            productId={product.id}
-            productHandle={product.handle}
+            productId={resolvedProduct.id}
+            productHandle={resolvedProduct.handle}
             initialStats={reviewBadgeStats}
           />
           <div className="space-y-2 mt-4">
@@ -202,8 +211,8 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
           <div className="lg:col-span-7 space-y-8">
             {/* Image Gallery */}
             <ProductImageGallery 
-              images={product.images}
-              productTitle={product.title}
+              images={resolvedProduct.images}
+              productTitle={resolvedProduct.title}
             />
 
             {/* Full Width Description Section */}
@@ -218,8 +227,8 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
                 <h2 className="text-3xl font-bold text-gray-900 mb-2">{displayTitle}</h2>
                 <div className="mb-4">
                   <ProductPageReviewBadge
-                    productId={product.id}
-                    productHandle={product.handle}
+                    productId={resolvedProduct.id}
+                    productHandle={resolvedProduct.handle}
                     initialStats={reviewBadgeStats}
                   />
                 </div>
@@ -239,16 +248,16 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
 
               {/* Buy Box */}
               <div className="bg-surface rounded-2xl p-6 shadow-sm border border-gray-100">
-                <ProductBuyBox product={product} />
+                <ProductBuyBox product={resolvedProduct} />
               </div>
             </div>
           </div>
         </div>
       </div>
       <ProductReviewSection
-        productId={product.id}
-        productHandle={product.handle}
-        productTitle={product.title}
+        productId={resolvedProduct.id}
+        productHandle={resolvedProduct.handle}
+        productTitle={resolvedProduct.title}
       />
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <RelatedProducts

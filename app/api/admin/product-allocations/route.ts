@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { sql } from '@vercel/postgres';
 import { createManualRedirect } from '@/lib/redirects/manual';
 import {
@@ -7,6 +8,7 @@ import {
   listProductAllocations,
   upsertProductAllocation,
 } from '@/lib/db/product-allocations';
+import { clearCategoryCache } from '@/lib/shopify/products';
 
 const ensureProductAllocationTable = async () => {
   await sql`
@@ -87,6 +89,9 @@ export async function POST(request: NextRequest) {
       await createManualRedirect(existing.canonical_path, allocation.canonical_path, '301', 'allocation');
       redirectCreated = true;
     }
+
+    revalidatePath(allocation.category_path);
+    clearCategoryCache();
 
     return NextResponse.json({ allocation, redirectCreated });
   } catch (error) {

@@ -1,6 +1,6 @@
 import { shopifyFetch } from './client';
 import { shopifyAdminFetch } from './admin-client';
-import { GET_PRODUCT_BY_HANDLE, GET_ALL_PRODUCTS, GET_PRODUCTS_BY_QUERY } from './queries';
+import { GET_PRODUCT_BY_HANDLE, GET_PRODUCT_BY_ID, GET_ALL_PRODUCTS, GET_PRODUCTS_BY_QUERY } from './queries';
 import { normalizeColor, isColorValue } from '@/lib/utils/product-options';
 import { getProductAllocationByHandle, getProductAllocationByProductId, getProductAllocationMapByProductIds } from '@/lib/db/product-allocations';
 import { getProductOverridesByHandles, getProductOverrideByHandle } from '@/lib/content/product-overrides';
@@ -162,6 +162,28 @@ export async function getProductByHandle(
     return data.product;
   } catch (error) {
     console.error('Error fetching product:', error);
+    return null;
+  }
+}
+
+export async function getProductById(
+  id: string,
+  options?: { cache?: RequestCache }
+): Promise<ShopifyProduct | null> {
+  try {
+    const data = await shopifyFetch<ProductResponse>({
+      query: GET_PRODUCT_BY_ID,
+      variables: { id },
+      cache: options?.cache ?? 'force-cache',
+    });
+
+    if (!data.product || isExcludedFrontendVendor(data.product.vendor)) {
+      return null;
+    }
+
+    return data.product;
+  } catch (error) {
+    console.error('Error fetching product by id:', error);
     return null;
   }
 }
