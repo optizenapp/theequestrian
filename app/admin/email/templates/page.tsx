@@ -874,7 +874,7 @@ export default function AdminEmailTemplatesPage() {
                 ))}
               </div>
               <p className="mt-2 text-xs text-sky-700">
-                <strong>LLM blocks</strong> (filled automatically when used for Auto weekly): <strong>LLM Heading</strong> — heading from prompt or static text; <strong>LLM Intro</strong> — intro text generated each run; <strong>LLM Curated Products</strong> — the 3 auto-selected products.
+                <strong>Image</strong> — upload or paste a URL for banners/logos. <strong>LLM blocks</strong> (filled automatically when used for Auto weekly): <strong>LLM Heading</strong> — heading from prompt or static text; <strong>LLM Intro</strong> — intro text generated each run; <strong>LLM Curated Products</strong> — the 3 auto-selected products.
               </p>
             </div>
             <div className="mb-4 flex flex-wrap gap-1.5">

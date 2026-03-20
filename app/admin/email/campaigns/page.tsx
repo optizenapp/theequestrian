@@ -1360,7 +1360,10 @@ export default function AdminEmailCampaignsPage() {
               <div className="flex flex-wrap items-center gap-2">
                 {(() => {
                   const normalizedStatus = String(campaign.status || '').toLowerCase();
-                  const isCompletedStatus = normalizedStatus === 'completed' || normalizedStatus === 'complete';
+                  const isCompletedStatus =
+                    normalizedStatus === 'completed' ||
+                    normalizedStatus === 'complete' ||
+                    (normalizedStatus === 'processing' && campaign.completedAt != null);
                   if (isCompletedStatus) {
                     return (
                   <>
