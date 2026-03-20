@@ -88,7 +88,7 @@ export async function sendQueuedCampaignRecipients(input: {
   const frequencyCapDays = input.frequencyCapDays ?? 7;
 
   const campaignResult = await sql`
-    SELECT id, name, status, template_version_id
+    SELECT id, name, status, template_version_id, metadata
     FROM email_campaigns
     WHERE id = ${input.campaignId}
     LIMIT 1
@@ -97,14 +97,40 @@ export async function sendQueuedCampaignRecipients(input: {
   if (campaignStatus === 'cancelled') {
     throw new Error('Campaign is cancelled and cannot be sent');
   }
+  if (campaignStatus === 'completed') {
+    throw new Error('Campaign is already completed and cannot be sent again. Duplicate the campaign to send again.');
+  }
   const campaignName = (campaignResult.rows[0]?.name as string | undefined) || 'campaign';
   const templateVersionId = campaignResult.rows[0]?.template_version_id as string | undefined;
+  const campaignMetadata = (campaignResult.rows[0]?.metadata as Record<string, unknown> | undefined) || {};
+  const campaignSubjectLine =
+    typeof campaignMetadata.subjectLine === 'string' && campaignMetadata.subjectLine.trim().length > 0
+      ? campaignMetadata.subjectLine.trim()
+      : null;
   if (!templateVersionId) {
     throw new Error('Campaign has no template version');
   }
   const templateVersion = await getTemplateVersion(templateVersionId);
   if (!templateVersion) {
     throw new Error('Template version not found');
+  }
+
+  let htmlTemplateToUse = templateVersion.htmlTemplate;
+  const introText = campaignMetadata.introText;
+  const generatedHeading = campaignMetadata.generatedHeading;
+  const productHandles = campaignMetadata.productHandles;
+  if (
+    (typeof introText === 'string' && introText.length > 0) ||
+    (typeof generatedHeading === 'string' && generatedHeading.length > 0) ||
+    (Array.isArray(productHandles) && productHandles.length > 0)
+  ) {
+    const { buildCampaignHtmlWithOverrides } = await import('@/lib/email-platform/auto-weekly/render');
+    htmlTemplateToUse = await buildCampaignHtmlWithOverrides({
+      blocks: templateVersion.blocks,
+      templateMetadata: templateVersion.metadata,
+      overrides: { introText, generatedHeading, productHandles },
+      siteUrl: defaultSiteUrl,
+    });
   }
 
   await sql`
@@ -189,9 +215,10 @@ export async function sendQueuedCampaignRecipients(input: {
     };
     const renderedRaw = renderTemplateContent({
       subjectTemplate: templateVersion.subjectTemplate,
-      htmlTemplate: templateVersion.htmlTemplate,
+      htmlTemplate: htmlTemplateToUse,
       variables,
     });
+    const subject = campaignSubjectLine ?? renderedRaw.subject;
     const renderedHtml = proxyEmailImages(
       addUtmParamsToEmailHtml(
         renderedRaw.html,
@@ -204,7 +231,7 @@ export async function sendQueuedCampaignRecipients(input: {
       ),
       defaultSiteUrl
     );
-    const rendered = { ...renderedRaw, html: renderedHtml };
+    const rendered = { ...renderedRaw, subject, html: renderedHtml };
 
     const sendRecord = await sql`
       INSERT INTO email_sends (
@@ -223,7 +250,7 @@ export async function sendQueuedCampaignRecipients(input: {
         ${recipientId},
         ${templateVersion.id},
         'queued',
-        ${rendered.subject},
+        ${subject},
         ${JSON.stringify({ campaignId: input.campaignId })},
         NOW()
       )
@@ -235,7 +262,7 @@ export async function sendQueuedCampaignRecipients(input: {
       const providerResult = await resend.emails.send({
         from: `${templateVersion.fromName || 'The Equestrian'} <${templateVersion.fromEmail || 'support@theequestrian.com.au'}>`,
         to: email,
-        subject: rendered.subject,
+        subject,
         html: rendered.html,
         headers: {
           'List-Unsubscribe': `<${variables.unsubscribeUrl}>`,

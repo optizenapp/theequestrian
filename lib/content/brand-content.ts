@@ -4,6 +4,7 @@ export interface BrandContentRow {
   handle: string;
   title: string;
   products_count: number;
+  rules: string | null;
   h1_title: string | null;
   meta_title: string | null;
   meta_description: string | null;
@@ -41,6 +42,7 @@ async function ensureBrandContentTable() {
   await sql`CREATE INDEX IF NOT EXISTS idx_brand_content_handle ON brand_content(handle)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_brand_content_status ON brand_content(status)`;
   await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS products_count INTEGER DEFAULT 0`;
+  await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS rules TEXT`;
 }
 
 async function loadBrandContent(): Promise<Map<string, BrandContentRow>> {
@@ -56,6 +58,7 @@ async function loadBrandContent(): Promise<Map<string, BrandContentRow>> {
         handle,
         title,
         COALESCE(products_count, 0) AS products_count,
+        rules,
         h1_title,
         meta_title,
         meta_description,
@@ -91,6 +94,50 @@ export async function getBrandContentByHandle(handle: string): Promise<BrandCont
 export async function getAllPublishedBrandContent(): Promise<BrandContentRow[]> {
   const contentMap = await loadBrandContent();
   return Array.from(contentMap.values());
+}
+
+/**
+ * Get allowed vendor names and tag values from published brands in the DB.
+ * Used for the brand filter on category pages so only curated brands appear.
+ * Parses the rules column (Shopify collection rule JSON) to extract VENDOR and TAG conditions.
+ */
+export async function getAllowedBrandVendorsFromDb(): Promise<{
+  vendors: string[];
+  tags: string[];
+}> {
+  await ensureBrandContentTable();
+  const result = await sql.query(`
+    SELECT handle, rules FROM brand_content WHERE status = 'published' AND rules IS NOT NULL AND rules != ''
+  `);
+  const vendors: string[] = [];
+  const tags: string[] = [];
+  const seenV = new Set<string>();
+  const seenT = new Set<string>();
+
+  for (const row of result.rows) {
+    const rulesStr = row.rules;
+    if (!rulesStr || rulesStr === 'Manual Collection') continue;
+    try {
+      const rules = JSON.parse(rulesStr) as Array<{ column?: string; condition?: string }>;
+      if (!Array.isArray(rules)) continue;
+      for (const rule of rules) {
+        if (rule.column === 'VENDOR' && rule.condition && !seenV.has(rule.condition)) {
+          seenV.add(rule.condition);
+          vendors.push(rule.condition);
+        } else if (rule.column === 'TAG' && rule.condition) {
+          const lower = rule.condition.toLowerCase();
+          if (!seenT.has(lower)) {
+            seenT.add(lower);
+            tags.push(lower);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[getAllowedBrandVendorsFromDb] Failed to parse rules for', row.handle, e);
+    }
+  }
+
+  return { vendors, tags };
 }
 
 export async function listBrandsWithOverrides() {

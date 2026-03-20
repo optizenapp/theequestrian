@@ -237,9 +237,9 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   
   // Get allowed brand vendors from brand-mapping.csv (only for equestrian categories)
   // For pet/accessories categories, show all brands
-  const allowedBrands = (category === 'pet' || category === 'accessories') 
-    ? undefined 
-    : getAllowedBrandVendors();
+  const allowedBrands = (category === 'pet' || category === 'accessories')
+    ? undefined
+    : await getAllowedBrandVendors();
 
   // Get subcategories from our mapping
   const subcategories = await getMappingSubcategories(category);

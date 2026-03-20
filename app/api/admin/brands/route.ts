@@ -23,6 +23,7 @@ const ensureBrandContentTable = async () => {
   `;
   await sql`CREATE INDEX IF NOT EXISTS idx_brand_content_handle ON brand_content(handle)`;
   await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS products_count INTEGER DEFAULT 0`;
+  await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS rules TEXT`;
 };
 
 export async function GET() {

@@ -183,7 +183,7 @@ export async function ensureEmailPlatformSchema(): Promise<void> {
     CREATE TABLE IF NOT EXISTS email_campaigns (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       name TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'scheduled', 'processing', 'completed', 'failed', 'cancelled')),
+      status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'scheduled', 'processing', 'completed', 'failed', 'cancelled', 'pending_approval')),
       template_version_id UUID REFERENCES email_template_versions(id) ON DELETE SET NULL,
       audience JSONB NOT NULL DEFAULT '{}'::jsonb,
       scheduled_at TIMESTAMPTZ,
@@ -191,9 +191,26 @@ export async function ensureEmailPlatformSchema(): Promise<void> {
       completed_at TIMESTAMPTZ,
       failure_reason TEXT,
       created_by TEXT,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
+  `;
+
+  await sql`
+    ALTER TABLE email_campaigns ADD COLUMN IF NOT EXISTS metadata JSONB NOT NULL DEFAULT '{}'::jsonb
+  `;
+  await sql`
+    DO $$
+    BEGIN
+      IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'email_campaigns_status_check' AND conrelid = 'email_campaigns'::regclass) THEN
+        ALTER TABLE email_campaigns DROP CONSTRAINT email_campaigns_status_check;
+      END IF;
+      ALTER TABLE email_campaigns ADD CONSTRAINT email_campaigns_status_check
+        CHECK (status IN ('draft', 'scheduled', 'processing', 'completed', 'failed', 'cancelled', 'pending_approval'));
+    EXCEPTION WHEN duplicate_object THEN
+      NULL;
+    END $$;
   `;
 
   await sql`
@@ -383,4 +400,17 @@ export async function ensureEmailPlatformSchema(): Promise<void> {
   await sql`CREATE INDEX IF NOT EXISTS idx_email_events_provider_message_id ON email_events(provider_message_id)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_email_link_clicks_send_id ON email_link_clicks(send_id)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_email_link_clicks_clicked_at ON email_link_clicks(clicked_at DESC)`;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS email_platform_config (
+      key TEXT PRIMARY KEY,
+      value JSONB NOT NULL DEFAULT '{}'::jsonb,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
+  await sql`
+    INSERT INTO email_platform_config (key, value, updated_at)
+    VALUES ('auto_weekly_enabled', '{"enabled": false}'::jsonb, NOW())
+    ON CONFLICT (key) DO NOTHING
+  `;
 }

@@ -299,6 +299,8 @@ export async function initializeSchema(): Promise<void> {
     `;
     await sql`CREATE INDEX IF NOT EXISTS idx_brand_content_handle ON brand_content(handle)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_brand_content_status ON brand_content(status)`;
+    await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS products_count INTEGER DEFAULT 0`;
+    await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS rules TEXT`;
 
     // Create home_sections table
     console.log('[DB] Creating home_sections table...');

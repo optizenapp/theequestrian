@@ -363,7 +363,7 @@ async function renderSubSubcategoryPage(
   // Allowed brands for the filter sidebar (same logic as 2nd-level pages)
   const allowedBrands = (category === 'pet' || category === 'accessories')
     ? undefined
-    : getAllowedBrandVendors();
+    : await getAllowedBrandVendors();
 
   // Review stats for product cards
   const productHandles = filteredProducts.map((p) => p.handle);

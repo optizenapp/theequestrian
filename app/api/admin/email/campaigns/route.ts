@@ -3,30 +3,63 @@ import { sql } from '@vercel/postgres';
 import { getAudienceBreakdown, getResolvedAudienceContactIds } from '@/lib/email-platform/segments';
 import { queueCampaignRecipients } from '@/lib/email-platform/sending';
 import { logEmailAudit } from '@/lib/email-platform/audit';
+import { getProductUsageForCampaign } from '@/lib/email-platform/auto-weekly/used-products';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const limit = Math.min(Math.max(Number(searchParams.get('limit') || 100), 1), 1000);
     const result = await sql`
-      SELECT id, name, status, template_version_id, audience, scheduled_at, started_at, completed_at, updated_at
+      SELECT id, name, status, template_version_id, audience, scheduled_at, started_at, completed_at, metadata, updated_at, created_by
       FROM email_campaigns
-      ORDER BY updated_at DESC
+      ORDER BY (created_by = 'auto-weekly') DESC, updated_at DESC
       LIMIT ${limit}
     `;
 
+    const campaigns = result.rows.map((row) => ({
+      id: row.id as string,
+      name: row.name as string,
+      status: row.status as string,
+      templateVersionId: (row.template_version_id as string | null) ?? null,
+      audience: (row.audience as Record<string, unknown>) || {},
+      scheduledAt: row.scheduled_at ? new Date(row.scheduled_at as string).toISOString() : null,
+      startedAt: row.started_at ? new Date(row.started_at as string).toISOString() : null,
+      completedAt: row.completed_at ? new Date(row.completed_at as string).toISOString() : null,
+      metadata: (row.metadata as Record<string, unknown>) || {},
+      updatedAt: new Date(row.updated_at as string).toISOString(),
+      createdBy: (row.created_by as string | null) ?? null,
+    }));
+
+    // For pending_approval auto campaigns, attach product usage (previous campaigns that used each product)
+    const pendingAuto = campaigns.filter(
+      (c) => c.status === 'pending_approval' && c.createdBy === 'auto-weekly'
+    );
+    const productHandlesByCampaign = pendingAuto.map((c) => {
+      const handles = c.metadata?.productHandles;
+      return {
+        id: c.id,
+        scheduledAt: c.scheduledAt,
+        handles: Array.isArray(handles) ? (handles as unknown[]).filter((h): h is string => typeof h === 'string') : [],
+      };
+    });
+
+    const productUsageByCampaignId: Record<string, Record<string, { campaignName: string; scheduledAt: string }[]>> = {};
+    await Promise.all(
+      productHandlesByCampaign.map(async ({ id, scheduledAt, handles }) => {
+        if (handles.length === 0) return;
+        const usage = await getProductUsageForCampaign(id, handles, scheduledAt);
+        productUsageByCampaignId[id] = usage;
+      })
+    );
+
+    const campaignsWithUsage = campaigns.map((c) => {
+      const productUsage = productUsageByCampaignId[c.id];
+      if (!productUsage) return c;
+      return { ...c, productUsage };
+    });
+
     return NextResponse.json({
-      campaigns: result.rows.map((row) => ({
-        id: row.id as string,
-        name: row.name as string,
-        status: row.status as string,
-        templateVersionId: (row.template_version_id as string | null) ?? null,
-        audience: (row.audience as Record<string, unknown>) || {},
-        scheduledAt: row.scheduled_at ? new Date(row.scheduled_at as string).toISOString() : null,
-        startedAt: row.started_at ? new Date(row.started_at as string).toISOString() : null,
-        completedAt: row.completed_at ? new Date(row.completed_at as string).toISOString() : null,
-        updatedAt: new Date(row.updated_at as string).toISOString(),
-      })),
+      campaigns: campaignsWithUsage,
     });
   } catch (error) {
     console.error('Failed to load campaigns:', error);

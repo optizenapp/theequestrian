@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import type { EmailBlock, CuratedProductCard } from '@/lib/email-platform/types';
 
+type ProductUsageItem = { campaignName: string; scheduledAt: string };
+
 type CampaignRow = {
   id: string;
   name: string;
@@ -14,6 +16,9 @@ type CampaignRow = {
   scheduledAt: string | null;
   startedAt?: string | null;
   completedAt?: string | null;
+  createdBy?: string | null;
+  metadata?: Record<string, unknown>;
+  productUsage?: Record<string, ProductUsageItem[]>;
 };
 
 type ListRow = { id: string; name: string };
@@ -113,6 +118,9 @@ export default function AdminEmailCampaignsPage() {
   const [testEmailAddress, setTestEmailAddress] = useState('');
   const [isSendingTest, setIsSendingTest] = useState(false);
   const [testEmailStatus, setTestEmailStatus] = useState('');
+
+  const [autoWeeklyEnabled, setAutoWeeklyEnabled] = useState<boolean | null>(null);
+  const [autoWeeklyUpdating, setAutoWeeklyUpdating] = useState(false);
 
   const editorCardRef = useRef<HTMLDivElement | null>(null);
   const nameInputRef = useRef<HTMLInputElement | null>(null);
@@ -306,6 +314,15 @@ export default function AdminEmailCampaignsPage() {
 
   useEffect(() => {
     loadAll().catch((err) => setError(err instanceof Error ? err.message : 'Failed to load campaign data'));
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/admin/email/auto-weekly/settings')
+      .then((res) => res.json())
+      .then((data) => {
+        setAutoWeeklyEnabled(data?.enabled === true);
+      })
+      .catch(() => setAutoWeeklyEnabled(false));
   }, []);
 
   useEffect(() => {
@@ -616,7 +633,10 @@ export default function AdminEmailCampaignsPage() {
   };
 
   const mostRecentCompletedCampaign =
-    campaigns.find((c) => c.status === 'completed' || c.status === 'processing') || null;
+    campaigns.find((c) => {
+      const normalizedStatus = String(c.status || '').toLowerCase();
+      return normalizedStatus === 'completed' || normalizedStatus === 'complete' || normalizedStatus === 'processing';
+    }) || null;
 
   return (
     <AdminLayout title="Email Campaigns" subtitle="One-off bulk sends with list/segment audiences">
@@ -657,17 +677,22 @@ export default function AdminEmailCampaignsPage() {
         ) : null}
 
         <div className="mt-3 grid gap-2 md:grid-cols-2">
-          <input
-            ref={nameInputRef}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Campaign name"
-            className="rounded border border-gray-300 px-3 py-2 text-sm"
-          />
-          <select
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-gray-700">Campaign name</span>
+            <input
+              ref={nameInputRef}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Spring Sale – March 2025"
+              className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-gray-700">Template</span>
+            <select
             value={templateVersionId}
             onChange={(e) => setTemplateVersionId(e.target.value)}
-            className="rounded border border-gray-300 px-3 py-2 text-sm"
+            className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
           >
             <option value="">Select template version</option>
             {templates.map((template) => (
@@ -676,6 +701,7 @@ export default function AdminEmailCampaignsPage() {
               </option>
             ))}
           </select>
+          </label>
         </div>
 
         <div className="mt-3 grid gap-2 md:grid-cols-2">
@@ -1182,32 +1208,189 @@ export default function AdminEmailCampaignsPage() {
             ) : null}
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <h4 className="text-sm font-semibold text-gray-900">{campaign.name}</h4>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h4 className="text-sm font-semibold text-gray-900">{campaign.name}</h4>
+                  {campaign.createdBy === 'auto-weekly' ? (
+                    <>
+                      <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-semibold text-sky-800">
+                        Auto campaign
+                      </span>
+                      <label className="flex cursor-pointer items-center gap-1.5">
+                        <span className="text-xs font-medium text-gray-600">
+                          {autoWeeklyEnabled === null ? '…' : autoWeeklyEnabled ? 'Flow on' : 'Flow off'}
+                        </span>
+                        <input
+                          type="checkbox"
+                          checked={autoWeeklyEnabled === true}
+                          disabled={autoWeeklyEnabled === null || autoWeeklyUpdating}
+                          onChange={async () => {
+                            if (autoWeeklyEnabled === null || autoWeeklyUpdating) return;
+                            setAutoWeeklyUpdating(true);
+                            setError('');
+                            try {
+                              const res = await fetch('/api/admin/email/auto-weekly/settings', {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ enabled: !autoWeeklyEnabled }),
+                              });
+                              const data = await res.json();
+                              if (!res.ok) throw new Error(data?.error || 'Failed to update');
+                              setAutoWeeklyEnabled(data.enabled === true);
+                              setStatusMessage(data.enabled ? 'Auto weekly flow enabled.' : 'Auto weekly flow disabled.');
+                            } catch (e) {
+                              setError(e instanceof Error ? e.message : 'Failed to update');
+                            } finally {
+                              setAutoWeeklyUpdating(false);
+                            }
+                          }}
+                          className="h-4 w-8 rounded-full border border-gray-300 bg-gray-200 accent-action transition-colors disabled:opacity-50"
+                        />
+                      </label>
+                    </>
+                  ) : null}
+                  {campaign.status === 'pending_approval' ? (
+                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">
+                      For approval
+                    </span>
+                  ) : null}
+                </div>
                 <p className="text-xs text-gray-500">
                   Status: {campaign.status} | Lists: {(campaign.audience.listIds || []).length} | Segments:{' '}
                   {(campaign.audience.segmentIds || []).length}
                 </p>
+                {campaign.status === 'pending_approval' &&
+                  campaign.createdBy === 'auto-weekly' &&
+                  campaign.productUsage &&
+                  Object.keys(campaign.productUsage).length > 0 ? (
+                  <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50/80 p-2 text-xs text-amber-900">
+                    <p className="font-medium text-amber-800">Product reuse in other auto campaigns:</p>
+                    <ul className="mt-1 list-inside list-disc space-y-0.5">
+                      {Object.entries(campaign.productUsage).map(([handle, items]) =>
+                        items.length > 0 ? (
+                          <li key={handle}>
+                            <strong>{handle}</strong> was used in:{' '}
+                            {items
+                              .map(
+                                (u) =>
+                                  `${u.campaignName} (${u.scheduledAt ? new Date(u.scheduledAt).toLocaleDateString('en-AU', { dateStyle: 'short' }) : '—'})`
+                              )
+                              .join('; ')}
+                          </li>
+                        ) : null
+                      )}
+                    </ul>
+                  </div>
+                ) : null}
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:border-action hover:text-action"
-                  onClick={async () => {
-                    const response = await fetch(`/api/admin/email/campaigns/${campaign.id}/send`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ frequencyCapCount: 3, frequencyCapDays: 7 }),
-                    });
-                    const data = await response.json();
-                    if (!response.ok) {
-                      setError(data?.error || 'Failed to send campaign');
-                      return;
-                    }
-                    await loadAll();
-                  }}
-                >
-                  Send queued
-                </button>
+                {(() => {
+                  const normalizedStatus = String(campaign.status || '').toLowerCase();
+                  const isCompletedStatus = normalizedStatus === 'completed' || normalizedStatus === 'complete';
+                  if (isCompletedStatus) {
+                    return (
+                  <>
+                    <button
+                      type="button"
+                      disabled
+                      className="rounded-full border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 cursor-default"
+                    >
+                      Complete
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isDuplicatingCampaign}
+                      className="rounded-full border border-action px-3 py-1.5 text-xs font-semibold text-action hover:bg-action hover:text-white disabled:opacity-60"
+                      onClick={() => duplicateCampaign(campaign)}
+                    >
+                      {isDuplicatingCampaign ? 'Duplicating…' : 'Duplicate'}
+                    </button>
+                  </>
+                    );
+                  }
+                  if (campaign.status === 'pending_approval') {
+                    return (
+                  <>
+                    <button
+                      type="button"
+                      className="rounded-full border border-green-300 px-3 py-1.5 text-xs font-semibold text-green-700 hover:border-green-500"
+                      onClick={async () => {
+                        const response = await fetch(`/api/admin/email/campaigns/${campaign.id}/approve`, {
+                          method: 'POST',
+                        });
+                        const data = await response.json();
+                        if (!response.ok) {
+                          setError(data?.error || 'Failed to approve campaign');
+                          return;
+                        }
+                        setStatusMessage(data?.message || 'Campaign approved.');
+                        await loadAll();
+                      }}
+                    >
+                      Approve
+                    </button>
+                    <button
+                      type="button"
+                      className="rounded-full border border-amber-300 px-3 py-1.5 text-xs font-semibold text-amber-700 hover:border-amber-500"
+                      onClick={async () => {
+                        if (!window.confirm(`Reject campaign "${campaign.name}"? It will not be sent.`)) return;
+                        const response = await fetch(`/api/admin/email/campaigns/${campaign.id}/cancel`, {
+                          method: 'POST',
+                        });
+                        const data = await response.json();
+                        if (!response.ok) {
+                          setError(data?.error || 'Failed to reject campaign');
+                          return;
+                        }
+                        setStatusMessage('Campaign rejected.');
+                        await loadAll();
+                      }}
+                    >
+                      Reject
+                    </button>
+                    <button
+                      type="button"
+                      className="rounded-full border border-blue-200 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:border-blue-400"
+                      onClick={() => applyCampaignToEditor(campaign)}
+                    >
+                      Edit
+                    </button>
+                  </>
+                    );
+                  }
+                  if (campaign.status === 'scheduled') {
+                    return (
+                  <button
+                    type="button"
+                    disabled
+                    className="rounded-full border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 cursor-default"
+                    title={campaign.scheduledAt ? new Date(campaign.scheduledAt).toLocaleString() : ''}
+                  >
+                    Scheduled for {campaign.scheduledAt ? new Date(campaign.scheduledAt).toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : '…'}
+                  </button>
+                    );
+                  }
+                  return (
+                  <button
+                    type="button"
+                    className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:border-action hover:text-action"
+                    onClick={async () => {
+                      const response = await fetch(`/api/admin/email/campaigns/${campaign.id}/send`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ frequencyCapCount: 3, frequencyCapDays: 7 }),
+                      });
+                      const data = await response.json();
+                      if (!response.ok) {
+                        setError(data?.error || 'Failed to send campaign');
+                        return;
+                      }
+                      await loadAll();
+                    }}
+                  >
+                    Send queued
+                  </button>
+                  );
+                })()}
                 {(campaign.status === 'processing' || campaign.status === 'scheduled' || campaign.status === 'draft') && campaignStatsById[campaign.id]?.remainingQueued && campaignStatsById[campaign.id]?.remainingQueued > 0 ? (
                   <button
                     type="button"

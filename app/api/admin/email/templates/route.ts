@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, ...created });
   } catch (error) {
     console.error('Failed to create template:', error);
-    return NextResponse.json({ error: 'Failed to create template' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to create template';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

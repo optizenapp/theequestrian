@@ -23,6 +23,14 @@
     {
       "path": "/api/cron/email-campaigns",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/auto-weekly-build",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/auto-weekly-release",
+      "schedule": "*/10 * * * *"
     }
   ]
 }

@@ -113,9 +113,9 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
   
   // Get allowed brand vendors from brand-mapping.csv (only for equestrian categories)
   // For pet/accessories categories, show all brands
-  const allowedBrands = (category === 'pet' || category === 'accessories') 
-    ? undefined 
-    : getAllowedBrandVendors();
+  const allowedBrands = (category === 'pet' || category === 'accessories')
+    ? undefined
+    : await getAllowedBrandVendors();
   
   // Generate canonical URLs for all products (fast with Neon DB)
   // Product cards will link directly to category-based URLs

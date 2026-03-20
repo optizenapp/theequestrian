@@ -1,0 +1,808 @@
+{
+  "date": "2026-03-16",
+  "submitted": 200,
+  "errors": 0,
+  "skipped": 0,
+  "urls": [
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/girths/design-your-own-e-a-mattes-short-girth-slim-line-leather",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/belts/brown-elastic-braided-belt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/plaiting/thinning-scissors-1",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/hair/black-hairlock",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/hair/red-rose-hair-scrunchie-with-crystals",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/girths/design-your-own-e-a-mattes-special-short-girth-quilt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/coloured-leather-equestrian-medical-armband",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/beyond-white-cover-cream",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/belts/dark-coffee-elastic-braided-belt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/custom-order-grooming-mitt-lambskin-sisal",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/fly-repellent/protect-relief-paddock-spray-500ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/black-leather-halter-patent-piping-with-engraved-horse-nameplate",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/hair/dark-red-womens-knitted-headband-ear-warmer",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/western/design-your-own-e-a-mattes-western-performer-pad",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/hair/navy-womens-knitted-headband-ear-warmer",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/body-protectors/vipa-level-1-body-protector",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/leather-medical-armband",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/belts/dark-grey-elastic-braided-belt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/veterinary/equitex-medicated-poultice-dressing",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/coat-care/showsilk-shampoo-concentrate-500ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/coat-care/summer-spray-500ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/coat-care/hg-serum",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/coat-care/hitone-silver",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/close-contact-tech-grip-pro-anti-slip-saddle-pad-gp-jump-square",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/all-purpose/used-lake-all-purpose-saddle-pad",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/dog/supplements/4cyte-canine",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/dressage/black-graphite-dressage-eurofit-large-size",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/lead-ropes/dark-lilac-lead-rope",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/girths/130-cm-black-padded-long-girth-w-snap-navy-white-elastic-in-stock",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/nosebands/melodie-noseband-patent-white-padding",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/equine-eye-vision-camera-solar-panel-only",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/hoof-care/hoof-grease-1kg",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/nosebands/fancy-stitch-padded-wave-cavesson-noseband",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/girths/padded-leather-dressage-girth",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/ariana-browband",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/alito-ladies-sleeveless-riding-top",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/stratus-horse-exercise-sheet",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/lead-ropes/hunter-green-nylon-lead",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/cheek-pieces-with-buckle-fastenings",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/lead-ropes/ranch-leather-lead-with-stainless-steel-snap",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/tops/allegra-ladies-short-sleeve-riding-top",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/training/lunge-equipment/rose-gold-glamour-lunge-roller",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/whips/pink-procush-event-whip",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/hoof-care/hoof-oil-brush-with-bottle",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/whips/brown-procush-event-whip",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/hoof-care/50g-hoofstik",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/burgundy-clear-crystal-browband",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/lavender-bay-halter-cob-size",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/veterinary/cetrigen-antibacterial-wound-spray",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/coat-care/whitening-conditioner-250ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/buster-storm-220-combo-turnout-rug-with-classic-neck",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/breastplates/fancy-stitch-3-point-wing-breastplate-black-stainless-steel-in-stock",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/bandages/lavender-bay-bandages",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/lead-ropes/silver-nylon-lead",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/sapphire-aqua-marine-light-sapphire-crystal-browband",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/lead-ropes/orange-nylon-lead",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/soft-touch-flexi-body-brush",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/breastplates/victory-3-point-breastplate",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/leather-grab-strap",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/white-crystal-browband",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/lead-ropes/burgundy-nylon-lead",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/veterinary/white-healer®",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/stable/hoof-care/crack-repair-500ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/riding-boots/bilancio-ladies-leather-field-tall-riding-boot",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/hair/pink-rose-hair-scrunchie-with-crystals",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bonnets/rose-gold-glamour-ear-bonnet",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/riding-boots/vallardi-ladies-leather-field-tall-riding-boot",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/ariana-bridle-double-no-reins",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/reins/braided-reins-1",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/magnetic/magni-teque-magnetic-hock-boots",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/bell-boots/atlanta-rubber-overreach-boots",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/girths/design-your-own-e-a-mattes-short-girth-slim-line-leather-cover",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/silver-deep-wave-crystal-browband-black-leather",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/saddles/dressage/bletchley-synthetic-mono-flap-dressage-saddle",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/soft-touch-body-wash-brush",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/anti-pressure-comfort-padded-bridle-with-diamontes-and-white-padding",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/accessories/tools/yard-knife",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/baby-blue-crystal-browband",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/girths/fancy-stitch-padded-short-stud-girth-w-snap",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bonnets/black-black-ear-bonnet",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/onyx-crystal-browband-black-leather",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/triple-stitched-padded-leather-halter",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/saddles/accessories/polar-fleece-saddle-cover",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/fancy-stitch-padded-grackle-bridle",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/microfibre-grooming-mitt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/swarovski-crystal-browband-black-leather",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bonnets/dark-red-silver-ear-bonnet-pony-size",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/cheek-straps-flat",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/saddles/jumping/bordeaux-synthetic-mono-flap-cross-country-saddle",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/lead-ropes/30-brass-plate-replacement-chain-for-perris-leather-leads",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/plaiting/plaiting-bands",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/double-bridle-reins-set-flat",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/lambswool-nose-poll-cover",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/overreach/white-comfort-overreach-boots",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/heavy-duty-havana-leather-track-halter-w-snap-plate",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bonnets/fly-masks/buster-stay-dry-super-lite-fly-rug-with-surcingles",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/plaiting/styling-kit",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bonnets/white-white-ear-bonnet",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/tendon-boots/air-tech-combo-sports-medicine-boots",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/eventing/air-cooled-original-eventing-boots-hind",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/girths/padded-anatomic-leather-dressage-girth",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/girths/design-your-own-e-a-mattes-short-girth-quilt-cover",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/dressage/close-contact-tech-grip-pro-anti-slip-saddle-pad-dressage-square",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/titan-100g-original-turnout-rug",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/crystal-fashion-saddle-pad",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bonnets/fly-masks/sweet-itch-buster-fly-rug-with-belly-flap",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/plaiting/premium-plaiting-kit",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/shampoo/white-brighter-shampoo",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/boots/overreach/green-comfort-overreach-boots",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/girths/fancy-stitch-padded-stud-girth-w-snap-brown-grey-maroon-elastic",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bits/mouthing-bit-with-keys",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/veterinary/revitalise-relax-muscle-rinse-magnesium-oil",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/saddles/funny-horses-shetland-pony-saddle",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/girths/fancy-stitch-sheepskin-padded-long-girth-w-snap-brown-grey-maroon-elastic",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/studs/studs-for-soft-deep-ground-set-of-4",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/half-pads/airtechnology-shockproof-wool-saddle-pad-half-pad",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/martingales/draw-reins-cob-full-size",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/close-contact-merino-wool-european-saddle-pad-gp-jump-square",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/belts/red-elastic-braided-belt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/number-holders/pony-leather-bridle-number-holders-pair",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/breastplates/anka-breastplate",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/bonnets/design-your-own-e-a-mattes-ear-bonnet",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/ava-grackle-bridle-with-sheepskin-no-reins",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/emerald-crystal-browband-black-leather",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/belts/cream-elastic-braided-belt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/hair/white-pearl-encrusted-hair-net",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/number-holders/spare-interchangeable-number-insert-for-leather-number-holders-pair",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/hair/black-diamante-encrusted-hair-net",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/custom-embroidered-nylon-super-halter",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/track-style-leather-turnout-halter-w-snap",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/leather-halter-thoroughbred-brass-fittings-with-engraved-horse-nameplate",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/chaps/adult-easy-close-half-chaps",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/keychains/padded-leather-key-chain-w-plate",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/fresh-fragrant-helmet-spray-125ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/dog/collars-and-leads/skinny-padded-leather-dog-leash",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/hair/navy-blue-diamante-encrusted-hair-net",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/dog/collars-and-leads/rolled-leather-dog-collar",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/golden-gate-bit-saddle-pad",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/lead-ropes/dual-havana-leather-lead-w-solid-brass-snap-plate",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/pet/dog/collars-and-leads/flat-leather-dog-collar-with-plate",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/fancy-stitch-padded-wave-cavesson-bridle",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/lead-ropes/black-lead-rope",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/design-your-own-e-a-mattes-spanish-baroque-saddle-pad",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/belts/green-elastic-braided-belt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/reins/web-reins",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/hair/navy-blue-pearl-encrusted-hair-net",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/hair/coffee-womens-knitted-headband-ear-warmer",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/training/lunge-equipment/corn-blue-red-lunge-line",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/hair/nylon-hair-net",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/design-your-own-e-a-mattes-endurance-english-pad",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/spurs/leather-spur-strap-pair",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/number-holders/patent-leather-bridle-number-holders-pair",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/design-your-own-e-a-mattes-trekking-saddle-pad",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/girths/mattes-girth-buckle-covers",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/lead-ropes/3-4-leather-lead-w-chain",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/hair/navy-crocheted-ribbon-hair-bun-net",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/double-crown-foal-halter-with-plate",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/champagne-crystal-browband-black-leather",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/veterinary/soothing-calm-sunscreen-powder",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/leather-equestrian-medical-armband-with-swarovski-crystals",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/body-protectors/vipa-iii-level-3-body-protector",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/mens/breeches/mens-basic-riding-breeches",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/plaiting/thread-cutter",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/plaiting/smooth-braids-250ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/outerwear/jackets/ladies-softshell-jacket",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/anatomic-broad-headpiece-double-bridle",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/belts/navy-elastic-braided-belt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/whips/procush-showjumping-whip",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/dressage/white-dressage-eurofit-large-size-no-logo",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/coat-care/showsilk-mighty-bright-500ml",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/footwear/riding-boots/calanthe-ladies-leather-field-tall-riding-boot",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/accessories/belts/lavender-bay-elastic-belt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/whips/green-black-procush-event-whip",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/lead-ropes/navy-nylon-lead",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/white-green-xl-square-saddlepad",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/coat-care/liquid-silk-serum-spray",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/womens/breeches/coco-ii-ladies-gel-full-seat-riding-breeches",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/hair/hair-bun-net-with-diamante-floret",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/products/nrg-no-nots-500ml-1",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/lead-ropes/elastic-tie-up",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/showertex-fly-rug-with-surcingles",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/accessories/hair/navy-blue-rose-hair-scrunchie-with-crystals",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/summer/rose-gold-glamour-cooler",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/rider/helmets/odyssey-horse-riding-helmet",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/plaiting/plaiting-trimming-scissors",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/fancy-stitch-traditional-hunter-bridle",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/polo-shirts/rose-gold-glamour-polo-shirt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/coat-care/intensify-conditioning-mask",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/pads/pony-close-contact-merino-wool-half-lined-european-dressage-square",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/tops/shirts/rosewood-melange-functional-shirt",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/lead-ropes/royal-blue-nylon-lead",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/reins/padded-nappa-leather-reins-flat-gold-fittings",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/rose-gold-glamour-halter",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/halters/leather-ranch-halter-full-size",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/rugs/tuscan-stable-rug-200g",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/girths/130cm-havana-brown-padded-long-girth-w-snap-navy-white-elastic-in-stock",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/tack/bridles/margaux-browband",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/clothing/outerwear/jackets/elena-ladies-hybrid-technical-riding-jacket",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/coat-care/glass-pro-illuminate",
+      "status": "ok"
+    },
+    {
+      "url": "https://www.theequestrian.com.au/horse/grooming/eziwash-jazz-hands-wash-groom-gloves",
+      "status": "ok"
+    }
+  ]
+}

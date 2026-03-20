@@ -242,6 +242,27 @@ export function normalizeEmailBlocks(blocks: unknown): EmailBlock[] {
           fontSize: normalizeFontSize(block.fontSize, 16),
         };
       }
+      if (type === 'llmIntro') {
+        return {
+          id,
+          type: 'llmIntro',
+          text: typeof block.text === 'string' ? block.text : '',
+          align: block.align === 'center' || block.align === 'right' ? block.align : 'left',
+          fontSize: normalizeFontSize(block.fontSize, 16),
+          ...(typeof block.prompt === 'string' && block.prompt.trim() ? { prompt: block.prompt.trim() } : {}),
+        };
+      }
+      if (type === 'llmHeading') {
+        return {
+          id,
+          type: 'llmHeading',
+          text: typeof block.text === 'string' ? block.text : '',
+          level: block.level === 1 || block.level === 2 || block.level === 3 ? block.level : 2,
+          align: block.align === 'center' || block.align === 'right' ? block.align : 'left',
+          fontSize: normalizeFontSize(block.fontSize, 28),
+          ...(typeof block.prompt === 'string' && block.prompt.trim() ? { prompt: block.prompt.trim() } : {}),
+        };
+      }
       if (type === 'cta') {
         return {
           id,
@@ -275,6 +296,7 @@ export function normalizeEmailBlocks(blocks: unknown): EmailBlock[] {
           showDividers: block.showDividers === true,
           align: block.align === 'left' || block.align === 'right' ? block.align : 'center',
           fontSize: normalizeFontSize(block.fontSize, 16),
+          ...(typeof block.prompt === 'string' && block.prompt.trim() ? { prompt: block.prompt.trim() } : {}),
         };
       }
       if (type === 'divider') {
@@ -315,6 +337,18 @@ export function renderTemplateBlocksHtml(input: {
         block.text,
         visual.linkColor
       )}</p>`;
+    }
+    if (block.type === 'llmIntro') {
+      return `<p style="margin:0 0 12px 0;text-align:${block.align || 'left'};color:${visual.brandDark};font-size:${block.fontSize || 16}px;">${renderTextWithStyledLinks(
+        block.text,
+        visual.linkColor
+      )}</p>`;
+    }
+    if (block.type === 'llmHeading') {
+      const level = Math.min(Math.max(block.level || 2, 1), 3);
+      return `<h${level} style="margin:0 0 12px 0;text-align:${block.align || 'left'};color:${visual.brandDark};font-size:${block.fontSize || 28}px;">${escapeHtml(
+        block.text
+      )}</h${level}>`;
     }
     if (block.type === 'cta') {
       return `<p style="margin:16px 0;text-align:${block.align || 'left'};"><a href="${escapeHtml(

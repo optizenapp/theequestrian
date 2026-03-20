@@ -11,6 +11,9 @@ Add these to `.env.local` (or your deployment env):
 | `DATABASE_URL` or `POSTGRES_URL` | Yes | Neon PostgreSQL connection string (already used by the site) |
 | `AWS_ACCESS_KEY_ID` | For uploads | AWS access key for S3 |
 | `AWS_SECRET_ACCESS_KEY` | For uploads | AWS secret key |
+| `AWS_ARTICLES_ACCESS_KEY_ID` | For article images | If you have multiple buckets, use this (and `AWS_ARTICLES_SECRET_ACCESS_KEY`) for the article images bucket; otherwise falls back to `AWS_ACCESS_KEY_ID` |
+| `AWS_ARTICLES_SECRET_ACCESS_KEY` | For article images | Secret key for article images bucket |
+| `AWS_ARTICLES_S3_BUCKET_NAME` | Optional | Override bucket for articles only (default: `AWS_S3_BUCKET_NAME` or `theequestrian-articles-images`) |
 | `AWS_REGION` | For uploads | e.g. `ap-southeast-2` (Sydney) |
 | `AWS_S3_BUCKET_NAME` or `AWS_S3_BUCKET` | For uploads | S3 bucket for article images (e.g. `theequestrian-articles-images`) |
 | `COPIQ_API_KEY` | For Copiq | API key for Copiq authentication (Bearer token) |

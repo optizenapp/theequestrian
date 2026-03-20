@@ -148,10 +148,10 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const productUrls = Object.fromEntries(productUrlsMap);
   const reviewStats = Object.fromEntries(reviewStatsMap);
   
-  // Get allowed brand vendors from brand-mapping.csv
-  const allowedBrands = (category === 'pet' || category === 'accessories') 
-    ? undefined 
-    : getAllowedBrandVendors();
+  // Get allowed brand vendors from brand_content (DB)
+  const allowedBrands = (category === 'pet' || category === 'accessories')
+    ? undefined
+    : await getAllowedBrandVendors();
 
   // Get subcategories from our mapping
   const subcategories = await getMappingSubcategories(category);

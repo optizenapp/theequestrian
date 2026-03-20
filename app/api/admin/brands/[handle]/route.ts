@@ -22,6 +22,7 @@ const ensureBrandContentTable = async () => {
   `;
   await sql`CREATE INDEX IF NOT EXISTS idx_brand_content_handle ON brand_content(handle)`;
   await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS products_count INTEGER DEFAULT 0`;
+  await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS rules TEXT`;
 };
 
 export async function GET(
@@ -71,6 +72,7 @@ export async function PATCH(
         handle,
         title,
         products_count,
+        rules,
         h1_title,
         meta_title,
         meta_description,
@@ -84,13 +86,14 @@ export async function PATCH(
         ${handle},
         ${String(body?.title || base.title || handle)},
         ${Number(body?.products_count ?? base.products_count ?? 0)},
-        ${String(body?.h1_title || '')},
-        ${String(body?.meta_title || '')},
-        ${String(body?.meta_description || '')},
-        ${String(body?.short_description || '')},
-        ${String(body?.long_description || '')},
-        ${String(body?.breadcrumb_label || '')},
-        ${String(body?.faq_json || '')},
+        ${body?.rules !== undefined ? String(body.rules) : (base.rules ?? null)},
+        ${String(body?.h1_title ?? base.h1_title ?? '')},
+        ${String(body?.meta_title ?? base.meta_title ?? '')},
+        ${String(body?.meta_description ?? base.meta_description ?? '')},
+        ${String(body?.short_description ?? base.short_description ?? '')},
+        ${String(body?.long_description ?? base.long_description ?? '')},
+        ${String(body?.breadcrumb_label ?? base.breadcrumb_label ?? '')},
+        ${String(body?.faq_json ?? base.faq_json ?? '')},
         ${String(body?.status || 'published')},
         NOW()
       )
@@ -98,6 +101,7 @@ export async function PATCH(
       SET
         title = EXCLUDED.title,
         products_count = EXCLUDED.products_count,
+        rules = EXCLUDED.rules,
         h1_title = EXCLUDED.h1_title,
         meta_title = EXCLUDED.meta_title,
         meta_description = EXCLUDED.meta_description,
