@@ -23,7 +23,8 @@ export interface ProductQueryResult {
   description?: string;
   vendor: string;
   product_type: string;
-  tags: string[];
+  /** Omitted in list/search queries to cut Neon egress; callers should default to [] for card/list rendering. */
+  tags?: string[];
   image_url: string;
   image_alt: string;
   available_for_sale: boolean;
@@ -107,7 +108,7 @@ export async function searchProducts(
     // List columns: exclude `description` (large HTML) — saves most Neon egress on category/search traffic.
     const listSelect = `
         id, handle, title, vendor, product_type,
-        tags, image_url, image_alt, available_for_sale, shopify_created_at`;
+        image_url, image_alt, available_for_sale, shopify_created_at`;
 
     if (conditions.length === 0) {
       countResult = await sql`SELECT COUNT(*) as total FROM products` as unknown as any[];

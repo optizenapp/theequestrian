@@ -26,6 +26,11 @@ const normalizePath = (value: string) => {
   return withSlash.length > 1 && withSlash.endsWith('/') ? withSlash.slice(0, -1) : withSlash;
 };
 
+const CATEGORY_CACHE_TTL_MS = Number(process.env.CATEGORY_ALLOC_CACHE_MS || 5 * 60 * 1000);
+const categoryIdCache = new Map<string, { value: string[]; expiresAt: number }>();
+const categoryHandleCache = new Map<string, { value: string[]; expiresAt: number }>();
+let ensureAllocTableReady: Promise<void> | null = null;
+
 const splitCategoryPath = (categoryPath: string) => {
   const normalized = normalizePath(categoryPath);
   const parts = normalized.replace(/^\//, '').split('/').filter(Boolean);
@@ -39,26 +44,57 @@ const splitCategoryPath = (categoryPath: string) => {
 };
 
 const ensureProductAllocationTable = async () => {
-  await sql`
-    CREATE TABLE IF NOT EXISTS product_category_assignments (
-      id SERIAL PRIMARY KEY,
-      product_id TEXT NOT NULL UNIQUE,
-      product_handle TEXT NOT NULL UNIQUE,
-      canonical_path TEXT NOT NULL UNIQUE,
-      category_path TEXT NOT NULL,
-      top_level TEXT NOT NULL,
-      parent_category TEXT,
-      subcategory_handle TEXT,
-      created_at TIMESTAMPTZ DEFAULT NOW(),
-      updated_at TIMESTAMPTZ DEFAULT NOW()
-    )
-  `;
-  await sql`CREATE INDEX IF NOT EXISTS idx_pca_category_path ON product_category_assignments(category_path)`;
-  await sql`CREATE INDEX IF NOT EXISTS idx_pca_top_level ON product_category_assignments(top_level)`;
-  await sql`CREATE INDEX IF NOT EXISTS idx_pca_parent_category ON product_category_assignments(parent_category)`;
-  await sql`CREATE INDEX IF NOT EXISTS idx_pca_subcategory ON product_category_assignments(subcategory_handle)`;
-  await sql`CREATE INDEX IF NOT EXISTS idx_pca_product_handle ON product_category_assignments(product_handle)`;
+  if (!ensureAllocTableReady) {
+    ensureAllocTableReady = (async () => {
+      await sql`
+        CREATE TABLE IF NOT EXISTS product_category_assignments (
+          id SERIAL PRIMARY KEY,
+          product_id TEXT NOT NULL UNIQUE,
+          product_handle TEXT NOT NULL UNIQUE,
+          canonical_path TEXT NOT NULL UNIQUE,
+          category_path TEXT NOT NULL,
+          top_level TEXT NOT NULL,
+          parent_category TEXT,
+          subcategory_handle TEXT,
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          updated_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `;
+      await sql`CREATE INDEX IF NOT EXISTS idx_pca_category_path ON product_category_assignments(category_path)`;
+      await sql`CREATE INDEX IF NOT EXISTS idx_pca_top_level ON product_category_assignments(top_level)`;
+      await sql`CREATE INDEX IF NOT EXISTS idx_pca_parent_category ON product_category_assignments(parent_category)`;
+      await sql`CREATE INDEX IF NOT EXISTS idx_pca_subcategory ON product_category_assignments(subcategory_handle)`;
+      await sql`CREATE INDEX IF NOT EXISTS idx_pca_product_handle ON product_category_assignments(product_handle)`;
+    })();
+  }
+  await ensureAllocTableReady;
 };
+
+function getCachedList(
+  cache: Map<string, { value: string[]; expiresAt: number }>,
+  key: string
+): string[] | null {
+  const hit = cache.get(key);
+  if (!hit) return null;
+  if (Date.now() > hit.expiresAt) {
+    cache.delete(key);
+    return null;
+  }
+  return hit.value;
+}
+
+function setCachedList(
+  cache: Map<string, { value: string[]; expiresAt: number }>,
+  key: string,
+  value: string[]
+) {
+  cache.set(key, { value, expiresAt: Date.now() + CATEGORY_CACHE_TTL_MS });
+}
+
+function clearCategoryAllocationCaches() {
+  categoryIdCache.clear();
+  categoryHandleCache.clear();
+}
 
 export async function getProductAllocationByProductId(productId: string) {
   await ensureProductAllocationTable();
@@ -150,7 +186,9 @@ export async function listProductAllocations(options: {
 export async function getProductIdsByCategory(categoryPath: string): Promise<string[]> {
   await ensureProductAllocationTable();
   const normalized = normalizePath(categoryPath);
-  
+  const cached = getCachedList(categoryIdCache, normalized);
+  if (cached) return cached;
+
   // Get products where category_path starts with the given path
   // This includes exact matches and child categories
   const result = await sql`
@@ -162,7 +200,9 @@ export async function getProductIdsByCategory(categoryPath: string): Promise<str
   `;
   
   const rows = (Array.isArray(result) ? result : []) as Array<{ product_id: string }>;
-  return rows.map(row => row.product_id);
+  const value = rows.map(row => row.product_id);
+  setCachedList(categoryIdCache, normalized, value);
+  return value;
 }
 
 /**
@@ -171,7 +211,9 @@ export async function getProductIdsByCategory(categoryPath: string): Promise<str
 export async function getProductHandlesByCategory(categoryPath: string): Promise<string[]> {
   await ensureProductAllocationTable();
   const normalized = normalizePath(categoryPath);
-  
+  const cached = getCachedList(categoryHandleCache, normalized);
+  if (cached) return cached;
+
   const result = await sql`
     SELECT product_handle
     FROM product_category_assignments
@@ -181,7 +223,9 @@ export async function getProductHandlesByCategory(categoryPath: string): Promise
   `;
   
   const rows = (Array.isArray(result) ? result : []) as Array<{ product_handle: string }>;
-  return rows.map(row => row.product_handle);
+  const value = rows.map(row => row.product_handle);
+  setCachedList(categoryHandleCache, normalized, value);
+  return value;
 }
 
 export async function upsertProductAllocation(input: ProductAllocationInput) {
@@ -227,6 +271,7 @@ export async function upsertProductAllocation(input: ProductAllocationInput) {
         updated_at = NOW()
     RETURNING *
   `;
+  clearCategoryAllocationCaches();
 
   return (Array.isArray(result) ? result[0] : undefined) as ProductAllocationRow;
 }
@@ -237,6 +282,7 @@ export async function deleteProductAllocation(productId: string) {
     DELETE FROM product_category_assignments
     WHERE product_id = ${productId}
   `;
+  clearCategoryAllocationCaches();
 }
 
 export async function getCategoryAllocationCounts() {

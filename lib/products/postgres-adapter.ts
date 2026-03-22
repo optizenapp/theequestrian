@@ -54,6 +54,7 @@ const LIVE_STATUS_QUERY = `
  */
 export function dbProductToShopifyFormat(dbProduct: ProductQueryResult): ProductWithPrimaryCollection {
   const desc = dbProduct.description ?? '';
+  const tags = dbProduct.tags ?? [];
   return {
     id: dbProduct.id,
     handle: dbProduct.handle,
@@ -62,7 +63,7 @@ export function dbProductToShopifyFormat(dbProduct: ProductQueryResult): Product
     descriptionHtml: desc,
     vendor: dbProduct.vendor,
     productType: dbProduct.product_type,
-    tags: dbProduct.tags,
+    tags,
     availableForSale: dbProduct.available_for_sale,
     createdAt: dbProduct.shopify_created_at,
     
@@ -434,7 +435,6 @@ export async function getProductsByCategoryFromDB(
       p.title,
       p.vendor,
       p.product_type,
-      p.tags,
       p.image_url,
       p.image_alt,
       p.available_for_sale,
