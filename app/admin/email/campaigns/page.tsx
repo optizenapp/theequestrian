@@ -167,6 +167,10 @@ export default function AdminEmailCampaignsPage() {
     setContentBlocks((prev) => {
       if (type === 'heading') return [...prev, { id, type, level: 2, text: 'Your heading', align: 'center' }];
       if (type === 'text') return [...prev, { id, type, text: 'Your text here', align: 'left' }];
+      if (type === 'llmHeading')
+        return [...prev, { id, type, level: 2, text: "This week's picks", align: 'left', prompt: '' }];
+      if (type === 'llmIntro')
+        return [...prev, { id, type, text: 'A short intro goes here.', align: 'left', prompt: '' }];
       if (type === 'cta') return [...prev, { id, type, label: 'Click here', url: '{{siteUrl}}', align: 'center' }];
       if (type === 'productCards') return [...prev, { id, type, mode: 'all' as const }];
       if (type === 'curatedProducts')
@@ -879,7 +883,13 @@ export default function AdminEmailCampaignsPage() {
                             const end = input.selectionEnd ?? (input.value || '').length;
                             const current = input.value || '';
                             const updated = current.slice(0, start) + item.token + current.slice(end);
-                            if (block.type === 'heading' || block.type === 'text' || block.type === 'footer') {
+                            if (
+                              block.type === 'heading' ||
+                              block.type === 'text' ||
+                              block.type === 'llmHeading' ||
+                              block.type === 'llmIntro' ||
+                              block.type === 'footer'
+                            ) {
                               updateBlock(block.id, { text: updated });
                             } else if (block.type === 'cta') {
                               updateBlock(block.id, { [field]: updated });
@@ -912,7 +922,13 @@ export default function AdminEmailCampaignsPage() {
                           const end = input.selectionEnd ?? (input.value || '').length;
                           const current = input.value || '';
                           const updated = current.slice(0, start) + token + current.slice(end);
-                          if (block.type === 'heading' || block.type === 'text' || block.type === 'footer') {
+                          if (
+                            block.type === 'heading' ||
+                            block.type === 'text' ||
+                            block.type === 'llmHeading' ||
+                            block.type === 'llmIntro' ||
+                            block.type === 'footer'
+                          ) {
                             updateBlock(block.id, { text: updated });
                           } else if (block.type === 'cta') {
                             updateBlock(block.id, { [field]: updated });
@@ -960,6 +976,73 @@ export default function AdminEmailCampaignsPage() {
                               <option value="left">Left</option><option value="center">Center</option><option value="right">Right</option>
                             </select>
                             <textarea value={block.text} onChange={(e) => updateBlock(block.id, { text: e.target.value })} onFocus={() => setLastFocusedInput({ blockId: block.id, field: 'text' })} data-block-id={block.id} data-field="text" rows={4} className="w-full rounded border border-gray-300 px-3 py-2 text-sm" />
+                          </div>
+                        )}
+
+                        {block.type === 'llmHeading' && (
+                          <div className="space-y-2">
+                            <p className="text-xs font-medium text-sky-700">
+                              Filled automatically for Auto weekly; prompt and fallback text are editable.
+                            </p>
+                            <label className="block text-xs font-medium text-gray-700">
+                              Prompt (optional)
+                              <textarea
+                                value={'prompt' in block ? (block.prompt ?? '') : ''}
+                                onChange={(e) => updateBlock(block.id, { prompt: e.target.value || undefined } as Partial<EmailBlock>)}
+                                rows={2}
+                                className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                                placeholder="e.g. One short heading based on {{productContext}}"
+                              />
+                            </label>
+                            <input
+                              type="text"
+                              value={block.text}
+                              onChange={(e) => updateBlock(block.id, { text: e.target.value })}
+                              onFocus={() => setLastFocusedInput({ blockId: block.id, field: 'text' })}
+                              data-block-id={block.id}
+                              data-field="text"
+                              className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                              placeholder="Fallback heading text"
+                            />
+                            <div className="flex gap-2">
+                              <select value={block.level || 2} onChange={(e) => updateBlock(block.id, { level: Number(e.target.value) as 1 | 2 | 3 })} className="w-20 rounded border border-gray-300 px-2 py-1 text-sm">
+                                <option value={1}>H1</option><option value={2}>H2</option><option value={3}>H3</option>
+                              </select>
+                              <select value={block.align || 'left'} onChange={(e) => updateBlock(block.id, { align: e.target.value as 'left' | 'center' | 'right' })} className="w-28 rounded border border-gray-300 px-2 py-1 text-sm">
+                                <option value="left">Left</option><option value="center">Center</option><option value="right">Right</option>
+                              </select>
+                            </div>
+                          </div>
+                        )}
+
+                        {block.type === 'llmIntro' && (
+                          <div className="space-y-2">
+                            <p className="text-xs font-medium text-sky-700">
+                              Filled automatically for Auto weekly; prompt and fallback text are editable.
+                            </p>
+                            <label className="block text-xs font-medium text-gray-700">
+                              Prompt (optional)
+                              <textarea
+                                value={'prompt' in block ? (block.prompt ?? '') : ''}
+                                onChange={(e) => updateBlock(block.id, { prompt: e.target.value || undefined } as Partial<EmailBlock>)}
+                                rows={3}
+                                className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                                placeholder="Leave empty to use global intro prompt"
+                              />
+                            </label>
+                            <select value={block.align || 'left'} onChange={(e) => updateBlock(block.id, { align: e.target.value as 'left' | 'center' | 'right' })} className="w-28 rounded border border-gray-300 px-2 py-1 text-sm">
+                              <option value="left">Left</option><option value="center">Center</option><option value="right">Right</option>
+                            </select>
+                            <textarea
+                              value={block.text}
+                              onChange={(e) => updateBlock(block.id, { text: e.target.value })}
+                              onFocus={() => setLastFocusedInput({ blockId: block.id, field: 'text' })}
+                              data-block-id={block.id}
+                              data-field="text"
+                              rows={4}
+                              className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                              placeholder="Fallback intro text for preview"
+                            />
                           </div>
                         )}
 
@@ -1109,7 +1192,7 @@ export default function AdminEmailCampaignsPage() {
 
                   {/* Add block buttons */}
                   <div className="flex flex-wrap gap-2">
-                    {(['heading', 'text', 'cta', 'productCards', 'curatedProducts', 'image', 'divider', 'footer'] as const).map((type) => (
+                    {(['heading', 'text', 'llmIntro', 'llmHeading', 'cta', 'productCards', 'curatedProducts', 'image', 'divider', 'footer'] as const).map((type) => (
                       <button key={type} type="button" onClick={() => addBlock(type)} className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:border-action hover:text-action">
                         + {blockTypeLabels[type]}
                       </button>

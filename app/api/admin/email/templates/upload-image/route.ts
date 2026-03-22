@@ -30,9 +30,13 @@ export async function POST(request: NextRequest) {
     const url = await uploadBufferToS3(buffer, 'articles/uploads', contentType);
     return NextResponse.json({ url });
   } catch (error) {
-    console.error('[email/templates/upload-image]', error);
+    const message = error instanceof Error ? error.message : String(error);
+    const code = error && typeof error === 'object' && 'name' in error ? (error as { name: string }).name : '';
+    console.error('[email/templates/upload-image]', message, code, error);
+    // Expose short detail so you can see cause in Network tab (e.g. "Missing AWS credentials", "Access Denied")
+    const detail = message.slice(0, 200);
     return NextResponse.json(
-      { error: 'Failed to upload image' },
+      { error: 'Failed to upload image', detail },
       { status: 500 }
     );
   }

@@ -72,8 +72,10 @@ export function ProductGridWithFilters({
 
   // Hydrate products with real-time price and inventory data
   const { products: hydratedProducts } = useLiveProductStatusOptimized(products, {
-    deferMs: 1200,
-    mode: 'soft',
+    // Category grids need dependable compare-at hydration for sale badges and "On Sale" sorting.
+    // Use strict/no-store mode to avoid stale or missing compare-at values.
+    deferMs: 250,
+    mode: 'strict',
   });
 
   // Get filters from URL params
@@ -162,18 +164,18 @@ export function ProductGridWithFilters({
       
       case 'on-sale':
         return productsToSort.sort((a, b) => {
-          // First: Sort by availability (in-stock first)
-          if (a.availableForSale !== b.availableForSale) {
-            return a.availableForSale ? -1 : 1;
-          }
-          // Second: Sort by sale status
+          // First: Sort by sale status (actual discounts first)
           const aOnSale = a.compareAtPriceRange?.minVariantPrice && 
             parseFloat(a.compareAtPriceRange.minVariantPrice.amount) > parseFloat(a.priceRange?.minVariantPrice?.amount || '0');
           const bOnSale = b.compareAtPriceRange?.minVariantPrice && 
             parseFloat(b.compareAtPriceRange.minVariantPrice.amount) > parseFloat(b.priceRange?.minVariantPrice?.amount || '0');
           
-          if (aOnSale === bOnSale) return 0;
-          return aOnSale ? -1 : 1; // On sale items first
+          if (aOnSale !== bOnSale) return aOnSale ? -1 : 1;
+          // Second: in-stock first inside each group
+          if (a.availableForSale !== b.availableForSale) {
+            return a.availableForSale ? -1 : 1;
+          }
+          return 0;
         });
       
       case 'featured':

@@ -76,8 +76,10 @@ const getResolvedProductBySlug = cache(async (slug: string) => {
  */
 export default async function Page({ params, searchParams }: PageProps) {
   const { category, subcategory, product: thirdSegment } = await params;
-  const { cursor, brand, size, color } = await searchParams;
+  const { cursor, brand, size, color, sort } = await searchParams;
   const afterCursor = typeof cursor === 'string' ? cursor : null;
+  const sortBy =
+    typeof sort === 'string' ? (sort as 'featured' | 'on-sale' | 'newest' | 'oldest' | 'price-asc' | 'price-desc') : undefined;
   const filterBrands = brand ? (Array.isArray(brand) ? brand : brand.split(',')) : undefined;
   const filterSizes = size ? (Array.isArray(size) ? size : size.split(',')) : undefined;
   const filterColors = color ? (Array.isArray(color) ? color : color.split(',')) : undefined;
@@ -97,7 +99,16 @@ export default async function Page({ params, searchParams }: PageProps) {
   
   if (existsInDatabase) {
     // Category exists in database, render it (will redirect if empty)
-    return renderSubSubcategoryPage(category, subcategory, thirdSegment, afterCursor, filterBrands, filterSizes, filterColors);
+    return renderSubSubcategoryPage(
+      category,
+      subcategory,
+      thirdSegment,
+      afterCursor,
+      filterBrands,
+      filterSizes,
+      filterColors,
+      sortBy
+    );
   }
   
   // Check if it has product types mapped (for categories not in database yet)
@@ -105,7 +116,16 @@ export default async function Page({ params, searchParams }: PageProps) {
   
   // If it maps to a collection, render the collection page
   if (allowedProductTypes.length > 0) {
-    return renderSubSubcategoryPage(category, subcategory, thirdSegment, afterCursor, filterBrands, filterSizes, filterColors);
+    return renderSubSubcategoryPage(
+      category,
+      subcategory,
+      thirdSegment,
+      afterCursor,
+      filterBrands,
+      filterSizes,
+      filterColors,
+      sortBy
+    );
   }
 
   // 2. If not a category, assume it's a product handle
@@ -360,7 +380,8 @@ async function renderSubSubcategoryPage(
   afterCursor: string | null = null,
   filterBrands?: string[],
   filterSizes?: string[],
-  filterColors?: string[]
+  filterColors?: string[],
+  sortBy?: 'featured' | 'on-sale' | 'newest' | 'oldest' | 'price-asc' | 'price-desc'
 ) {
   // Fetch products allocated to this sub-subcategory from product_category_assignments table
   const categoryPath = `/${category}/${subcategory}/${subsubcategory}`;
@@ -372,7 +393,8 @@ async function renderSubSubcategoryPage(
       brands: filterBrands,
       sizes: filterSizes,
       colors: filterColors
-    }
+    },
+    sortBy
   );
 
   // Total count is now returned from getProductsByCategory (no separate API call needed)

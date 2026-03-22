@@ -53,12 +53,13 @@ const LIVE_STATUS_QUERY = `
  * Note: Prices are set to 0 - will be hydrated client-side
  */
 export function dbProductToShopifyFormat(dbProduct: ProductQueryResult): ProductWithPrimaryCollection {
+  const desc = dbProduct.description ?? '';
   return {
     id: dbProduct.id,
     handle: dbProduct.handle,
     title: dbProduct.title,
-    description: dbProduct.description,
-    descriptionHtml: dbProduct.description,
+    description: desc,
+    descriptionHtml: desc,
     vendor: dbProduct.vendor,
     productType: dbProduct.product_type,
     tags: dbProduct.tags,
@@ -199,7 +200,9 @@ async function getLiveStatusByProductIds(productIds: string[]): Promise<Map<stri
   currencyCode: string;
 }>> {
   if (productIds.length === 0) return new Map();
-  const timeoutMs = Number(process.env.DB_SERVER_STATUS_TIMEOUT_MS || 1200);
+  // 1.2s is too aggressive in production and causes frequent fallback to placeholder prices,
+  // which hides sale badges on category grids.
+  const timeoutMs = Number(process.env.DB_SERVER_STATUS_TIMEOUT_MS || 4000);
 
   let data: { nodes: Array<{
     id: string;
@@ -217,8 +220,8 @@ async function getLiveStatusByProductIds(productIds: string[]): Promise<Map<stri
     } | null> }>({
       query: LIVE_STATUS_QUERY,
       variables: { ids: productIds.slice(0, 250) },
-      // Soft cache for SSR speed; client hydration still fetches strict live status.
-      cache: 'default',
+      // Always fetch fresh pricing/compare-at for correct sale badges.
+      cache: 'no-store',
     });
 
     data = await Promise.race([
@@ -423,12 +426,12 @@ export async function getProductsByCategoryFromDB(
     };
   }
 
+  // Omit p.description (large HTML) — grid cards don't render it; cuts Neon egress vs selecting it per row.
   const dbRows = await sql.unsafe(`
     SELECT
       p.id,
       p.handle,
       p.title,
-      p.description,
       p.vendor,
       p.product_type,
       p.tags,

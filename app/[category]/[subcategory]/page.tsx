@@ -66,8 +66,10 @@ interface SubcategoryPageProps {
  */
 export default async function SubcategoryPage({ params, searchParams }: SubcategoryPageProps) {
   const { category, subcategory } = await params;
-  const { cursor, brand, size, color } = await searchParams;
+  const { cursor, brand, size, color, sort } = await searchParams;
   const afterCursor = typeof cursor === 'string' ? cursor : null;
+  const sortBy =
+    typeof sort === 'string' ? (sort as 'featured' | 'on-sale' | 'newest' | 'oldest' | 'price-asc' | 'price-desc') : undefined;
   const filterBrands = brand ? (Array.isArray(brand) ? brand : brand.split(',')) : undefined;
   const filterSizes = size ? (Array.isArray(size) ? size : size.split(',')) : undefined;
   const filterColors = color ? (Array.isArray(color) ? color : color.split(',')) : undefined;
@@ -90,7 +92,8 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
       brands: filterBrands,
       sizes: filterSizes,
       colors: filterColors
-    }
+    },
+    sortBy
   );
   
   // If no products found, check if category exists in collection_content

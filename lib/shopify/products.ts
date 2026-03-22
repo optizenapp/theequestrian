@@ -1150,7 +1150,8 @@ export async function getProductsByCategory(
     brands?: string[];
     sizes?: string[];
     colors?: string[];
-  }
+  },
+  sortBy?: 'featured' | 'on-sale' | 'newest' | 'oldest' | 'price-asc' | 'price-desc'
 ): Promise<{
   products: ProductWithPrimaryCollection[];
   pageInfo: { hasNextPage: boolean; endCursor: string | null };
@@ -1174,12 +1175,18 @@ export async function getProductsByCategory(
     // Disabled by default so we can build and test safely before migration.
     const useDbFirstCollections = process.env.USE_DB_COLLECTIONS_FROM_POSTGRES === 'true';
     if (useDbFirstCollections) {
+      // DB-first path does not support global on-sale ordering yet.
+      // Fall back to Shopify path so /?sort=on-sale is correct and badges appear.
+      if (sortBy === 'on-sale') {
+        console.log('[getProductsByCategory] sort=on-sale requested; skipping DB-first path for accurate ordering');
+      } else {
       try {
         const { getProductsByCategoryFromDB } = await import('@/lib/products/postgres-adapter');
         console.log(`[getProductsByCategory] 🧪 DB-first path enabled for ${categoryPath}`);
         return getProductsByCategoryFromDB(categoryPath, limit, after, filters);
       } catch (dbError) {
         console.error('[getProductsByCategory] DB-first path failed, falling back to Shopify path:', dbError);
+      }
       }
     }
 
@@ -1474,13 +1481,41 @@ export async function getProductsByCategory(
       price: priceFacet
     };
 
-    // Sort: in-stock first, out-of-stock last
+    // Server-side sorting (before pagination) so /?sort=on-sale surfaces on-sale products on page 1.
     allProducts.sort((a, b) => {
       const aInStock = a.variants.edges.some(({ node }) => node.availableForSale);
       const bInStock = b.variants.edges.some(({ node }) => node.availableForSale);
-      if (aInStock && !bInStock) return -1;
-      if (!aInStock && bInStock) return 1;
-      return 0;
+      const aPrice = parseFloat(a.priceRange?.minVariantPrice?.amount || '0');
+      const bPrice = parseFloat(b.priceRange?.minVariantPrice?.amount || '0');
+      const aCompare = parseFloat(a.compareAtPriceRange?.minVariantPrice?.amount || '0');
+      const bCompare = parseFloat(b.compareAtPriceRange?.minVariantPrice?.amount || '0');
+      const aOnSale = aCompare > aPrice;
+      const bOnSale = bCompare > bPrice;
+      const aCreated = new Date(a.createdAt || 0).getTime();
+      const bCreated = new Date(b.createdAt || 0).getTime();
+
+      switch (sortBy) {
+        case 'on-sale':
+          if (aOnSale !== bOnSale) return aOnSale ? -1 : 1;
+          if (aInStock !== bInStock) return aInStock ? -1 : 1;
+          return 0;
+        case 'newest':
+          if (aInStock !== bInStock) return aInStock ? -1 : 1;
+          return bCreated - aCreated;
+        case 'oldest':
+          if (aInStock !== bInStock) return aInStock ? -1 : 1;
+          return aCreated - bCreated;
+        case 'price-asc':
+          if (aInStock !== bInStock) return aInStock ? -1 : 1;
+          return aPrice - bPrice;
+        case 'price-desc':
+          if (aInStock !== bInStock) return aInStock ? -1 : 1;
+          return bPrice - aPrice;
+        case 'featured':
+        default:
+          if (aInStock !== bInStock) return aInStock ? -1 : 1;
+          return 0;
+      }
     });
 
     // Implement pagination

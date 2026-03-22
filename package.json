@@ -32,6 +32,8 @@
     "email:init": "tsx scripts/init-email-platform.ts",
     "db:sync": "tsx scripts/sync-products-to-db.ts",
     "db:stats": "tsx scripts/db-stats.ts",
+    "neon:usage": "node scripts/neon-consumption-report.mjs",
+    "neon:top-queries": "node scripts/neon-pg-top-queries.mjs",
     "preview-titles": "tsx scripts/preview-titles.ts",
     "fix-h1-titles": "tsx scripts/fix-h1-titles.ts",
     "fix-meta-descriptions": "tsx scripts/fix-meta-descriptions.ts",

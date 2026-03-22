@@ -54,6 +54,30 @@ function generateId() {
   return `block-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 }
 
+/** Ensure blocks from API have lowercase type so editor conditions match. */
+function normalizeBlocksForEditor(blocks: unknown): EmailBlock[] {
+  if (!Array.isArray(blocks)) return [];
+  return blocks.map((raw): EmailBlock | null => {
+    if (!raw || typeof raw !== 'object') return null;
+    const b = raw as Record<string, unknown>;
+    const type = typeof b.type === 'string' ? b.type.trim().toLowerCase() : '';
+    if (!type) return null;
+    const id = typeof b.id === 'string' && b.id.trim() ? b.id.trim() : generateId();
+    const base = { id, type: type as EmailBlock['type'] };
+    if (type === 'heading') return { ...base, type: 'heading', text: String(b.text ?? ''), level: b.level === 1 || b.level === 3 ? (b.level as 1 | 3) : 2, align: (b.align as 'left' | 'center' | 'right') || 'left', fontSize: Number(b.fontSize) || 28 };
+    if (type === 'text') return { ...base, type: 'text', text: String(b.text ?? ''), align: (b.align as 'left' | 'center' | 'right') || 'left', fontSize: Number(b.fontSize) || 16 };
+    if (type === 'llmintro') return { ...base, type: 'llmIntro', text: String(b.text ?? ''), align: (b.align as 'left' | 'center' | 'right') || 'left', fontSize: Number(b.fontSize) || 16, prompt: typeof b.prompt === 'string' ? b.prompt : undefined };
+    if (type === 'llmheading') return { ...base, type: 'llmHeading', text: String(b.text ?? ''), level: b.level === 1 || b.level === 3 ? (b.level as 1 | 3) : 2, align: (b.align as 'left' | 'center' | 'right') || 'left', fontSize: Number(b.fontSize) || 28, prompt: typeof b.prompt === 'string' ? b.prompt : undefined };
+    if (type === 'cta') return { ...base, type: 'cta', label: String(b.label ?? ''), url: String(b.url ?? ''), align: (b.align as 'left' | 'center' | 'right') || 'center', fontSize: Number(b.fontSize) || 15 };
+    if (type === 'productcards') return { ...base, type: 'productCards', mode: b.mode === 'all' ? 'all' : 'single', align: (b.align as 'left' | 'center' | 'right') || 'center', fontSize: Number(b.fontSize) || 16 };
+    if (type === 'curatedproducts') return { ...base, type: 'curatedProducts', products: Array.isArray(b.products) ? b.products as CuratedProductCard[] : [], showDividers: b.showDividers === true, align: (b.align as 'left' | 'center' | 'right') || 'center', fontSize: Number(b.fontSize) || 16, prompt: typeof b.prompt === 'string' ? b.prompt : undefined };
+    if (type === 'image') return { ...base, type: 'image', url: String(b.url ?? ''), alt: String(b.alt ?? ''), linkUrl: typeof b.linkUrl === 'string' ? b.linkUrl : undefined, align: (b.align as 'left' | 'center' | 'right') || 'center', maxWidth: typeof b.maxWidth === 'number' ? b.maxWidth : undefined };
+    if (type === 'divider') return { ...base, type: 'divider', align: (b.align as 'left' | 'center' | 'right') || 'center' };
+    if (type === 'footer') return { ...base, type: 'footer', text: String(b.text ?? ''), align: (b.align as 'left' | 'center' | 'right') || 'left', fontSize: Number(b.fontSize) || 12 };
+    return null;
+  }).filter((b): b is EmailBlock => b != null);
+}
+
 function getDefaultBlocks(category: TemplateCategory): EmailBlock[] {
   if (category === 'subscriber_standard') {
     return [
@@ -452,7 +476,7 @@ export default function AdminEmailTemplatesPage() {
         delayDays: typeof metadata.delayDays === 'number' ? metadata.delayDays : category === 'order_review' ? 10 : 0,
         baseFontSize: typeof metadata.baseFontSize === 'number' ? metadata.baseFontSize : 16,
         subjectTemplate: template.version?.subjectTemplate || '',
-        blocks: Array.isArray(template.version?.blocks) ? template.version.blocks : getDefaultBlocks(category),
+        blocks: Array.isArray(template.version?.blocks) ? normalizeBlocksForEditor(template.version.blocks) : getDefaultBlocks(category),
         fromName: template.version?.fromName || 'The Equestrian',
         fromEmail: template.version?.fromEmail || 'support@theequestrian.com.au',
         brandPrimary:
@@ -517,7 +541,7 @@ export default function AdminEmailTemplatesPage() {
         delayDays: typeof metadata.delayDays === 'number' ? metadata.delayDays : category === 'order_review' ? 10 : 0,
         baseFontSize: typeof metadata.baseFontSize === 'number' ? metadata.baseFontSize : 16,
         subjectTemplate: template.version?.subjectTemplate || '',
-        blocks: Array.isArray(template.version?.blocks) ? template.version.blocks : getDefaultBlocks(category),
+        blocks: Array.isArray(template.version?.blocks) ? normalizeBlocksForEditor(template.version.blocks) : getDefaultBlocks(category),
         fromName: template.version?.fromName || 'The Equestrian',
         fromEmail: template.version?.fromEmail || 'support@theequestrian.com.au',
         brandPrimary:
@@ -866,7 +890,7 @@ export default function AdminEmailTemplatesPage() {
               </div>
               <button type="button" onClick={resetToDefaults} className="rounded-full border border-gray-300 px-4 py-2 text-xs font-semibold text-gray-600 hover:border-action hover:text-action">Reset to defaults</button>
             </div>
-            <div className="mb-4 rounded-lg border border-sky-200 bg-sky-50/60 p-3">
+            <div className="sticky top-2 z-10 mb-4 rounded-lg border border-sky-200 bg-sky-50/95 p-3 shadow-sm backdrop-blur-sm">
               <p className="mb-2 text-xs font-semibold text-sky-800">Add block</p>
               <div className="flex flex-wrap gap-2">
                 {(['heading', 'text', 'llmIntro', 'llmHeading', 'cta', 'productCards', 'curatedProducts', 'image', 'divider', 'footer'] as const).map((type) => (
@@ -1415,9 +1439,10 @@ export default function AdminEmailTemplatesPage() {
               );
               })}
             </div>
-            <div className="mt-4 flex flex-wrap gap-2">
+            <p className="mt-4 text-xs font-medium text-gray-500">Add another block</p>
+            <div className="mt-1 flex flex-wrap gap-2">
               {(['heading', 'text', 'llmIntro', 'llmHeading', 'cta', 'productCards', 'curatedProducts', 'image', 'divider', 'footer'] as const).map((type) => (
-                <button key={type} type="button" onClick={() => addBlock(type)} className="rounded-full border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:border-action hover:text-action">+ {blockTypeLabels[type]}</button>
+                <button key={type} type="button" onClick={() => addBlock(type)} className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:border-action hover:bg-action/5 hover:text-action">+ {blockTypeLabels[type]}</button>
               ))}
             </div>
           </div>
