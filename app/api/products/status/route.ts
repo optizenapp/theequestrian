@@ -12,6 +12,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { shopifyFetch } from '@/lib/shopify/client';
+import { checkRateLimit, rejectBotRequest } from '@/lib/api/endpoint-guards';
 
 interface ProductStatusRequest {
   productIds: string[];
@@ -102,6 +103,25 @@ const GET_PRODUCTS_STATUS = `
 
 export async function POST(request: NextRequest) {
   try {
+    const botBlocked = rejectBotRequest(request, 'products/status');
+    if (botBlocked) return botBlocked;
+
+    const rl = checkRateLimit(
+      request,
+      'api:products:status',
+      Number(process.env.API_STATUS_RATE_LIMIT_PER_MIN || 180),
+      60_000
+    );
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded' },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(rl.retryAfterSec) },
+        }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const mode = searchParams.get('mode') === 'strict' ? 'strict' : 'soft';
     const body: ProductStatusRequest = await request.json();
