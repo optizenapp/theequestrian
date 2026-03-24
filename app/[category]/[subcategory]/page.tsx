@@ -1,7 +1,8 @@
 import { notFound, permanentRedirect, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import dynamicImport from 'next/dynamic';
-import { getProductsByCategory, getProductCanonicalUrls } from '@/lib/shopify/products';
+import { getProductsByCategoryForCollectionPage } from '@/lib/shopify/category-collection-fetch';
+import { getProductCanonicalUrls } from '@/lib/shopify/products';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
 import { 
@@ -49,8 +50,7 @@ const RichContent = dynamicImport(
   }
 );
 
-// ISR Configuration: Revalidate every 15 minutes
-export const revalidate = 900;
+export const revalidate = 172800;
 export const preferredRegion = 'syd1';
 
 interface SubcategoryPageProps {
@@ -84,17 +84,18 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
 
   // Fetch products allocated to this category from product_category_assignments table
   const categoryPath = `/${category}/${subcategory}`;
-  const { products: filteredProducts, pageInfo, facets, totalCount } = await getProductsByCategory(
-    categoryPath,
-    36, 
-    afterCursor,
-    { 
-      brands: filterBrands,
-      sizes: filterSizes,
-      colors: filterColors
-    },
-    sortBy
-  );
+  const { products: filteredProducts, pageInfo, facets, totalCount } =
+    await getProductsByCategoryForCollectionPage(
+      categoryPath,
+      36,
+      afterCursor,
+      {
+        brands: filterBrands,
+        sizes: filterSizes,
+        colors: filterColors,
+      },
+      sortBy
+    );
   
   // If no products found, check if category exists in collection_content
   if (totalCount === 0) {

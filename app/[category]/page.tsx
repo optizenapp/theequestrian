@@ -1,7 +1,7 @@
 import { notFound, permanentRedirect, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import dynamicImport from 'next/dynamic';
-import { getProductsByCategory } from '@/lib/shopify/products';
+import { getProductsByCategoryForCollectionPage } from '@/lib/shopify/category-collection-fetch';
 import { getProductByHandle, getProductCanonicalUrl, getProductCanonicalUrls, hasProductImage } from '@/lib/shopify/products';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { getCategoryContent } from '@/lib/content/collections';
@@ -51,8 +51,8 @@ const RichContent = dynamicImport(
   }
 );
 
-// ISR Configuration: Revalidate every 15 minutes
-export const revalidate = 900;
+// ISR: collection shell (172800s = 48h). Price/stock: client status API. (Numeric literal required by Next 16 segment config.)
+export const revalidate = 172800;
 export const preferredRegion = 'syd1';
 
 interface CategoryPageProps {
@@ -88,17 +88,18 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
   // Fetch products allocated to this category from product_category_assignments table
   const categoryPath = `/${category}`;
-  const { products: filteredProducts, pageInfo, facets, totalCount } = await getProductsByCategory(
-    categoryPath,
-    36, 
-    afterCursor,
-    { 
-      brands: filterBrands,
-      sizes: filterSizes,
-      colors: filterColors
-    },
-    sortBy
-  );
+  const { products: filteredProducts, pageInfo, facets, totalCount } =
+    await getProductsByCategoryForCollectionPage(
+      categoryPath,
+      36,
+      afterCursor,
+      {
+        brands: filterBrands,
+        sizes: filterSizes,
+        colors: filterColors,
+      },
+      sortBy
+    );
   
   // If no products found, try as a product (fallback)
   if (totalCount === 0) {
@@ -213,7 +214,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     );
   }
 
-  // Products already fetched above via getProductsByCategory
+  // Products already fetched above via getProductsByCategoryForCollectionPage
 
   // Total count is now returned from getProductsByTypes (no separate API call needed)
   const totalProductCount = totalCount;

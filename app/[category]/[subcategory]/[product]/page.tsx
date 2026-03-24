@@ -1,7 +1,8 @@
 import { notFound, permanentRedirect, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import dynamicImport from 'next/dynamic';
-import { getProductsByCategory, getProductByHandle, getProductCanonicalUrl, getRecommendedProducts, hasProductImage } from '@/lib/shopify/products';
+import { getProductsByCategoryForCollectionPage } from '@/lib/shopify/category-collection-fetch';
+import { getProductByHandle, getProductCanonicalUrl, getRecommendedProducts, hasProductImage } from '@/lib/shopify/products';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
 import { 
@@ -48,8 +49,7 @@ const ProductReviewSection = dynamicImport(
   }
 );
 
-// ISR Configuration: Revalidate every 15 minutes
-export const revalidate = 900;
+export const revalidate = 172800;
 export const preferredRegion = 'syd1';
 
 interface PageProps {
@@ -385,19 +385,20 @@ async function renderSubSubcategoryPage(
 ) {
   // Fetch products allocated to this sub-subcategory from product_category_assignments table
   const categoryPath = `/${category}/${subcategory}/${subsubcategory}`;
-  const { products: filteredProducts, pageInfo, facets, totalCount } = await getProductsByCategory(
-    categoryPath,
-    36, 
-    afterCursor,
-    { 
-      brands: filterBrands,
-      sizes: filterSizes,
-      colors: filterColors
-    },
-    sortBy
-  );
+  const { products: filteredProducts, pageInfo, facets, totalCount } =
+    await getProductsByCategoryForCollectionPage(
+      categoryPath,
+      36,
+      afterCursor,
+      {
+        brands: filterBrands,
+        sizes: filterSizes,
+        colors: filterColors,
+      },
+      sortBy
+    );
 
-  // Total count is now returned from getProductsByCategory (no separate API call needed)
+  // Total count is returned from getProductsByCategoryForCollectionPage (no separate API call needed)
   const totalProductCount = totalCount;
 
   // EMPTY CATEGORY REDIRECT: If this sub-subcategory has no products and no filters are applied,

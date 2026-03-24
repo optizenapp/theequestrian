@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { sql } from '@vercel/postgres';
 import { createManualRedirect } from '@/lib/redirects/manual';
 import {
@@ -8,6 +8,7 @@ import {
   listProductAllocations,
   upsertProductAllocation,
 } from '@/lib/db/product-allocations';
+import { CATEGORY_PRODUCT_LISTINGS_CACHE_TAG } from '@/lib/config/collection-cache';
 import { clearCategoryCache } from '@/lib/shopify/products';
 
 const ensureProductAllocationTable = async () => {
@@ -91,6 +92,7 @@ export async function POST(request: NextRequest) {
     }
 
     revalidatePath(allocation.category_path);
+    revalidateTag(CATEGORY_PRODUCT_LISTINGS_CACHE_TAG, 'max');
     clearCategoryCache();
 
     return NextResponse.json({ allocation, redirectCreated });

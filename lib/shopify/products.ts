@@ -3,6 +3,7 @@ import { shopifyAdminFetch } from './admin-client';
 import { GET_PRODUCT_BY_HANDLE, GET_PRODUCT_BY_ID, GET_ALL_PRODUCTS, GET_PRODUCTS_BY_QUERY } from './queries';
 import { normalizeColor, isColorValue } from '@/lib/utils/product-options';
 import { getProductAllocationByHandle, getProductAllocationByProductId, getProductAllocationMapByProductIds } from '@/lib/db/product-allocations';
+import { CATEGORY_PRODUCTS_CACHE_MS } from '@/lib/config/collection-cache';
 import { getProductOverridesByHandles, getProductOverrideByHandle } from '@/lib/content/product-overrides';
 import { filterExcludedFrontendVendors, isExcludedFrontendVendor } from './vendor-visibility';
 import type { ShopifyProduct, ProductWithPrimaryCollection } from '@/types/shopify';
@@ -1197,7 +1198,7 @@ export async function getProductsByCategory(
     let allProducts: ProductWithPrimaryCollection[];
     
     // Skip cache if it has 0 products (likely from a previous error)
-    if (cached && cached.products.length > 0 && (now - cached.timestamp) < CACHE_TTL) {
+    if (cached && cached.products.length > 0 && (now - cached.timestamp) < CATEGORY_PRODUCTS_CACHE_MS) {
       console.log(`[getProductsByCategory] ✅ Using cached products for ${categoryPath} (${cached.products.length} products)`);
       allProducts = cached.products;
     } else {

@@ -1,4 +1,5 @@
 import { revalidatePath, revalidateTag } from 'next/cache';
+import { CATEGORY_PRODUCT_LISTINGS_CACHE_TAG } from '@/lib/config/collection-cache';
 
 interface ShopifyRevalidateOptions {
   extraPaths?: string[];
@@ -50,6 +51,8 @@ export function revalidateShopifyProductCaches(
 
   // Shared tags used by search endpoints/components.
   revalidateTag('search', 'max');
+
+  revalidateTag(CATEGORY_PRODUCT_LISTINGS_CACHE_TAG, 'max');
 
   // Common high-impact pages that frequently surface changed products.
   revalidatePath('/');

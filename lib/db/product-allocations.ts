@@ -1,4 +1,5 @@
 import { sql } from '@/lib/db/client';
+import { CATEGORY_ALLOC_CACHE_MS } from '@/lib/config/collection-cache';
 
 export interface ProductAllocationInput {
   productId: string;
@@ -26,7 +27,7 @@ const normalizePath = (value: string) => {
   return withSlash.length > 1 && withSlash.endsWith('/') ? withSlash.slice(0, -1) : withSlash;
 };
 
-const CATEGORY_CACHE_TTL_MS = Number(process.env.CATEGORY_ALLOC_CACHE_MS || 5 * 60 * 1000);
+const CATEGORY_CACHE_TTL_MS = CATEGORY_ALLOC_CACHE_MS;
 const categoryIdCache = new Map<string, { value: string[]; expiresAt: number }>();
 const categoryHandleCache = new Map<string, { value: string[]; expiresAt: number }>();
 let ensureAllocTableReady: Promise<void> | null = null;
@@ -192,15 +193,27 @@ export async function getProductIdsByCategory(categoryPath: string): Promise<str
   // Get products where category_path starts with the given path
   // This includes exact matches and child categories
   const result = await sql`
-    SELECT product_id
+    SELECT
+      CASE
+        WHEN product_id LIKE 'gid://shopify/Product/%'
+          THEN split_part(product_id, '/', 5)
+        ELSE product_id
+      END AS product_id_compact,
+      (product_id LIKE 'gid://shopify/Product/%') AS is_shopify_gid
     FROM product_category_assignments
     WHERE category_path = ${normalized}
        OR category_path LIKE ${normalized + '/%'}
-    ORDER BY updated_at DESC
   `;
-  
-  const rows = (Array.isArray(result) ? result : []) as Array<{ product_id: string }>;
-  const value = rows.map(row => row.product_id);
+
+  const rows = (Array.isArray(result) ? result : []) as Array<{
+    product_id_compact: string;
+    is_shopify_gid: boolean;
+  }>;
+  const value = rows.map((row) =>
+    row.is_shopify_gid
+      ? `gid://shopify/Product/${row.product_id_compact}`
+      : row.product_id_compact
+  );
   setCachedList(categoryIdCache, normalized, value);
   return value;
 }
@@ -219,7 +232,6 @@ export async function getProductHandlesByCategory(categoryPath: string): Promise
     FROM product_category_assignments
     WHERE category_path = ${normalized}
        OR category_path LIKE ${normalized + '/%'}
-    ORDER BY updated_at DESC
   `;
   
   const rows = (Array.isArray(result) ? result : []) as Array<{ product_handle: string }>;

@@ -31,8 +31,7 @@ import { RelatedCategories } from '@/components/collection/RelatedCategories';
 import { RichContent } from '@/components/collection/RichContent';
 import type { Metadata } from 'next';
 
-// ISR Configuration: Revalidate every 15 minutes
-export const revalidate = 900;
+export const revalidate = 172800;
 
 interface CategoryPageProps {
   params: Promise<{
