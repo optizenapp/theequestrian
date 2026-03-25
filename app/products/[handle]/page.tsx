@@ -1,5 +1,11 @@
 import { notFound, permanentRedirect, redirect } from 'next/navigation';
-import { getProductByHandle, getProductCanonicalUrl, getRecommendedProducts, hasProductImage } from '@/lib/shopify/products';
+import {
+  getProductByHandle,
+  getProductCanonicalUrl,
+  getProductCanonicalUrls,
+  getRecommendedProducts,
+  hasProductImage,
+} from '@/lib/shopify/products';
 import { ProductImageGallery } from '@/components/ProductImageGallery';
 import { ProductBreadcrumbs } from '@/components/ProductBreadcrumbs';
 import { ProductBuyBox } from '@/components/product/ProductBuyBox';
@@ -128,6 +134,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const relatedHandles = relatedProducts.map(p => p.handle);
   const relatedReviewStatsMap = await getReviewStatsForProducts(relatedHandles);
   const relatedReviewStats = Object.fromEntries(relatedReviewStatsMap);
+  const relatedUrlMap = await getProductCanonicalUrls(relatedProducts);
+  const relatedProductHrefByHandle = Object.fromEntries(
+    relatedProducts.map((p) => [p.handle, relatedUrlMap.get(p.id) ?? `/products/${p.handle}`])
+  );
 
   // Get product-specific bullet points
   let overrideBullets: string[] = [];
@@ -239,6 +249,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <RelatedProducts
           products={relatedProducts}
           reviewStatsMap={relatedReviewStats}
+          productHrefByHandle={relatedProductHrefByHandle}
         />
       </div>
     </div>

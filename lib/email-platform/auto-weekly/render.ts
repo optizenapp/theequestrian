@@ -2,6 +2,7 @@ import type { CuratedProductCard, EmailBlock } from '@/lib/email-platform/types'
 import type { ShopifyProductCard } from '@/types/shopify';
 import { renderTemplateBlocksHtml } from '@/lib/email-platform/templates';
 import { getProductsByHandles } from '@/lib/shopify/products-by-handles';
+import { getProductCanonicalUrls } from '@/lib/shopify/products';
 
 export type CampaignMetadataOverrides = {
   introText?: string | null;
@@ -9,8 +10,13 @@ export type CampaignMetadataOverrides = {
   productHandles?: string[] | null;
 };
 
-function shopifyProductToCuratedCard(p: ShopifyProductCard, siteUrl: string): CuratedProductCard {
+function shopifyProductToCuratedCard(
+  p: ShopifyProductCard,
+  siteUrl: string,
+  canonicalPath: string
+): CuratedProductCard {
   const base = siteUrl.replace(/\/$/, '');
+  const path = canonicalPath.startsWith('/') ? canonicalPath : `/${canonicalPath}`;
   const price = p.priceRange?.minVariantPrice?.amount ?? '';
   const compareAt = p.compareAtPriceRange?.minVariantPrice?.amount;
   let savePercent = '';
@@ -24,7 +30,7 @@ function shopifyProductToCuratedCard(p: ShopifyProductCard, siteUrl: string): Cu
     handle: p.handle,
     title: p.title ?? undefined,
     imageUrl: imageUrl ?? undefined,
-    url: `${base}/products/${p.handle}`,
+    url: `${base}${path}`,
     price: price ? `$${parseFloat(price).toFixed(2)}` : '',
     compareAtPrice: compareAt ? `$${parseFloat(compareAt).toFixed(2)}` : undefined,
     savePercent: savePercent || undefined,
@@ -75,8 +81,9 @@ export async function buildCampaignHtmlWithOverrides(input: {
     overrides.productHandles.length > 0
   ) {
     const products = await getProductsByHandles(overrides.productHandles);
+    const urlById = await getProductCanonicalUrls(products);
     const cards: CuratedProductCard[] = products.map((p) =>
-      shopifyProductToCuratedCard(p, siteUrl)
+      shopifyProductToCuratedCard(p, siteUrl, urlById.get(p.id) ?? `/products/${p.handle}`)
     );
     const idx = mergedBlocks.findIndex((b) => b.type === 'curatedProducts');
     if (idx !== -1) {

@@ -2,7 +2,13 @@ import { notFound, permanentRedirect, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import dynamicImport from 'next/dynamic';
 import { getProductsByCategoryForCollectionPage } from '@/lib/shopify/category-collection-fetch';
-import { getProductByHandle, getProductCanonicalUrl, getRecommendedProducts, hasProductImage } from '@/lib/shopify/products';
+import {
+  getProductByHandle,
+  getProductCanonicalUrl,
+  getProductCanonicalUrls,
+  getRecommendedProducts,
+  hasProductImage,
+} from '@/lib/shopify/products';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
 import { 
@@ -217,6 +223,10 @@ async function renderProductPage(product: ShopifyProduct, canonicalPath?: string
   const relatedHandles = relatedProducts.map(p => p.handle);
   const relatedReviewStatsMap = await getReviewStatsForProducts(relatedHandles);
   const relatedReviewStats = Object.fromEntries(relatedReviewStatsMap);
+  const relatedUrlMap = await getProductCanonicalUrls(relatedProducts);
+  const relatedProductHrefByHandle = Object.fromEntries(
+    relatedProducts.map((p) => [p.handle, relatedUrlMap.get(p.id) ?? `/products/${p.handle}`])
+  );
 
   // Get product-specific bullet points
   let overrideBullets: string[] = [];
@@ -364,6 +374,7 @@ async function renderProductPage(product: ShopifyProduct, canonicalPath?: string
         <RelatedProducts 
           products={relatedProducts} 
           reviewStatsMap={relatedReviewStats}
+          productHrefByHandle={relatedProductHrefByHandle}
         />
       </div>
     </div>
@@ -451,8 +462,6 @@ async function renderSubSubcategoryPage(
   // Get parent collection info
   const parentCollectionTitle = getCollectionTitle(category, subcategory);
 
-  // Build "Best in Class" Collection Schema using FAST version (performance optimized)
-  // Uses simple /products/{handle} URLs for schema (canonical URLs still used in product grid)
   const collectionSchema = generateCollectionSchemaFast({
     collectionName: pageTitle,
     collectionUrl: `${siteUrl}/${category}/${subcategory}/${subsubcategory}`,

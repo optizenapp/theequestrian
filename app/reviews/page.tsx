@@ -30,6 +30,7 @@ export default function ReviewsPage() {
 
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [productHrefByHandle, setProductHrefByHandle] = useState<Record<string, string>>({});
   const [filterRating, setFilterRating] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<'recent' | 'helpful' | 'rating'>('recent');
   const [searchQuery, setSearchQuery] = useState('');
@@ -53,6 +54,37 @@ export default function ReviewsPage() {
 
     fetchReviews();
   }, []);
+
+  useEffect(() => {
+    const handles = [
+      ...new Set(
+        reviews.map((r) => r.product_handle).filter((h): h is string => Boolean(h))
+      ),
+    ];
+    if (handles.length === 0) {
+      setProductHrefByHandle({});
+      return;
+    }
+    const controller = new AbortController();
+    (async () => {
+      try {
+        const res = await fetch('/api/products/canonical-hrefs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ handles }),
+          signal: controller.signal,
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as { hrefs?: Record<string, string> };
+        if (data.hrefs) setProductHrefByHandle(data.hrefs);
+      } catch (e) {
+        if ((e as Error).name !== 'AbortError') {
+          console.error('[reviews] canonical hrefs', e);
+        }
+      }
+    })();
+    return () => controller.abort();
+  }, [reviews]);
 
   // Calculate overall stats
   const totalReviews = reviews.length;
@@ -201,7 +233,10 @@ export default function ReviewsPage() {
                 {review.product_handle && (
                   <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
                     <Link
-                      href={`/products/${review.product_handle}`}
+                      href={
+                        productHrefByHandle[review.product_handle!] ??
+                        `/products/${review.product_handle}`
+                      }
                       className="text-sm font-medium text-gray-900 hover:text-action transition-colors line-clamp-1"
                     >
                       {review.product_title}

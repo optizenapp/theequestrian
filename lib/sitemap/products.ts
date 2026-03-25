@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { shopifyFetch } from '@/lib/shopify/client';
+import { getProductCanonicalUrls } from '@/lib/shopify/products';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com';
 
@@ -8,7 +9,9 @@ const GET_PRODUCTS_BATCH = `
     products(first: $first, after: $after) {
       edges {
         node {
+          id
           handle
+          productType
           updatedAt
           metafield(namespace: "custom", key: "primary_collection") {
             value
@@ -24,7 +27,9 @@ const GET_PRODUCTS_BATCH = `
 `;
 
 interface Product {
+  id: string;
   handle: string;
+  productType: string;
   updatedAt: string;
   metafield: {
     value: string;
@@ -90,11 +95,10 @@ export async function generateProductsSitemap(
 </urlset>`;
   }
 
+  const pathById = await getProductCanonicalUrls(products);
   const sitemap: MetadataRoute.Sitemap = products.map((product) => {
-    const primaryCollection = product.metafield?.value;
-    const url = primaryCollection
-      ? `${SITE_URL}/${primaryCollection}/${product.handle}`
-      : `${SITE_URL}/products/${product.handle}`;
+    const path = pathById.get(product.id) ?? `/products/${product.handle}`;
+    const url = `${SITE_URL}${path.startsWith('/') ? path : `/${path}`}`;
 
     return {
       url,

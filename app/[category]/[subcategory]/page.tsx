@@ -157,8 +157,6 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
   // Get parent collection info for isPartOf relationship
   const parentCollectionTitle = getCollectionTitle(category);
   
-  // Build "Best in Class" Collection Schema using FAST version (performance optimized)
-  // Uses simple /products/{handle} URLs for schema (canonical URLs still used in product grid)
   const collectionSchema = generateCollectionSchemaFast({
     collectionName: pageTitle,
     collectionUrl: `${siteUrl}/${category}/${subcategory}`,

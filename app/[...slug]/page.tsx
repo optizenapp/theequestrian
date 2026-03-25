@@ -1,5 +1,12 @@
 import { notFound, permanentRedirect, redirect } from 'next/navigation';
-import { getProductByHandle, getProductById, getProductCanonicalUrl, getRecommendedProducts, hasProductImage } from '@/lib/shopify/products';
+import {
+  getProductByHandle,
+  getProductById,
+  getProductCanonicalUrl,
+  getProductCanonicalUrls,
+  getRecommendedProducts,
+  hasProductImage,
+} from '@/lib/shopify/products';
 import { ProductImageGallery } from '@/components/ProductImageGallery';
 import { ProductBreadcrumbs } from '@/components/ProductBreadcrumbs';
 import { ProductBuyBox } from '@/components/product/ProductBuyBox';
@@ -167,6 +174,10 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
   const relatedProducts = await getRecommendedProducts(4, resolvedProduct.productType, resolvedProduct.handle);
   const relatedReviewStatsMap = await getReviewStatsForProducts(relatedProducts.map((p) => p.handle));
   const relatedReviewStats = Object.fromEntries(relatedReviewStatsMap);
+  const relatedUrlMap = await getProductCanonicalUrls(relatedProducts);
+  const relatedProductHrefByHandle = Object.fromEntries(
+    relatedProducts.map((p) => [p.handle, relatedUrlMap.get(p.id) ?? `/products/${p.handle}`])
+  );
   const showArcEquineGelPromo = resolvedProduct.handle === 'arcequine-complete-kit';
 
   return (
@@ -288,6 +299,7 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
         <RelatedProducts
           products={relatedProducts}
           reviewStatsMap={relatedReviewStats}
+          productHrefByHandle={relatedProductHrefByHandle}
         />
       </div>
     </>

@@ -26,6 +26,7 @@ export function SearchBar() {
       imageAlt?: string | null;
       price?: string | null;
       currencyCode?: string | null;
+      canonicalPath?: string;
     }>;
     collections: Array<{
       type: 'collection';
@@ -176,7 +177,7 @@ export function SearchBar() {
               {results.products.map((item) => (
                 <Link
                   key={item.id}
-                  href={`/products/${item.handle}`}
+                  href={item.canonicalPath ?? `/products/${item.handle}`}
                   className="flex w-full items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
                   onClick={() => setIsOpen(false)}
                 >

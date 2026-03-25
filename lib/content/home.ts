@@ -47,6 +47,10 @@ export interface HomeSliderItem {
   price: string;
   saving: string;
   detail: string;
+  /** Set when the slide is backed by a product (homepage best-deals, etc.). */
+  handle?: string;
+  /** Resolved storefront path for `handle` (optional; filled by server container). */
+  productHref?: string;
 }
 
 export interface HomeSection {

@@ -16,6 +16,7 @@ import { resolve } from 'path';
 config({ path: resolve(process.cwd(), '.env.local') });
 
 import { shopifyFetch } from '../lib/shopify/client';
+import { getProductCanonicalUrls } from '../lib/shopify/products';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -127,14 +128,15 @@ async function exportSitemap() {
       variables: { first: 250, after: cursor },
     });
 
-    // Process products
-    for (const { node } of data.products.edges) {
+    const batchNodes = data.products.edges.map(({ node }) => node);
+    const urlById = await getProductCanonicalUrls(batchNodes);
+
+    for (const node of batchNodes) {
       totalProducts++;
 
       const currentPrimaryCollection = node.metafield?.value || null;
-      const currentUrl = currentPrimaryCollection
-        ? `${siteUrl}/${currentPrimaryCollection}/${node.handle}`
-        : `${siteUrl}/products/${node.handle}`;
+      const path = urlById.get(node.id) ?? `/products/${node.handle}`;
+      const currentUrl = `${siteUrl}${path.startsWith('/') ? path : `/${path}`}`;
 
       products.push({
         productHandle: node.handle,

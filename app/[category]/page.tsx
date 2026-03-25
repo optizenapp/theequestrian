@@ -266,8 +266,6 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
 
-  // Build "Best in Class" Collection Schema using FAST version (performance optimized)
-  // Uses simple /products/{handle} URLs for schema (canonical URLs still used in product grid)
   const collectionSchema = generateCollectionSchemaFast({
     collectionName: pageTitle,
     collectionUrl: `${siteUrl}/${category}`,

@@ -40,6 +40,7 @@ export async function getProductsByHandlesAlt(handles: string[]): Promise<Shopif
               id
               handle
               title
+              productType
               availableForSale
               vendor
               priceRange {

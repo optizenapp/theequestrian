@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { CartPageContent } from '@/components/cart/CartPageContent';
 import { getSmartCartRecommendations } from '@/lib/shopify/products';
+import { getCanonicalHrefByHandles } from '@/lib/shopify/product-href';
 import { getCartCookie, getCart } from '@/app/actions/cart';
 import { ShopifyProduct } from '@/types/shopify';
 import { cookies } from 'next/headers';
@@ -26,14 +27,14 @@ export default async function CartPage() {
   }
   
   let recommendedProducts: ShopifyProduct[] = [];
-  
+  let cartForHrefs: Awaited<ReturnType<typeof getCart>> = null;
+
   if (cartId) {
     try {
-      // Fetch cart data from Shopify
       const cart = await getCart(cartId);
-      
+      cartForHrefs = cart;
+
       if (cart && cart.lines.edges.length > 0) {
-        // Extract product information from cart items
         const cartItems = cart.lines.edges.map(({ node: line }) => {
           const product = line.merchandise.product;
           return {
@@ -42,26 +43,37 @@ export default async function CartPage() {
             vendor: product?.vendor || '',
             price: parseFloat(line.merchandise.price.amount),
           };
-        }).filter(item => item.handle); // Filter out any invalid items
-        
+        }).filter((item) => item.handle);
+
         console.log(`[CartPage] Fetching smart recommendations for ${cartItems.length} cart items`);
-        
-        // Get smart recommendations based on cart contents
         recommendedProducts = await getSmartCartRecommendations(cartItems, 4);
       }
     } catch (error) {
       console.error('[CartPage] Error fetching cart or recommendations:', error);
     }
   }
-  
-  // If no cart or error, getSmartCartRecommendations will return generic recommendations
-  // when called with empty array
+
   if (recommendedProducts.length === 0) {
     console.log('[CartPage] No cart found, using generic recommendations');
     recommendedProducts = await getSmartCartRecommendations([], 4);
   }
 
-  return <CartPageContent recommendedProducts={recommendedProducts} />;
+  const hrefHandles = new Set<string>();
+  for (const p of recommendedProducts) {
+    hrefHandles.add(p.handle);
+  }
+  for (const { node: line } of cartForHrefs?.lines.edges ?? []) {
+    const h = line.merchandise.product?.handle;
+    if (h) hrefHandles.add(h);
+  }
+  const productHrefByHandle = await getCanonicalHrefByHandles([...hrefHandles]);
+
+  return (
+    <CartPageContent
+      recommendedProducts={recommendedProducts}
+      productHrefByHandle={productHrefByHandle}
+    />
+  );
 }
 
 

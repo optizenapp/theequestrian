@@ -8,9 +8,11 @@ import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
 interface RelatedProductsProps {
   products: ShopifyProduct[];
   reviewStatsMap?: Record<string, ReviewStats>; // plain object for RSC serialization
+  /** Resolved storefront paths by handle (from getProductCanonicalUrls on the server). */
+  productHrefByHandle?: Record<string, string>;
 }
 
-export function RelatedProducts({ products, reviewStatsMap }: RelatedProductsProps) {
+export function RelatedProducts({ products, reviewStatsMap, productHrefByHandle }: RelatedProductsProps) {
   const { ref, isVisible } = useIntersectionObserver({ rootMargin: '200px' });
 
   if (!products || products.length === 0) {
@@ -29,8 +31,7 @@ export function RelatedProducts({ products, reviewStatsMap }: RelatedProductsPro
             <ProductCard
               key={product.id}
               product={product}
-              // Use fallback URL for related products as they might be from different categories
-              canonicalUrl={`/products/${product.handle}`}
+              canonicalUrl={productHrefByHandle?.[product.handle]}
               reviewStats={reviewStatsMap?.[product.handle]}
             />
           ))}

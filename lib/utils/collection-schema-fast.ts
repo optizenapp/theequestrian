@@ -1,10 +1,8 @@
 /**
- * FAST Collection Schema Generator (Performance Optimized)
- * 
- * This is a performance-optimized version that skips expensive canonical URL lookups
- * for schema generation. Uses simple /products/{handle} URLs instead.
- * 
- * Use this version for collection pages where performance is critical.
+ * Collection schema generator for category/brand/sale pages.
+ *
+ * Pass `canonicalProductUrls` (from getProductCanonicalUrls) so ItemList product URLs
+ * match storefront links. When omitted, product URLs fall back to /products/{handle}.
  */
 
 import type { ShopifyProduct } from '@/types/shopify';
@@ -102,14 +100,12 @@ function generateSameAsLinks(collectionName: string, collectionUrl: string): str
 }
 
 /**
- * Generate "Best in Class" collection schema - FAST VERSION
- * 
- * Performance optimizations:
- * - Uses simple /products/{handle} URLs (no expensive canonical lookups)
- * - Limits to 12 products by default (Google doesn't need all 36)
- * - Skips image URLs (optional, reduces payload)
- * 
- * Enhanced with world-class schema properties:
+ * Generate collection/brand/sale page schema (@graph).
+ *
+ * Limits to `maxProducts` (default 12) for payload size. When `canonicalProductUrls`
+ * is provided, ItemList entries use those paths; otherwise /products/{handle}.
+ *
+ * Enhanced schema properties:
  * - additionalType for better classification
  * - keywords for semantic understanding
  * - about for topical relevance
