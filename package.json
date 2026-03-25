@@ -33,6 +33,7 @@
     "db:sync": "tsx scripts/sync-products-to-db.ts",
     "db:stats": "tsx scripts/db-stats.ts",
     "neon:usage": "node scripts/neon-consumption-report.mjs",
+    "neon:usage:24h": "node scripts/neon-last-24h.mjs",
     "neon:top-queries": "node scripts/neon-pg-top-queries.mjs",
     "preview-titles": "tsx scripts/preview-titles.ts",
     "fix-h1-titles": "tsx scripts/fix-h1-titles.ts",
