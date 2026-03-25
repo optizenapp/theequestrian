@@ -20,7 +20,7 @@ const footerLinks = {
       { label: 'Clothing', href: '/clothing' },
       { label: 'Pet', href: '/pet' },
       { label: 'Accessories', href: '/accessories' },
-      { label: 'All Products', href: '/products' },
+      { label: 'All Products', href: '/rider' },
     ],
   },
   help: {

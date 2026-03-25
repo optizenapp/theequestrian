@@ -19,6 +19,7 @@
     "export:product-types": "tsx scripts/export-product-types.ts",
     "export:collections": "tsx scripts/export-collections.ts",
     "export:sitemap": "tsx scripts/export-sitemap.ts",
+    "export:redirects": "tsx scripts/export-all-redirects.ts",
     "gsc:index-categories": "tsx scripts/gsc-index-categories.ts",
     "gsc:index-products": "tsx scripts/gsc-api-index-products.ts",
     "gsc:index-products:dry-run": "tsx scripts/gsc-api-index-products.ts -- --dry-run",

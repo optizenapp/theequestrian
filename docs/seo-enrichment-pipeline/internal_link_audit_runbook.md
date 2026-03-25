@@ -2,6 +2,8 @@
 
 Operational steps for [internal_link_audit_plan.md](./internal_link_audit_plan.md). Engineering changes in the repo use `getProductCanonicalUrl` / `getProductCanonicalUrls` ([lib/shopify/products.ts](../../lib/shopify/products.ts)) and [lib/shopify/product-href.ts](../../lib/shopify/product-href.ts).
 
+**Full redirect map (source → target):** run `npm run export:redirects` — writes `exports/all-redirects-*.csv` from `redirects/*.csv`, Neon `manual_redirects`, plus documented middleware fallbacks. Shopify Admin URL redirects are not included; export those separately from Shopify if needed.
+
 ## Task 1 — Screaming Frog exports
 
 1. Open your saved crawl.
