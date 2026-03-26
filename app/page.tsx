@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { Hero } from '@/components/Hero';
 import { TrustSignals } from '@/components/TrustSignals';
 import dynamicImport from 'next/dynamic';
@@ -9,7 +10,7 @@ import Link from 'next/link';
 import { LazySection } from '@/components/LazySection';
 import Image from 'next/image';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 // Aggressively lazy load below-the-fold components to improve LCP
 const MostWantedCarousel = dynamicImport(
@@ -293,7 +294,9 @@ export default async function Home() {
       <div>
         <Hero />
         <TrustSignals />
-        <HomeRecentArticles />
+        <Suspense fallback={<div className="h-80 bg-white" />}>
+          <HomeRecentArticles />
+        </Suspense>
       </div>
     );
   }
@@ -482,13 +485,12 @@ export default async function Home() {
 
           case 'recent_articles':
             return (
-              <LazySection
+              <Suspense
                 key={section.key}
-                fallback={<div className="h-80 bg-white animate-pulse rounded-lg" />}
-                minHeight="20rem"
+                fallback={<div className="h-80 bg-white" />}
               >
                 <HomeRecentArticles />
-              </LazySection>
+              </Suspense>
             );
 
           case 'faqs':
