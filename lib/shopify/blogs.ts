@@ -8,7 +8,7 @@ export function normalizeShopifyArticle(article: ShopifyArticle): ShopifyArticle
     return { ...article, headless: null };
   }
   const val = (key: string) =>
-    mf.find((m) => m.namespace === 'headless' && m.key === key)?.value?.trim() || null;
+    mf.find((m) => m != null && m.namespace === 'headless' && m.key === key)?.value?.trim() || null;
   const ctaPath = val('cta_path');
   const ctaLabel = val('cta_label');
   const relatedHandlesRaw = val('related_handles');
