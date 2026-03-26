@@ -52,7 +52,6 @@ async function loadBrandContent(): Promise<Map<string, BrandContentRow>> {
   }
 
   try {
-    await ensureBrandContentTable();
     const result = await sql.query(`
       SELECT
         handle,
@@ -105,7 +104,6 @@ export async function getAllowedBrandVendorsFromDb(): Promise<{
   vendors: string[];
   tags: string[];
 }> {
-  await ensureBrandContentTable();
   const result = await sql.query(`
     SELECT handle, rules FROM brand_content WHERE status = 'published' AND rules IS NOT NULL AND rules != ''
   `);
@@ -141,7 +139,6 @@ export async function getAllowedBrandVendorsFromDb(): Promise<{
 }
 
 export async function listBrandsWithOverrides() {
-  await ensureBrandContentTable();
   const result = await sql.query(`
     SELECT
       handle,

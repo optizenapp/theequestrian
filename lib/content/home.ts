@@ -375,7 +375,6 @@ export async function getHomeSections(): Promise<HomeSection[]> {
   }
 
   try {
-    await ensureHomeSectionsTable();
     const result = await sql`
       SELECT
         key,
