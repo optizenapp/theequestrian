@@ -1,5 +1,6 @@
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { CATEGORY_PRODUCT_LISTINGS_CACHE_TAG } from '@/lib/config/collection-cache';
+import { PRODUCT_OVERRIDES_CACHE_TAG } from '@/lib/content/product-overrides';
 
 interface ShopifyRevalidateOptions {
   extraPaths?: string[];
@@ -53,6 +54,7 @@ export function revalidateShopifyProductCaches(
   revalidateTag('search', 'max');
 
   revalidateTag(CATEGORY_PRODUCT_LISTINGS_CACHE_TAG, 'max');
+  revalidateTag(PRODUCT_OVERRIDES_CACHE_TAG, 'max');
 
   // Common high-impact pages that frequently surface changed products.
   revalidatePath('/');
