@@ -31,49 +31,6 @@ export const PRODUCT_OVERRIDES_CACHE_TAG = 'product-content-overrides';
 /** TTL for the Data Cache entries — overrides rarely change outside enrichment runs. */
 const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24h; busted on write via revalidateTag
 
-/** DDL once per process — previously ran on every 60s cache refresh (66k+ times in Neon stats). */
-let schemaPromise: Promise<void> | null = null;
-
-async function ensureProductContentOverridesSchema(): Promise<void> {
-  if (!schemaPromise) {
-    schemaPromise = (async () => {
-      await sql`
-        CREATE TABLE IF NOT EXISTS product_content_overrides (
-          id SERIAL PRIMARY KEY,
-          product_id TEXT,
-          product_handle TEXT NOT NULL UNIQUE,
-          title_override TEXT,
-          meta_title TEXT,
-          meta_description TEXT,
-          description_html TEXT,
-          bullet_points JSONB DEFAULT '[]'::jsonb,
-          slug_override TEXT,
-          top_description_html TEXT,
-          bottom_description_html TEXT,
-          use_headless_title BOOLEAN DEFAULT false,
-          use_headless_meta_title BOOLEAN DEFAULT false,
-          use_headless_meta_description BOOLEAN DEFAULT false,
-          use_headless_description BOOLEAN DEFAULT false,
-          use_headless_bullets BOOLEAN DEFAULT false,
-          use_headless_slug BOOLEAN DEFAULT false,
-          use_headless_top_description BOOLEAN DEFAULT false,
-          use_headless_bottom_description BOOLEAN DEFAULT false,
-          is_published_headless BOOLEAN NOT NULL DEFAULT true,
-          created_at TIMESTAMPTZ DEFAULT NOW(),
-          updated_at TIMESTAMPTZ DEFAULT NOW()
-        )
-      `;
-      await sql`ALTER TABLE product_content_overrides ADD COLUMN IF NOT EXISTS is_published_headless BOOLEAN NOT NULL DEFAULT true`;
-    })();
-  }
-  try {
-    await schemaPromise;
-  } catch (e) {
-    schemaPromise = null;
-    throw e;
-  }
-}
-
 const SELECT_COLUMNS = `
   product_handle,
   title_override,
@@ -96,7 +53,6 @@ const SELECT_COLUMNS = `
 `;
 
 async function fetchOverrideByHandle(handle: string): Promise<ProductContentOverride | null> {
-  await ensureProductContentOverridesSchema();
   const result = await sql.query(
     `SELECT ${SELECT_COLUMNS} FROM product_content_overrides WHERE product_handle = $1 LIMIT 1`,
     [handle]
@@ -105,7 +61,6 @@ async function fetchOverrideByHandle(handle: string): Promise<ProductContentOver
 }
 
 async function fetchOverridesByHandles(handles: string[]): Promise<ProductContentOverride[]> {
-  await ensureProductContentOverridesSchema();
   const result = await sql.query(
     `SELECT ${SELECT_COLUMNS} FROM product_content_overrides WHERE product_handle = ANY($1)`,
     [handles]
@@ -151,15 +106,24 @@ export async function getProductOverridesByHandles(handles: string[]) {
 export async function resolveProductHandleFromSlug(slug: string): Promise<string> {
   if (!slug) return slug;
   try {
-    await ensureProductContentOverridesSchema();
-    const result = await sql`
-      SELECT product_handle
-      FROM product_content_overrides
-      WHERE slug_override = ${slug}
-        AND use_headless_slug = true
-      LIMIT 1
-    `;
-    return result.rows[0]?.product_handle || slug;
+    const resolved = await unstable_cache(
+      async () => {
+        const result = await sql`
+          SELECT product_handle
+          FROM product_content_overrides
+          WHERE slug_override = ${slug}
+            AND use_headless_slug = true
+          LIMIT 1
+        `;
+        return result.rows[0]?.product_handle || null;
+      },
+      ['product-override-slug-lookup-v1', slug],
+      {
+        tags: [PRODUCT_OVERRIDES_CACHE_TAG, `product-override-slug-${slug}`],
+        revalidate: CACHE_TTL_SECONDS,
+      }
+    )();
+    return resolved || slug;
   } catch (error) {
     console.error('[Product Overrides] Error resolving slug:', error);
     return slug;

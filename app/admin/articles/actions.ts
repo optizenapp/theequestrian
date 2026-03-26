@@ -2,6 +2,7 @@
 
 import { sql } from '@/lib/db/client';
 import { revalidatePath } from 'next/cache';
+import { invalidateNewsArticlesCache } from '@/lib/articles/news-public';
 
 export async function createArticleAction(formData: FormData) {
   try {
@@ -61,6 +62,7 @@ export async function createArticleAction(formData: FormData) {
 
     revalidatePath('/admin/articles');
     revalidatePath('/news');
+    invalidateNewsArticlesCache();
     return { success: true, articleId };
   } catch (error: unknown) {
     console.error('Create article error:', error);
@@ -126,6 +128,7 @@ export async function updateArticleAction(articleId: string, formData: FormData)
     revalidatePath(`/admin/articles/${articleId}/edit`);
     revalidatePath('/news');
     revalidatePath(`/news/${slug}`);
+    invalidateNewsArticlesCache();
     return { success: true };
   } catch (error: unknown) {
     console.error('Update article error:', error);
@@ -138,6 +141,7 @@ export async function deleteArticleAction(articleId: string) {
     await sql`DELETE FROM article WHERE article_id = ${articleId}`;
     revalidatePath('/admin/articles');
     revalidatePath('/news');
+    invalidateNewsArticlesCache();
     return { success: true };
   } catch (error: unknown) {
     console.error('Delete article error:', error);

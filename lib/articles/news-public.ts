@@ -2,9 +2,12 @@
  * Published news articles for public /news routes (Neon `article` table).
  */
 
+import { unstable_cache, revalidateTag } from 'next/cache';
 import { sql } from '@/lib/db/client';
 
 let articleHeadlessColumnsExistCache: boolean | null = null;
+const NEWS_CACHE_TTL_SECONDS = 5 * 60;
+export const NEWS_ARTICLES_CACHE_TAG = 'news-articles';
 
 function isMissingRelationError(error: unknown, relation: string): boolean {
   if (!error || typeof error !== 'object') return false;
@@ -98,10 +101,15 @@ function rowToListItem(row: Record<string, unknown>): NewsArticleListItem {
   };
 }
 
+function normalizeLimit(limit: number): number {
+  if (!Number.isFinite(limit) || limit <= 0) return 20;
+  return Math.min(Math.floor(limit), 100);
+}
+
 /**
  * Full published article by URL slug (formerly Shopify article handle).
  */
-export async function getPublishedNewsArticleBySlug(slug: string): Promise<NewsArticleDetail | null> {
+async function fetchPublishedNewsArticleBySlug(slug: string): Promise<NewsArticleDetail | null> {
   const hasHeadlessCols = await hasArticleHeadlessColumns();
   let rows: unknown = [];
   try {
@@ -176,10 +184,22 @@ export async function getPublishedNewsArticleBySlug(slug: string): Promise<NewsA
   };
 }
 
+export async function getPublishedNewsArticleBySlug(slug: string): Promise<NewsArticleDetail | null> {
+  if (!slug.trim()) return null;
+  return unstable_cache(
+    () => fetchPublishedNewsArticleBySlug(slug),
+    ['news-detail-by-slug-v1', slug],
+    {
+      revalidate: NEWS_CACHE_TTL_SECONDS,
+      tags: [NEWS_ARTICLES_CACHE_TAG, `news-article-${slug}`],
+    }
+  )();
+}
+
 /**
  * Recent published articles for index, homepage, and “related” sidebar.
  */
-export async function listPublishedNewsArticles(options: {
+async function fetchPublishedNewsArticles(options: {
   limit: number;
   excludeArticleId?: string;
 }): Promise<NewsArticleListItem[]> {
@@ -202,7 +222,7 @@ export async function listPublishedNewsArticles(options: {
         WHERE a.status IN ('published', 'publish')
           AND a.article_id <> ${excludeArticleId}
         ORDER BY a.published_at DESC NULLS LAST, a.created_at DESC
-        LIMIT ${limit}
+        LIMIT ${normalizeLimit(limit)}
       `
       : await sql`
         SELECT
@@ -217,7 +237,7 @@ export async function listPublishedNewsArticles(options: {
         FROM public.article a
         WHERE a.status IN ('published', 'publish')
         ORDER BY a.published_at DESC NULLS LAST, a.created_at DESC
-        LIMIT ${limit}
+        LIMIT ${normalizeLimit(limit)}
       `;
   } catch (error) {
     if (isMissingRelationError(error, 'public.article')) {
@@ -230,10 +250,23 @@ export async function listPublishedNewsArticles(options: {
   return list.map((row) => rowToListItem(row as Record<string, unknown>));
 }
 
+export async function listPublishedNewsArticles(options: {
+  limit: number;
+  excludeArticleId?: string;
+}): Promise<NewsArticleListItem[]> {
+  const normalizedLimit = normalizeLimit(options.limit);
+  const excludeArticleId = options.excludeArticleId?.trim() || undefined;
+  return unstable_cache(
+    () => fetchPublishedNewsArticles({ limit: normalizedLimit, excludeArticleId }),
+    ['news-list-v1', String(normalizedLimit), excludeArticleId || 'none'],
+    { revalidate: NEWS_CACHE_TTL_SECONDS, tags: [NEWS_ARTICLES_CACHE_TAG] }
+  )();
+}
+
 /**
  * Published articles by author name (matches AuthorBox slug → name convention).
  */
-export async function listPublishedNewsArticlesByAuthorName(
+async function fetchPublishedNewsArticlesByAuthorName(
   authorName: string
 ): Promise<NewsArticleListItem[]> {
   const normalized = authorName.trim();
@@ -265,4 +298,24 @@ export async function listPublishedNewsArticlesByAuthorName(
 
   const list = Array.isArray(rows) ? rows : [];
   return list.map((row) => rowToListItem(row as Record<string, unknown>));
+}
+
+export async function listPublishedNewsArticlesByAuthorName(
+  authorName: string
+): Promise<NewsArticleListItem[]> {
+  const normalized = authorName.trim();
+  if (!normalized) return [];
+  return unstable_cache(
+    () => fetchPublishedNewsArticlesByAuthorName(normalized),
+    ['news-list-by-author-v1', normalized.toLowerCase()],
+    { revalidate: NEWS_CACHE_TTL_SECONDS, tags: [NEWS_ARTICLES_CACHE_TAG] }
+  )();
+}
+
+export function invalidateNewsArticlesCache(): void {
+  try {
+    revalidateTag(NEWS_ARTICLES_CACHE_TAG, 'max');
+  } catch {
+    // no-op outside Next request context
+  }
 }
