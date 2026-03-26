@@ -6,6 +6,13 @@ import { sql } from '@/lib/db/client';
 
 let articleHeadlessColumnsExistCache: boolean | null = null;
 
+function isMissingRelationError(error: unknown, relation: string): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const e = error as { code?: string; message?: string };
+  const message = String(e.message || '').toLowerCase();
+  return e.code === '42P01' && message.includes(`relation "${relation.toLowerCase()}" does not exist`);
+}
+
 export type NewsArticleListItem = {
   article_id: string;
   slug: string;
@@ -33,28 +40,43 @@ async function hasArticleHeadlessColumns(): Promise<boolean> {
     return articleHeadlessColumnsExistCache;
   }
 
-  const rows = await sql`
-    SELECT column_name
-    FROM information_schema.columns
-    WHERE table_schema = 'public'
-      AND table_name = 'article'
-      AND column_name IN ('headless_cta_path', 'headless_cta_label', 'headless_related_handles')
-  `;
-  const count = Array.isArray(rows) ? rows.length : 0;
-  articleHeadlessColumnsExistCache = count === 3;
-  return articleHeadlessColumnsExistCache;
+  try {
+    const rows = await sql`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND table_name = 'article'
+        AND column_name IN ('headless_cta_path', 'headless_cta_label', 'headless_related_handles')
+    `;
+    const count = Array.isArray(rows) ? rows.length : 0;
+    articleHeadlessColumnsExistCache = count === 3;
+    return articleHeadlessColumnsExistCache;
+  } catch {
+    articleHeadlessColumnsExistCache = false;
+    return false;
+  }
 }
 
 async function getTagNamesForArticle(articleId: string): Promise<string[]> {
-  const rows = await sql`
-    SELECT t.name
-    FROM public.article_tag_link atl
-    JOIN public.article_tag t ON t.tag_id = atl.tag_id
-    WHERE atl.article_id = ${articleId}
-    ORDER BY t.name ASC
-  `;
-  const list = Array.isArray(rows) ? rows : [];
-  return list.map((r) => String((r as { name: unknown }).name || '')).filter(Boolean);
+  try {
+    const rows = await sql`
+      SELECT t.name
+      FROM public.article_tag_link atl
+      JOIN public.article_tag t ON t.tag_id = atl.tag_id
+      WHERE atl.article_id = ${articleId}
+      ORDER BY t.name ASC
+    `;
+    const list = Array.isArray(rows) ? rows : [];
+    return list.map((r) => String((r as { name: unknown }).name || '')).filter(Boolean);
+  } catch (error) {
+    if (
+      isMissingRelationError(error, 'public.article_tag_link') ||
+      isMissingRelationError(error, 'public.article_tag')
+    ) {
+      return [];
+    }
+    throw error;
+  }
 }
 
 function rowToListItem(row: Record<string, unknown>): NewsArticleListItem {
@@ -81,8 +103,10 @@ function rowToListItem(row: Record<string, unknown>): NewsArticleListItem {
  */
 export async function getPublishedNewsArticleBySlug(slug: string): Promise<NewsArticleDetail | null> {
   const hasHeadlessCols = await hasArticleHeadlessColumns();
-  const rows = hasHeadlessCols
-    ? await sql`
+  let rows: unknown = [];
+  try {
+    rows = hasHeadlessCols
+      ? await sql`
         SELECT
           a.article_id,
           a.slug,
@@ -104,7 +128,7 @@ export async function getPublishedNewsArticleBySlug(slug: string): Promise<NewsA
           AND a.status IN ('published', 'publish')
         LIMIT 1
       `
-    : await sql`
+      : await sql`
         SELECT
           a.article_id,
           a.slug,
@@ -123,6 +147,12 @@ export async function getPublishedNewsArticleBySlug(slug: string): Promise<NewsA
           AND a.status IN ('published', 'publish')
         LIMIT 1
       `;
+  } catch (error) {
+    if (isMissingRelationError(error, 'public.article')) {
+      return null;
+    }
+    throw error;
+  }
   const row = Array.isArray(rows) ? rows[0] : null;
   if (!row) return null;
 
@@ -155,8 +185,10 @@ export async function listPublishedNewsArticles(options: {
 }): Promise<NewsArticleListItem[]> {
   const { limit, excludeArticleId } = options;
 
-  const rows = excludeArticleId
-    ? await sql`
+  let rows: unknown = [];
+  try {
+    rows = excludeArticleId
+      ? await sql`
         SELECT
           a.article_id,
           a.slug,
@@ -172,7 +204,7 @@ export async function listPublishedNewsArticles(options: {
         ORDER BY a.published_at DESC NULLS LAST, a.created_at DESC
         LIMIT ${limit}
       `
-    : await sql`
+      : await sql`
         SELECT
           a.article_id,
           a.slug,
@@ -187,6 +219,12 @@ export async function listPublishedNewsArticles(options: {
         ORDER BY a.published_at DESC NULLS LAST, a.created_at DESC
         LIMIT ${limit}
       `;
+  } catch (error) {
+    if (isMissingRelationError(error, 'public.article')) {
+      return [];
+    }
+    throw error;
+  }
 
   const list = Array.isArray(rows) ? rows : [];
   return list.map((row) => rowToListItem(row as Record<string, unknown>));
@@ -201,21 +239,29 @@ export async function listPublishedNewsArticlesByAuthorName(
   const normalized = authorName.trim();
   if (!normalized) return [];
 
-  const rows = await sql`
-    SELECT
-      a.article_id,
-      a.slug,
-      a.title,
-      a.excerpt,
-      a.published_at,
-      a.author_name,
-      a.featured_image_url,
-      a.featured_image_alt
-    FROM public.article a
-    WHERE a.status IN ('published', 'publish')
-      AND LOWER(TRIM(a.author_name)) = LOWER(TRIM(${normalized}))
-    ORDER BY a.published_at DESC NULLS LAST, a.created_at DESC
-  `;
+  let rows: unknown = [];
+  try {
+    rows = await sql`
+      SELECT
+        a.article_id,
+        a.slug,
+        a.title,
+        a.excerpt,
+        a.published_at,
+        a.author_name,
+        a.featured_image_url,
+        a.featured_image_alt
+      FROM public.article a
+      WHERE a.status IN ('published', 'publish')
+        AND LOWER(TRIM(a.author_name)) = LOWER(TRIM(${normalized}))
+      ORDER BY a.published_at DESC NULLS LAST, a.created_at DESC
+    `;
+  } catch (error) {
+    if (isMissingRelationError(error, 'public.article')) {
+      return [];
+    }
+    throw error;
+  }
 
   const list = Array.isArray(rows) ? rows : [];
   return list.map((row) => rowToListItem(row as Record<string, unknown>));
