@@ -48,8 +48,8 @@ async function hasArticleHeadlessColumns(): Promise<boolean> {
 async function getTagNamesForArticle(articleId: string): Promise<string[]> {
   const rows = await sql`
     SELECT t.name
-    FROM article_tag_link atl
-    JOIN article_tag t ON t.tag_id = atl.tag_id
+    FROM public.article_tag_link atl
+    JOIN public.article_tag t ON t.tag_id = atl.tag_id
     WHERE atl.article_id = ${articleId}
     ORDER BY t.name ASC
   `;
@@ -99,7 +99,7 @@ export async function getPublishedNewsArticleBySlug(slug: string): Promise<NewsA
           a.headless_cta_path,
           a.headless_cta_label,
           a.headless_related_handles
-        FROM article a
+        FROM public.article a
         WHERE a.slug = ${slug}
           AND a.status IN ('published', 'publish')
         LIMIT 1
@@ -118,7 +118,7 @@ export async function getPublishedNewsArticleBySlug(slug: string): Promise<NewsA
           a.meta_description,
           a.featured_image_url,
           a.featured_image_alt
-        FROM article a
+        FROM public.article a
         WHERE a.slug = ${slug}
           AND a.status IN ('published', 'publish')
         LIMIT 1
@@ -166,7 +166,7 @@ export async function listPublishedNewsArticles(options: {
           a.author_name,
           a.featured_image_url,
           a.featured_image_alt
-        FROM article a
+        FROM public.article a
         WHERE a.status IN ('published', 'publish')
           AND a.article_id <> ${excludeArticleId}
         ORDER BY a.published_at DESC NULLS LAST, a.created_at DESC
@@ -182,7 +182,7 @@ export async function listPublishedNewsArticles(options: {
           a.author_name,
           a.featured_image_url,
           a.featured_image_alt
-        FROM article a
+        FROM public.article a
         WHERE a.status IN ('published', 'publish')
         ORDER BY a.published_at DESC NULLS LAST, a.created_at DESC
         LIMIT ${limit}
@@ -211,7 +211,7 @@ export async function listPublishedNewsArticlesByAuthorName(
       a.author_name,
       a.featured_image_url,
       a.featured_image_alt
-    FROM article a
+    FROM public.article a
     WHERE a.status IN ('published', 'publish')
       AND LOWER(TRIM(a.author_name)) = LOWER(TRIM(${normalized}))
     ORDER BY a.published_at DESC NULLS LAST, a.created_at DESC
