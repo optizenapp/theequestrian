@@ -66,8 +66,8 @@ export function Footer() {
               {footerLinks.shop.title}
             </h3>
             <ul className="space-y-3">
-              {footerLinks.shop.links.map((link) => (
-                <li key={link.href}>
+              {footerLinks.shop.links.map((link, idx) => (
+                <li key={`${link.href}-${link.label}-${idx}`}>
                   <Link
                     href={link.href}
                     className="text-gray-400 hover:text-white transition-colors text-sm"
@@ -85,8 +85,8 @@ export function Footer() {
               {footerLinks.help.title}
             </h3>
             <ul className="space-y-3">
-              {footerLinks.help.links.map((link) => (
-                <li key={link.href}>
+              {footerLinks.help.links.map((link, idx) => (
+                <li key={`${link.href}-${link.label}-${idx}`}>
                   <Link
                     href={link.href}
                     className="text-gray-400 hover:text-white transition-colors text-sm"
@@ -104,8 +104,8 @@ export function Footer() {
               {footerLinks.company.title}
             </h3>
             <ul className="space-y-3">
-              {footerLinks.company.links.map((link) => (
-                <li key={link.href}>
+              {footerLinks.company.links.map((link, idx) => (
+                <li key={`${link.href}-${link.label}-${idx}`}>
                   <Link
                     href={link.href}
                     className="text-gray-400 hover:text-white transition-colors text-sm"
@@ -123,8 +123,8 @@ export function Footer() {
               {footerLinks.legal.title}
             </h3>
             <ul className="space-y-3">
-              {footerLinks.legal.links.map((link) => (
-                <li key={link.href}>
+              {footerLinks.legal.links.map((link, idx) => (
+                <li key={`${link.href}-${link.label}-${idx}`}>
                   <Link
                     href={link.href}
                     className="text-gray-400 hover:text-white transition-colors text-sm"

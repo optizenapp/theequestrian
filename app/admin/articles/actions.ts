@@ -2,7 +2,6 @@
 
 import { sql } from '@/lib/db/client';
 import { revalidatePath } from 'next/cache';
-import { getArticleUrl } from '@/lib/articles';
 
 export async function createArticleAction(formData: FormData) {
   try {
@@ -18,6 +17,10 @@ export async function createArticleAction(formData: FormData) {
     const featuredImageAlt = (formData.get('featured_image_alt') as string) || null;
     const metaTitle = (formData.get('meta_title') as string) || null;
     const metaDescription = (formData.get('meta_description') as string) || null;
+    const headlessCtaPath = ((formData.get('headless_cta_path') as string) || '').trim() || null;
+    const headlessCtaLabel = ((formData.get('headless_cta_label') as string) || '').trim() || null;
+    const headlessRelatedHandles =
+      ((formData.get('headless_related_handles') as string) || '').trim() || null;
     const excludeFromPlaceHubs = formData.get('exclude_from_place_hubs') === 'on';
     const placeIds = formData.getAll('place_ids') as string[];
     const primaryPlaceId = (formData.get('primary_place_id') as string) || null;
@@ -31,10 +34,12 @@ export async function createArticleAction(formData: FormData) {
       INSERT INTO article (
         title, slug, excerpt, content, article_type, primary_category_id, status,
         featured_image_url, featured_image_alt, meta_title, meta_description,
+        headless_cta_path, headless_cta_label, headless_related_handles,
         exclude_from_place_hubs, published_at, author_id, copiq_social_posts, pr_contacts
       ) VALUES (
         ${title}, ${slug}, ${excerpt}, ${content}, ${articleType}, ${categoryId}, ${normalizedStatus},
         ${featuredImageUrl}, ${featuredImageAlt}, ${metaTitle}, ${metaDescription},
+        ${headlessCtaPath}, ${headlessCtaLabel}, ${headlessRelatedHandles},
         ${excludeFromPlaceHubs}, ${normalizedStatus === 'published' ? new Date() : null}, ${authorId},
         ${copiqSocialPosts ? JSON.stringify(copiqSocialPosts) : null},
         ${prContacts ? JSON.stringify(prContacts) : null}
@@ -55,6 +60,7 @@ export async function createArticleAction(formData: FormData) {
     }
 
     revalidatePath('/admin/articles');
+    revalidatePath('/news');
     return { success: true, articleId };
   } catch (error: unknown) {
     console.error('Create article error:', error);
@@ -76,6 +82,10 @@ export async function updateArticleAction(articleId: string, formData: FormData)
     const featuredImageAlt = (formData.get('featured_image_alt') as string) || null;
     const metaTitle = (formData.get('meta_title') as string) || null;
     const metaDescription = (formData.get('meta_description') as string) || null;
+    const headlessCtaPath = ((formData.get('headless_cta_path') as string) || '').trim() || null;
+    const headlessCtaLabel = ((formData.get('headless_cta_label') as string) || '').trim() || null;
+    const headlessRelatedHandles =
+      ((formData.get('headless_related_handles') as string) || '').trim() || null;
     const excludeFromPlaceHubs = formData.get('exclude_from_place_hubs') === 'on';
     const placeIds = formData.getAll('place_ids') as string[];
     const primaryPlaceId = (formData.get('primary_place_id') as string) || null;
@@ -91,6 +101,9 @@ export async function updateArticleAction(articleId: string, formData: FormData)
         article_type = ${articleType}, primary_category_id = ${categoryId}, status = ${normalizedStatus},
         featured_image_url = ${featuredImageUrl}, featured_image_alt = ${featuredImageAlt},
         meta_title = ${metaTitle}, meta_description = ${metaDescription},
+        headless_cta_path = ${headlessCtaPath},
+        headless_cta_label = ${headlessCtaLabel},
+        headless_related_handles = ${headlessRelatedHandles},
         exclude_from_place_hubs = ${excludeFromPlaceHubs},
         published_at = ${normalizedStatus === 'published' ? new Date() : null},
         updated_at = NOW(), author_id = ${authorId},
@@ -111,6 +124,8 @@ export async function updateArticleAction(articleId: string, formData: FormData)
 
     revalidatePath('/admin/articles');
     revalidatePath(`/admin/articles/${articleId}/edit`);
+    revalidatePath('/news');
+    revalidatePath(`/news/${slug}`);
     return { success: true };
   } catch (error: unknown) {
     console.error('Update article error:', error);
@@ -122,6 +137,7 @@ export async function deleteArticleAction(articleId: string) {
   try {
     await sql`DELETE FROM article WHERE article_id = ${articleId}`;
     revalidatePath('/admin/articles');
+    revalidatePath('/news');
     return { success: true };
   } catch (error: unknown) {
     console.error('Delete article error:', error);

@@ -232,6 +232,14 @@ export interface ShopifyAuthor {
   // Note: Shopify Storefront API doesn't support bio or image
 }
 
+/** Headless merchandising fields from Article metafields (namespace `headless`). */
+export interface ShopifyArticleHeadless {
+  ctaPath?: string | null;
+  ctaLabel?: string | null;
+  /** Comma-separated product handles for inline related products */
+  relatedHandlesRaw?: string | null;
+}
+
 export interface ShopifyArticle {
   id: string;
   handle: string;
@@ -250,6 +258,10 @@ export interface ShopifyArticle {
   blog: {
     handle: string;
   };
+  /** Normalized on the server from `metafields` (see `normalizeShopifyArticle`). */
+  headless?: ShopifyArticleHeadless | null;
+  /** Raw Storefront API metafields; prefer `headless` after normalization. */
+  metafields?: Array<{ namespace: string; key: string; value: string | null }> | null;
 }
 
 export interface ShopifyBlog {

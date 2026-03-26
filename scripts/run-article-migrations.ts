@@ -44,6 +44,9 @@ function getOrderedMigrations(): { name: string; path: string }[] {
   const m047 = join(LOCAL_MIGRATIONS, '047_seed_uncategorized.sql');
   if (existsSync(m047)) list.push({ name: '047_seed_uncategorized.sql', path: m047 });
 
+  const m048 = join(LOCAL_MIGRATIONS, '048_article_headless.sql');
+  if (existsSync(m048)) list.push({ name: '048_article_headless.sql', path: m048 });
+
   // 1004 (pr_contacts only - we strip to ALTER only)
   const m1004 = join(EXPORT_MIGRATIONS, '1004_add_pr_contacts_to_article.sql');
   if (existsSync(m1004)) list.push({ name: '1004_add_pr_contacts_to_article.sql', path: m1004 });

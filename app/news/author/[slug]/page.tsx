@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
-import { getArticlesByAuthor } from '@/lib/shopify/blogs';
+import { listPublishedNewsArticlesByAuthorName } from '@/lib/articles/news-public';
+import { listItemToBlogCardArticle } from '@/lib/blog/news-adapters';
 import { BlogCard } from '@/components/blog/BlogCard';
 import { generateAuthorProfileSchema } from '@/lib/utils/site-schema';
 
@@ -49,7 +50,9 @@ export const revalidate = 300;
 export default async function AuthorPage({ params }: AuthorPageProps) {
   const { slug } = await params;
   const authorName = slugToName(slug);
-  const articles = await getArticlesByAuthor(authorName);
+  const rows = await listPublishedNewsArticlesByAuthorName(authorName);
+  const articles = rows.map(listItemToBlogCardArticle);
+
   const schema = generateAuthorProfileSchema(
     `/news/author/${slug}`,
     authorName,
@@ -67,7 +70,6 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
       />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Author Header */}
         <div className="bg-white rounded-2xl shadow-sm p-8 mb-12">
           <div className="flex items-center gap-6">
             <div
@@ -85,7 +87,6 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
           </div>
         </div>
 
-        {/* Articles */}
         {articles.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-gray-600 text-lg">No articles found by this author.</p>
@@ -101,9 +102,3 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
     </div>
   );
 }
-
-
-
-
-
-

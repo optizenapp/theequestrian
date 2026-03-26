@@ -30,6 +30,9 @@ type ArticleRow = {
   pr_contacts: unknown;
   created_at: unknown;
   view_count: unknown;
+  headless_cta_path: unknown;
+  headless_cta_label: unknown;
+  headless_related_handles: unknown;
   cat_id: unknown;
   cat_slug: unknown;
   cat_name: unknown;
@@ -54,6 +57,7 @@ export async function getArticleById(articleId: string): Promise<ArticleWithRela
       a.meta_title, a.meta_description, a.featured_image_url, a.featured_image_alt,
       a.exclude_from_place_hubs, a.primary_category_id, a.copiq_id, a.copiq_social_posts, a.pr_contacts,
       a.created_at, a.view_count,
+      a.headless_cta_path, a.headless_cta_label, a.headless_related_handles,
       c.category_id AS cat_id, c.slug AS cat_slug, c.name AS cat_name
     FROM article a
     LEFT JOIN article_category c ON c.category_id = a.primary_category_id
@@ -97,6 +101,10 @@ export async function getArticleById(articleId: string): Promise<ArticleWithRela
     pr_contacts: row.pr_contacts,
     created_at: row.created_at,
     view_count: row.view_count,
+    headless_cta_path: row.headless_cta_path != null ? String(row.headless_cta_path) : null,
+    headless_cta_label: row.headless_cta_label != null ? String(row.headless_cta_label) : null,
+    headless_related_handles:
+      row.headless_related_handles != null ? String(row.headless_related_handles) : null,
     article_category: row.cat_id
       ? {
           category_id: row.cat_id,

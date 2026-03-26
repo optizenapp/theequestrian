@@ -18,6 +18,11 @@ const nextConfig: NextConfig = {
         hostname: 'images.unsplash.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'theequestrian-articles-images.s3.ap-southeast-2.amazonaws.com',
+        pathname: '/**',
+      },
     ],
   },
   // Optimize package imports to reduce bundle size

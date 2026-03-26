@@ -760,6 +760,17 @@ export const ARTICLE_FRAGMENT = `
     blog {
       handle
     }
+    metafields(
+      identifiers: [
+        { namespace: "headless", key: "cta_path" },
+        { namespace: "headless", key: "cta_label" },
+        { namespace: "headless", key: "related_handles" }
+      ]
+    ) {
+      namespace
+      key
+      value
+    }
   }
 `;
 

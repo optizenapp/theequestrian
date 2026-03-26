@@ -36,6 +36,9 @@ interface Article {
   featured_image_alt: string | null;
   meta_title: string | null;
   meta_description: string | null;
+  headless_cta_path?: string | null;
+  headless_cta_label?: string | null;
+  headless_related_handles?: string | null;
   exclude_from_place_hubs: boolean | null;
   article_place: Array<{ place_id: string; primary_place: boolean | null; place: { name: string; slug: string } }>;
   article_category?: { slug: string; name: string } | null;
@@ -74,6 +77,11 @@ export default function ArticleForm({
   const [featuredImageAlt, setFeaturedImageAlt] = useState(article?.featured_image_alt ?? '');
   const [metaTitle, setMetaTitle] = useState(article?.meta_title ?? '');
   const [metaDescription, setMetaDescription] = useState(article?.meta_description ?? '');
+  const [headlessCtaPath, setHeadlessCtaPath] = useState(article?.headless_cta_path ?? '');
+  const [headlessCtaLabel, setHeadlessCtaLabel] = useState(article?.headless_cta_label ?? '');
+  const [headlessRelatedHandles, setHeadlessRelatedHandles] = useState(
+    article?.headless_related_handles ?? ''
+  );
   const [excludeFromPlaceHubs, setExcludeFromPlaceHubs] = useState(article?.exclude_from_place_hubs ?? false);
   const [selectedPlaceIds, setSelectedPlaceIds] = useState<string[]>(
     article?.article_place?.map((ap) => ap.place_id) ?? []
@@ -109,6 +117,9 @@ export default function ArticleForm({
     formData.append('featured_image_alt', featuredImageAlt);
     formData.append('meta_title', metaTitle);
     formData.append('meta_description', metaDescription);
+    formData.append('headless_cta_path', headlessCtaPath);
+    formData.append('headless_cta_label', headlessCtaLabel);
+    formData.append('headless_related_handles', headlessRelatedHandles);
     if (excludeFromPlaceHubs) formData.append('exclude_from_place_hubs', 'on');
     if (primaryPlaceId) formData.append('primary_place_id', primaryPlaceId);
     selectedPlaceIds.forEach((id) => formData.append('place_ids', id));
@@ -284,6 +295,49 @@ export default function ArticleForm({
               onChange={(e) => setMetaDescription(e.target.value)}
               className="w-full rounded-lg border border-gray-200 px-3 py-2 text-gray-900 focus:ring-2 focus:ring-action/30"
             />
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-gray-200 bg-gray-50/80 p-6 space-y-4">
+          <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
+            Shop CTA &amp; related products (headless)
+          </h3>
+          <p className="text-xs text-gray-600">
+            Shown on the public /news article: sticky CTA, sidebar button, and optional product grid.
+          </p>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">CTA path</label>
+              <input
+                type="text"
+                value={headlessCtaPath}
+                onChange={(e) => setHeadlessCtaPath(e.target.value)}
+                placeholder="/rider/helmets"
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-gray-900 focus:ring-2 focus:ring-action/30"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">CTA label</label>
+              <input
+                type="text"
+                value={headlessCtaLabel}
+                onChange={(e) => setHeadlessCtaLabel(e.target.value)}
+                placeholder="Shop riding helmets"
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-gray-900 focus:ring-2 focus:ring-action/30"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Related product handles
+              </label>
+              <input
+                type="text"
+                value={headlessRelatedHandles}
+                onChange={(e) => setHeadlessRelatedHandles(e.target.value)}
+                placeholder="handle-one, handle-two"
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-gray-900 focus:ring-2 focus:ring-action/30"
+              />
+            </div>
           </div>
         </div>
 

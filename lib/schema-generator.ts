@@ -1,9 +1,7 @@
-import { ShopifyArticle } from '@/types/shopify';
-
 /**
  * Generate advanced JSON-LD schema for blog articles
  * Based on Google's NLP patents (US9152623B2 and US8636497B2)
- * 
+ *
  * Features:
  * - articleSection: Extracted from H2 tags
  * - citation: External links
@@ -12,7 +10,27 @@ import { ShopifyArticle } from '@/types/shopify';
  * - speakable: For voice assistants
  */
 
-export function generateArticleSchema(article: ShopifyArticle) {
+export type ArticleSchemaInput = {
+  handle: string;
+  title: string;
+  contentHtml: string;
+  excerpt?: string | null;
+  excerptHtml?: string | null;
+  publishedAt: string;
+  /** Prefer `updated_at` from CMS when available */
+  dateModified?: string | null;
+  tags: string[];
+  author: { name: string };
+  image?: {
+    url: string;
+    altText?: string | null;
+    width?: number;
+    height?: number;
+  } | null;
+  seo?: { title?: string; description?: string };
+};
+
+export function generateArticleSchema(article: ArticleSchemaInput) {
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au').replace(/\/+$/, '');
   const articleUrl = `${siteUrl}/news/${article.handle}`;
   const authorSlug = article.author.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -90,7 +108,7 @@ export function generateArticleSchema(article: ShopifyArticle) {
             }
           : undefined,
         datePublished: article.publishedAt,
-        dateModified: article.publishedAt,
+        dateModified: article.dateModified || article.publishedAt,
         wordCount: wordCount || undefined,
         inLanguage: 'en-AU',
         author: {
