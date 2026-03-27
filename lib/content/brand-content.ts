@@ -96,6 +96,31 @@ export async function getAllPublishedBrandContent(): Promise<BrandContentRow[]> 
 }
 
 /**
+ * Short label for /brands index cards (not the long SEO `title`).
+ * Uses `breadcrumb_label` when set; otherwise strips common "Shop …" prefixes and
+ * truncates at subtitle separators (" - ", " | ") or before a trailing " Horse …" /
+ * " … Equestrian …" phrase.
+ */
+export function getBrandIndexDisplayName(brand: BrandContentRow): string {
+  const bc = brand.breadcrumb_label?.trim();
+  if (bc) return bc;
+
+  let s = brand.title.trim().replace(/^Shop\s+(?:&\s+Buy\s+)?/i, '');
+  const dashIdx = s.indexOf(' - ');
+  if (dashIdx !== -1) s = s.slice(0, dashIdx).trim();
+  const pipeIdx = s.indexOf(' | ');
+  if (pipeIdx !== -1) s = s.slice(0, pipeIdx).trim();
+
+  const horsePhrase = s.match(/^(.+?)\s+Horse\s+/i);
+  if (horsePhrase) s = horsePhrase[1].trim();
+
+  const equestrianPhrase = s.match(/^(.+?)\s+Equestrian\s+/i);
+  if (equestrianPhrase) s = equestrianPhrase[1].trim();
+
+  return s || brand.title;
+}
+
+/**
  * Get allowed vendor names and tag values from published brands in the DB.
  * Used for the brand filter on category pages so only curated brands appear.
  * Parses the rules column (Shopify collection rule JSON) to extract VENDOR and TAG conditions.

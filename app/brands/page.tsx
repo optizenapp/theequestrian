@@ -1,6 +1,9 @@
 
 import Link from 'next/link';
-import { getAllPublishedBrandContent } from '@/lib/content/brand-content';
+import {
+  getAllPublishedBrandContent,
+  getBrandIndexDisplayName,
+} from '@/lib/content/brand-content';
 import type { Metadata } from 'next';
 import { generateBrandIndexSchema } from '@/lib/utils/site-schema';
 
@@ -16,25 +19,33 @@ export const metadata: Metadata = {
 
 export default async function BrandsIndexPage() {
   const brands = await getAllPublishedBrandContent();
+  const sortedBrands = [...brands].sort((a, b) =>
+    getBrandIndexDisplayName(a).localeCompare(getBrandIndexDisplayName(b), undefined, {
+      sensitivity: 'base',
+    })
+  );
+
   const schema = generateBrandIndexSchema(
     '/brands',
     'Brands | The Equestrian',
     'Shop top equestrian brands including Equipe, Pikeur, Ariat and more.',
-    brands.map((brand) => ({
-      name: brand.title,
+    sortedBrands.map((brand) => ({
+      name: getBrandIndexDisplayName(brand),
       handle: brand.handle,
     }))
   );
 
-  // Group brands by first letter for easier navigation
-  const groupedBrands = brands.reduce((acc, brand) => {
-    const letter = brand.title.charAt(0).toUpperCase();
+  // Group brands by first letter of display name (short label, not SEO title)
+  const groupedBrands = sortedBrands.reduce((acc, brand) => {
+    const label = getBrandIndexDisplayName(brand);
+    const raw = label.charAt(0).toUpperCase();
+    const letter = /[A-Z]/.test(raw) ? raw : '#';
     if (!acc[letter]) {
       acc[letter] = [];
     }
     acc[letter].push(brand);
     return acc;
-  }, {} as Record<string, typeof brands>);
+  }, {} as Record<string, typeof sortedBrands>);
 
   const letters = Object.keys(groupedBrands).sort();
 
@@ -86,7 +97,7 @@ export default async function BrandsIndexPage() {
                     className="block p-4 bg-white rounded-lg border border-gray-200 hover:border-primary hover:shadow-md transition-all group"
                   >
                     <span className="font-medium text-gray-900 group-hover:text-primary transition-colors">
-                      {brand.title}
+                      {getBrandIndexDisplayName(brand)}
                     </span>
                     {brand.products_count > 0 && (
                       <span className="block text-xs text-gray-500 mt-1">

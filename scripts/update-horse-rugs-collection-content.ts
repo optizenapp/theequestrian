@@ -37,6 +37,12 @@ const connectionString = resolveConnectionString();
 
 const sql = neon(connectionString);
 
+/** SEO `<title>` / Google snippet — not the on-page H1 */
+const metaTitle = 'Horse Rugs Australia – Winter, Summer, Waterproof & More';
+
+/** Visible H1 (distinct from meta title) */
+const h1Title = 'Horse Rugs for Every Season & Condition';
+
 /** First block = visible before "Read more"; marker consumed by CollectionDescription; rest stays in DOM, hidden until expanded. */
 const shortDescription = `<p>Browse our range of <strong>horse rugs</strong> designed for every season, climate and riding need.</p>
 <!--read-more-trigger-->
@@ -44,74 +50,72 @@ const shortDescription = `<p>Browse our range of <strong>horse rugs</strong> des
 
 <p>Whether you’re looking for waterproof protection, breathable materials or specialised rugs for travel and exercise, you’ll find options to suit all conditions. Our collection includes trusted brands and high-quality designs built for durability, fit and performance.</p>`;
 
-const longDescription = `<h2>How to Choose the Right Horse Rug</h2>
+const longDescription = `<h2>Types of Horse Rugs Explained</h2>
 
 <p>
-Choosing the right horse rug depends on your horse's environment, activity level and the climate. Key factors to consider include rug weight, waterproofing, breathability and overall fit.
+Horse rugs come in a range of styles designed for different conditions, uses and levels of protection. From lightweight summer rugs to specialised therapy and travel rugs, choosing the right type ensures your horse stays comfortable and protected year-round.
 </p>
 
-<h3>Rug Weight Guide</h3>
-<ul>
-<li><strong>Lightweight (0–100g):</strong> Ideal for mild weather and rain protection</li>
-<li><strong>Mediumweight (150–250g):</strong> Suitable for cooler temperatures</li>
-<li><strong>Heavyweight (300g+):</strong> Best for cold winter conditions</li>
-</ul>
-
-<h3>Fit and Comfort</h3>
+<h3>Summer and Lightweight Rugs</h3>
 <p>
-A well-fitted rug prevents rubbing and ensures freedom of movement. Look for adjustable straps, secure closures and breathable materials for all-day comfort.
+In warmer conditions, <strong>summer horse rugs</strong> and breathable cotton rugs help protect against heat, insects and UV exposure without causing overheating. Lightweight designs are ideal for everyday use and stable environments.
 </p>
 
-<h2>Horse Rugs for Different Conditions</h2>
-
+<h3>Winter and Waterproof Rugs</h3>
 <p>
-Different environments require different rug types. Heavier rugs are suited to colder weather, while lightweight and breathable options are better for warmer conditions. Waterproof rugs are essential for wet climates, and specialised rugs can be used for travel or exercise.
+For colder weather, insulated and waterproof rugs provide essential protection. Hybrid rainsheets and turnout rugs are designed to keep horses dry and warm during wet and windy conditions.
 </p>
 
+<h3>Specialist Rugs and Accessories</h3>
 <p>
-In colder conditions, heavier rugs provide insulation, while lighter options are better suited to warmer climates.
-<a href="/horse/rugs/winter">Winter rugs</a> are ideal for protecting horses during colder months.
+Some rugs are designed for specific purposes, including <strong>horse towel rugs</strong> for drying, therapy rugs for recovery, and neck sweats for conditioning. Tail wraps, bibs and other accessories also play an important role in horse care and transport.
 </p>
 
-<h2>Quality Horse Rugs from Trusted Brands</h2>
+<h2>Shop Horse Rugs by Brand</h2>
 
 <p>
-We stock horse rugs from leading equestrian brands known for quality, durability and performance. Each rug is designed to provide comfort, protection and a secure fit, helping you care for your horse in all conditions.
+Browse horse rugs from trusted equestrian brands known for quality, fit and durability. Shop leading options including
+<a href="/brands/zilco">Zilco horse rugs</a>,
+<a href="/brands/kentucky-horsewear">Kentucky Horsewear</a>,
+<a href="/brands/shanga">Shanga</a> and
+<a href="/brands/wild-horse">Wild Horse</a>.
 </p>
 
 <h2>Horse Rug FAQs</h2>
 
-<h3>How do I measure my horse for a rug?</h3>
+<h3>What is a horse towel rug used for?</h3>
 <p>
-Measure from the centre of the chest to the rear of the hindquarters to determine the correct rug size.
+A horse towel rug is used to dry horses after washing or exercise. It helps wick moisture away while keeping the horse warm.
 </p>
 
-<h3>What weight rug should I use?</h3>
+<h3>What is the difference between a rug and a horse blanket?</h3>
 <p>
-This depends on temperature, your horse's coat and whether they are clipped. Heavier rugs are used in colder conditions.
+Horse rugs and horse blankets are often used interchangeably. In Australia and the UK, “rug” is more commonly used, while “blanket” is more common in the US.
 </p>
 
-<h3>When should I use a fly rug?</h3>
+<h3>What is a hybrid rainsheet?</h3>
 <p>
-Fly rugs are used in warmer weather to protect against insects and UV exposure.
+A hybrid rainsheet combines waterproof protection with breathable materials, making it suitable for changing weather conditions.
 </p>
 
-<h3>Can a horse wear a rug all day?</h3>
+<h3>What are neck sweats used for?</h3>
 <p>
-Yes, but it's important to check fit regularly and ensure the horse does not overheat.
+Neck sweats are used to help shape and condition a horse’s neck, often used in training and preparation.
 </p>`;
 
 async function main() {
   const result = await sql`
     UPDATE collection_content
     SET
+      meta_title = ${metaTitle},
+      h1_title = ${h1Title},
       short_description = ${shortDescription},
       long_description = ${longDescription},
       faq_items = '[]'::jsonb,
       generated_by = 'manual',
       version = COALESCE(version, 1) + 1
     WHERE url_path = '/horse/rugs'
-    RETURNING id, url_path, version
+    RETURNING id, url_path, version, meta_title, h1_title
   `;
 
   if (!result.length) {

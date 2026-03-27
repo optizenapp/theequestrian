@@ -148,8 +148,8 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
     breadcrumbs[breadcrumbs.length - 1].label = content.breadcrumb_label;
   }
 
-  // Use database content if available, otherwise fallback to mapping
-  const pageTitle = content?.breadcrumb_label || content?.h1_title || mappingTitle;
+  // On-page H1 prefers h1_title; breadcrumb_label only overrides breadcrumb trail, not meta title
+  const pageTitle = content?.h1_title || content?.breadcrumb_label || mappingTitle;
   const description = content?.short_description || '';
   
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
@@ -198,7 +198,7 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
         <CategoryPills 
           categories={subSubcategories.map(s => ({ handle: s.handle, label: s.label }))}
           basePath={`/${category}/${subcategory}`}
-          sectionHeading={`Shop ${pageTitle} by Type`}
+          sectionHeading={`Shop ${mappingTitle} by Type`}
         />
 
         {/* Products Grid with Filters */}
