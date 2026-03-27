@@ -1,6 +1,7 @@
 #!/usr/bin/env tsx
 /**
- * Upsert brand_content for Zilco, Kentucky Horsewear, Shanga, Wild Horse (horse rug brand hub links).
+ * Upsert brand_content for Zilco, Shanga, Wild Horse (horse rug brand hub links).
+ * Kentucky uses the existing /brands/kentucky page — not included here.
  * Appears on /brands index. /brands/[handle] still requires matching Shopify collection handle.
  *
  * rules: null (category sidebar uses vendor/tag when set; refine in Admin after you confirm product tags/vendors).
@@ -53,18 +54,6 @@ const BRANDS: Array<{
     long_description:
       '<h2>Zilco at The Equestrian</h2><p>Shop Zilco horse rugs and related gear from a brand known for practical, hard-wearing designs.</p>',
     breadcrumb_label: 'Zilco',
-  },
-  {
-    handle: 'kentucky-horsewear',
-    title: 'Kentucky Horsewear',
-    h1_title: 'Kentucky Horsewear',
-    meta_title: 'Kentucky Horsewear | Horse Rugs & Tack | The Equestrian',
-    meta_description:
-      'Shop Kentucky Horsewear rugs, coolers and accessories. Premium equine products with Australia-wide shipping.',
-    short_description: 'Kentucky Horsewear rugs and horse wear for competition and stable.',
-    long_description:
-      '<h2>Kentucky Horsewear</h2><p>Discover Kentucky Horsewear rugs and accessories designed for performance horses.</p>',
-    breadcrumb_label: 'Kentucky Horsewear',
   },
   {
     handle: 'shanga',

@@ -12,7 +12,7 @@ config({ path: resolve(process.cwd(), '.env.local') });
 
 import { getCollectionByHandle } from '@/lib/shopify/collections';
 
-const HANDLES = ['zilco', 'kentucky-horsewear', 'shanga', 'wild-horse'] as const;
+const HANDLES = ['zilco', 'kentucky', 'shanga', 'wild-horse'] as const;
 
 async function main() {
   console.log('Checking Shopify collections (Storefront API)…\n');

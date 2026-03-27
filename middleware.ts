@@ -16,6 +16,13 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const decodedPath = decodeURIComponent(pathname);
 
+  // Duplicate brand URL: consolidate on canonical /brands/kentucky (Shopify collection handle kentucky).
+  if (pathname === '/brands/kentucky-horsewear') {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = '/brands/kentucky';
+    return NextResponse.redirect(redirectUrl, 301);
+  }
+
   // Redirect legacy cart permalinks (Shopify cart share URLs)
   // Format: /cart/c/[cart-id]?key=...
   if (pathname.startsWith('/cart/c/')) {

@@ -76,7 +76,7 @@ Some rugs are designed for specific purposes, including <strong>horse towel rugs
 <p>
 Browse horse rugs from trusted equestrian brands known for quality, fit and durability. Shop leading options including
 <a href="/brands/zilco">Zilco horse rugs</a>,
-<a href="/brands/kentucky-horsewear">Kentucky Horsewear</a>,
+<a href="/brands/kentucky">Kentucky Horsewear</a>,
 <a href="/brands/shanga">Shanga</a> and
 <a href="/brands/wild-horse">Wild Horse</a>.
 </p>

@@ -20,7 +20,6 @@ const DRY = process.argv.includes('--dry-run');
 
 /** Collections to ensure: handle, public title, title-contains condition */
 const SPECS: Array<{ handle: string; title: string; titleContains: string }> = [
-  { handle: 'kentucky-horsewear', title: 'Kentucky Horsewear', titleContains: 'Kentucky Horsewear' },
   { handle: 'shanga', title: 'Shanga', titleContains: 'Shanga' },
   { handle: 'wild-horse', title: 'Wild Horse', titleContains: 'Wild Horse' },
 ];
