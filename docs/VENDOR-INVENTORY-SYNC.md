@@ -69,3 +69,11 @@ Disable inventory/price sync from Webkul → Shopify for opted-in vendors where 
 ## Health check
 
 `GET /api/webhooks/shopify/vendor-sync` returns `{ configured: true/false }`.
+
+## jono-dev branch and database
+
+Pilot work for this feature lives on git branch **`jono-dev`** (see worktree `theequestrian-jono-dev` if you use one).
+
+Point local / preview env at the **jono-dev Neon** database using `CUSTOM_DATABASE_URL` or `DATABASE_URL` (same precedence as `lib/db/client.ts`). **Do not commit** connection strings or passwords.
+
+The vendor sync DDL in this repo was applied once to that Neon database when the branch was set up; re-run the SQL file only if you need a fresh environment.
