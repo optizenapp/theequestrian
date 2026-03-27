@@ -193,11 +193,6 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         {/* Breadcrumb */}
         <CollectionBreadcrumbs breadcrumbs={breadcrumbs} />
 
-        {/* Trust Signals */}
-        <div className="mb-8 -mx-4">
-          <TrustSignals />
-        </div>
-
         {/* Collection Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-6">{pageTitle}</h1>
@@ -206,13 +201,14 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
           <CollectionDescription 
             description={description}
           />
-          
-          {/* Subcategories as Pills */}
-          <CategoryPills 
-            categories={subcategories.map(s => ({ handle: s.handle, label: s.label }))}
-            basePath={`/${category}`}
-          />
         </div>
+
+        {/* Subcategories as Pills */}
+        <CategoryPills 
+          categories={subcategories.map(s => ({ handle: s.handle, label: s.label }))}
+          basePath={`/${category}`}
+          sectionHeading={`Shop ${pageTitle} by Type`}
+        />
 
         {/* Products Grid with Filters */}
         <Suspense fallback={<div className="text-center py-12">Loading products...</div>}>
@@ -227,6 +223,11 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             reviewStatsMap={reviewStats}
           />
         </Suspense>
+
+        {/* Trust Signals */}
+        <div className="mb-8 -mx-4 mt-8">
+          <TrustSignals />
+        </div>
 
         {/* Long Description (Rich Content) */}
         {content?.long_description && (

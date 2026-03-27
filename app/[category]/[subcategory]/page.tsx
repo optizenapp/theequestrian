@@ -194,18 +194,12 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
           />
         </div>
 
-        {/* Trust Signals */}
-        <div className="mb-8 -mx-4">
-          <TrustSignals />
-        </div>
-
         {/* Sub-subcategories as Pills (3rd level) */}
-        <div className="mb-8">
-          <CategoryPills 
-            categories={subSubcategories.map(s => ({ handle: s.handle, label: s.label }))}
-            basePath={`/${category}/${subcategory}`}
-          />
-        </div>
+        <CategoryPills 
+          categories={subSubcategories.map(s => ({ handle: s.handle, label: s.label }))}
+          basePath={`/${category}/${subcategory}`}
+          sectionHeading={`Shop ${pageTitle} by Type`}
+        />
 
         {/* Products Grid with Filters */}
         <Suspense fallback={<div className="text-center py-12">Loading products...</div>}>
@@ -221,6 +215,11 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
             reviewStatsMap={reviewStats}
           />
         </Suspense>
+
+        {/* Trust Signals */}
+        <div className="mb-8 -mx-4 mt-8">
+          <TrustSignals />
+        </div>
 
         {/* Long Description (Rich Content) */}
         {content?.long_description && (

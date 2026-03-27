@@ -500,19 +500,13 @@ async function renderSubSubcategoryPage(
           />
         </div>
 
-        {/* Trust Signals */}
-        <div className="mb-8 -mx-4">
-          <TrustSignals />
-        </div>
-
         {/* Sibling Sub-subcategories Pills */}
         {siblingSubSubcategories.length > 0 && (
-          <div className="mb-8">
-            <CategoryPills 
-              categories={siblingSubSubcategories.map(s => ({ handle: s.handle, label: s.label }))}
-              basePath={`/${category}/${subcategory}`}
-            />
-          </div>
+          <CategoryPills 
+            categories={siblingSubSubcategories.map(s => ({ handle: s.handle, label: s.label }))}
+            basePath={`/${category}/${subcategory}`}
+            sectionHeading={`Shop ${getCollectionTitle(category, subcategory)} by Type`}
+          />
         )}
 
         {/* Products Grid with Filters */}
@@ -529,6 +523,11 @@ async function renderSubSubcategoryPage(
             reviewStatsMap={reviewStats}
           />
         </Suspense>
+
+        {/* Trust Signals */}
+        <div className="mb-8 -mx-4 mt-8">
+          <TrustSignals />
+        </div>
 
         {/* Long Description (Rich Content) */}
         {content?.long_description && (

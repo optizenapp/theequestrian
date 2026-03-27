@@ -300,18 +300,12 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
           />
         </div>
 
-        {/* Trust Signals */}
-        <div className="mb-8 -mx-4">
-          <TrustSignals />
-        </div>
-
         {/* Subcategories as Pills */}
-        <div className="mb-8">
-          <CategoryPills 
-            categories={subcategories.map(s => ({ handle: s.handle, label: s.label }))}
-            basePath={`/${category}`}
-          />
-        </div>
+        <CategoryPills 
+          categories={subcategories.map(s => ({ handle: s.handle, label: s.label }))}
+          basePath={`/${category}`}
+          sectionHeading={`Shop ${pageTitle} by Type`}
+        />
 
         {/* Products Grid with Filters */}
         <Suspense fallback={<div className="text-center py-12">Loading products...</div>}>
@@ -326,6 +320,11 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             reviewStatsMap={reviewStats}
           />
         </Suspense>
+
+        {/* Trust Signals */}
+        <div className="mb-8 -mx-4 mt-8">
+          <TrustSignals />
+        </div>
 
         {/* Long Description (Rich Content) */}
         {content?.long_description && (

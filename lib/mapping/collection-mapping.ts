@@ -13,6 +13,7 @@ import * as csv from 'csv-parse/sync';
 import { unstable_cache } from 'next/cache';
 import { getCategoryContent } from '@/lib/content/collections';
 import { sql } from '@/lib/db/client';
+import { resolvePillAnchorText } from '@/lib/seo/pill-anchor-text';
 
 interface MappingRow {
   top_level: string;
@@ -348,9 +349,11 @@ export async function getSubcategoriesForCollection(
     }
   }
 
+  const basePath = subcategory ? `/${category}/${subcategory}` : `/${category}`;
+
   return Array.from(subcategories.entries()).map(([handle, { label, count }]) => ({
     handle,
-    label,
+    label: resolvePillAnchorText({ basePath, handle, label }),
     count,
   }));
 }
