@@ -9,9 +9,8 @@ import Link from 'next/link';
 import { LazySection } from '@/components/LazySection';
 import Image from 'next/image';
 
-// ISR: Cache page for 5 minutes, then revalidate in background
-// This matches other dynamic pages (news, products) and balances freshness with performance
-export const revalidate = 300;
+/** Build: skip static prerender of `/` (Neon + Shopify exceed Vercel ~60s SSG budget). Runtime fetches run per request. */
+export const dynamic = 'force-dynamic';
 
 // Aggressively lazy load below-the-fold components to improve LCP
 const MostWantedCarousel = dynamicImport(
