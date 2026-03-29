@@ -4,7 +4,7 @@ import { getCachedProductsSitemap } from '@/lib/sitemap/products';
  * Products Sitemap - Batch 0
  * Contains products 0-1,999
  */
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 export async function GET() {
   const xml = await getCachedProductsSitemap(0);

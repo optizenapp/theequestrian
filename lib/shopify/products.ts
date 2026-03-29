@@ -1058,7 +1058,7 @@ export async function getProductCanonicalUrl(
  * 0. Admin allocation (canonical category override)
  * 1. Use primary_collection metafield if set
  * 2. Derive from productType via mapping
- * 3. Fallback to /products/{handle}
+ * 3. Fallback to /products/{handle} (legacy; product sitemap omits these URLs)
  */
 export async function getProductCanonicalUrls(
   products: Array<Pick<ShopifyProduct, 'id' | 'handle' | 'productType'> & { metafield?: { value: string } | null }>
