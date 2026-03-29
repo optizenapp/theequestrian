@@ -1,11 +1,13 @@
-import { generateProductsSitemap } from '@/lib/sitemap/products';
+import { getCachedProductsSitemap } from '@/lib/sitemap/products';
 
 /**
  * Products Sitemap - Batch 3
  * Contains products 6,000-7,999
  */
+export const maxDuration = 60;
+
 export async function GET() {
-  const xml = await generateProductsSitemap(3);
+  const xml = await getCachedProductsSitemap(3);
 
   return new Response(xml, {
     headers: {

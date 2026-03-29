@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { neon } from '@neondatabase/serverless';
 import { loadShippingRates, resolveShippingOffset, normalizeTags } from '@/lib/shipping/rates';
+import { getMarketplaceVendorsWithPriceSyncEnabled } from '@/lib/inventory/vendor-sync/repository';
 
 const SHOPIFY_WEBHOOK_SECRET = process.env.SHOPIFY_WEBHOOK_SECRET || '';
 const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || '';
@@ -83,6 +84,18 @@ export async function POST(req: NextRequest) {
 
     console.log(`[Shopify Webhook] Product update: ${product.title} (ID: ${productId})`);
     console.log(`[Shopify Webhook] Vendor: ${vendor}, Tags: ${tags.join(', ')}`);
+
+    const directPriceVendors = await getMarketplaceVendorsWithPriceSyncEnabled();
+    const vendorNorm = (vendor || '').toLowerCase().trim();
+    if (directPriceVendors.some((x) => x.toLowerCase().trim() === vendorNorm)) {
+      console.log(`[Shopify Webhook] Skipping offset: vendor uses direct vendor-store price sync (${vendor})`);
+      return NextResponse.json({
+        ok: true,
+        skipped: true,
+        reason: 'vendor_direct_price_sync',
+        processingTime: Date.now() - startTime,
+      });
+    }
 
     // Load shipping rates from Postgres and calculate offset
     const rates = await loadShippingRates();

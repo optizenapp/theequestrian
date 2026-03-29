@@ -39,6 +39,7 @@ const footerLinks = {
       { label: 'About Us', href: '/about' },
       { label: 'Become a Seller', href: '/contact' },
       { label: 'News & Blog', href: '/news' },
+      { label: 'RSS feed', href: '/rss.xml' },
       { label: 'Brands', href: '/brands' },
     ],
   },

@@ -6,6 +6,7 @@ const envSchema = z.object({
   SHOPIFY_STOREFRONT_ACCESS_TOKEN: z.string().min(1),
   SHOPIFY_ADMIN_ACCESS_TOKEN: z.string().optional(),
   SHOPIFY_WEBHOOK_SECRET: z.string().optional(),
+  VENDOR_SYNC_APP_CLIENT_SECRET: z.string().optional(),
 
   // Yotpo
   YOTPO_APP_KEY: z.string().optional(),

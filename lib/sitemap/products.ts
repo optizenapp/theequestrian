@@ -1,8 +1,20 @@
 import { MetadataRoute } from 'next';
+import { unstable_cache } from 'next/cache';
 import { shopifyFetch } from '@/lib/shopify/client';
 import { getProductCanonicalUrls } from '@/lib/shopify/products';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com';
+const SITE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au'
+).replace(/\/$/, '');
+
+function escapeXml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
 
 const GET_PRODUCTS_BATCH = `
   query GetProductsBatch($first: Int!, $after: String) {
@@ -66,6 +78,7 @@ export async function generateProductsSitemap(
     } = await shopifyFetch({
       query: GET_PRODUCTS_BATCH,
       variables: { first: 250, after: cursor },
+      cache: 'no-store',
     });
 
     const batchProducts = data.products.edges.map(({ node }) => node);
@@ -120,7 +133,7 @@ ${sitemap
           : new Date().toISOString();
       
       return `  <url>
-    <loc>${item.url}</loc>
+    <loc>${escapeXml(item.url)}</loc>
     <lastmod>${lastMod}</lastmod>
     <changefreq>${item.changeFrequency}</changefreq>
     <priority>${item.priority}</priority>
@@ -131,4 +144,21 @@ ${sitemap
 </urlset>`;
 
   return xml;
+}
+
+const CACHED_BATCHES = [0, 1, 2, 3, 4].map((batch) =>
+  unstable_cache(
+    async () => generateProductsSitemap(batch),
+    ['products-sitemap-xml', String(batch)],
+    { revalidate: 3600 }
+  )
+);
+
+/** Cached 1h per batch — avoids regenerating ~10k URLs on every Googlebot hit. */
+export async function getCachedProductsSitemap(batchNumber: number): Promise<string> {
+  const runner = CACHED_BATCHES[batchNumber];
+  if (!runner) {
+    throw new Error(`Invalid product sitemap batch: ${batchNumber}`);
+  }
+  return runner();
 }

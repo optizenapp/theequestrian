@@ -1,68 +1,30 @@
 import { MetadataRoute } from 'next';
-import { shopifyFetch } from '@/lib/shopify/client';
+import { listAllPublishedNewsArticlesForSitemap } from '@/lib/articles/news-public';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com';
+const SITE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au'
+).replace(/\/$/, '');
 
-const GET_ALL_BLOG_POSTS = `
-  query GetAllBlogPosts($first: Int!, $after: String) {
-    articles(first: $first, after: $after) {
-      edges {
-        node {
-          handle
-          publishedAt
-          blog {
-            handle
-          }
-        }
-      }
-      pageInfo {
-        hasNextPage
-        endCursor
-      }
-    }
-  }
-`;
-
-interface Article {
-  handle: string;
-  publishedAt: string;
-  blog: {
-    handle: string;
-  };
+function escapeXml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
 }
 
 /**
  * News/Blog Sitemap
- * 
- * Contains all blog posts and news articles
+ *
+ * All published URLs from Neon `article` (same source as /news/[slug]).
  */
 export async function GET() {
-  const articles: Article[] = [];
-  let hasNextPage = true;
-  let cursor: string | null = null;
-
-  while (hasNextPage) {
-    const data: {
-      articles: {
-        edges: Array<{ node: Article }>;
-        pageInfo: {
-          hasNextPage: boolean;
-          endCursor: string | null;
-        };
-      };
-    } = await shopifyFetch({
-      query: GET_ALL_BLOG_POSTS,
-      variables: { first: 250, after: cursor },
-    });
-
-    articles.push(...data.articles.edges.map(({ node }) => node));
-    hasNextPage = data.articles.pageInfo.hasNextPage;
-    cursor = data.articles.pageInfo.endCursor;
-  }
+  const articles = await listAllPublishedNewsArticlesForSitemap();
 
   const sitemap: MetadataRoute.Sitemap = articles.map((article) => ({
-    url: `${SITE_URL}/news/${article.handle}`,
-    lastModified: new Date(article.publishedAt),
+    url: `${SITE_URL}/news/${article.slug}`,
+    lastModified: new Date(article.updated_at || article.published_at || Date.now()),
     changeFrequency: 'monthly',
     priority: 0.5,
   }));
@@ -79,7 +41,7 @@ ${sitemap
           : new Date().toISOString();
       
       return `  <url>
-    <loc>${item.url}</loc>
+    <loc>${escapeXml(item.url)}</loc>
     <lastmod>${lastMod}</lastmod>
     <changefreq>${item.changeFrequency}</changefreq>
     <priority>${item.priority}</priority>

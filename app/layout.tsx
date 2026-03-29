@@ -26,10 +26,18 @@ const manrope = Manrope({
   variable: '--font-manrope',
 });
 const gaMeasurementId = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID;
+const siteUrl = (
+  process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au'
+).replace(/\/$/, '');
 
 export const metadata: Metadata = {
   title: 'Australian Equestrian Marketplace | Horse, Rider & Pet',
   description: 'Shop 10,000+ horse and rider products with FREE SHIPPING sitewide. Discover global brands for horse, rider, and pet.',
+  alternates: {
+    types: {
+      'application/rss+xml': `${siteUrl}/rss.xml`,
+    },
+  },
   icons: {
     icon: [
       { url: '/favicon.ico' },

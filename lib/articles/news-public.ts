@@ -312,6 +312,59 @@ export async function listPublishedNewsArticlesByAuthorName(
   )();
 }
 
+/** All published articles for sitemap.xml / RSS (Neon only, no Shopify). */
+export type NewsArticleSitemapEntry = {
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  published_at: string | null;
+  updated_at: string | null;
+};
+
+async function fetchAllPublishedNewsArticlesForSitemap(): Promise<NewsArticleSitemapEntry[]> {
+  try {
+    const rows = await sql`
+      SELECT
+        a.slug,
+        a.title,
+        a.excerpt,
+        a.published_at,
+        a.updated_at
+      FROM public.article a
+      WHERE a.status IN ('published', 'publish')
+      ORDER BY a.published_at DESC NULLS LAST, a.created_at DESC
+    `;
+    const list = Array.isArray(rows) ? rows : [];
+    return list.map((row) => {
+      const r = row as Record<string, unknown>;
+      const pub = r.published_at;
+      const upd = r.updated_at;
+      return {
+        slug: String(r.slug),
+        title: String(r.title),
+        excerpt: r.excerpt != null ? String(r.excerpt) : null,
+        published_at:
+          pub instanceof Date ? pub.toISOString() : pub != null ? String(pub) : null,
+        updated_at:
+          upd instanceof Date ? upd.toISOString() : upd != null ? String(upd) : null,
+      };
+    });
+  } catch (error) {
+    if (isMissingRelationError(error, 'public.article')) {
+      return [];
+    }
+    throw error;
+  }
+}
+
+export async function listAllPublishedNewsArticlesForSitemap(): Promise<NewsArticleSitemapEntry[]> {
+  return unstable_cache(
+    () => fetchAllPublishedNewsArticlesForSitemap(),
+    ['news-sitemap-all-db-v1'],
+    { revalidate: 3600, tags: [NEWS_ARTICLES_CACHE_TAG] }
+  )();
+}
+
 export function invalidateNewsArticlesCache(): void {
   try {
     revalidateTag(NEWS_ARTICLES_CACHE_TAG, 'max');
