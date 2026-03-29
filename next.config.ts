@@ -5,6 +5,8 @@ const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 });
 
+const sitemapRewriteBase = process.env.SITEMAP_REWRITE_BASE_URL?.replace(/\/+$/, '');
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -48,6 +50,25 @@ const nextConfig: NextConfig = {
   // Turbopack configuration (Next.js 16 default)
   // Empty config to silence the webpack warning
   turbopack: {},
+  async rewrites() {
+    if (!sitemapRewriteBase) {
+      return [];
+    }
+    return {
+      beforeFiles: [
+        {
+          source: '/sitemap.xml',
+          destination: `${sitemapRewriteBase}/sitemap.xml`,
+        },
+        {
+          source: '/sitemap/:path*',
+          destination: `${sitemapRewriteBase}/sitemap/:path*`,
+        },
+      ],
+      afterFiles: [],
+      fallback: [],
+    };
+  },
 };
 
 export default withBundleAnalyzer(nextConfig);

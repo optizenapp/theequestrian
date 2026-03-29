@@ -94,6 +94,7 @@
     "performance:init": "tsx scripts/init-performance-table.ts",
     "feed:export": "tsx scripts/export-gmc-feed.ts",
     "feed:upload": "tsx scripts/upload-gmc-feed.ts",
+    "sitemap:publish:s3": "tsx scripts/publish-sitemaps-to-s3.ts",
     "feed:audit": "tsx scripts/audit-gmc-feed.ts --feed exports/gmc-feed-latest.xml",
     "feed:validate-taxonomy": "tsx scripts/validate-gmc-taxonomy.ts",
     "feed:logs": "tsx scripts/check-gmc-logs.ts",
