@@ -1,10 +1,10 @@
 import { notFound, permanentRedirect, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import dynamicImport from 'next/dynamic';
-import { getProductsByCategory } from '@/lib/shopify/products';
+import { getProductsByCategoryForCollectionPage } from '@/lib/shopify/category-collection-fetch';
 import { getProductByHandle, getProductCanonicalUrl, getProductCanonicalUrls, hasProductImage } from '@/lib/shopify/products';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
-import { getCategoryContent } from '@/lib/content/collections';
+import { getCategoryContent, getParentCollectionLink } from '@/lib/content/collections';
 import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
 import { generateProductSchema } from '@/lib/utils/product-schema';
 import { 
@@ -51,8 +51,8 @@ const RichContent = dynamicImport(
   }
 );
 
-// ISR Configuration: Revalidate every 15 minutes
-export const revalidate = 900;
+// ISR: collection shell (48h). Price/stock: client status API.
+export const revalidate = 172800;
 export const preferredRegion = 'syd1';
 
 interface CategoryPageProps {
@@ -70,8 +70,10 @@ interface CategoryPageProps {
  */
 export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
   const { category } = await params;
-  const { cursor, brand, size, color } = await searchParams;
+  const { cursor, brand, size, color, sort } = await searchParams;
   const afterCursor = typeof cursor === 'string' ? cursor : null;
+  const sortBy =
+    typeof sort === 'string' ? (sort as 'featured' | 'on-sale' | 'newest' | 'oldest' | 'price-asc' | 'price-desc') : undefined;
   const filterBrands = brand ? (Array.isArray(brand) ? brand : brand.split(',')) : undefined;
   const filterSizes = size ? (Array.isArray(size) ? size : size.split(',')) : undefined;
   const filterColors = color ? (Array.isArray(color) ? color : color.split(',')) : undefined;
@@ -86,16 +88,18 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
   // Fetch products allocated to this category from product_category_assignments table
   const categoryPath = `/${category}`;
-  const { products: filteredProducts, pageInfo, facets, totalCount } = await getProductsByCategory(
-    categoryPath,
-    36, 
-    afterCursor,
-    { 
-      brands: filterBrands,
-      sizes: filterSizes,
-      colors: filterColors
-    }
-  );
+  const { products: filteredProducts, pageInfo, facets, totalCount } =
+    await getProductsByCategoryForCollectionPage(
+      categoryPath,
+      36,
+      afterCursor,
+      {
+        brands: filterBrands,
+        sizes: filterSizes,
+        colors: filterColors,
+      },
+      sortBy
+    );
   
   // If no products found, try as a product (fallback)
   if (totalCount === 0) {
@@ -210,7 +214,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     );
   }
 
-  // Products already fetched above via getProductsByCategory
+  // Products already fetched above via getProductsByCategoryForCollectionPage
 
   // Total count is now returned from getProductsByTypes (no separate API call needed)
   const totalProductCount = totalCount;
@@ -237,9 +241,9 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   
   // Get allowed brand vendors from brand-mapping.csv (only for equestrian categories)
   // For pet/accessories categories, show all brands
-  const allowedBrands = (category === 'pet' || category === 'accessories') 
-    ? undefined 
-    : getAllowedBrandVendors();
+  const allowedBrands = (category === 'pet' || category === 'accessories')
+    ? undefined
+    : await getAllowedBrandVendors();
 
   // Get subcategories from our mapping
   const subcategories = await getMappingSubcategories(category);
@@ -259,11 +263,11 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   // Use database content if available, otherwise fallback to mapping
   const pageTitle = content?.h1_title || mappingTitle;
   const description = content?.short_description || '';
-  
+
+  const parentCollectionLink = await getParentCollectionLink(content?.parent_url?.trim());
+
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
 
-  // Build "Best in Class" Collection Schema using FAST version (performance optimized)
-  // Uses simple /products/{handle} URLs for schema (canonical URLs still used in product grid)
   const collectionSchema = generateCollectionSchemaFast({
     collectionName: pageTitle,
     collectionUrl: `${siteUrl}/${category}`,
@@ -293,23 +297,18 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
           <h1 className="text-4xl font-bold mb-6">{pageTitle}</h1>
           
           {/* Short Description */}
-          <CollectionDescription 
+          <CollectionDescription
             description={description}
+            parentCollectionLink={parentCollectionLink}
           />
-        </div>
-
-        {/* Trust Signals */}
-        <div className="mb-8 -mx-4">
-          <TrustSignals />
         </div>
 
         {/* Subcategories as Pills */}
-        <div className="mb-8">
-          <CategoryPills 
-            categories={subcategories.map(s => ({ handle: s.handle, label: s.label }))}
-            basePath={`/${category}`}
-          />
-        </div>
+        <CategoryPills 
+          categories={subcategories.map(s => ({ handle: s.handle, label: s.label }))}
+          basePath={`/${category}`}
+          sectionHeading={`Shop ${pageTitle} by Type`}
+        />
 
         {/* Products Grid with Filters */}
         <Suspense fallback={<div className="text-center py-12">Loading products...</div>}>
@@ -324,6 +323,11 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             reviewStatsMap={reviewStats}
           />
         </Suspense>
+
+        {/* Trust Signals */}
+        <div className="mb-8 -mx-4 mt-8">
+          <TrustSignals />
+        </div>
 
         {/* Long Description (Rich Content) */}
         {content?.long_description && (

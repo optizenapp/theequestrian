@@ -1,0 +1,14 @@
+---
+description: Always read before writing
+globs: ["**/*"]
+---
+
+Before editing any file:
+1. Read the file contents first
+2. Identify the exact lines to change
+3. Make only those changes
+
+Before creating a new file:
+1. Check if a similar file already exists
+2. Check for existing patterns in the codebase to follow
+3. Match the conventions of neighboring files (naming, exports, structure)

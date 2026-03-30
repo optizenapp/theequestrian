@@ -76,6 +76,7 @@ export async function PUT(
     return NextResponse.json({ ok: true, ...version });
   } catch (error) {
     console.error('Failed to update template:', error);
-    return NextResponse.json({ error: 'Failed to update template' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to update template';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

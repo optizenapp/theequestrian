@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import type { EmailBlock, CuratedProductCard } from '@/lib/email-platform/types';
 
+type ProductUsageItem = { campaignName: string; scheduledAt: string };
+
 type CampaignRow = {
   id: string;
   name: string;
@@ -14,6 +16,9 @@ type CampaignRow = {
   scheduledAt: string | null;
   startedAt?: string | null;
   completedAt?: string | null;
+  createdBy?: string | null;
+  metadata?: Record<string, unknown>;
+  productUsage?: Record<string, ProductUsageItem[]>;
 };
 
 type ListRow = { id: string; name: string };
@@ -54,6 +59,9 @@ const blockTypeLabels: Record<EmailBlock['type'], string> = {
   cta: 'Button',
   productCards: 'Product Cards',
   curatedProducts: 'Curated Products',
+  llmIntro: 'LLM Intro',
+  llmHeading: 'LLM Heading',
+  image: 'Image',
   divider: 'Divider',
   footer: 'Footer',
 };
@@ -114,6 +122,9 @@ export default function AdminEmailCampaignsPage() {
   const [isSendingTest, setIsSendingTest] = useState(false);
   const [testEmailStatus, setTestEmailStatus] = useState('');
 
+  const [autoWeeklyEnabled, setAutoWeeklyEnabled] = useState<boolean | null>(null);
+  const [autoWeeklyUpdating, setAutoWeeklyUpdating] = useState(false);
+
   const editorCardRef = useRef<HTMLDivElement | null>(null);
   const nameInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -156,10 +167,15 @@ export default function AdminEmailCampaignsPage() {
     setContentBlocks((prev) => {
       if (type === 'heading') return [...prev, { id, type, level: 2, text: 'Your heading', align: 'center' }];
       if (type === 'text') return [...prev, { id, type, text: 'Your text here', align: 'left' }];
+      if (type === 'llmHeading')
+        return [...prev, { id, type, level: 2, text: "This week's picks", align: 'left', prompt: '' }];
+      if (type === 'llmIntro')
+        return [...prev, { id, type, text: 'A short intro goes here.', align: 'left', prompt: '' }];
       if (type === 'cta') return [...prev, { id, type, label: 'Click here', url: '{{siteUrl}}', align: 'center' }];
       if (type === 'productCards') return [...prev, { id, type, mode: 'all' as const }];
       if (type === 'curatedProducts')
         return [...prev, { id, type, showDividers: false, products: [{ id: generateId(), handle: '', title: '', imageUrl: '', url: '' }] }];
+      if (type === 'image') return [...prev, { id, type, url: '', alt: '', align: 'center' as const }];
       if (type === 'divider') return [...prev, { id, type, align: 'center' as const }];
       if (type === 'footer') return [...prev, { id, type, text: 'The Equestrian\n{{siteUrl}}\n\nUnsubscribe: {{unsubscribeUrl}}', align: 'left' as const }];
       return prev;
@@ -306,6 +322,15 @@ export default function AdminEmailCampaignsPage() {
 
   useEffect(() => {
     loadAll().catch((err) => setError(err instanceof Error ? err.message : 'Failed to load campaign data'));
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/admin/email/auto-weekly/settings')
+      .then((res) => res.json())
+      .then((data) => {
+        setAutoWeeklyEnabled(data?.enabled === true);
+      })
+      .catch(() => setAutoWeeklyEnabled(false));
   }, []);
 
   useEffect(() => {
@@ -616,7 +641,10 @@ export default function AdminEmailCampaignsPage() {
   };
 
   const mostRecentCompletedCampaign =
-    campaigns.find((c) => c.status === 'completed' || c.status === 'processing') || null;
+    campaigns.find((c) => {
+      const normalizedStatus = String(c.status || '').toLowerCase();
+      return normalizedStatus === 'completed' || normalizedStatus === 'complete' || normalizedStatus === 'processing';
+    }) || null;
 
   return (
     <AdminLayout title="Email Campaigns" subtitle="One-off bulk sends with list/segment audiences">
@@ -657,17 +685,22 @@ export default function AdminEmailCampaignsPage() {
         ) : null}
 
         <div className="mt-3 grid gap-2 md:grid-cols-2">
-          <input
-            ref={nameInputRef}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Campaign name"
-            className="rounded border border-gray-300 px-3 py-2 text-sm"
-          />
-          <select
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-gray-700">Campaign name</span>
+            <input
+              ref={nameInputRef}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Spring Sale – March 2025"
+              className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-gray-700">Template</span>
+            <select
             value={templateVersionId}
             onChange={(e) => setTemplateVersionId(e.target.value)}
-            className="rounded border border-gray-300 px-3 py-2 text-sm"
+            className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
           >
             <option value="">Select template version</option>
             {templates.map((template) => (
@@ -676,6 +709,7 @@ export default function AdminEmailCampaignsPage() {
               </option>
             ))}
           </select>
+          </label>
         </div>
 
         <div className="mt-3 grid gap-2 md:grid-cols-2">
@@ -849,7 +883,13 @@ export default function AdminEmailCampaignsPage() {
                             const end = input.selectionEnd ?? (input.value || '').length;
                             const current = input.value || '';
                             const updated = current.slice(0, start) + item.token + current.slice(end);
-                            if (block.type === 'heading' || block.type === 'text' || block.type === 'footer') {
+                            if (
+                              block.type === 'heading' ||
+                              block.type === 'text' ||
+                              block.type === 'llmHeading' ||
+                              block.type === 'llmIntro' ||
+                              block.type === 'footer'
+                            ) {
                               updateBlock(block.id, { text: updated });
                             } else if (block.type === 'cta') {
                               updateBlock(block.id, { [field]: updated });
@@ -882,7 +922,13 @@ export default function AdminEmailCampaignsPage() {
                           const end = input.selectionEnd ?? (input.value || '').length;
                           const current = input.value || '';
                           const updated = current.slice(0, start) + token + current.slice(end);
-                          if (block.type === 'heading' || block.type === 'text' || block.type === 'footer') {
+                          if (
+                            block.type === 'heading' ||
+                            block.type === 'text' ||
+                            block.type === 'llmHeading' ||
+                            block.type === 'llmIntro' ||
+                            block.type === 'footer'
+                          ) {
                             updateBlock(block.id, { text: updated });
                           } else if (block.type === 'cta') {
                             updateBlock(block.id, { [field]: updated });
@@ -930,6 +976,73 @@ export default function AdminEmailCampaignsPage() {
                               <option value="left">Left</option><option value="center">Center</option><option value="right">Right</option>
                             </select>
                             <textarea value={block.text} onChange={(e) => updateBlock(block.id, { text: e.target.value })} onFocus={() => setLastFocusedInput({ blockId: block.id, field: 'text' })} data-block-id={block.id} data-field="text" rows={4} className="w-full rounded border border-gray-300 px-3 py-2 text-sm" />
+                          </div>
+                        )}
+
+                        {block.type === 'llmHeading' && (
+                          <div className="space-y-2">
+                            <p className="text-xs font-medium text-sky-700">
+                              Filled automatically for Auto weekly; prompt and fallback text are editable.
+                            </p>
+                            <label className="block text-xs font-medium text-gray-700">
+                              Prompt (optional)
+                              <textarea
+                                value={'prompt' in block ? (block.prompt ?? '') : ''}
+                                onChange={(e) => updateBlock(block.id, { prompt: e.target.value || undefined } as Partial<EmailBlock>)}
+                                rows={2}
+                                className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                                placeholder="e.g. One short heading based on {{productContext}}"
+                              />
+                            </label>
+                            <input
+                              type="text"
+                              value={block.text}
+                              onChange={(e) => updateBlock(block.id, { text: e.target.value })}
+                              onFocus={() => setLastFocusedInput({ blockId: block.id, field: 'text' })}
+                              data-block-id={block.id}
+                              data-field="text"
+                              className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                              placeholder="Fallback heading text"
+                            />
+                            <div className="flex gap-2">
+                              <select value={block.level || 2} onChange={(e) => updateBlock(block.id, { level: Number(e.target.value) as 1 | 2 | 3 })} className="w-20 rounded border border-gray-300 px-2 py-1 text-sm">
+                                <option value={1}>H1</option><option value={2}>H2</option><option value={3}>H3</option>
+                              </select>
+                              <select value={block.align || 'left'} onChange={(e) => updateBlock(block.id, { align: e.target.value as 'left' | 'center' | 'right' })} className="w-28 rounded border border-gray-300 px-2 py-1 text-sm">
+                                <option value="left">Left</option><option value="center">Center</option><option value="right">Right</option>
+                              </select>
+                            </div>
+                          </div>
+                        )}
+
+                        {block.type === 'llmIntro' && (
+                          <div className="space-y-2">
+                            <p className="text-xs font-medium text-sky-700">
+                              Filled automatically for Auto weekly; prompt and fallback text are editable.
+                            </p>
+                            <label className="block text-xs font-medium text-gray-700">
+                              Prompt (optional)
+                              <textarea
+                                value={'prompt' in block ? (block.prompt ?? '') : ''}
+                                onChange={(e) => updateBlock(block.id, { prompt: e.target.value || undefined } as Partial<EmailBlock>)}
+                                rows={3}
+                                className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                                placeholder="Leave empty to use global intro prompt"
+                              />
+                            </label>
+                            <select value={block.align || 'left'} onChange={(e) => updateBlock(block.id, { align: e.target.value as 'left' | 'center' | 'right' })} className="w-28 rounded border border-gray-300 px-2 py-1 text-sm">
+                              <option value="left">Left</option><option value="center">Center</option><option value="right">Right</option>
+                            </select>
+                            <textarea
+                              value={block.text}
+                              onChange={(e) => updateBlock(block.id, { text: e.target.value })}
+                              onFocus={() => setLastFocusedInput({ blockId: block.id, field: 'text' })}
+                              data-block-id={block.id}
+                              data-field="text"
+                              rows={4}
+                              className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                              placeholder="Fallback intro text for preview"
+                            />
                           </div>
                         )}
 
@@ -995,6 +1108,77 @@ export default function AdminEmailCampaignsPage() {
                           </div>
                         )}
 
+                        {block.type === 'image' && (
+                          <div className="space-y-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <input
+                                type="text"
+                                placeholder="Image URL"
+                                value={block.url}
+                                onChange={(e) => updateBlock(block.id, { url: e.target.value })}
+                                className="min-w-0 flex-1 rounded border border-gray-300 px-3 py-2 text-sm"
+                              />
+                              <label className="rounded border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:border-action hover:text-action cursor-pointer">
+                                Upload
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="sr-only"
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    e.target.value = '';
+                                    if (!file || block.type !== 'image') return;
+                                    try {
+                                      const form = new FormData();
+                                      form.set('file', file);
+                                      const res = await fetch('/api/admin/email/templates/upload-image', { method: 'POST', body: form });
+                                      const data = await res.json();
+                                      if (!res.ok) throw new Error(data?.error || 'Upload failed');
+                                      if (data?.url) updateBlock(block.id, { url: data.url });
+                                    } catch (err) {
+                                      setStatusMessage(err instanceof Error ? err.message : 'Upload failed');
+                                      setTimeout(() => setStatusMessage(''), 3000);
+                                    }
+                                  }}
+                                />
+                              </label>
+                            </div>
+                            <input
+                              type="text"
+                              placeholder="Alt text"
+                              value={block.alt ?? ''}
+                              onChange={(e) => updateBlock(block.id, { alt: e.target.value })}
+                              className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                            />
+                            <input
+                              type="text"
+                              placeholder="Link URL (optional)"
+                              value={block.linkUrl ?? ''}
+                              onChange={(e) => updateBlock(block.id, { linkUrl: e.target.value || undefined })}
+                              className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                            />
+                            <div className="flex flex-wrap items-center gap-2">
+                              <select value={block.align || 'center'} onChange={(e) => updateBlock(block.id, { align: e.target.value as 'left' | 'center' | 'right' })} className="rounded border border-gray-300 px-2 py-1 text-sm">
+                                <option value="left">Left</option>
+                                <option value="center">Center</option>
+                                <option value="right">Right</option>
+                              </select>
+                              <label className="flex items-center gap-1 text-xs text-gray-600">
+                                Max width
+                                <input
+                                  type="number"
+                                  min={100}
+                                  max={600}
+                                  value={block.maxWidth ?? 220}
+                                  onChange={(e) => updateBlock(block.id, { maxWidth: e.target.value ? Number(e.target.value) : undefined })}
+                                  className="w-20 rounded border border-gray-300 px-2 py-1 text-sm"
+                                />
+                                px
+                              </label>
+                            </div>
+                          </div>
+                        )}
+
                         {block.type === 'footer' && (
                           <textarea value={block.text} onChange={(e) => updateBlock(block.id, { text: e.target.value })} onFocus={() => setLastFocusedInput({ blockId: block.id, field: 'text' })} data-block-id={block.id} data-field="text" rows={3} className="w-full rounded border border-gray-300 px-3 py-2 text-sm" />
                         )}
@@ -1008,7 +1192,7 @@ export default function AdminEmailCampaignsPage() {
 
                   {/* Add block buttons */}
                   <div className="flex flex-wrap gap-2">
-                    {(['heading', 'text', 'cta', 'productCards', 'curatedProducts', 'divider', 'footer'] as const).map((type) => (
+                    {(['heading', 'text', 'llmIntro', 'llmHeading', 'cta', 'productCards', 'curatedProducts', 'image', 'divider', 'footer'] as const).map((type) => (
                       <button key={type} type="button" onClick={() => addBlock(type)} className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:border-action hover:text-action">
                         + {blockTypeLabels[type]}
                       </button>
@@ -1182,32 +1366,192 @@ export default function AdminEmailCampaignsPage() {
             ) : null}
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <h4 className="text-sm font-semibold text-gray-900">{campaign.name}</h4>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h4 className="text-sm font-semibold text-gray-900">{campaign.name}</h4>
+                  {campaign.createdBy === 'auto-weekly' ? (
+                    <>
+                      <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-semibold text-sky-800">
+                        Auto campaign
+                      </span>
+                      <label className="flex cursor-pointer items-center gap-1.5">
+                        <span className="text-xs font-medium text-gray-600">
+                          {autoWeeklyEnabled === null ? '…' : autoWeeklyEnabled ? 'Flow on' : 'Flow off'}
+                        </span>
+                        <input
+                          type="checkbox"
+                          checked={autoWeeklyEnabled === true}
+                          disabled={autoWeeklyEnabled === null || autoWeeklyUpdating}
+                          onChange={async () => {
+                            if (autoWeeklyEnabled === null || autoWeeklyUpdating) return;
+                            setAutoWeeklyUpdating(true);
+                            setError('');
+                            try {
+                              const res = await fetch('/api/admin/email/auto-weekly/settings', {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ enabled: !autoWeeklyEnabled }),
+                              });
+                              const data = await res.json();
+                              if (!res.ok) throw new Error(data?.error || 'Failed to update');
+                              setAutoWeeklyEnabled(data.enabled === true);
+                              setStatusMessage(data.enabled ? 'Auto weekly flow enabled.' : 'Auto weekly flow disabled.');
+                            } catch (e) {
+                              setError(e instanceof Error ? e.message : 'Failed to update');
+                            } finally {
+                              setAutoWeeklyUpdating(false);
+                            }
+                          }}
+                          className="h-4 w-8 rounded-full border border-gray-300 bg-gray-200 accent-action transition-colors disabled:opacity-50"
+                        />
+                      </label>
+                    </>
+                  ) : null}
+                  {campaign.status === 'pending_approval' ? (
+                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">
+                      For approval
+                    </span>
+                  ) : null}
+                </div>
                 <p className="text-xs text-gray-500">
                   Status: {campaign.status} | Lists: {(campaign.audience.listIds || []).length} | Segments:{' '}
                   {(campaign.audience.segmentIds || []).length}
                 </p>
+                {campaign.status === 'pending_approval' &&
+                  campaign.createdBy === 'auto-weekly' &&
+                  campaign.productUsage &&
+                  Object.keys(campaign.productUsage).length > 0 ? (
+                  <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50/80 p-2 text-xs text-amber-900">
+                    <p className="font-medium text-amber-800">Product reuse in other auto campaigns:</p>
+                    <ul className="mt-1 list-inside list-disc space-y-0.5">
+                      {Object.entries(campaign.productUsage).map(([handle, items]) =>
+                        items.length > 0 ? (
+                          <li key={handle}>
+                            <strong>{handle}</strong> was used in:{' '}
+                            {items
+                              .map(
+                                (u) =>
+                                  `${u.campaignName} (${u.scheduledAt ? new Date(u.scheduledAt).toLocaleDateString('en-AU', { dateStyle: 'short' }) : '—'})`
+                              )
+                              .join('; ')}
+                          </li>
+                        ) : null
+                      )}
+                    </ul>
+                  </div>
+                ) : null}
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:border-action hover:text-action"
-                  onClick={async () => {
-                    const response = await fetch(`/api/admin/email/campaigns/${campaign.id}/send`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ frequencyCapCount: 3, frequencyCapDays: 7 }),
-                    });
-                    const data = await response.json();
-                    if (!response.ok) {
-                      setError(data?.error || 'Failed to send campaign');
-                      return;
-                    }
-                    await loadAll();
-                  }}
-                >
-                  Send queued
-                </button>
+                {(() => {
+                  const normalizedStatus = String(campaign.status || '').toLowerCase();
+                  const isCompletedStatus =
+                    normalizedStatus === 'completed' ||
+                    normalizedStatus === 'complete' ||
+                    (normalizedStatus === 'processing' && campaign.completedAt != null);
+                  if (isCompletedStatus) {
+                    return (
+                  <>
+                    <button
+                      type="button"
+                      disabled
+                      className="rounded-full border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 cursor-default"
+                    >
+                      Complete
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isDuplicatingCampaign}
+                      className="rounded-full border border-action px-3 py-1.5 text-xs font-semibold text-action hover:bg-action hover:text-white disabled:opacity-60"
+                      onClick={() => duplicateCampaign(campaign)}
+                    >
+                      {isDuplicatingCampaign ? 'Duplicating…' : 'Duplicate'}
+                    </button>
+                  </>
+                    );
+                  }
+                  if (campaign.status === 'pending_approval') {
+                    return (
+                  <>
+                    <button
+                      type="button"
+                      className="rounded-full border border-green-300 px-3 py-1.5 text-xs font-semibold text-green-700 hover:border-green-500"
+                      onClick={async () => {
+                        const response = await fetch(`/api/admin/email/campaigns/${campaign.id}/approve`, {
+                          method: 'POST',
+                        });
+                        const data = await response.json();
+                        if (!response.ok) {
+                          setError(data?.error || 'Failed to approve campaign');
+                          return;
+                        }
+                        setStatusMessage(data?.message || 'Campaign approved.');
+                        await loadAll();
+                      }}
+                    >
+                      Approve
+                    </button>
+                    <button
+                      type="button"
+                      className="rounded-full border border-amber-300 px-3 py-1.5 text-xs font-semibold text-amber-700 hover:border-amber-500"
+                      onClick={async () => {
+                        if (!window.confirm(`Reject campaign "${campaign.name}"? It will not be sent.`)) return;
+                        const response = await fetch(`/api/admin/email/campaigns/${campaign.id}/cancel`, {
+                          method: 'POST',
+                        });
+                        const data = await response.json();
+                        if (!response.ok) {
+                          setError(data?.error || 'Failed to reject campaign');
+                          return;
+                        }
+                        setStatusMessage('Campaign rejected.');
+                        await loadAll();
+                      }}
+                    >
+                      Reject
+                    </button>
+                    <button
+                      type="button"
+                      className="rounded-full border border-blue-200 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:border-blue-400"
+                      onClick={() => applyCampaignToEditor(campaign)}
+                    >
+                      Edit
+                    </button>
+                  </>
+                    );
+                  }
+                  if (campaign.status === 'scheduled') {
+                    return (
+                  <button
+                    type="button"
+                    disabled
+                    className="rounded-full border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 cursor-default"
+                    title={campaign.scheduledAt ? new Date(campaign.scheduledAt).toLocaleString() : ''}
+                  >
+                    Scheduled for {campaign.scheduledAt ? new Date(campaign.scheduledAt).toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : '…'}
+                  </button>
+                    );
+                  }
+                  return (
+                  <button
+                    type="button"
+                    className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:border-action hover:text-action"
+                    onClick={async () => {
+                      const response = await fetch(`/api/admin/email/campaigns/${campaign.id}/send`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ frequencyCapCount: 3, frequencyCapDays: 7 }),
+                      });
+                      const data = await response.json();
+                      if (!response.ok) {
+                        setError(data?.error || 'Failed to send campaign');
+                        return;
+                      }
+                      await loadAll();
+                    }}
+                  >
+                    Send queued
+                  </button>
+                  );
+                })()}
                 {(campaign.status === 'processing' || campaign.status === 'scheduled' || campaign.status === 'draft') && campaignStatsById[campaign.id]?.remainingQueued && campaignStatsById[campaign.id]?.remainingQueued > 0 ? (
                   <button
                     type="button"

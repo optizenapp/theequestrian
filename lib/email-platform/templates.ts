@@ -242,6 +242,27 @@ export function normalizeEmailBlocks(blocks: unknown): EmailBlock[] {
           fontSize: normalizeFontSize(block.fontSize, 16),
         };
       }
+      if (type === 'llmIntro') {
+        return {
+          id,
+          type: 'llmIntro',
+          text: typeof block.text === 'string' ? block.text : '',
+          align: block.align === 'center' || block.align === 'right' ? block.align : 'left',
+          fontSize: normalizeFontSize(block.fontSize, 16),
+          ...(typeof block.prompt === 'string' && block.prompt.trim() ? { prompt: block.prompt.trim() } : {}),
+        };
+      }
+      if (type === 'llmHeading') {
+        return {
+          id,
+          type: 'llmHeading',
+          text: typeof block.text === 'string' ? block.text : '',
+          level: block.level === 1 || block.level === 2 || block.level === 3 ? block.level : 2,
+          align: block.align === 'center' || block.align === 'right' ? block.align : 'left',
+          fontSize: normalizeFontSize(block.fontSize, 28),
+          ...(typeof block.prompt === 'string' && block.prompt.trim() ? { prompt: block.prompt.trim() } : {}),
+        };
+      }
       if (type === 'cta') {
         return {
           id,
@@ -275,6 +296,7 @@ export function normalizeEmailBlocks(blocks: unknown): EmailBlock[] {
           showDividers: block.showDividers === true,
           align: block.align === 'left' || block.align === 'right' ? block.align : 'center',
           fontSize: normalizeFontSize(block.fontSize, 16),
+          ...(typeof block.prompt === 'string' && block.prompt.trim() ? { prompt: block.prompt.trim() } : {}),
         };
       }
       if (type === 'divider') {
@@ -282,6 +304,24 @@ export function normalizeEmailBlocks(blocks: unknown): EmailBlock[] {
           id,
           type: 'divider',
           align: block.align === 'left' || block.align === 'right' ? block.align : 'center',
+        };
+      }
+      if (type === 'image') {
+        const url = typeof block.url === 'string' ? block.url.trim() : '';
+        return {
+          id,
+          type: 'image',
+          url,
+          alt: typeof block.alt === 'string' ? block.alt.trim() : '',
+          linkUrl:
+            typeof block.linkUrl === 'string' && block.linkUrl.trim()
+              ? block.linkUrl.trim()
+              : undefined,
+          align: block.align === 'left' || block.align === 'right' ? block.align : 'center',
+          maxWidth:
+            typeof block.maxWidth === 'number' && !Number.isNaN(block.maxWidth)
+              ? Math.max(100, Math.min(600, Math.floor(block.maxWidth)))
+              : undefined,
         };
       }
       if (type === 'footer') {
@@ -315,6 +355,18 @@ export function renderTemplateBlocksHtml(input: {
         block.text,
         visual.linkColor
       )}</p>`;
+    }
+    if (block.type === 'llmIntro') {
+      return `<p style="margin:0 0 12px 0;text-align:${block.align || 'left'};color:${visual.brandDark};font-size:${block.fontSize || 16}px;">${renderTextWithStyledLinks(
+        block.text,
+        visual.linkColor
+      )}</p>`;
+    }
+    if (block.type === 'llmHeading') {
+      const level = Math.min(Math.max(block.level || 2, 1), 3);
+      return `<h${level} style="margin:0 0 12px 0;text-align:${block.align || 'left'};color:${visual.brandDark};font-size:${block.fontSize || 28}px;">${escapeHtml(
+        block.text
+      )}</h${level}>`;
     }
     if (block.type === 'cta') {
       return `<p style="margin:16px 0;text-align:${block.align || 'left'};"><a href="${escapeHtml(
@@ -377,6 +429,19 @@ export function renderTemplateBlocksHtml(input: {
         })
         .join('');
       return `<div style="margin:20px 0;display:block;">${cards}</div>`;
+    }
+    if (block.type === 'image') {
+      const imgMaxWidth = block.maxWidth ?? 220;
+      const imgStyle = `max-width:${imgMaxWidth}px;width:100%;height:auto;border-radius:8px;margin:0 auto 12px;display:block;`;
+      const imgTag = block.url
+        ? `<img src="${escapeHtml(block.url)}" alt="${escapeHtml(block.alt || '')}" style="${imgStyle}" />`
+        : '';
+      const wrapped = imgTag
+        ? block.linkUrl
+          ? `<a href="${escapeHtml(block.linkUrl)}" style="display:block;text-align:${block.align || 'center'};">${imgTag}</a>`
+          : `<div style="text-align:${block.align || 'center'};">${imgTag}</div>`
+        : '';
+      return wrapped ? `<div style="margin:20px 0;">${wrapped}</div>` : '';
     }
     if (block.type === 'divider') {
       const dividerMargin =

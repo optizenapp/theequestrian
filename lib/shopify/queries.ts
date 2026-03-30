@@ -97,6 +97,15 @@ export const GET_PRODUCT_BY_HANDLE = `
   }
 `;
 
+export const GET_PRODUCT_BY_ID = `
+  ${PRODUCT_FRAGMENT}
+  query GetProductById($id: ID!) {
+    product(id: $id) {
+      ...ProductFragment
+    }
+  }
+`;
+
 export const GET_COLLECTION_BY_HANDLE = `
   query GetCollectionByHandle($handle: String!, $first: Int = 50, $after: String) {
     collection(handle: $handle) {
@@ -750,6 +759,17 @@ export const ARTICLE_FRAGMENT = `
     }
     blog {
       handle
+    }
+    metafields(
+      identifiers: [
+        { namespace: "headless", key: "cta_path" },
+        { namespace: "headless", key: "cta_label" },
+        { namespace: "headless", key: "related_handles" }
+      ]
+    ) {
+      namespace
+      key
+      value
     }
   }
 `;

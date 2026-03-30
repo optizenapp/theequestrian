@@ -1,6 +1,8 @@
 import { MetadataRoute } from 'next';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com';
+const SITE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au'
+).replace(/\/$/, '');
 
 /**
  * Static Pages Sitemap

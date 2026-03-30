@@ -3,13 +3,25 @@
 import { useState } from 'react';
 import { useCart } from '@/components/cart/cart-context';
 import { trackGaEvent } from '@/lib/analytics/ga4';
+import type { Ga4EcommerceItem } from '@/lib/analytics/ga4-ecommerce';
 
 interface AddToCartButtonProps {
   variantId: string;
   disabled?: boolean;
+  /** Full item row for GA4 / BigQuery joins (falls back to variant id only) */
+  analyticsItem?: Ga4EcommerceItem | null;
+  currencyCode?: string;
+  /** Smaller padding and type — e.g. mobile sticky bar */
+  compact?: boolean;
 }
 
-export function AddToCartButton({ variantId, disabled }: AddToCartButtonProps) {
+export function AddToCartButton({
+  variantId,
+  disabled,
+  analyticsItem,
+  currencyCode,
+  compact = false,
+}: AddToCartButtonProps) {
   const { addCartItem, openCart } = useCart();
   const [isAdding, setIsAdding] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -20,8 +32,12 @@ export function AddToCartButton({ variantId, disabled }: AddToCartButtonProps) {
     setIsAdding(true);
     try {
       await addCartItem(variantId, 1);
+      const items = analyticsItem
+        ? [{ ...analyticsItem, quantity: 1 }]
+        : [{ item_id: variantId, quantity: 1 }];
       trackGaEvent('add_to_cart', {
-        items: [{ item_id: variantId, quantity: 1 }],
+        ...(currencyCode ? { currency: currencyCode } : {}),
+        items,
       });
       setShowSuccess(true);
       openCart();
@@ -38,11 +54,16 @@ export function AddToCartButton({ variantId, disabled }: AddToCartButtonProps) {
     }
   };
 
+  const widthClass = compact ? 'flex-1 min-w-0' : 'w-full';
+  const sizeClass = compact
+    ? 'py-2.5 px-3 text-sm'
+    : 'py-4 px-6 text-lg';
+
   return (
     <button
       onClick={handleAddToCart}
       disabled={disabled || isAdding}
-      className={`w-full py-4 px-6 rounded-full font-semibold text-lg transition-all ${
+      className={`${widthClass} ${sizeClass} rounded-full font-semibold transition-all ${
         showSuccess
           ? 'bg-[#E91E8C] text-white'
           : disabled
@@ -53,8 +74,8 @@ export function AddToCartButton({ variantId, disabled }: AddToCartButtonProps) {
       {isAdding ? (
         'Adding...'
       ) : showSuccess ? (
-        <span className="flex items-center justify-center gap-2">
-          ✓ Added to Cart
+        <span className="flex items-center justify-center gap-1">
+          {compact ? '✓ Added' : '✓ Added to Cart'}
         </span>
       ) : (
         'Add to Cart'

@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { auditManualRedirects } from '@/lib/redirects/audit';
 
+/**
+ * Not scheduled in vercel.json; run manually when auditing redirects (GET this route or use tooling).
+ */
 export async function GET() {
   try {
     const conflicts = await auditManualRedirects();

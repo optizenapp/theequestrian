@@ -1,5 +1,5 @@
 import { shopifyFetch } from '@/lib/shopify/client';
-import { ProductCard } from '@/components/ProductCard';
+import { SearchResultsProductGrid } from '@/components/search/SearchResultsProductGrid';
 import type { ShopifyProduct } from '@/types/shopify';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { getProductOverridesByHandles } from '@/lib/content/product-overrides';
@@ -82,7 +82,10 @@ export async function SearchResults({ query }: SearchResultsProps) {
       overrideMap.get(product.handle)?.is_published_headless !== false &&
       !isExcludedFrontendVendor(product.vendor)
   );
-  const reviewStatsMap = await getReviewStatsForProducts(visibleProducts.map((product) => product.handle));
+  const reviewStatsMap = await getReviewStatsForProducts(
+    visibleProducts.map((product) => product.handle)
+  );
+  const reviewStatsRecord = Object.fromEntries(reviewStatsMap.entries());
 
   // Sort products: In-stock first, out-of-stock last
   visibleProducts.sort((a, b) => {
@@ -115,15 +118,11 @@ export async function SearchResults({ query }: SearchResultsProps) {
         </span>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {visibleProducts.map((product) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            reviewStats={reviewStatsMap.get(product.handle)}
-          />
-        ))}
-      </div>
+      <SearchResultsProductGrid
+        products={visibleProducts}
+        searchQuery={query}
+        reviewStatsMap={reviewStatsRecord}
+      />
     </div>
   );
 }

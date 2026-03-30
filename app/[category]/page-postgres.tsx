@@ -31,8 +31,7 @@ import { RelatedCategories } from '@/components/collection/RelatedCategories';
 import { RichContent } from '@/components/collection/RichContent';
 import type { Metadata } from 'next';
 
-// ISR Configuration: Revalidate every 15 minutes
-export const revalidate = 900;
+export const revalidate = 172800;
 
 interface CategoryPageProps {
   params: Promise<{
@@ -148,10 +147,10 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const productUrls = Object.fromEntries(productUrlsMap);
   const reviewStats = Object.fromEntries(reviewStatsMap);
   
-  // Get allowed brand vendors from brand-mapping.csv
-  const allowedBrands = (category === 'pet' || category === 'accessories') 
-    ? undefined 
-    : getAllowedBrandVendors();
+  // Get allowed brand vendors from brand_content (DB)
+  const allowedBrands = (category === 'pet' || category === 'accessories')
+    ? undefined
+    : await getAllowedBrandVendors();
 
   // Get subcategories from our mapping
   const subcategories = await getMappingSubcategories(category);
@@ -194,11 +193,6 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         {/* Breadcrumb */}
         <CollectionBreadcrumbs breadcrumbs={breadcrumbs} />
 
-        {/* Trust Signals */}
-        <div className="mb-8 -mx-4">
-          <TrustSignals />
-        </div>
-
         {/* Collection Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-6">{pageTitle}</h1>
@@ -207,13 +201,14 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
           <CollectionDescription 
             description={description}
           />
-          
-          {/* Subcategories as Pills */}
-          <CategoryPills 
-            categories={subcategories.map(s => ({ handle: s.handle, label: s.label }))}
-            basePath={`/${category}`}
-          />
         </div>
+
+        {/* Subcategories as Pills */}
+        <CategoryPills 
+          categories={subcategories.map(s => ({ handle: s.handle, label: s.label }))}
+          basePath={`/${category}`}
+          sectionHeading={`Shop ${pageTitle} by Type`}
+        />
 
         {/* Products Grid with Filters */}
         <Suspense fallback={<div className="text-center py-12">Loading products...</div>}>
@@ -228,6 +223,11 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             reviewStatsMap={reviewStats}
           />
         </Suspense>
+
+        {/* Trust Signals */}
+        <div className="mb-8 -mx-4 mt-8">
+          <TrustSignals />
+        </div>
 
         {/* Long Description (Rich Content) */}
         {content?.long_description && (

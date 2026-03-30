@@ -6,6 +6,7 @@ import { ProductVariantSelector } from '@/components/ProductVariantSelector';
 import { AddToCartButton } from './AddToCartButton';
 import { BuyNowButton } from './BuyNowButton';
 import { MobileStickyBar } from './MobileStickyBar';
+import { buildGa4ItemFromProduct } from '@/lib/analytics/ga4-ecommerce';
 import { FaCcVisa, FaCcMastercard, FaCcPaypal } from 'react-icons/fa';
 import { SiAfterpay, SiShopify } from 'react-icons/si';
 import Image from 'next/image';
@@ -75,6 +76,16 @@ export function ProductBuyBox({ product }: ProductBuyBoxProps) {
       }
     : null;
 
+  const analyticsItem = useMemo(() => {
+    if (!selectedVariant) return null;
+    return buildGa4ItemFromProduct(product, {
+      variantId: selectedVariant.id,
+      priceOverride: parseFloat(selectedVariant.price.amount),
+    });
+  }, [product, selectedVariant]);
+
+  const currencyCode = product.priceRange.minVariantPrice.currencyCode;
+
   return (
     <div className="space-y-6">
       {/* Price with Shipping Included */}
@@ -134,10 +145,14 @@ export function ProductBuyBox({ product }: ProductBuyBoxProps) {
         <AddToCartButton
           variantId={selectedVariant?.id || ''}
           disabled={!isAvailable || !selectedVariant}
+          analyticsItem={analyticsItem}
+          currencyCode={currencyCode}
         />
         <BuyNowButton
           variantId={selectedVariant?.id || ''}
           disabled={!isAvailable || !selectedVariant}
+          analyticsItem={analyticsItem}
+          currencyCode={currencyCode}
         />
       </div>
 
@@ -208,6 +223,8 @@ export function ProductBuyBox({ product }: ProductBuyBoxProps) {
         product={product}
         selectedVariant={selectedVariant}
         isAvailable={isAvailable}
+        analyticsItem={analyticsItem}
+        currencyCode={currencyCode}
       />
     </div>
   );

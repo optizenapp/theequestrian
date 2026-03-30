@@ -1,8 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { entityTag, ifNoneMatchSatisfied, notModifiedResponse } from '@/lib/http/conditional-response';
 
 export const revalidate = 3600;
 
-export async function GET() {
+const LLMS_CACHE_CONTROL = 'public, s-maxage=3600, stale-while-revalidate=7200';
+
+export async function GET(request: NextRequest) {
   const siteUrl = 'https://www.theequestrian.com.au';
 
   const content = `# The Equestrian
@@ -107,10 +110,19 @@ The Equestrian (${siteUrl}) is structured for clear category discovery and produ
 - [LLMs](${siteUrl}/llms.txt)
 `;
 
+  const etag = entityTag(content);
+  const cacheHeaders = {
+    ETag: etag,
+    'Cache-Control': LLMS_CACHE_CONTROL,
+  };
+  if (ifNoneMatchSatisfied(request.headers.get('if-none-match'), etag)) {
+    return notModifiedResponse(cacheHeaders) as NextResponse;
+  }
+
   return new NextResponse(content, {
     headers: {
       'Content-Type': 'text/plain; charset=utf-8',
-      'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200',
+      ...cacheHeaders,
     },
   });
 }

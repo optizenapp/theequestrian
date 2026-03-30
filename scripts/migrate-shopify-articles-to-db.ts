@@ -18,8 +18,9 @@ config({ path: resolve(process.cwd(), '.env.local') });
 config({ path: resolve(process.cwd(), '.env') });
 
 import { getBlog } from '@/lib/shopify/blogs';
-import { sql } from '@/lib/db/client';
+import { sql, resetDbClient } from '@/lib/db/client';
 import { uploadBufferToS3 } from '@/lib/s3/storage';
+import { runArticleMigrations } from '@/scripts/run-article-migrations';
 import type { ShopifyArticle } from '@/types/shopify';
 
 const DRY_RUN = process.env.DRY_RUN === '1' || process.env.DRY_RUN === 'true';
@@ -86,7 +87,7 @@ async function migrateInlineImages(slug: string, contentHtml: string): Promise<s
 
 async function getUncategorizedCategoryId(): Promise<string | null> {
   const rows = await sql`
-    SELECT category_id FROM article_category
+    SELECT category_id FROM public.article_category
     WHERE slug = 'uncategorized' OR name ILIKE '%Uncategorized%'
     LIMIT 1
   `;
@@ -95,7 +96,7 @@ async function getUncategorizedCategoryId(): Promise<string | null> {
 }
 
 async function articleExistsBySlug(slug: string): Promise<boolean> {
-  const rows = await sql`SELECT 1 FROM article WHERE slug = ${slug} LIMIT 1`;
+  const rows = await sql`SELECT 1 FROM public.article WHERE slug = ${slug} LIMIT 1`;
   return Array.isArray(rows) && rows.length > 0;
 }
 
@@ -109,7 +110,7 @@ async function insertArticle(
   const slug = node.handle;
   const publishedAt = node.publishedAt ? new Date(node.publishedAt) : null;
   await sql`
-    INSERT INTO article (
+    INSERT INTO public.article (
       slug, title, excerpt, content, article_type, status,
       published_at, author_name, meta_title, meta_description,
       featured_image_url, featured_image_alt, primary_category_id
@@ -141,7 +142,23 @@ async function main() {
     return;
   }
 
-  const uncategorizedId = await getUncategorizedCategoryId();
+  // Use unpooled URL so all requests hit the same backend (avoids pooler routing DDL to one node and SELECT to another)
+  if (process.env.DATABASE_URL_UNPOOLED) {
+    process.env.DATABASE_URL = process.env.DATABASE_URL_UNPOOLED;
+    process.env.POSTGRES_URL = process.env.DATABASE_URL_UNPOOLED;
+    resetDbClient();
+  }
+
+  console.log('Ensuring article tables exist...');
+  await runArticleMigrations();
+  console.log('');
+
+  let uncategorizedId: string | null = null;
+  try {
+    uncategorizedId = await getUncategorizedCategoryId();
+  } catch (e) {
+    console.warn('Could not load uncategorized category (table may not be visible in this session). Using primary_category_id = null.');
+  }
   if (!uncategorizedId) {
     console.warn('No uncategorized category found; articles will have primary_category_id NULL.');
   }

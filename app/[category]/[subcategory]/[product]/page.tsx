@@ -1,7 +1,14 @@
 import { notFound, permanentRedirect, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import dynamicImport from 'next/dynamic';
-import { getProductsByCategory, getProductByHandle, getProductCanonicalUrl, getRecommendedProducts, hasProductImage } from '@/lib/shopify/products';
+import { getProductsByCategoryForCollectionPage } from '@/lib/shopify/category-collection-fetch';
+import {
+  getProductByHandle,
+  getProductCanonicalUrl,
+  getProductCanonicalUrls,
+  getRecommendedProducts,
+  hasProductImage,
+} from '@/lib/shopify/products';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
 import { 
@@ -18,7 +25,7 @@ import { CollectionBreadcrumbs } from '@/components/CollectionBreadcrumbs';
 import { FAQSection } from '@/components/collection/FAQSection';
 import { RelatedCategories } from '@/components/collection/RelatedCategories';
 import { RichContent } from '@/components/collection/RichContent';
-import { getCategoryContent } from '@/lib/content/collections';
+import { getCategoryContent, getParentCollectionLink } from '@/lib/content/collections';
 import { ProductImageGallery } from '@/components/ProductImageGallery';
 import { ProductBreadcrumbs } from '@/components/ProductBreadcrumbs';
 import { ProductBuyBox } from '@/components/product/ProductBuyBox';
@@ -39,6 +46,7 @@ import { getManualRedirect } from '@/lib/redirects/manual';
 import { getProductOverrideByHandle, resolveProductHandleFromSlug } from '@/lib/content/product-overrides';
 import { buildProductSeoMetadata } from '@/lib/seo/product-metadata';
 import { cache } from 'react';
+import { ProductViewTracker } from '@/components/analytics/ProductViewTracker';
 
 // Lazy load heavy below-the-fold components to improve LCP
 const ProductReviewSection = dynamicImport(
@@ -48,8 +56,7 @@ const ProductReviewSection = dynamicImport(
   }
 );
 
-// ISR Configuration: Revalidate every 15 minutes
-export const revalidate = 900;
+export const revalidate = 172800;
 export const preferredRegion = 'syd1';
 
 interface PageProps {
@@ -76,8 +83,10 @@ const getResolvedProductBySlug = cache(async (slug: string) => {
  */
 export default async function Page({ params, searchParams }: PageProps) {
   const { category, subcategory, product: thirdSegment } = await params;
-  const { cursor, brand, size, color } = await searchParams;
+  const { cursor, brand, size, color, sort } = await searchParams;
   const afterCursor = typeof cursor === 'string' ? cursor : null;
+  const sortBy =
+    typeof sort === 'string' ? (sort as 'featured' | 'on-sale' | 'newest' | 'oldest' | 'price-asc' | 'price-desc') : undefined;
   const filterBrands = brand ? (Array.isArray(brand) ? brand : brand.split(',')) : undefined;
   const filterSizes = size ? (Array.isArray(size) ? size : size.split(',')) : undefined;
   const filterColors = color ? (Array.isArray(color) ? color : color.split(',')) : undefined;
@@ -97,7 +106,16 @@ export default async function Page({ params, searchParams }: PageProps) {
   
   if (existsInDatabase) {
     // Category exists in database, render it (will redirect if empty)
-    return renderSubSubcategoryPage(category, subcategory, thirdSegment, afterCursor, filterBrands, filterSizes, filterColors);
+    return renderSubSubcategoryPage(
+      category,
+      subcategory,
+      thirdSegment,
+      afterCursor,
+      filterBrands,
+      filterSizes,
+      filterColors,
+      sortBy
+    );
   }
   
   // Check if it has product types mapped (for categories not in database yet)
@@ -105,7 +123,16 @@ export default async function Page({ params, searchParams }: PageProps) {
   
   // If it maps to a collection, render the collection page
   if (allowedProductTypes.length > 0) {
-    return renderSubSubcategoryPage(category, subcategory, thirdSegment, afterCursor, filterBrands, filterSizes, filterColors);
+    return renderSubSubcategoryPage(
+      category,
+      subcategory,
+      thirdSegment,
+      afterCursor,
+      filterBrands,
+      filterSizes,
+      filterColors,
+      sortBy
+    );
   }
 
   // 2. If not a category, assume it's a product handle
@@ -197,6 +224,10 @@ async function renderProductPage(product: ShopifyProduct, canonicalPath?: string
   const relatedHandles = relatedProducts.map(p => p.handle);
   const relatedReviewStatsMap = await getReviewStatsForProducts(relatedHandles);
   const relatedReviewStats = Object.fromEntries(relatedReviewStatsMap);
+  const relatedUrlMap = await getProductCanonicalUrls(relatedProducts);
+  const relatedProductHrefByHandle = Object.fromEntries(
+    relatedProducts.map((p) => [p.handle, relatedUrlMap.get(p.id) ?? `/products/${p.handle}`])
+  );
 
   // Get product-specific bullet points
   let overrideBullets: string[] = [];
@@ -212,6 +243,11 @@ async function renderProductPage(product: ShopifyProduct, canonicalPath?: string
   const featureHighlights = override?.use_headless_bullets && overrideBullets.length > 0
     ? overrideBullets
     : getProductBulletPoints(product.id);
+  const showArcEquineGelPromo = product.handle === 'arcequine-complete-kit';
+
+  const firstAvailableVariant =
+    product.variants.edges.find(({ node }) => node.availableForSale)?.node ??
+    product.variants.edges[0]?.node;
 
   return (
     <div className="bg-background min-h-screen pb-20">
@@ -230,9 +266,21 @@ async function renderProductPage(product: ShopifyProduct, canonicalPath?: string
           additionalPaths={additionalPaths}
         />
 
+        <ProductViewTracker
+          product={product}
+          displayTitle={displayTitle}
+          defaultVariantId={firstAvailableVariant?.id}
+          defaultVariantPrice={
+            firstAvailableVariant
+              ? parseFloat(firstAvailableVariant.price.amount)
+              : undefined
+          }
+        />
+
+        <article aria-labelledby="pdp-product-title">
         {/* Mobile title & rating */}
         <div className="lg:hidden mt-4 mb-8 space-y-2">
-          <h1 className="text-3xl font-bold text-gray-900">{displayTitle}</h1>
+          <h1 id="pdp-product-title" className="text-3xl font-bold text-gray-900">{displayTitle}</h1>
           <ProductPageReviewBadge
             productId={product.id}
             productHandle={product.handle}
@@ -248,24 +296,36 @@ async function renderProductPage(product: ShopifyProduct, canonicalPath?: string
               </div>
             ))}
           </div>
+          {showArcEquineGelPromo && (
+            <div className="mt-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
+              <div className="flex items-start gap-2">
+                <svg className="h-5 w-5 flex-shrink-0 text-green-500 mt-0.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3.5a2.5 2.5 0 01-2 2.45V16a1 1 0 01-1 1H6a1 1 0 01-1-1V8.95A2.5 2.5 0 013 6.5V3zm2 2v1.5a.5.5 0 00.5.5H9V5H5zm6 0v2h3.5a.5.5 0 00.5-.5V5h-4zM9 9H7v6h2V9zm2 0v6h2V9h-2z" />
+                </svg>
+                <p className="text-sm font-semibold text-green-900">
+                  Get a FREE Bonus ArcEquine Conductive Gel with every order.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="lg:grid lg:grid-cols-12 lg:gap-12 items-start">
           {/* Left Column: Image Gallery & Description */}
-          <div className="lg:col-span-7 space-y-8">
+          <section className="lg:col-span-7 space-y-8" aria-label="Product images and description">
             <ProductImageGallery 
               images={product.images}
               productTitle={product.title}
             />
             <ProductDescription html={descriptionHtml} productTitle={displayTitle} />
-          </div>
+          </section>
 
           {/* Right Column: Product Info & Buy Box (Sticky) */}
-          <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-6 lg:mb-0">
+          <section className="lg:col-span-5 lg:sticky lg:top-24 space-y-6 lg:mb-0" aria-label="Purchase options">
             
             {/* Title & Rating */}
             <div className="hidden lg:block">
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">{displayTitle}</h2>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">{displayTitle}</h1>
               <div className="mb-4">
                 <ProductPageReviewBadge
                   productId={product.id}
@@ -285,14 +345,27 @@ async function renderProductPage(product: ShopifyProduct, canonicalPath?: string
                   </div>
                 ))}
               </div>
+              {showArcEquineGelPromo && (
+                <div className="mt-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
+                  <div className="flex items-start gap-2">
+                    <svg className="h-5 w-5 flex-shrink-0 text-green-500 mt-0.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3.5a2.5 2.5 0 01-2 2.45V16a1 1 0 01-1 1H6a1 1 0 01-1-1V8.95A2.5 2.5 0 013 6.5V3zm2 2v1.5a.5.5 0 00.5.5H9V5H5zm6 0v2h3.5a.5.5 0 00.5-.5V5h-4zM9 9H7v6h2V9zm2 0v6h2V9h-2z" />
+                    </svg>
+                    <p className="text-sm font-semibold text-green-900">
+                      Get a FREE Bonus ArcEquine Conductive Gel with every order.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Buy Box */}
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-gray-100">
               <ProductBuyBox product={product} />
             </div>
-          </div>
+          </section>
         </div>
+        </article>
         
         {/* Sizing Guide Link - Between Description and Reviews */}
         <SizingGuideLink
@@ -319,6 +392,7 @@ async function renderProductPage(product: ShopifyProduct, canonicalPath?: string
         <RelatedProducts 
           products={relatedProducts} 
           reviewStatsMap={relatedReviewStats}
+          productHrefByHandle={relatedProductHrefByHandle}
         />
       </div>
     </div>
@@ -335,22 +409,25 @@ async function renderSubSubcategoryPage(
   afterCursor: string | null = null,
   filterBrands?: string[],
   filterSizes?: string[],
-  filterColors?: string[]
+  filterColors?: string[],
+  sortBy?: 'featured' | 'on-sale' | 'newest' | 'oldest' | 'price-asc' | 'price-desc'
 ) {
   // Fetch products allocated to this sub-subcategory from product_category_assignments table
   const categoryPath = `/${category}/${subcategory}/${subsubcategory}`;
-  const { products: filteredProducts, pageInfo, facets, totalCount } = await getProductsByCategory(
-    categoryPath,
-    36, 
-    afterCursor,
-    { 
-      brands: filterBrands,
-      sizes: filterSizes,
-      colors: filterColors
-    }
-  );
+  const { products: filteredProducts, pageInfo, facets, totalCount } =
+    await getProductsByCategoryForCollectionPage(
+      categoryPath,
+      36,
+      afterCursor,
+      {
+        brands: filterBrands,
+        sizes: filterSizes,
+        colors: filterColors,
+      },
+      sortBy
+    );
 
-  // Total count is now returned from getProductsByCategory (no separate API call needed)
+  // Total count is returned from getProductsByCategoryForCollectionPage (no separate API call needed)
   const totalProductCount = totalCount;
 
   // EMPTY CATEGORY REDIRECT: If this sub-subcategory has no products and no filters are applied,
@@ -363,7 +440,7 @@ async function renderSubSubcategoryPage(
   // Allowed brands for the filter sidebar (same logic as 2nd-level pages)
   const allowedBrands = (category === 'pet' || category === 'accessories')
     ? undefined
-    : getAllowedBrandVendors();
+    : await getAllowedBrandVendors();
 
   // Review stats for product cards
   const productHandles = filteredProducts.map((p) => p.handle);
@@ -388,7 +465,11 @@ async function renderSubSubcategoryPage(
   // Use database content if available, otherwise fallback to mapping
   const pageTitle = content?.h1_title || mappingTitle;
   const description = content?.short_description || '';
-  
+
+  const parentCollectionLink = await getParentCollectionLink(
+    content?.parent_url?.trim() || `/${category}/${subcategory}`
+  );
+
   // Generate canonical URLs for all products (fast with Neon DB)
   // Product cards will link directly to category-based URLs
   const { getProductCanonicalUrls } = await import('@/lib/shopify/products');
@@ -403,8 +484,6 @@ async function renderSubSubcategoryPage(
   // Get parent collection info
   const parentCollectionTitle = getCollectionTitle(category, subcategory);
 
-  // Build "Best in Class" Collection Schema using FAST version (performance optimized)
-  // Uses simple /products/{handle} URLs for schema (canonical URLs still used in product grid)
   const collectionSchema = generateCollectionSchemaFast({
     collectionName: pageTitle,
     collectionUrl: `${siteUrl}/${category}/${subcategory}/${subsubcategory}`,
@@ -438,24 +517,19 @@ async function renderSubSubcategoryPage(
           <h1 className="text-4xl font-bold mb-6">{pageTitle}</h1>
           
           {/* Collection Description */}
-          <CollectionDescription 
+          <CollectionDescription
             description={description}
+            parentCollectionLink={parentCollectionLink}
           />
-        </div>
-
-        {/* Trust Signals */}
-        <div className="mb-8 -mx-4">
-          <TrustSignals />
         </div>
 
         {/* Sibling Sub-subcategories Pills */}
         {siblingSubSubcategories.length > 0 && (
-          <div className="mb-8">
-            <CategoryPills 
-              categories={siblingSubSubcategories.map(s => ({ handle: s.handle, label: s.label }))}
-              basePath={`/${category}/${subcategory}`}
-            />
-          </div>
+          <CategoryPills 
+            categories={siblingSubSubcategories.map(s => ({ handle: s.handle, label: s.label }))}
+            basePath={`/${category}/${subcategory}`}
+            sectionHeading={`Shop ${getCollectionTitle(category, subcategory)} by Type`}
+          />
         )}
 
         {/* Products Grid with Filters */}
@@ -472,6 +546,11 @@ async function renderSubSubcategoryPage(
             reviewStatsMap={reviewStats}
           />
         </Suspense>
+
+        {/* Trust Signals */}
+        <div className="mb-8 -mx-4 mt-8">
+          <TrustSignals />
+        </div>
 
         {/* Long Description (Rich Content) */}
         {content?.long_description && (

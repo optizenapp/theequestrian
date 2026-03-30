@@ -3,6 +3,8 @@
  * Uses native fetch for proper Next.js caching support
  */
 
+import { SHOPIFY_GRAPHQL_FORCE_CACHE_REVALIDATE_SECONDS } from '@/lib/config/route-revalidate';
+
 interface ShopifyFetchOptions {
   query: string;
   variables?: Record<string, any>;
@@ -41,7 +43,8 @@ export async function shopifyFetch<T>({
       }),
       cache, // This now actually works with Next.js caching!
       next: {
-        revalidate: cache === 'force-cache' ? 900 : undefined, // 15 minutes
+        revalidate:
+          cache === 'force-cache' ? SHOPIFY_GRAPHQL_FORCE_CACHE_REVALIDATE_SECONDS : undefined,
         tags: tags.length > 0 ? tags : undefined,
       },
     });

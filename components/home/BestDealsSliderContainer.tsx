@@ -1,5 +1,5 @@
 
-import { getProductByHandle, getProductsByTypes } from '@/lib/shopify/products';
+import { getProductByHandle, getProductCanonicalUrls, getProductsByTypes } from '@/lib/shopify/products';
 import { getCollectionByHandle } from '@/lib/shopify/collections';
 import { BestDealsSlider } from '@/components/BestDealsSlider';
 import { normalizeProductType } from '@/lib/shopify/collection-mapping';
@@ -217,6 +217,20 @@ export async function BestDealsSliderContainer({ section }: BestDealsSliderConta
           image: imageUrl || item.image
         };
       })
+    );
+  }
+
+  const productBackedItems = enrichedItems.filter((i) => i.handle);
+  if (productBackedItems.length > 0) {
+    const productsForUrls = await getProductsByHandles(productBackedItems.map((i) => i.handle!));
+    const urlById = await getProductCanonicalUrls(productsForUrls);
+    const pathByHandle = new Map(
+      productsForUrls.map((p) => [p.handle, urlById.get(p.id) ?? `/products/${p.handle}`])
+    );
+    enrichedItems = enrichedItems.map((item) =>
+      item.handle && pathByHandle.has(item.handle)
+        ? { ...item, productHref: pathByHandle.get(item.handle)! }
+        : item
     );
   }
 

@@ -25,6 +25,8 @@ type TemplateVisualSettings = {
   delayDays: number;
   baseFontSize: number;
   subjectTemplate: string;
+  /** Optional prompt for Auto weekly subject line (stored in template metadata) */
+  subjectPrompt?: string;
   blocks: EmailBlock[];
   fromName: string;
   fromEmail: string;
@@ -38,15 +40,42 @@ type TemplateVisualSettings = {
 const blockTypeLabels: Record<EmailBlock['type'], string> = {
   heading: 'Heading',
   text: 'Text',
+  llmIntro: 'LLM Intro',
+  llmHeading: 'LLM Heading',
   cta: 'Button',
   productCards: 'Product Cards',
-  curatedProducts: 'Curated Products',
+  curatedProducts: 'LLM Curated Products',
+  image: 'Image',
   divider: 'Divider',
   footer: 'Footer',
 };
 
 function generateId() {
   return `block-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+}
+
+/** Ensure blocks from API have lowercase type so editor conditions match. */
+function normalizeBlocksForEditor(blocks: unknown): EmailBlock[] {
+  if (!Array.isArray(blocks)) return [];
+  return blocks.map((raw): EmailBlock | null => {
+    if (!raw || typeof raw !== 'object') return null;
+    const b = raw as Record<string, unknown>;
+    const type = typeof b.type === 'string' ? b.type.trim().toLowerCase() : '';
+    if (!type) return null;
+    const id = typeof b.id === 'string' && b.id.trim() ? b.id.trim() : generateId();
+    const base = { id, type: type as EmailBlock['type'] };
+    if (type === 'heading') return { ...base, type: 'heading', text: String(b.text ?? ''), level: b.level === 1 || b.level === 3 ? (b.level as 1 | 3) : 2, align: (b.align as 'left' | 'center' | 'right') || 'left', fontSize: Number(b.fontSize) || 28 };
+    if (type === 'text') return { ...base, type: 'text', text: String(b.text ?? ''), align: (b.align as 'left' | 'center' | 'right') || 'left', fontSize: Number(b.fontSize) || 16 };
+    if (type === 'llmintro') return { ...base, type: 'llmIntro', text: String(b.text ?? ''), align: (b.align as 'left' | 'center' | 'right') || 'left', fontSize: Number(b.fontSize) || 16, prompt: typeof b.prompt === 'string' ? b.prompt : undefined };
+    if (type === 'llmheading') return { ...base, type: 'llmHeading', text: String(b.text ?? ''), level: b.level === 1 || b.level === 3 ? (b.level as 1 | 3) : 2, align: (b.align as 'left' | 'center' | 'right') || 'left', fontSize: Number(b.fontSize) || 28, prompt: typeof b.prompt === 'string' ? b.prompt : undefined };
+    if (type === 'cta') return { ...base, type: 'cta', label: String(b.label ?? ''), url: String(b.url ?? ''), align: (b.align as 'left' | 'center' | 'right') || 'center', fontSize: Number(b.fontSize) || 15 };
+    if (type === 'productcards') return { ...base, type: 'productCards', mode: b.mode === 'all' ? 'all' : 'single', align: (b.align as 'left' | 'center' | 'right') || 'center', fontSize: Number(b.fontSize) || 16 };
+    if (type === 'curatedproducts') return { ...base, type: 'curatedProducts', products: Array.isArray(b.products) ? b.products as CuratedProductCard[] : [], showDividers: b.showDividers === true, align: (b.align as 'left' | 'center' | 'right') || 'center', fontSize: Number(b.fontSize) || 16, prompt: typeof b.prompt === 'string' ? b.prompt : undefined };
+    if (type === 'image') return { ...base, type: 'image', url: String(b.url ?? ''), alt: String(b.alt ?? ''), linkUrl: typeof b.linkUrl === 'string' ? b.linkUrl : undefined, align: (b.align as 'left' | 'center' | 'right') || 'center', maxWidth: typeof b.maxWidth === 'number' ? b.maxWidth : undefined };
+    if (type === 'divider') return { ...base, type: 'divider', align: (b.align as 'left' | 'center' | 'right') || 'center' };
+    if (type === 'footer') return { ...base, type: 'footer', text: String(b.text ?? ''), align: (b.align as 'left' | 'center' | 'right') || 'left', fontSize: Number(b.fontSize) || 12 };
+    return null;
+  }).filter((b): b is EmailBlock => b != null);
 }
 
 function getDefaultBlocks(category: TemplateCategory): EmailBlock[] {
@@ -138,6 +167,7 @@ function buildMetadataFromSettings(settings: TemplateVisualSettings) {
     headerBackground: settings.headerBackground,
     linkColor: settings.linkColor,
     logoUrl: settings.logoUrl,
+    ...(typeof settings.subjectPrompt === 'string' ? { subjectPrompt: settings.subjectPrompt } : {}),
   };
 }
 
@@ -170,6 +200,9 @@ export default function AdminEmailTemplatesPage() {
   } | null>(null);
   const [previewHtml, setPreviewHtml] = useState('');
   const [previewLoaded, setPreviewLoaded] = useState(false);
+  const [exampleSubjectLine, setExampleSubjectLine] = useState<string | null>(null);
+  const [generateExampleLoading, setGenerateExampleLoading] = useState(false);
+  const [generateExampleError, setGenerateExampleError] = useState<string | null>(null);
 
   async function loadTemplates() {
     const response = await fetch('/api/admin/email/templates');
@@ -187,6 +220,7 @@ export default function AdminEmailTemplatesPage() {
   };
 
   const fetchPreviewHtml = useCallback(async () => {
+    setExampleSubjectLine(null);
     try {
       const response = await fetch('/api/admin/email/templates/preview', {
         method: 'POST',
@@ -206,6 +240,32 @@ export default function AdminEmailTemplatesPage() {
       setPreviewLoaded(true);
     }
   }, [previewHandle, settings]);
+
+  async function handleGenerateExample() {
+    setGenerateExampleError(null);
+    setGenerateExampleLoading(true);
+    try {
+      const response = await fetch('/api/admin/email/templates/generate-example', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          blocks: settings.blocks,
+          metadata: buildMetadataFromSettings(settings),
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setGenerateExampleError(data?.error || 'Failed to generate example');
+        return;
+      }
+      if (data.html) setPreviewHtml(data.html);
+      setExampleSubjectLine(data.subjectLine ?? null);
+    } catch (err) {
+      setGenerateExampleError(err instanceof Error ? err.message : 'Failed to generate example');
+    } finally {
+      setGenerateExampleLoading(false);
+    }
+  }
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -240,6 +300,8 @@ export default function AdminEmailTemplatesPage() {
     const id = generateId();
     if (type === 'heading') updateSetting('blocks', [...settings.blocks, { id, type, level: 2, text: 'Your heading here' }]);
     if (type === 'text') updateSetting('blocks', [...settings.blocks, { id, type, text: 'Your text here' }]);
+    if (type === 'llmIntro') updateSetting('blocks', [...settings.blocks, { id, type, text: 'Hey there,\n\n(Intro filled automatically when used for Auto weekly.)', align: 'left' as const }]);
+    if (type === 'llmHeading') updateSetting('blocks', [...settings.blocks, { id, type, text: "This week's picks", level: 2, align: 'center' as const }]);
     if (type === 'cta') updateSetting('blocks', [...settings.blocks, { id, type, label: 'Write review', url: '{{productUrl}}', align: 'center' }]);
     if (type === 'productCards') updateSetting('blocks', [...settings.blocks, { id, type, mode: 'single', align: 'center' }]);
     if (type === 'curatedProducts') {
@@ -254,6 +316,7 @@ export default function AdminEmailTemplatesPage() {
         },
       ]);
     }
+    if (type === 'image') updateSetting('blocks', [...settings.blocks, { id, type, url: '', alt: '', align: 'center' }]);
     if (type === 'divider') updateSetting('blocks', [...settings.blocks, { id, type, align: 'center' }]);
     if (type === 'footer') updateSetting('blocks', [...settings.blocks, { id, type, text: 'Footer text here', align: 'center' }]);
   };
@@ -413,7 +476,7 @@ export default function AdminEmailTemplatesPage() {
         delayDays: typeof metadata.delayDays === 'number' ? metadata.delayDays : category === 'order_review' ? 10 : 0,
         baseFontSize: typeof metadata.baseFontSize === 'number' ? metadata.baseFontSize : 16,
         subjectTemplate: template.version?.subjectTemplate || '',
-        blocks: Array.isArray(template.version?.blocks) ? template.version.blocks : getDefaultBlocks(category),
+        blocks: Array.isArray(template.version?.blocks) ? normalizeBlocksForEditor(template.version.blocks) : getDefaultBlocks(category),
         fromName: template.version?.fromName || 'The Equestrian',
         fromEmail: template.version?.fromEmail || 'support@theequestrian.com.au',
         brandPrimary:
@@ -429,6 +492,7 @@ export default function AdminEmailTemplatesPage() {
         linkColor:
           typeof metadata.linkColor === 'string' && metadata.linkColor.trim() ? metadata.linkColor : '#de8e94',
         logoUrl: typeof metadata.logoUrl === 'string' ? metadata.logoUrl : null,
+        subjectPrompt: typeof metadata.subjectPrompt === 'string' ? metadata.subjectPrompt : undefined,
       });
       setStatusMessage(`Editing template: ${template.name}`);
       setTimeout(() => setStatusMessage(''), 2500);
@@ -447,6 +511,61 @@ export default function AdminEmailTemplatesPage() {
     setSettings(getDefaultSettings(category));
     setStatusMessage('New template ready.');
     setTimeout(() => setStatusMessage(''), 2000);
+  };
+
+  const duplicateTemplate = async (templateId: string) => {
+    setLoadingTemplateId(templateId);
+    setError('');
+    try {
+      const response = await fetch(`/api/admin/email/templates/${templateId}`);
+      const data = await response.json();
+      if (!response.ok || !data?.template) {
+        throw new Error(data?.error || 'Failed to load template');
+      }
+      const template = data.template;
+      const metadata = (template.version?.metadata || {}) as Record<string, unknown>;
+      const category = metadata.category === 'subscriber_standard' ? 'subscriber_standard' : 'order_review';
+      setIsEditorOpen(true);
+      setEditorMode('create');
+      setSelectedTemplateId(null);
+      setName(`Copy of ${template.name || 'Template'}`);
+      setSettings({
+        category,
+        deliveryMode:
+          metadata.deliveryMode === 'manual_or_campaign'
+            ? 'manual_or_campaign'
+            : category === 'subscriber_standard'
+              ? 'manual_or_campaign'
+              : 'post_fulfillment',
+        enabled: metadata.enabled !== false,
+        delayDays: typeof metadata.delayDays === 'number' ? metadata.delayDays : category === 'order_review' ? 10 : 0,
+        baseFontSize: typeof metadata.baseFontSize === 'number' ? metadata.baseFontSize : 16,
+        subjectTemplate: template.version?.subjectTemplate || '',
+        blocks: Array.isArray(template.version?.blocks) ? normalizeBlocksForEditor(template.version.blocks) : getDefaultBlocks(category),
+        fromName: template.version?.fromName || 'The Equestrian',
+        fromEmail: template.version?.fromEmail || 'support@theequestrian.com.au',
+        brandPrimary:
+          typeof metadata.brandPrimary === 'string' && metadata.brandPrimary.trim()
+            ? metadata.brandPrimary
+            : '#000000',
+        brandDark:
+          typeof metadata.brandDark === 'string' && metadata.brandDark.trim() ? metadata.brandDark : '#000000',
+        headerBackground:
+          typeof metadata.headerBackground === 'string' && metadata.headerBackground.trim()
+            ? metadata.headerBackground
+            : '#ffffff',
+        linkColor:
+          typeof metadata.linkColor === 'string' && metadata.linkColor.trim() ? metadata.linkColor : '#de8e94',
+        logoUrl: typeof metadata.logoUrl === 'string' ? metadata.logoUrl : null,
+        subjectPrompt: typeof metadata.subjectPrompt === 'string' ? metadata.subjectPrompt : undefined,
+      });
+      setStatusMessage('Duplicated. Rename and save as a new template, then you can select it for Auto weekly.');
+      setTimeout(() => setStatusMessage(''), 4000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to duplicate template');
+    } finally {
+      setLoadingTemplateId(null);
+    }
   };
 
   const closeEditor = () => {
@@ -561,24 +680,41 @@ export default function AdminEmailTemplatesPage() {
                 <p className="mt-1 text-xs text-gray-500">Standard campaign email without delay.</p>
               </button>
               {templates.map((template) => (
-                <button
+                <div
                   key={template.id}
-                  type="button"
-                  onClick={() => loadTemplateIntoEditor(template.id)}
                   className="rounded-xl border border-gray-200 bg-white p-4 text-left transition hover:border-gray-300"
                 >
-                  <p className="text-sm font-semibold text-gray-900">{template.name}</p>
-                  <p className="mt-1 text-xs text-gray-600">
-                    {categoryLabel(template.category)} · {template.templateType}
-                  </p>
-                  <p className="mt-1 text-xs text-gray-500">
-                    {template.activeVersionId ? `Active: ${template.activeVersionId.slice(0, 8)}...` : 'No active version'}
-                  </p>
-                  <p className="mt-1 text-xs text-gray-400">Updated {new Date(template.updatedAt).toLocaleString()}</p>
-                  {loadingTemplateId === template.id ? (
-                    <p className="mt-2 text-xs text-action">Opening...</p>
-                  ) : null}
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => loadTemplateIntoEditor(template.id)}
+                    className="block w-full text-left"
+                  >
+                    <p className="text-sm font-semibold text-gray-900">{template.name}</p>
+                    <p className="mt-1 text-xs text-gray-600">
+                      {categoryLabel(template.category)} · {template.templateType}
+                    </p>
+                    <p className="mt-1 text-xs text-gray-500">
+                      {template.activeVersionId ? `Active: ${template.activeVersionId.slice(0, 8)}...` : 'No active version'}
+                    </p>
+                    <p className="mt-1 text-xs text-gray-400">Updated {new Date(template.updatedAt).toLocaleString()}</p>
+                    {loadingTemplateId === template.id ? (
+                      <p className="mt-2 text-xs text-action">Opening...</p>
+                    ) : null}
+                  </button>
+                  <div className="mt-2 border-t border-gray-100 pt-2">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        duplicateTemplate(template.id);
+                      }}
+                      disabled={loadingTemplateId === template.id}
+                      className="rounded-full border border-gray-200 px-2.5 py-1 text-xs font-semibold text-gray-600 hover:border-action hover:text-action disabled:opacity-50"
+                    >
+                      {loadingTemplateId === template.id ? '…' : 'Duplicate'}
+                    </button>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
@@ -614,8 +750,13 @@ export default function AdminEmailTemplatesPage() {
               </div>
             </div>
             <div className="mt-3 grid gap-3 md:grid-cols-2">
-              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Template name" className="rounded border border-gray-300 px-3 py-2 text-sm" />
-              <select
+              <label className="block">
+                <span className="mb-1 block text-xs font-medium text-gray-700">Template name</span>
+                <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Auto Weekly – Subscriber" className="w-full rounded border border-gray-300 px-3 py-2 text-sm" />
+              </label>
+              <label className="block">
+                <span className="mb-1 block text-xs font-medium text-gray-700">Category</span>
+                <select
                 value={settings.category}
                 onChange={(e) => {
                   const category = e.target.value as TemplateCategory;
@@ -625,11 +766,12 @@ export default function AdminEmailTemplatesPage() {
                     updateSetting('delayDays', 0);
                   }
                 }}
-                className="rounded border border-gray-300 px-3 py-2 text-sm"
+                className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
               >
                 <option value="order_review">Order Review</option>
                 <option value="subscriber_standard">Subscriber Standard</option>
               </select>
+              </label>
             </div>
           </div>
 
@@ -658,6 +800,16 @@ export default function AdminEmailTemplatesPage() {
               <label className="block text-sm font-medium text-gray-700">
                 Subject line
                 <input type="text" value={settings.subjectTemplate} onChange={(e) => updateSetting('subjectTemplate', e.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+              </label>
+              <label className="block text-sm font-medium text-gray-700 md:col-span-2">
+                Subject line prompt (for Auto weekly)
+                <textarea
+                  value={settings.subjectPrompt ?? ''}
+                  onChange={(e) => updateSetting('subjectPrompt', e.target.value || undefined)}
+                  rows={3}
+                  placeholder="Optional. When this template is used for Auto weekly, this prompt generates the subject line. Use {{productContext}} and {{sendDate}}."
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                />
               </label>
               <label className="block text-sm font-medium text-gray-700">
                 From name
@@ -738,6 +890,17 @@ export default function AdminEmailTemplatesPage() {
               </div>
               <button type="button" onClick={resetToDefaults} className="rounded-full border border-gray-300 px-4 py-2 text-xs font-semibold text-gray-600 hover:border-action hover:text-action">Reset to defaults</button>
             </div>
+            <div className="sticky top-2 z-10 mb-4 rounded-lg border border-sky-200 bg-sky-50/95 p-3 shadow-sm backdrop-blur-sm">
+              <p className="mb-2 text-xs font-semibold text-sky-800">Add block</p>
+              <div className="flex flex-wrap gap-2">
+                {(['heading', 'text', 'llmIntro', 'llmHeading', 'cta', 'productCards', 'curatedProducts', 'image', 'divider', 'footer'] as const).map((type) => (
+                  <button key={type} type="button" onClick={() => addBlock(type)} className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:border-action hover:bg-action/5 hover:text-action">+ {blockTypeLabels[type]}</button>
+                ))}
+              </div>
+              <p className="mt-2 text-xs text-sky-700">
+                <strong>Image</strong> — upload or paste a URL for banners/logos. <strong>LLM blocks</strong> (filled automatically when used for Auto weekly): <strong>LLM Heading</strong> — heading from prompt or static text; <strong>LLM Intro</strong> — intro text generated each run; <strong>LLM Curated Products</strong> — the 3 auto-selected products.
+              </p>
+            </div>
             <div className="mb-4 flex flex-wrap gap-1.5">
               {[
                 { label: 'Customer name', token: '{{customerName}}' },
@@ -760,7 +923,7 @@ export default function AdminEmailTemplatesPage() {
                   const block = settings.blocks.find((b) => b.id === lastFocusedInput.blockId);
                   if (!block) return;
                   const field = lastFocusedInput.field;
-                  if (block.type === 'heading' || block.type === 'text') {
+                  if (block.type === 'heading' || block.type === 'text' || block.type === 'llmIntro' || block.type === 'llmHeading') {
                     const currentText = block.text || '';
                     const input = document.querySelector(`[data-block-id="${block.id}"][data-field="${field}"]`) as HTMLInputElement | HTMLTextAreaElement;
                     if (input) {
@@ -783,10 +946,22 @@ export default function AdminEmailTemplatesPage() {
               ))}
             </div>
             <div className="space-y-3">
-              {settings.blocks.map((block, idx) => (
-                <div key={block.id} className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="text-xs font-semibold uppercase text-gray-500">{blockTypeLabels[block.type]}</span>
+              {settings.blocks.map((block, idx) => {
+                const isLlmBlock = block.type === 'llmIntro' || block.type === 'llmHeading' || block.type === 'curatedProducts';
+                return (
+                <div
+                  key={block.id}
+                  className={`rounded-lg border p-4 ${isLlmBlock ? 'border-sky-300 border-l-4 border-l-sky-500 bg-sky-50/50' : 'border-gray-200 bg-gray-50'}`}
+                >
+                  <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                    <span className={`text-xs font-semibold uppercase ${isLlmBlock ? 'text-sky-700' : 'text-gray-500'}`}>
+                      {blockTypeLabels[block.type]}
+                    </span>
+                    {isLlmBlock ? (
+                      <span className="rounded-full bg-sky-200 px-2 py-0.5 text-xs font-medium text-sky-800">
+                        Auto-filled when used for Auto weekly
+                      </span>
+                    ) : null}
                     <div className="flex items-center gap-1">
                       <button type="button" onClick={() => moveBlock(block.id, 'up')} disabled={idx === 0} className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30">↑</button>
                       <button type="button" onClick={() => moveBlock(block.id, 'down')} disabled={idx === settings.blocks.length - 1} className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30">↓</button>
@@ -836,6 +1011,83 @@ export default function AdminEmailTemplatesPage() {
                       <textarea value={block.text} onChange={(e) => updateBlock(block.id, { text: e.target.value })} onFocus={() => setLastFocusedInput({ blockId: block.id, field: 'text' })} data-block-id={block.id} data-field="text" rows={3} className="w-full rounded border border-gray-300 px-3 py-2 text-sm" />
                     </div>
                   )}
+                  {block.type === 'llmHeading' && (
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium text-sky-700">Filled automatically when used for Auto weekly. You can set a prompt and/or static text below.</p>
+                      <label className="block text-xs font-medium text-gray-700">
+                        Prompt (optional — generates heading each run when set; use {'{{productContext}}'} and {'{{sendDate}}'})
+                        <textarea
+                          value={'prompt' in block ? (block.prompt ?? '') : ''}
+                          onChange={(e) => updateBlock(block.id, { prompt: e.target.value || undefined } as Partial<EmailBlock>)}
+                          rows={2}
+                          placeholder="e.g. One short headline referencing the products"
+                          className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                        />
+                      </label>
+                      <label className="block text-xs font-medium text-gray-700">
+                        Text (fallback / preview — used when no prompt or when not Auto weekly)
+                        <input
+                          type="text"
+                          value={block.text}
+                          onChange={(e) => updateBlock(block.id, { text: e.target.value })}
+                          onFocus={() => setLastFocusedInput({ blockId: block.id, field: 'text' })}
+                          data-block-id={block.id}
+                          data-field="text"
+                          placeholder="e.g. This week's picks"
+                          className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                        />
+                      </label>
+                      <div className="flex gap-2">
+                        <select value={block.level || 2} onChange={(e) => updateBlock(block.id, { level: Number(e.target.value) as 1 | 2 | 3 })} className="w-24 rounded border border-gray-300 px-2 py-1 text-sm">
+                          <option value={1}>H1</option>
+                          <option value={2}>H2</option>
+                          <option value={3}>H3</option>
+                        </select>
+                        <select value={block.align || 'left'} onChange={(e) => updateBlock(block.id, { align: e.target.value as 'left' | 'center' | 'right' })} className="w-28 rounded border border-gray-300 px-2 py-1 text-sm">
+                          <option value="left">Left</option>
+                          <option value="center">Center</option>
+                          <option value="right">Right</option>
+                        </select>
+                        <input
+                          type="number"
+                          min={10}
+                          max={48}
+                          value={block.fontSize || 28}
+                          onChange={(e) => updateBlock(block.id, { fontSize: Number(e.target.value || 28) })}
+                          className="w-24 rounded border border-gray-300 px-2 py-1 text-sm"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {block.type === 'llmIntro' && (
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium text-sky-700">Filled automatically when this template is used for Auto weekly. Placeholder text below is for preview only.</p>
+                      <label className="block text-xs font-medium text-gray-700">
+                        Prompt (optional — overrides the global intro prompt when set)
+                        <textarea
+                          value={'prompt' in block ? (block.prompt ?? '') : ''}
+                          onChange={(e) => updateBlock(block.id, { prompt: e.target.value || undefined } as Partial<EmailBlock>)}
+                          rows={3}
+                          placeholder="Leave empty to use the intro prompt from Auto weekly settings. Or write a custom prompt; {{productContext}} and {{sendDate}} are replaced."
+                          className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                        />
+                      </label>
+                      <select value={block.align || 'left'} onChange={(e) => updateBlock(block.id, { align: e.target.value as 'left' | 'center' | 'right' })} className="w-28 rounded border border-gray-300 px-2 py-1 text-sm">
+                        <option value="left">Left</option>
+                        <option value="center">Center</option>
+                        <option value="right">Right</option>
+                      </select>
+                      <input
+                        type="number"
+                        min={10}
+                        max={48}
+                        value={block.fontSize || 16}
+                        onChange={(e) => updateBlock(block.id, { fontSize: Number(e.target.value || 16) })}
+                        className="w-24 rounded border border-gray-300 px-2 py-1 text-sm"
+                      />
+                      <textarea value={block.text} onChange={(e) => updateBlock(block.id, { text: e.target.value })} onFocus={() => setLastFocusedInput({ blockId: block.id, field: 'text' })} data-block-id={block.id} data-field="text" rows={3} className="w-full rounded border border-gray-300 px-3 py-2 text-sm" placeholder="Placeholder (e.g. Hey there, …)" />
+                    </div>
+                  )}
                   {block.type === 'cta' && (
                     <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                       <input type="text" value={block.label} onChange={(e) => updateBlock(block.id, { label: e.target.value })} onFocus={() => setLastFocusedInput({ blockId: block.id, field: 'label' })} data-block-id={block.id} data-field="label" className="rounded border border-gray-300 px-3 py-2 text-sm" />
@@ -878,6 +1130,16 @@ export default function AdminEmailTemplatesPage() {
                   )}
                   {block.type === 'curatedProducts' && (
                     <div className="space-y-2">
+                      <label className="block text-xs font-medium text-gray-700">
+                        Prompt (optional — for Auto weekly: guides which 3 products are picked from candidates; e.g. focus on grooming, winter gear)
+                        <textarea
+                          value={'prompt' in block ? (block.prompt ?? '') : ''}
+                          onChange={(e) => updateBlock(block.id, { prompt: e.target.value || undefined } as Partial<EmailBlock>)}
+                          rows={2}
+                          placeholder="e.g. Prefer a mix of bestsellers and on-sale items. Favour grooming and horse care when possible."
+                          className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                        />
+                      </label>
                       <select value={block.align || 'center'} onChange={(e) => updateBlock(block.id, { align: e.target.value as 'left' | 'center' | 'right' })} className="rounded border border-gray-300 px-2 py-1 text-sm">
                         <option value="left">Align left</option>
                         <option value="center">Align center</option>
@@ -1075,6 +1337,76 @@ export default function AdminEmailTemplatesPage() {
                       </button>
                     </div>
                   )}
+                  {block.type === 'image' && (
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <input
+                          type="text"
+                          placeholder="Image URL"
+                          value={block.url}
+                          onChange={(e) => updateBlock(block.id, { url: e.target.value })}
+                          className="min-w-0 flex-1 rounded border border-gray-300 px-3 py-2 text-sm"
+                        />
+                        <label className="rounded border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:border-action hover:text-action cursor-pointer">
+                          Upload
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="sr-only"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              e.target.value = '';
+                              if (!file || block.type !== 'image') return;
+                              try {
+                                const form = new FormData();
+                                form.set('file', file);
+                                const res = await fetch('/api/admin/email/templates/upload-image', { method: 'POST', body: form });
+                                const data = await res.json();
+                                if (!res.ok) throw new Error(data?.error || 'Upload failed');
+                                if (data?.url) updateBlock(block.id, { url: data.url });
+                              } catch (err) {
+                                setStatusMessage(err instanceof Error ? err.message : 'Upload failed');
+                                setTimeout(() => setStatusMessage(''), 3000);
+                              }
+                            }}
+                          />
+                        </label>
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Alt text"
+                        value={block.alt ?? ''}
+                        onChange={(e) => updateBlock(block.id, { alt: e.target.value })}
+                        className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Link URL (optional)"
+                        value={block.linkUrl ?? ''}
+                        onChange={(e) => updateBlock(block.id, { linkUrl: e.target.value || undefined })}
+                        className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                      />
+                      <div className="flex flex-wrap items-center gap-2">
+                        <select value={block.align || 'center'} onChange={(e) => updateBlock(block.id, { align: e.target.value as 'left' | 'center' | 'right' })} className="rounded border border-gray-300 px-2 py-1 text-sm">
+                          <option value="left">Left</option>
+                          <option value="center">Center</option>
+                          <option value="right">Right</option>
+                        </select>
+                        <label className="flex items-center gap-1 text-xs text-gray-600">
+                          Max width
+                          <input
+                            type="number"
+                            min={100}
+                            max={600}
+                            value={block.maxWidth ?? 220}
+                            onChange={(e) => updateBlock(block.id, { maxWidth: e.target.value ? Number(e.target.value) : undefined })}
+                            className="w-20 rounded border border-gray-300 px-2 py-1 text-sm"
+                          />
+                          px
+                        </label>
+                      </div>
+                    </div>
+                  )}
                   {block.type === 'divider' && (
                     <div className="space-y-2">
                       <p className="text-xs italic text-gray-400">Horizontal line</p>
@@ -1104,11 +1436,13 @@ export default function AdminEmailTemplatesPage() {
                     </div>
                   )}
                 </div>
-              ))}
+              );
+              })}
             </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {(['heading', 'text', 'cta', 'productCards', 'curatedProducts', 'divider', 'footer'] as const).map((type) => (
-                <button key={type} type="button" onClick={() => addBlock(type)} className="rounded-full border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:border-action hover:text-action">+ {blockTypeLabels[type]}</button>
+            <p className="mt-4 text-xs font-medium text-gray-500">Add another block</p>
+            <div className="mt-1 flex flex-wrap gap-2">
+              {(['heading', 'text', 'llmIntro', 'llmHeading', 'cta', 'productCards', 'curatedProducts', 'image', 'divider', 'footer'] as const).map((type) => (
+                <button key={type} type="button" onClick={() => addBlock(type)} className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:border-action hover:bg-action/5 hover:text-action">+ {blockTypeLabels[type]}</button>
               ))}
             </div>
           </div>
@@ -1131,6 +1465,7 @@ export default function AdminEmailTemplatesPage() {
               <input type="text" placeholder="Preview product handle" value={previewHandle} onChange={(e) => setPreviewHandle(e.target.value)} className="w-64 rounded-full border border-gray-300 px-4 py-2 text-sm" />
               <button type="button" onClick={loadPreviewProduct} disabled={previewLoading} className="rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:border-action hover:text-action disabled:cursor-not-allowed disabled:opacity-60">{previewLoading ? 'Loading...' : 'Load product'}</button>
               <button type="button" onClick={fetchPreviewHtml} className="rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:border-action hover:text-action">Refresh preview</button>
+              <button type="button" onClick={handleGenerateExample} disabled={generateExampleLoading} className="rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-semibold text-sky-800 hover:border-sky-300 hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-60">{generateExampleLoading ? 'Generating...' : 'Generate example'}</button>
               {previewProduct ? (
                 <span className="text-xs text-gray-500">
                   Previewing: {previewProduct.title}
@@ -1138,8 +1473,15 @@ export default function AdminEmailTemplatesPage() {
                   {previewProduct.savePercent ? ` · Save ${previewProduct.savePercent}` : ''}
                 </span>
               ) : null}
+              {exampleSubjectLine ? (
+                <span className="text-xs text-sky-700">Example subject: {exampleSubjectLine}</span>
+              ) : null}
               {previewError ? <span className="text-xs text-red-600">{previewError}</span> : null}
+              {generateExampleError ? <span className="text-xs text-red-600">{generateExampleError}</span> : null}
             </div>
+            {exampleSubjectLine ? (
+              <p className="mt-2 text-xs text-gray-500">Generated with sample products for Auto weekly. Use &quot;Refresh preview&quot; to return to the standard preview.</p>
+            ) : null}
             {previewLoaded ? (
               <div className="mt-4 overflow-auto rounded-xl border border-gray-100 bg-gray-50 p-4" style={{ maxHeight: '70vh' }}>
                 <iframe srcDoc={previewHtml} title="Email preview" className="w-full border-0" style={{ minHeight: '600px' }} />

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRef, useState, useEffect } from 'react';
+import { useId, useRef, useState, useEffect } from 'react';
 
 interface CategoryPill {
   handle: string;
@@ -12,9 +12,12 @@ interface CategoryPill {
 interface CategoryPillsProps {
   categories: CategoryPill[];
   basePath: string;
+  /** Visually hidden; e.g. "Shop Horse Rugs by Type" */
+  sectionHeading: string;
 }
 
-export function CategoryPills({ categories, basePath }: CategoryPillsProps) {
+export function CategoryPills({ categories, basePath, sectionHeading }: CategoryPillsProps) {
+  const headingId = useId();
   // Filter out categories with 0 products (only show categories that have products)
   const visibleCategories = categories.filter(cat => {
     // If count is not provided, assume it has products (backward compatibility)
@@ -57,52 +60,62 @@ export function CategoryPills({ categories, basePath }: CategoryPillsProps) {
   if (visibleCategories.length === 0) return null;
 
   return (
-    <div className="relative mb-6 flex items-center gap-3">
-      {/* Left Arrow */}
-      {showLeftArrow && (
-        <button
-          onClick={() => scroll('left')}
-          className="flex-shrink-0 w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors"
-          aria-label="Scroll left"
-        >
-          <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-      )}
+    <section
+      className="subcategory-pill-section mb-8"
+      aria-labelledby={headingId}
+    >
+      <h2 id={headingId} className="sr-only">
+        {sectionHeading}
+      </h2>
 
-      {/* Pills Container */}
-      <div 
-        ref={scrollRef}
-        onScroll={checkScroll}
-        className="flex-1 overflow-x-auto scrollbar-hide"
-      >
-        <div className="flex gap-3 pb-2">
-          {visibleCategories.map((category) => (
-            <Link
-              key={category.handle}
-              href={`${basePath}/${category.handle}`}
-              className="inline-flex items-center px-5 py-2.5 bg-white hover:bg-primary hover:text-white rounded-full text-sm font-medium text-gray-900 whitespace-nowrap transition-all border-2 border-gray-300 hover:border-primary shadow-sm hover:shadow-md"
-            >
-              {category.label}
-            </Link>
-          ))}
+      <div className="relative flex items-center gap-3">
+        {/* Left Arrow */}
+        {showLeftArrow && (
+          <button
+            type="button"
+            onClick={() => scroll('left')}
+            className="flex-shrink-0 w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors border border-gray-200"
+            aria-label="Scroll left"
+          >
+            <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        )}
+
+        {/* Pills Container */}
+        <div 
+          ref={scrollRef}
+          onScroll={checkScroll}
+          className="flex-1 overflow-x-auto scrollbar-hide"
+        >
+          <div className="flex gap-3 pb-2">
+            {visibleCategories.map((category) => (
+              <Link
+                key={category.handle}
+                href={`${basePath}/${category.handle}`}
+                className="inline-flex items-center px-5 py-2.5 bg-white hover:bg-primary hover:text-white rounded-full text-sm font-medium text-gray-900 whitespace-nowrap transition-all border border-gray-300 hover:border-primary shadow-sm hover:shadow-md"
+              >
+                {category.label}
+              </Link>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Right Arrow */}
-      {showRightArrow && (
-        <button
-          onClick={() => scroll('right')}
-          className="flex-shrink-0 w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors"
-          aria-label="Scroll right"
-        >
-          <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      )}
-    </div>
+        {/* Right Arrow */}
+        {showRightArrow && (
+          <button
+            type="button"
+            onClick={() => scroll('right')}
+            className="flex-shrink-0 w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors border border-gray-200"
+            aria-label="Scroll right"
+          >
+            <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        )}
+      </div>
+    </section>
   );
 }
-

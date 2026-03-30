@@ -39,6 +39,9 @@ const buildPayload = (event: QueuedGa4Event) => {
           items: items.map((item: any) => ({
             item_id: item.item_id,
             item_name: item.item_name,
+            item_variant: item.item_variant,
+            item_brand: item.item_brand,
+            item_category: item.item_category,
             quantity: toNumber(item.quantity),
             price: toNumber(item.price),
           })),

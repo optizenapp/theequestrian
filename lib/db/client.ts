@@ -45,18 +45,40 @@ function isQuotaError(err: unknown): boolean {
   return false;
 }
 
+/** Neon pooler queue saturation — short retry often succeeds on the next attempt. */
+function isTransientPoolError(err: unknown): boolean {
+  const msg = String((err as { message?: string })?.message ?? err ?? '');
+  return (
+    msg.includes('query_wait_timeout') ||
+    msg.includes('MaxClientsInSessionMode') ||
+    (msg.includes('timeout') && msg.includes('query'))
+  );
+}
+
 // Export sql as a template tag function with lazy initialization
 // Usage: sql`SELECT * FROM table`
 // On 402 / quota errors, reset client so next request gets a fresh connection after plan upgrade.
+// Retries transient pool timeouts (query_wait_timeout) a few times with backoff.
 function sqlTemplateTag(strings: TemplateStringsArray, ...values: any[]) {
-  const result = getSql()(strings, ...values);
-  if (result && typeof (result as Promise<unknown>).then === 'function') {
-    return (result as Promise<unknown>).catch((err: unknown) => {
-      if (isQuotaError(err)) resetDbClient();
-      throw err;
-    });
-  }
-  return result;
+  const run = async () => {
+    const maxAttempts = 3;
+    let lastErr: unknown;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        return await getSql()(strings, ...values);
+      } catch (err) {
+        lastErr = err;
+        if (isQuotaError(err)) resetDbClient();
+        if (isTransientPoolError(err) && attempt < maxAttempts - 1) {
+          await new Promise((r) => setTimeout(r, 120 * 2 ** attempt));
+          continue;
+        }
+        throw err;
+      }
+    }
+    throw lastErr;
+  };
+  return run();
 }
 
 const sqlWithUnsafe = sqlTemplateTag as ReturnType<typeof neon>;
@@ -299,6 +321,8 @@ export async function initializeSchema(): Promise<void> {
     `;
     await sql`CREATE INDEX IF NOT EXISTS idx_brand_content_handle ON brand_content(handle)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_brand_content_status ON brand_content(status)`;
+    await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS products_count INTEGER DEFAULT 0`;
+    await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS rules TEXT`;
 
     // Create home_sections table
     console.log('[DB] Creating home_sections table...');

@@ -4,13 +4,23 @@ import { useState } from 'react';
 import { useCart } from '@/components/cart/cart-context';
 import { normalizeCheckoutUrl } from '@/lib/shopify/cart-utils';
 import { trackGaEvent } from '@/lib/analytics/ga4';
+import type { Ga4EcommerceItem } from '@/lib/analytics/ga4-ecommerce';
 
 interface BuyNowButtonProps {
   variantId: string;
   disabled?: boolean;
+  analyticsItem?: Ga4EcommerceItem | null;
+  currencyCode?: string;
+  compact?: boolean;
 }
 
-export function BuyNowButton({ variantId, disabled }: BuyNowButtonProps) {
+export function BuyNowButton({
+  variantId,
+  disabled,
+  analyticsItem,
+  currencyCode,
+  compact = false,
+}: BuyNowButtonProps) {
   const { addCartItem } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -37,12 +47,14 @@ export function BuyNowButton({ variantId, disabled }: BuyNowButtonProps) {
         throw new Error('Invalid cart response from Shopify');
       }
       
-      // Track analytics
-      trackGaEvent('add_to_cart', {
-        items: [{ item_id: variantId, quantity: 1 }],
-      });
+      const items = analyticsItem
+        ? [{ ...analyticsItem, quantity: 1 }]
+        : [{ item_id: variantId, quantity: 1 }];
+      const currency = currencyCode || 'AUD';
+      trackGaEvent('add_to_cart', { currency, items });
       trackGaEvent('begin_checkout', {
-        items: [{ item_id: variantId, quantity: 1 }],
+        currency,
+        items,
         source: 'buy_now',
       });
       
@@ -66,6 +78,11 @@ export function BuyNowButton({ variantId, disabled }: BuyNowButtonProps) {
     }
   };
 
+  const widthClass = compact ? 'flex-1 min-w-0' : 'w-full';
+  const sizeClass = compact
+    ? 'py-2.5 px-3 text-sm'
+    : 'py-4 px-6 text-lg';
+
   return (
     <button
       onClick={(e) => {
@@ -75,7 +92,7 @@ export function BuyNowButton({ variantId, disabled }: BuyNowButtonProps) {
       disabled={disabled || isProcessing}
       type="button"
       style={{ touchAction: 'manipulation' }}
-      className={`w-full py-4 px-6 rounded-full font-semibold text-lg transition-all border ${
+      className={`${widthClass} ${sizeClass} rounded-full font-semibold transition-all border ${
         disabled || isProcessing
           ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed'
           : 'bg-transparent text-action border-gray-300 hover:border-action hover:-translate-y-0.5 active:scale-95'

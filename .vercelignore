@@ -1,4 +1,5 @@
-# Exclude large export files from deployment
+# Exclude large export files from deployment (343MB+). Category URLs for
+# /sitemap/categories.xml comes from Postgres `collection_content`, not exports/.
 exports/
 reports/
 tmp_pdf_textutil.txt

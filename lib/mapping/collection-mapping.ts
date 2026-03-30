@@ -10,8 +10,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as csv from 'csv-parse/sync';
+import { unstable_cache } from 'next/cache';
+import { SHOPIFY_GRAPHQL_FORCE_CACHE_REVALIDATE_SECONDS } from '@/lib/config/route-revalidate';
 import { getCategoryContent } from '@/lib/content/collections';
 import { sql } from '@/lib/db/client';
+import { resolvePillAnchorText } from '@/lib/seo/pill-anchor-text';
 
 interface MappingRow {
   top_level: string;
@@ -26,6 +29,65 @@ interface MappingRow {
 let cachedMapping: Map<string, MappingRow[]> | null = null;
 let lastCacheTime: number = 0;
 const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
+
+/** Serializable form for Next.js Data Cache (cross-request / cross-instance). */
+type MappingEntriesPayload = Array<[string, MappingRow[]]>;
+
+/**
+ * Single DB read + map build. Used by unstable_cache so category/product pages
+ * do not each hammer Neon during traffic spikes (avoids query_wait_timeout).
+ */
+async function fetchCollectionMappingEntriesImpl(): Promise<MappingEntriesPayload> {
+  const rows = await sql`
+    SELECT 
+      top_level,
+      parent_category,
+      subcategory_handle,
+      product_type,
+      action,
+      merge_to,
+      notes
+    FROM collection_mapping
+    WHERE action != 'exclude'
+    ORDER BY top_level, parent_category, subcategory_handle
+  `;
+
+  const mappingByPath = new Map<string, MappingRow[]>();
+  const rowsArray = Array.isArray(rows) ? rows : [];
+  for (const rowRaw of rowsArray) {
+    const row = rowRaw as MappingRow;
+    const pathParts: string[] = [];
+    if (row.top_level && row.top_level.trim()) {
+      pathParts.push(row.top_level.trim());
+    }
+    if (row.parent_category && row.parent_category.trim()) {
+      pathParts.push(row.parent_category.trim());
+    }
+    if (row.subcategory_handle && row.subcategory_handle.trim()) {
+      pathParts.push(row.subcategory_handle.trim());
+    }
+
+    const collectionPath = pathParts.join('/');
+    if (!collectionPath) continue;
+
+    if (!mappingByPath.has(collectionPath)) {
+      mappingByPath.set(collectionPath, []);
+    }
+    mappingByPath.get(collectionPath)!.push(row as MappingRow);
+  }
+
+  const rowCount = rowsArray.length;
+  console.log(`[loadMapping] Loaded ${rowCount} mapping rows from Postgres`);
+  return Array.from(mappingByPath.entries());
+}
+
+const getCachedMappingEntries =
+  typeof process !== 'undefined' && process.env.NEXT_RUNTIME
+    ? unstable_cache(fetchCollectionMappingEntriesImpl, ['collection-mapping-entries-v1'], {
+        revalidate: SHOPIFY_GRAPHQL_FORCE_CACHE_REVALIDATE_SECONDS,
+        tags: ['collection-mapping'],
+      })
+    : fetchCollectionMappingEntriesImpl;
 
 /**
  * Load the mapping from CSV (fallback only)
@@ -94,56 +156,10 @@ async function loadMapping(): Promise<Map<string, MappingRow[]>> {
   }
 
   try {
-    // Query database
-    const rows = await sql`
-      SELECT 
-        top_level,
-        parent_category,
-        subcategory_handle,
-        product_type,
-        action,
-        merge_to,
-        notes
-      FROM collection_mapping
-      WHERE action != 'exclude'
-      ORDER BY top_level, parent_category, subcategory_handle
-    `;
-
-    // Build Map structure (same as CSV version)
-    const mappingByPath = new Map<string, MappingRow[]>();
-    
-    const rowsArray = Array.isArray(rows) ? rows : [];
-    for (const rowRaw of rowsArray) {
-      const row = rowRaw as MappingRow;
-      const pathParts: string[] = [];
-      if (row.top_level && row.top_level.trim()) {
-        pathParts.push(row.top_level.trim());
-      }
-      if (row.parent_category && row.parent_category.trim()) {
-        pathParts.push(row.parent_category.trim());
-      }
-      if (row.subcategory_handle && row.subcategory_handle.trim()) {
-        pathParts.push(row.subcategory_handle.trim());
-      }
-
-      const collectionPath = pathParts.join('/');
-      
-      if (!collectionPath) {
-        continue;
-      }
-
-      if (!mappingByPath.has(collectionPath)) {
-        mappingByPath.set(collectionPath, []);
-      }
-      mappingByPath.get(collectionPath)!.push(row as MappingRow);
-    }
-
-    cachedMapping = mappingByPath;
+    const entries = await getCachedMappingEntries();
+    cachedMapping = new Map(entries);
     lastCacheTime = Date.now();
-    
-    console.log(`[loadMapping] Loaded ${rowsArray.length} mapping rows from Postgres`);
-    return mappingByPath;
-    
+    return cachedMapping;
   } catch (error) {
     console.error('[loadMapping] Database error, falling back to CSV:', error);
     
@@ -334,9 +350,11 @@ export async function getSubcategoriesForCollection(
     }
   }
 
+  const basePath = subcategory ? `/${category}/${subcategory}` : `/${category}`;
+
   return Array.from(subcategories.entries()).map(([handle, { label, count }]) => ({
     handle,
-    label,
+    label: resolvePillAnchorText({ basePath, handle, label }),
     count,
   }));
 }

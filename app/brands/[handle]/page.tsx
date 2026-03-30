@@ -13,7 +13,7 @@ import { FAQItem } from '@/lib/content/collections';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
-export const revalidate = 3600; // Revalidate every hour
+export const revalidate = 3600;
 
 interface BrandPageProps {
   params: Promise<{

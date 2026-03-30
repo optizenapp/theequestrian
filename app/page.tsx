@@ -1,15 +1,15 @@
+import { Suspense } from 'react';
 import { Hero } from '@/components/Hero';
 import { TrustSignals } from '@/components/TrustSignals';
 import dynamicImport from 'next/dynamic';
-import { getHomeSections } from '@/lib/content/home';
-import { getProductsByHandles } from '@/lib/shopify/products-by-handles';
+import { getCachedHomeSectionsWithProducts } from '@/lib/content/home-page-cached';
 import { ReviewStars } from '@/components/reviews/ReviewStars';
 import type { ShopifyProductCard } from '@/types/shopify';
 import Link from 'next/link';
 import { LazySection } from '@/components/LazySection';
 import Image from 'next/image';
 
-/** Build: skip static prerender of `/` (Neon + Shopify exceed Vercel ~60s SSG budget). Runtime fetches run per request. */
+/** Build: skip static prerender of `/` (Neon + Shopify exceed Vercel's ~60s SSG budget from iad1). Runtime: `getCachedHomeSectionsWithProducts` uses unstable_cache (5m). */
 export const dynamic = 'force-dynamic';
 
 // Aggressively lazy load below-the-fold components to improve LCP
@@ -129,18 +129,7 @@ function InlineHtml({ html }: { html?: string }) {
 }
 
 export default async function Home() {
-  const sections = await getHomeSections();
-
-  // Fetch real products for sections that use product handles
-  const sectionsWithProducts = await Promise.all(
-    sections.map(async (section) => {
-      if (section.product_handles && section.product_handles.length > 0) {
-        const products = await getProductsByHandles(section.product_handles);
-        return { ...section, fetchedProducts: products };
-      }
-      return section;
-    })
-  );
+  const sectionsWithProducts = await getCachedHomeSectionsWithProducts();
 
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au').replace(/\/+$/, '');
 
@@ -294,7 +283,9 @@ export default async function Home() {
       <div>
         <Hero />
         <TrustSignals />
-        <HomeRecentArticles />
+        <Suspense fallback={<div className="h-80 bg-white" />}>
+          <HomeRecentArticles />
+        </Suspense>
       </div>
     );
   }
@@ -483,13 +474,12 @@ export default async function Home() {
 
           case 'recent_articles':
             return (
-              <LazySection
+              <Suspense
                 key={section.key}
-                fallback={<div className="h-80 bg-white animate-pulse rounded-lg" />}
-                minHeight="20rem"
+                fallback={<div className="h-80 bg-white" />}
               >
                 <HomeRecentArticles />
-              </LazySection>
+              </Suspense>
             );
 
           case 'faqs':

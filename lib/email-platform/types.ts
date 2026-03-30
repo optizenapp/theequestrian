@@ -52,7 +52,8 @@ export type CampaignStatus =
   | 'processing'
   | 'completed'
   | 'failed'
-  | 'cancelled';
+  | 'cancelled'
+  | 'pending_approval';
 
 export type SequenceStatus = 'draft' | 'active' | 'paused' | 'archived';
 
@@ -85,6 +86,8 @@ export type CuratedProductCard = {
 export type EmailBlock =
   | { id: string; type: 'heading'; text: string; level?: 1 | 2 | 3; align?: 'left' | 'center' | 'right'; fontSize?: number }
   | { id: string; type: 'text'; text: string; align?: 'left' | 'center' | 'right'; fontSize?: number }
+  | { id: string; type: 'llmIntro'; text: string; align?: 'left' | 'center' | 'right'; fontSize?: number; prompt?: string }
+  | { id: string; type: 'llmHeading'; text: string; level?: 1 | 2 | 3; align?: 'left' | 'center' | 'right'; fontSize?: number; prompt?: string }
   | { id: string; type: 'cta'; label: string; url: string; align?: 'left' | 'center' | 'right'; fontSize?: number }
   | { id: string; type: 'productCards'; mode: 'single' | 'all'; align?: 'left' | 'center' | 'right'; fontSize?: number }
   | {
@@ -94,8 +97,18 @@ export type EmailBlock =
       showDividers?: boolean;
       align?: 'left' | 'center' | 'right';
       fontSize?: number;
+      prompt?: string;
     }
   | { id: string; type: 'divider'; align?: 'left' | 'center' | 'right' }
+  | {
+      id: string;
+      type: 'image';
+      url: string;
+      alt: string;
+      linkUrl?: string;
+      align?: 'left' | 'center' | 'right';
+      maxWidth?: number;
+    }
   | { id: string; type: 'footer'; text: string; align?: 'left' | 'center' | 'right'; fontSize?: number };
 
 export type EmailTemplateVisualSettings = {

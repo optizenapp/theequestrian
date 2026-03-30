@@ -9,6 +9,62 @@ import fs from 'fs';
 import path from 'path';
 import { parse } from 'csv-parse/sync';
 import { sql } from '@/lib/db/client';
+import { collectionRedirects } from '@/lib/redirects/maps';
+
+/** Production hostnames used in legacy CMS HTML (DB-backed home_sections). */
+const LEGACY_SITE_BASES = [
+  'https://www.theequestrian.com.au',
+  'http://www.theequestrian.com.au',
+  'https://theequestrian.com.au',
+  'http://theequestrian.com.au',
+] as const;
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function brandCollectionRedirectEntries(): [string, string][] {
+  return Object.entries(collectionRedirects)
+    .filter(
+      ([fromPath, toPath]) =>
+        fromPath.startsWith('/collections/') && toPath.startsWith('/brands/')
+    )
+    .sort((a, b) => b[0].length - a[0].length);
+}
+
+/** Rewrite legacy /collections/… links that redirect to /brands/… so DB HTML matches canonical URLs. */
+function rewriteBrandCollectionUrlsInHtml(html: string | undefined): string | undefined {
+  if (!html) return html;
+  const entries = brandCollectionRedirectEntries();
+
+  let out = html;
+  for (const [fromPath, toPath] of entries) {
+    for (const base of LEGACY_SITE_BASES) {
+      const prefix = base + fromPath;
+      const repl = base + toPath;
+      // Do not treat `/` as end: avoid turning …/collections/kentucky/dressage into …/brands/kentucky…
+      out = out.replace(
+        new RegExp(`${escapeRegExp(prefix)}(?=[?#"'\s]|$)`, 'gi'),
+        repl
+      );
+    }
+    out = out.replace(
+      new RegExp(`(href=["'])${escapeRegExp(fromPath)}/?(["'])`, 'gi'),
+      `$1${toPath}$2`
+    );
+  }
+  return out;
+}
+
+function rewriteBrandCollectionPath(path: string | undefined): string | undefined {
+  if (!path?.startsWith('/collections/')) return path;
+  for (const [fromPath, toPath] of brandCollectionRedirectEntries()) {
+    if (path === fromPath) return toPath;
+    if (path.startsWith(`${fromPath}?`)) return `${toPath}?${path.slice(fromPath.length + 1)}`;
+    if (path.startsWith(`${fromPath}#`)) return `${toPath}#${path.slice(fromPath.length + 1)}`;
+  }
+  return path;
+}
 
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
  
@@ -47,6 +103,10 @@ export interface HomeSliderItem {
   price: string;
   saving: string;
   detail: string;
+  /** Set when the slide is backed by a product (homepage best-deals, etc.). */
+  handle?: string;
+  /** Resolved storefront path for `handle` (optional; filled by server container). */
+  productHref?: string;
 }
 
 export interface HomeSection {
@@ -255,6 +315,13 @@ function parseRows(records: CsvRow[]): HomeSection[] {
       section.items = Array.isArray(items) ? items : [];
     }
 
+    section.body_html = rewriteBrandCollectionUrlsInHtml(section.body_html);
+    section.title_html = rewriteBrandCollectionUrlsInHtml(section.title_html);
+    section.subtitle_html = rewriteBrandCollectionUrlsInHtml(section.subtitle_html);
+    section.cta_link = rewriteBrandCollectionPath(section.cta_link);
+    section.secondary_cta_link = rewriteBrandCollectionPath(section.secondary_cta_link);
+    section.image_link = rewriteBrandCollectionPath(section.image_link);
+
     sections.push(section);
   }
 
@@ -308,7 +375,6 @@ export async function getHomeSections(): Promise<HomeSection[]> {
   }
 
   try {
-    await ensureHomeSectionsTable();
     const result = await sql`
       SELECT
         key,

@@ -8,12 +8,32 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { searchProducts, calculateFacets, type ProductFilters } from '@/lib/db/queries';
+import { checkRateLimit, rejectBotRequest } from '@/lib/api/endpoint-guards';
 
 // Use Node.js runtime instead of edge for database compatibility
 export const dynamic = 'force-dynamic'; // Always fresh data
 
 export async function GET(request: NextRequest) {
   try {
+    const botBlocked = rejectBotRequest(request, 'products/search');
+    if (botBlocked) return botBlocked;
+
+    const rl = checkRateLimit(
+      request,
+      'api:products:search',
+      Number(process.env.API_SEARCH_RATE_LIMIT_PER_MIN || 90),
+      60_000
+    );
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded' },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(rl.retryAfterSec) },
+        }
+      );
+    }
+
     const searchParams = request.nextUrl.searchParams;
     
     // Parse product types (required)
@@ -64,8 +84,10 @@ export async function GET(request: NextRequest) {
     }
     
     // Parse pagination
-    const limit = parseInt(searchParams.get('limit') || '36');
-    const offset = parseInt(searchParams.get('offset') || '0');
+    const rawLimit = parseInt(searchParams.get('limit') || '36', 10);
+    const rawOffset = parseInt(searchParams.get('offset') || '0', 10);
+    const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 72) : 36;
+    const offset = Number.isFinite(rawOffset) ? Math.max(rawOffset, 0) : 0;
     
     console.log('[API /products/search]', {
       productTypes: productTypes.slice(0, 3),

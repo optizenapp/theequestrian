@@ -9,6 +9,7 @@
 
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useMemo, useState, useEffect } from 'react';
+import { buildGa4ItemFromProduct, trackViewItemList } from '@/lib/analytics/ga4-ecommerce';
 import Link from 'next/link';
 import { ProductCard } from '@/components/ProductCard';
 import { applyFilters } from '@/lib/filters/product-filters';
@@ -52,6 +53,9 @@ interface ProductGridWithFiltersProps {
   };
   productUrls?: Record<string, string>; // product.id -> canonical URL (plain object for RSC serialization)
   reviewStatsMap?: Record<string, ReviewStats>; // product.handle -> review stats (plain object for RSC serialization)
+  /** Override GA4 `item_list_id` (defaults from category path) */
+  itemListId?: string;
+  itemListName?: string;
 }
 
 export function ProductGridWithFilters({
@@ -64,6 +68,8 @@ export function ProductGridWithFilters({
   serverFacets,
   productUrls,
   reviewStatsMap,
+  itemListId: itemListIdProp,
+  itemListName: itemListNameProp,
 }: ProductGridWithFiltersProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -72,8 +78,10 @@ export function ProductGridWithFilters({
 
   // Hydrate products with real-time price and inventory data
   const { products: hydratedProducts } = useLiveProductStatusOptimized(products, {
-    deferMs: 1200,
-    mode: 'soft',
+    // Category grids need dependable compare-at hydration for sale badges and "On Sale" sorting.
+    // Use strict/no-store mode to avoid stale or missing compare-at values.
+    deferMs: 250,
+    mode: 'strict',
   });
 
   // Get filters from URL params
@@ -162,18 +170,18 @@ export function ProductGridWithFilters({
       
       case 'on-sale':
         return productsToSort.sort((a, b) => {
-          // First: Sort by availability (in-stock first)
-          if (a.availableForSale !== b.availableForSale) {
-            return a.availableForSale ? -1 : 1;
-          }
-          // Second: Sort by sale status
+          // First: Sort by sale status (actual discounts first)
           const aOnSale = a.compareAtPriceRange?.minVariantPrice && 
             parseFloat(a.compareAtPriceRange.minVariantPrice.amount) > parseFloat(a.priceRange?.minVariantPrice?.amount || '0');
           const bOnSale = b.compareAtPriceRange?.minVariantPrice && 
             parseFloat(b.compareAtPriceRange.minVariantPrice.amount) > parseFloat(b.priceRange?.minVariantPrice?.amount || '0');
           
-          if (aOnSale === bOnSale) return 0;
-          return aOnSale ? -1 : 1; // On sale items first
+          if (aOnSale !== bOnSale) return aOnSale ? -1 : 1;
+          // Second: in-stock first inside each group
+          if (a.availableForSale !== b.availableForSale) {
+            return a.availableForSale ? -1 : 1;
+          }
+          return 0;
         });
       
       case 'featured':
@@ -187,6 +195,32 @@ export function ProductGridWithFilters({
         });
     }
   }, [filteredProducts, sortBy]);
+
+  const listId =
+    itemListIdProp ??
+    `/${currentCategory}${currentSubcategory ? `/${currentSubcategory}` : ''}`;
+  const listName = itemListNameProp ?? listId;
+
+  const listSignature = useMemo(
+    () => sortedProducts.map((p) => p.id).join('|'),
+    [sortedProducts]
+  );
+
+  useEffect(() => {
+    if (sortedProducts.length === 0) return;
+    const currency =
+      sortedProducts[0]?.priceRange?.minVariantPrice?.currencyCode || 'AUD';
+    trackViewItemList({
+      item_list_id: listId,
+      item_list_name: listName,
+      currency,
+      items: sortedProducts.map((p, i) =>
+        buildGa4ItemFromProduct(p, { index: i, listId, listName })
+      ),
+    });
+    // listSignature proxies sortedProducts identity for stable analytics firing
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listSignature, listId, listName]);
 
   // Extract filter options from products (prefer server facets if available)
   const sizeOptions = useMemo(() => {
@@ -346,7 +380,13 @@ export function ProductGridWithFilters({
         )}
 
         {/* Product Grid */}
-        <div className="flex-1">
+        <section
+          className="flex-1 min-w-0"
+          aria-labelledby="collection-product-results-heading"
+        >
+          <h2 id="collection-product-results-heading" className="sr-only">
+            Products
+          </h2>
           {/* Mobile: Filter Button and Sort on same line */}
           <div className="lg:hidden mb-4 flex items-center justify-between gap-3">
             <FilterButton onClick={() => setIsMobileFilterOpen(true)} activeFilterCount={Object.keys(filters).length} />
@@ -465,17 +505,21 @@ export function ProductGridWithFilters({
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 list-none p-0 m-0">
                 {sortedProducts.map((product, index) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    priority={index < 6}
-                    canonicalUrl={productUrls?.[product.id]}
-                    reviewStats={reviewStatsMap?.[product.handle]}
-                  />
+                  <li key={product.id} className="min-h-0">
+                    <ProductCard
+                      product={product}
+                      priority={index < 6}
+                      canonicalUrl={productUrls?.[product.id]}
+                      reviewStats={reviewStatsMap?.[product.handle]}
+                      itemListId={listId}
+                      itemListName={listName}
+                      itemIndex={index}
+                    />
+                  </li>
                 ))}
-              </div>
+              </ul>
 
               {/* Pagination Controls */}
               {(currentCursor || pageInfo?.hasNextPage) && (
@@ -500,7 +544,7 @@ export function ProductGridWithFilters({
               )}
             </>
           )}
-        </div>
+        </section>
       </div>
     </div>
   );

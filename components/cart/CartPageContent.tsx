@@ -13,9 +13,15 @@ import { trackGaEvent } from '@/lib/analytics/ga4';
 
 interface CartPageContentProps {
   recommendedProducts?: ShopifyProduct[];
+  /** Storefront paths by handle (from getCanonicalHrefByHandles on the server). */
+  productHrefByHandle?: Record<string, string>;
 }
 
-export function CartPageContent({ recommendedProducts = [] }: CartPageContentProps) {
+export function CartPageContent({
+  recommendedProducts = [],
+  productHrefByHandle = {},
+}: CartPageContentProps) {
+  const hrefFor = (handle: string) => productHrefByHandle[handle] ?? `/products/${handle}`;
   const { cart, addCartItem, updateCartItem, removeCartItem } = useCart();
   const [showAllRecommendations, setShowAllRecommendations] = useState(false);
   const [addingToCartId, setAddingToCartId] = useState<string | null>(null);
@@ -114,7 +120,7 @@ export function CartPageContent({ recommendedProducts = [] }: CartPageContentPro
                               
                               <h3 className="text-base font-bold text-gray-900 leading-tight">
                                 {product && (
-                                  <Link href={`/products/${product.handle}`} className="hover:underline">
+                                  <Link href={hrefFor(product.handle)} className="hover:underline">
                                     {product.title}
                                   </Link>
                                 )}
@@ -238,7 +244,7 @@ if (isInCart) return null;
                              )}
                           </div>
                           <h3 className="font-semibold text-gray-900 text-sm mb-1 line-clamp-2 flex-grow">
-                            <Link href={`/products/${product.handle}`} className="hover:underline">
+                            <Link href={hrefFor(product.handle)} className="hover:underline">
                               {product.title}
                             </Link>
                           </h3>

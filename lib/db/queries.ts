@@ -19,10 +19,12 @@ export interface ProductQueryResult {
   id: string;
   handle: string;
   title: string;
-  description: string;
+  /** Omitted in list/search queries to cut Neon egress; present on single-product fetches. */
+  description?: string;
   vendor: string;
   product_type: string;
-  tags: string[];
+  /** Omitted in list/search queries to cut Neon egress; callers should default to [] for card/list rendering. */
+  tags?: string[];
   image_url: string;
   image_alt: string;
   available_for_sale: boolean;
@@ -103,6 +105,11 @@ export async function searchProducts(
     // Note: Neon's sql function doesn't support parameterized queries with dynamic WHERE clauses
     // We need to use template literals directly
     let countResult: any[];
+    // List columns: exclude `description` (large HTML) — saves most Neon egress on category/search traffic.
+    const listSelect = `
+        id, handle, title, vendor, product_type,
+        image_url, image_alt, available_for_sale, shopify_created_at`;
+
     if (conditions.length === 0) {
       countResult = await sql`SELECT COUNT(*) as total FROM products` as unknown as any[];
     } else {
@@ -116,19 +123,15 @@ export async function searchProducts(
     // Sort by: 1) In-stock first, 2) Created date (newest first)
     let productsResult: any[];
     if (conditions.length === 0) {
-      productsResult = await sql`
-        SELECT 
-          id, handle, title, description, vendor, product_type,
-          tags, image_url, image_alt, available_for_sale, shopify_created_at
+      productsResult = await sql.unsafe(`
+        SELECT ${listSelect}
         FROM products
         ORDER BY available_for_sale DESC, shopify_created_at DESC
         LIMIT ${limit} OFFSET ${offset}
-      ` as unknown as any[];
+      `) as unknown as any[];
     } else {
       const productsQuery = `
-        SELECT 
-          id, handle, title, description, vendor, product_type,
-          tags, image_url, image_alt, available_for_sale, shopify_created_at
+        SELECT ${listSelect}
         FROM products
         ${whereClause}
         ORDER BY available_for_sale DESC, shopify_created_at DESC

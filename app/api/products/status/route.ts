@@ -12,6 +12,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { shopifyFetch } from '@/lib/shopify/client';
+import { checkRateLimit, rejectBotRequest } from '@/lib/api/endpoint-guards';
+import { jsonWithEtag } from '@/lib/http/json-conditional';
 
 interface ProductStatusRequest {
   productIds: string[];
@@ -24,6 +26,73 @@ interface ProductStatusResponse {
     stock: number;
     available: boolean;
   };
+}
+
+type StatusCacheEntry = {
+  data: ProductStatusResponse;
+  expiresAt: number;
+};
+
+const statusCache = new Map<string, StatusCacheEntry>();
+const inFlightRequests = new Map<string, Promise<ProductStatusResponse>>();
+const MAX_CACHE_ENTRIES = Number(process.env.PRODUCT_STATUS_CACHE_MAX_ENTRIES || 500);
+
+function getTtlMs(mode: 'soft' | 'strict'): number {
+  if (mode === 'strict') {
+    return Number(process.env.PRODUCT_STATUS_CACHE_STRICT_MS || 3000);
+  }
+  return Number(process.env.PRODUCT_STATUS_CACHE_SOFT_MS || 15000);
+}
+
+function buildCacheKey(mode: 'soft' | 'strict', productIds: string[]): string {
+  // Sort + dedupe so repeated requests with same IDs in different order hit cache.
+  const normalizedIds = [...new Set(productIds)].sort();
+  return `${mode}:${normalizedIds.join(',')}`;
+}
+
+function readCache(cacheKey: string): ProductStatusResponse | null {
+  const hit = statusCache.get(cacheKey);
+  if (!hit) return null;
+  if (Date.now() > hit.expiresAt) {
+    statusCache.delete(cacheKey);
+    return null;
+  }
+  return hit.data;
+}
+
+function respondStatusJson(
+  request: NextRequest,
+  mode: 'soft' | 'strict',
+  statusMap: ProductStatusResponse,
+  xCache: string
+): NextResponse {
+  const cacheControl =
+    mode === 'strict'
+      ? 'no-store, max-age=0'
+      : 'public, max-age=5, s-maxage=10, stale-while-revalidate=30';
+  const headers = { 'X-Status-Cache': xCache, 'Cache-Control': cacheControl };
+  if (mode === 'strict') {
+    return NextResponse.json(statusMap, { headers });
+  }
+  return jsonWithEtag(request, statusMap, { headers });
+}
+
+function writeCache(cacheKey: string, data: ProductStatusResponse, ttlMs: number): void {
+  if (ttlMs <= 0) return;
+  if (statusCache.size >= MAX_CACHE_ENTRIES) {
+    // Drop oldest 25% when full (simple bounded cache behavior).
+    const toDelete = Math.ceil(MAX_CACHE_ENTRIES * 0.25);
+    const keys = statusCache.keys();
+    for (let i = 0; i < toDelete; i++) {
+      const next = keys.next();
+      if (next.done) break;
+      statusCache.delete(next.value);
+    }
+  }
+  statusCache.set(cacheKey, {
+    data,
+    expiresAt: Date.now() + ttlMs,
+  });
 }
 
 const GET_PRODUCTS_STATUS = `
@@ -52,6 +121,25 @@ const GET_PRODUCTS_STATUS = `
 
 export async function POST(request: NextRequest) {
   try {
+    const botBlocked = rejectBotRequest(request, 'products/status');
+    if (botBlocked) return botBlocked;
+
+    const rl = checkRateLimit(
+      request,
+      'api:products:status',
+      Number(process.env.API_STATUS_RATE_LIMIT_PER_MIN || 180),
+      60_000
+    );
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded' },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(rl.retryAfterSec) },
+        }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const mode = searchParams.get('mode') === 'strict' ? 'strict' : 'soft';
     const body: ProductStatusRequest = await request.json();
@@ -72,46 +160,62 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    console.log(`[ProductStatus] Fetching status for ${productIds.length} products`);
-
-    // Fetch product status from Shopify
-    const data = await shopifyFetch<{ nodes: any[] }>({
-      query: GET_PRODUCTS_STATUS,
-      variables: { ids: productIds },
-      cache: 'no-store', // Always fetch fresh data
-    });
-
-    // Build response map
-    const statusMap: ProductStatusResponse = {};
-
-    for (const node of data.nodes) {
-      if (!node || !node.id) continue;
-
-      const price = parseFloat(node.priceRange?.minVariantPrice?.amount || '0');
-      const compareAtPrice = node.compareAtPriceRange?.minVariantPrice?.amount
-        ? parseFloat(node.compareAtPriceRange.minVariantPrice.amount)
-        : undefined;
-
-      statusMap[node.id] = {
-        price,
-        compareAtPrice,
-        stock: node.totalInventory || 0,
-        available: node.availableForSale || false,
-      };
+    const ttlMs = getTtlMs(mode);
+    const cacheKey = buildCacheKey(mode, productIds);
+    const cached = readCache(cacheKey);
+    if (cached) {
+      return respondStatusJson(request, mode, cached, 'HIT');
     }
+
+    const existingRequest = inFlightRequests.get(cacheKey);
+    const statusPromise =
+      existingRequest ||
+      (async (): Promise<ProductStatusResponse> => {
+        console.log(`[ProductStatus] Fetching status for ${productIds.length} products`);
+        const data = await shopifyFetch<{ nodes: any[] }>({
+          query: GET_PRODUCTS_STATUS,
+          variables: { ids: productIds },
+          cache: 'no-store',
+        });
+
+        const statusMap: ProductStatusResponse = {};
+        for (const node of data.nodes) {
+          if (!node || !node.id) continue;
+
+          const price = parseFloat(node.priceRange?.minVariantPrice?.amount || '0');
+          const compareAtPrice = node.compareAtPriceRange?.minVariantPrice?.amount
+            ? parseFloat(node.compareAtPriceRange.minVariantPrice.amount)
+            : undefined;
+
+          statusMap[node.id] = {
+            price,
+            compareAtPrice,
+            stock: node.totalInventory || 0,
+            available: node.availableForSale || false,
+          };
+        }
+
+        writeCache(cacheKey, statusMap, ttlMs);
+        return statusMap;
+      })();
+
+    if (!existingRequest) {
+      inFlightRequests.set(cacheKey, statusPromise);
+    }
+
+    const statusMap = await statusPromise;
+    inFlightRequests.delete(cacheKey);
 
     console.log(`[ProductStatus] ✅ Returned status for ${Object.keys(statusMap).length} products`);
 
-    return NextResponse.json(statusMap, {
-      headers: {
-        'Cache-Control':
-          mode === 'strict'
-            ? 'no-store, max-age=0'
-            : 'public, max-age=5, s-maxage=10, stale-while-revalidate=30',
-      },
-    });
+    return respondStatusJson(
+      request,
+      mode,
+      statusMap,
+      existingRequest ? 'COALESCED' : 'MISS'
+    );
   } catch (error) {
+    inFlightRequests.clear();
     console.error('[ProductStatus] Error:', error);
     return NextResponse.json(
       { error: 'Failed to fetch product status' },
@@ -133,15 +237,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const productIds = ids.split(',').map(id => id.trim());
+    const productIds = ids.split(',').map((id) => id.trim());
 
-    // Reuse POST logic
-    return POST(
-      new NextRequest(request.url, {
-        method: 'POST',
-        body: JSON.stringify({ productIds }),
-      })
-    );
+    const forward = new NextRequest(request.url, {
+      method: 'POST',
+      headers: request.headers,
+      body: JSON.stringify({ productIds }),
+    });
+    return POST(forward);
   } catch (error) {
     console.error('[ProductStatus] GET Error:', error);
     return NextResponse.json(

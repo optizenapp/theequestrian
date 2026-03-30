@@ -13,6 +13,7 @@ type CsvBrandRow = {
   title?: string;
   handle?: string;
   products_count?: string;
+  rules?: string;
   h1_title?: string;
   meta_title?: string;
   meta_description?: string;
@@ -43,6 +44,7 @@ async function ensureTable() {
   `;
   await sql`CREATE INDEX IF NOT EXISTS idx_brand_content_handle ON brand_content(handle)`;
   await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS products_count INTEGER DEFAULT 0`;
+  await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS rules TEXT`;
 }
 
 function parseProductsCount(raw: string | undefined): number {
@@ -102,12 +104,14 @@ async function main() {
       `<h2>${title}</h2><p>Discover our range of ${title} products at The Equestrian.</p>`;
     const breadcrumbLabel = normalizeText(row.breadcrumb_label) || title;
     const faqJson = normalizeText(row.faq_json) || '[]';
+    const rules = normalizeText(row.rules) || null;
 
     await sql`
       INSERT INTO brand_content (
         handle,
         title,
         products_count,
+        rules,
         h1_title,
         meta_title,
         meta_description,
@@ -122,6 +126,7 @@ async function main() {
         ${handle},
         ${title},
         ${productsCount},
+        ${rules},
         ${h1},
         ${metaTitle},
         ${metaDescription},
@@ -137,6 +142,7 @@ async function main() {
       SET
         title = EXCLUDED.title,
         products_count = EXCLUDED.products_count,
+        rules = COALESCE(EXCLUDED.rules, brand_content.rules),
         h1_title = COALESCE(NULLIF(EXCLUDED.h1_title, ''), brand_content.h1_title, EXCLUDED.title),
         meta_title = COALESCE(NULLIF(EXCLUDED.meta_title, ''), brand_content.meta_title),
         meta_description = COALESCE(NULLIF(EXCLUDED.meta_description, ''), brand_content.meta_description),

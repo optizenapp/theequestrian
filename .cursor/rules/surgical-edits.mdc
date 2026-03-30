@@ -1,0 +1,10 @@
+---
+description: Minimize token usage and prevent unnecessary rewrites
+globs: ["**/*"]
+---
+
+- Only modify lines relevant to the current task. Do not refactor, rename, or "clean up" code you weren't asked to touch.
+- Do not rewrite entire files. Use targeted insertions, replacements, or deletions.
+- Do not add comments explaining obvious code.
+- Do not re-output unchanged code in your response.
+- If multiple files need changes, change them one at a time and verify after each.

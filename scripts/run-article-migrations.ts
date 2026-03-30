@@ -44,6 +44,9 @@ function getOrderedMigrations(): { name: string; path: string }[] {
   const m047 = join(LOCAL_MIGRATIONS, '047_seed_uncategorized.sql');
   if (existsSync(m047)) list.push({ name: '047_seed_uncategorized.sql', path: m047 });
 
+  const m048 = join(LOCAL_MIGRATIONS, '048_article_headless.sql');
+  if (existsSync(m048)) list.push({ name: '048_article_headless.sql', path: m048 });
+
   // 1004 (pr_contacts only - we strip to ALTER only)
   const m1004 = join(EXPORT_MIGRATIONS, '1004_add_pr_contacts_to_article.sql');
   if (existsSync(m1004)) list.push({ name: '1004_add_pr_contacts_to_article.sql', path: m1004 });
@@ -55,12 +58,14 @@ async function runMigration(name: string, path: string) {
   let fullSql = readFileSync(path, 'utf-8');
   if (name === '1004_add_pr_contacts_to_article.sql') {
     fullSql = `
-      ALTER TABLE article ADD COLUMN IF NOT EXISTS pr_contacts JSONB;
-      COMMENT ON COLUMN article.pr_contacts IS 'PR contact emails and notification status';
+      ALTER TABLE public.article ADD COLUMN IF NOT EXISTS pr_contacts JSONB;
+      COMMENT ON COLUMN public.article.pr_contacts IS 'PR contact emails and notification status';
     `;
   }
+  // Ensure we create in public schema
+  const withSchema = `SET search_path = public;\n${fullSql}`;
   try {
-    await sql.unsafe(fullSql);
+    await sql.unsafe(withSchema);
   } catch (e) {
     console.error(`[run-article-migrations] Failed ${name}:`, e);
     throw e;
@@ -68,17 +73,28 @@ async function runMigration(name: string, path: string) {
   console.log(`  ✓ ${name}`);
 }
 
-async function main() {
-  console.log('Running article system migrations...\n');
+/** Run all article migrations (idempotent). Export for use by migrate-shopify-articles-to-db. */
+export async function runArticleMigrations(): Promise<void> {
+  // Force public schema (Neon/pooler can use different search_path per request)
+  await sql`SET search_path = public`;
   const migrations = getOrderedMigrations();
   for (const { name, path } of migrations) {
     console.log(`Running ${name}...`);
     await runMigration(name, path);
   }
+}
+
+async function main() {
+  console.log('Running article system migrations...\n');
+  await runArticleMigrations();
   console.log('\nDone.');
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+// Only run when executed directly (e.g. tsx scripts/run-article-migrations.ts), not when imported
+const isEntry = require.main === module || process.argv[1]?.includes('run-article-migrations');
+if (isEntry) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}

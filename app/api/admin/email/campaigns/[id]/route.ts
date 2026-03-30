@@ -22,8 +22,9 @@ export async function PATCH(
     if (!campaign) {
       return NextResponse.json({ error: 'Campaign not found' }, { status: 404 });
     }
-    if (String(campaign.status || '') !== 'draft') {
-      return NextResponse.json({ error: 'Only draft campaigns can be edited' }, { status: 409 });
+    const status = String(campaign.status || '');
+    if (status !== 'draft' && status !== 'pending_approval') {
+      return NextResponse.json({ error: 'Only draft or pending_approval campaigns can be edited' }, { status: 409 });
     }
 
     const name = typeof body?.name === 'string' && body.name.trim() ? body.name.trim() : String(campaign.name || '');
@@ -31,37 +32,66 @@ export async function PATCH(
     const listIds = Array.isArray(body?.audience?.listIds) ? body.audience.listIds.filter((v: unknown) => typeof v === 'string') : [];
     const segmentIds = Array.isArray(body?.audience?.segmentIds) ? body.audience.segmentIds.filter((v: unknown) => typeof v === 'string') : [];
     const audience = JSON.stringify({ listIds, segmentIds });
+    const metadata =
+      body?.metadata && typeof body.metadata === 'object'
+        ? JSON.stringify(body.metadata)
+        : undefined;
 
-    await sql`
-      UPDATE email_campaigns
-      SET
-        name = ${name},
-        template_version_id = ${templateVersionId},
-        audience = ${audience}::jsonb,
-        updated_at = NOW()
-      WHERE id = ${id}
-    `;
+    if (metadata !== undefined) {
+      await sql`
+        UPDATE email_campaigns
+        SET
+          name = ${name},
+          template_version_id = COALESCE(${templateVersionId}, template_version_id),
+          audience = ${audience}::jsonb,
+          metadata = ${metadata}::jsonb,
+          updated_at = NOW()
+        WHERE id = ${id}
+      `;
+    } else {
+      await sql`
+        UPDATE email_campaigns
+        SET
+          name = ${name},
+          template_version_id = COALESCE(${templateVersionId}, template_version_id),
+          audience = ${audience}::jsonb,
+          updated_at = NOW()
+        WHERE id = ${id}
+      `;
+    }
 
-    // Rebuild queued recipients whenever audience changes on a draft campaign.
+    // Rebuild queued recipients whenever audience changes on a draft campaign (not for pending_approval).
     // This prevents stale recipients from previous list/segment selections.
-    await sql`
-      DELETE FROM email_campaign_recipients
-      WHERE campaign_id = ${id}
-    `;
+    if (status === 'draft') {
+      await sql`
+        DELETE FROM email_campaign_recipients
+        WHERE campaign_id = ${id}
+      `;
+
+      const audienceBreakdown = await getAudienceBreakdown({ listIds, segmentIds });
+      const contactIds = await getResolvedAudienceContactIds({ listIds, segmentIds });
+      const queuedRecipients = await queueCampaignRecipients(id, contactIds);
+
+      await logEmailAudit({
+        actor: 'admin',
+        action: 'campaign_updated',
+        entityType: 'email_campaign',
+        entityId: id,
+        payload: { name, templateVersionId, listIds, segmentIds, queuedRecipients, audienceBreakdown },
+      });
+
+      return NextResponse.json({ ok: true, id, queuedRecipients, audienceBreakdown });
+    }
 
     const audienceBreakdown = await getAudienceBreakdown({ listIds, segmentIds });
-    const contactIds = await getResolvedAudienceContactIds({ listIds, segmentIds });
-    const queuedRecipients = await queueCampaignRecipients(id, contactIds);
-
     await logEmailAudit({
       actor: 'admin',
       action: 'campaign_updated',
       entityType: 'email_campaign',
       entityId: id,
-      payload: { name, templateVersionId, listIds, segmentIds, queuedRecipients, audienceBreakdown },
+      payload: { name, templateVersionId, listIds, segmentIds, audienceBreakdown },
     });
-
-    return NextResponse.json({ ok: true, id, queuedRecipients, audienceBreakdown });
+    return NextResponse.json({ ok: true, id, audienceBreakdown });
   } catch (error) {
     console.error('Failed to update campaign:', error);
     return NextResponse.json({ error: 'Failed to update campaign' }, { status: 500 });
@@ -108,7 +138,7 @@ export async function DELETE(
       entityId: id,
       payload: {
         name: String(campaign.name || ''),
-        status,
+        status: String(campaign.status || ''),
         deletedRecipientCount: recipientCount,
       },
     });

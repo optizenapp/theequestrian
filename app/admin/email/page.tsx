@@ -22,12 +22,30 @@ type CampaignRow = {
   scheduledAt: string | null;
 };
 
+type ListRow = { id: string; name: string };
+type SegmentRow = { id: string; name: string };
+type TemplateOption = { id: string; name: string; activeVersionId: string | null };
+
 export default function AdminEmailPage() {
   const [summary, setSummary] = useState<EmailSummary | null>(null);
   const [campaigns, setCampaigns] = useState<CampaignRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isImportingMoosend, setIsImportingMoosend] = useState(false);
+
+  // Auto weekly settings (prompts, template, audience)
+  const [autoWeeklyEnabled, setAutoWeeklyEnabled] = useState<boolean | null>(null);
+  const [autoWeeklyIntroPrompt, setAutoWeeklyIntroPrompt] = useState('');
+  const [autoWeeklySubjectPrompt, setAutoWeeklySubjectPrompt] = useState('');
+  const [autoWeeklyTemplateVersionId, setAutoWeeklyTemplateVersionId] = useState('');
+  const [autoWeeklyListIds, setAutoWeeklyListIds] = useState<string[]>([]);
+  const [autoWeeklySegmentIds, setAutoWeeklySegmentIds] = useState<string[]>([]);
+  const [autoWeeklyTemplates, setAutoWeeklyTemplates] = useState<TemplateOption[]>([]);
+  const [autoWeeklyLists, setAutoWeeklyLists] = useState<ListRow[]>([]);
+  const [autoWeeklySegments, setAutoWeeklySegments] = useState<SegmentRow[]>([]);
+  const [autoWeeklyLoading, setAutoWeeklyLoading] = useState(false);
+  const [autoWeeklySaving, setAutoWeeklySaving] = useState(false);
+  const [autoWeeklyMessage, setAutoWeeklyMessage] = useState('');
 
   useEffect(() => {
     async function load() {
@@ -57,6 +75,71 @@ export default function AdminEmailPage() {
     }
     load();
   }, []);
+
+  useEffect(() => {
+    async function loadAutoWeekly() {
+      setAutoWeeklyLoading(true);
+      try {
+        const [settingsRes, listsRes, segmentsRes] = await Promise.all([
+          fetch('/api/admin/email/auto-weekly/settings'),
+          fetch('/api/admin/email/lists'),
+          fetch('/api/admin/email/segments'),
+        ]);
+        const settings = await settingsRes.json();
+        const listsData = await listsRes.json();
+        const segmentsData = await segmentsRes.json();
+        if (settingsRes.ok && settings != null) {
+          setAutoWeeklyEnabled(settings.enabled === true);
+          setAutoWeeklyIntroPrompt(settings.introPrompt ?? '');
+          setAutoWeeklySubjectPrompt(settings.subjectPrompt ?? '');
+          setAutoWeeklyTemplateVersionId(settings.templateVersionId ?? '');
+          setAutoWeeklyListIds(Array.isArray(settings.audience?.listIds) ? settings.audience.listIds : []);
+          setAutoWeeklySegmentIds(Array.isArray(settings.audience?.segmentIds) ? settings.audience.segmentIds : []);
+          setAutoWeeklyTemplates(Array.isArray(settings.templates) ? settings.templates : []);
+        }
+        if (listsRes.ok && Array.isArray(listsData.lists)) setAutoWeeklyLists(listsData.lists);
+        if (segmentsRes.ok && Array.isArray(segmentsData.segments)) setAutoWeeklySegments(segmentsData.segments);
+      } catch {
+        setAutoWeeklyEnabled(false);
+      } finally {
+        setAutoWeeklyLoading(false);
+      }
+    }
+    loadAutoWeekly();
+  }, []);
+
+  const saveAutoWeekly = async () => {
+    setAutoWeeklySaving(true);
+    setAutoWeeklyMessage('');
+    try {
+      const res = await fetch('/api/admin/email/auto-weekly/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          enabled: autoWeeklyEnabled === true,
+          introPrompt: autoWeeklyIntroPrompt.trim() || null,
+          subjectPrompt: autoWeeklySubjectPrompt.trim() || null,
+          templateVersionId: autoWeeklyTemplateVersionId || null,
+          audience: { listIds: autoWeeklyListIds, segmentIds: autoWeeklySegmentIds },
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setAutoWeeklyMessage(data?.error || data?.detail || 'Failed to save');
+        return;
+      }
+      setAutoWeeklyMessage('Auto weekly settings saved.');
+      setTimeout(() => setAutoWeeklyMessage(''), 3000);
+    } catch (e) {
+      setAutoWeeklyMessage(e instanceof Error ? e.message : 'Failed to save');
+    } finally {
+      setAutoWeeklySaving(false);
+    }
+  };
+
+  const toggleAutoWeeklyList = (id: string) => {
+    setAutoWeeklyListIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
 
   return (
     <AdminLayout title="Email Platform" subtitle="Contacts, campaigns, segments, and sequences">
@@ -145,6 +228,112 @@ export default function AdminEmailPage() {
             {isImportingMoosend ? 'Importing Moosend...' : 'Import Moosend lists'}
           </button>
         </div>
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-sky-200 bg-sky-50/30 p-5 shadow-sm">
+        <h3 className="text-sm font-semibold text-sky-900">Auto weekly</h3>
+        <p className="mt-1 text-sm text-sky-800">
+          Global prompts, template, and audience for the automated weekly campaign. Per-template overrides are in <Link href="/admin/email/templates" className="font-medium underline hover:text-sky-600">Templates</Link> (Subject line prompt, LLM block prompts).
+        </p>
+        {autoWeeklyLoading ? (
+          <p className="mt-4 text-sm text-gray-500">Loading…</p>
+        ) : (
+          <div className="mt-4 space-y-4">
+            <label className="flex cursor-pointer items-center gap-3 text-sm font-medium text-gray-700">
+              <input
+                type="checkbox"
+                checked={autoWeeklyEnabled === true}
+                onChange={(e) => setAutoWeeklyEnabled(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-action focus:ring-action"
+              />
+              Flow enabled (build and release cron will create/send campaigns when on)
+            </label>
+            <label className="block text-sm font-medium text-gray-700">
+              Intro prompt (global fallback for LLM intro block)
+              <textarea
+                value={autoWeeklyIntroPrompt}
+                onChange={(e) => setAutoWeeklyIntroPrompt(e.target.value)}
+                rows={3}
+                placeholder="e.g. Write a short friendly intro for this week’s picks. Use {{productContext}} and {{sendDate}}."
+                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              />
+            </label>
+            <label className="block text-sm font-medium text-gray-700">
+              Subject line prompt (global fallback)
+              <textarea
+                value={autoWeeklySubjectPrompt}
+                onChange={(e) => setAutoWeeklySubjectPrompt(e.target.value)}
+                rows={2}
+                placeholder="e.g. One short subject line. {{productContext}}, {{sendDate}}."
+                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              />
+            </label>
+            <label className="block text-sm font-medium text-gray-700">
+              Template (campaign template used for each run)
+              <select
+                value={autoWeeklyTemplateVersionId}
+                onChange={(e) => setAutoWeeklyTemplateVersionId(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              >
+                <option value="">Select template version</option>
+                {autoWeeklyTemplates.map((t) => (
+                  <option key={t.id} value={t.activeVersionId || ''}>
+                    {t.name} {t.activeVersionId ? '' : '(no active version)'}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="text-sm font-medium text-gray-700">
+                Lists
+                <div className="mt-1 max-h-32 space-y-1 overflow-auto rounded border border-gray-300 px-2 py-2">
+                  {autoWeeklyLists.length === 0 ? (
+                    <p className="text-xs text-gray-500">No lists.</p>
+                  ) : (
+                    autoWeeklyLists.map((list) => (
+                      <label key={list.id} className="flex cursor-pointer items-center gap-2 text-sm text-gray-700">
+                        <input
+                          type="checkbox"
+                          checked={autoWeeklyListIds.includes(list.id)}
+                          onChange={() => toggleAutoWeeklyList(list.id)}
+                        />
+                        <span>{list.name}</span>
+                      </label>
+                    ))
+                  )}
+                </div>
+              </label>
+              <label className="text-sm font-medium text-gray-700">
+                Segments
+                <select
+                  multiple
+                  className="mt-1 h-32 w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                  value={autoWeeklySegmentIds}
+                  onChange={(e) => setAutoWeeklySegmentIds(Array.from(e.target.selectedOptions).map((o) => o.value))}
+                >
+                  {autoWeeklySegments.map((seg) => (
+                    <option key={seg.id} value={seg.id}>
+                      {seg.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={autoWeeklySaving}
+                onClick={saveAutoWeekly}
+                className="rounded-full bg-action px-4 py-2 text-sm font-semibold text-white hover:bg-pink-600 disabled:opacity-60"
+              >
+                {autoWeeklySaving ? 'Saving…' : 'Save Auto weekly settings'}
+              </button>
+              {autoWeeklyMessage ? (
+                <span className="text-sm text-gray-600">{autoWeeklyMessage}</span>
+              ) : null}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="mt-6">

@@ -9,8 +9,11 @@ SHOPIFY_STOREFRONT_ACCESS_TOKEN=your_storefront_access_token_here
 SHOPIFY_ADMIN_ACCESS_TOKEN=your_admin_access_token_here
 SHOPIFY_WEBHOOK_SECRET=your_webhook_secret_here
 
-# Vendor store → marketplace sync (custom app client secret; HMAC for /api/webhooks/shopify/vendor-sync)
+# Vendor store → marketplace sync (Dev Dashboard app — 2026+)
+VENDOR_SYNC_APP_CLIENT_ID=
 VENDOR_SYNC_APP_CLIENT_SECRET=
+# Optional: require ?secret= on /api/shopify/vendor-oauth/install in production
+VENDOR_OAUTH_START_SECRET=
 
 # Yotpo Configuration
 YOTPO_APP_KEY=your_yotpo_app_key_here

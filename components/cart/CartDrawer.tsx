@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useMemo, useState } from 'react';
 import { useCart } from './cart-context';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -10,6 +11,44 @@ import { SiAfterpay, SiShopify } from 'react-icons/si';
 
 export function CartDrawer() {
   const { cart, isOpen, closeCart, updateCartItem, removeCartItem } = useCart();
+  const [productHrefByHandle, setProductHrefByHandle] = useState<Record<string, string>>({});
+
+  const handlesKey = useMemo(() => {
+    const handles =
+      cart?.lines.edges
+        .map(({ node: line }) => line.merchandise.product?.handle)
+        .filter((h): h is string => Boolean(h)) ?? [];
+    return [...new Set(handles)].sort().join('\0');
+  }, [cart?.lines.edges]);
+
+  useEffect(() => {
+    if (!handlesKey) {
+      setProductHrefByHandle({});
+      return;
+    }
+    const handles = handlesKey.split('\0');
+    const controller = new AbortController();
+    (async () => {
+      try {
+        const res = await fetch('/api/products/canonical-hrefs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ handles }),
+          signal: controller.signal,
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as { hrefs?: Record<string, string> };
+        if (data.hrefs) setProductHrefByHandle(data.hrefs);
+      } catch (e) {
+        if ((e as Error).name !== 'AbortError') {
+          console.error('[CartDrawer] canonical hrefs', e);
+        }
+      }
+    })();
+    return () => controller.abort();
+  }, [handlesKey]);
+
+  const hrefFor = (handle: string) => productHrefByHandle[handle] ?? `/products/${handle}`;
 
   if (!isOpen) return null;
 
@@ -61,7 +100,7 @@ export function CartDrawer() {
                   <div key={line.id} className="flex gap-4 border-b pb-4">
                     {/* Product Image */}
                     {image && product && (
-                      <Link href={`/products/${product.handle}`} onClick={closeCart}>
+                      <Link href={hrefFor(product.handle)} onClick={closeCart}>
                         <div className="relative w-24 h-24 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
                           <Image
                             src={image.url}
@@ -77,7 +116,7 @@ export function CartDrawer() {
                     <div className="flex-1 min-w-0">
                       {product && (
                         <Link
-                          href={`/products/${product.handle}`}
+                          href={hrefFor(product.handle)}
                           onClick={closeCart}
                           className="font-semibold hover:text-action transition-colors line-clamp-2"
                         >

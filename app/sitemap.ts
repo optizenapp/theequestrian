@@ -1,6 +1,8 @@
 import { MetadataRoute } from 'next';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com';
+const SITE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au'
+).replace(/\/$/, '');
 
 /**
  * Sitemap Index
@@ -15,7 +17,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(),
     },
     {
-      url: `${SITE_URL}/sitemap/collections.xml`,
+      url: `${SITE_URL}/sitemap/categories.xml`,
       lastModified: new Date(),
     },
     {

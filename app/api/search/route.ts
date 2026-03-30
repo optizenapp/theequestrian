@@ -4,6 +4,7 @@ import { shopifyFetch } from '@/lib/shopify/client';
 import { getProductTypesForCollection } from '@/lib/mapping/collection-mapping';
 import { getProductOverridesByHandles } from '@/lib/content/product-overrides';
 import { isExcludedFrontendVendor } from '@/lib/shopify/vendor-visibility';
+import { getProductCanonicalUrls } from '@/lib/shopify/products';
 
 const SEARCH_PRODUCTS_QUERY = `
   query SearchProducts($query: String!, $first: Int!) {
@@ -14,12 +15,16 @@ const SEARCH_PRODUCTS_QUERY = `
           handle
           title
           vendor
+          productType
           availableForSale
           priceRange {
             minVariantPrice {
               amount
               currencyCode
             }
+          }
+          metafield(namespace: "custom", key: "primary_collection") {
+            value
           }
           images(first: 1) {
             edges {
@@ -71,6 +76,7 @@ type SearchResponse = {
       imageAlt: string | null;
       price: string;
       currencyCode: string;
+      canonicalPath: string;
     }>;
     collections: Array<{
       type: 'collection';
@@ -110,6 +116,7 @@ export async function GET(request: Request) {
             handle: string;
             title: string;
             vendor: string;
+            productType: string;
             availableForSale: boolean;
             priceRange: {
               minVariantPrice: {
@@ -117,6 +124,7 @@ export async function GET(request: Request) {
                 currencyCode: string;
               };
             };
+            metafield: { value: string } | null;
             images: {
               edges: Array<{
                 node: {
@@ -172,6 +180,14 @@ export async function GET(request: Request) {
       ({ node }) => Boolean(node.images.edges[0]?.node?.url)
     );
 
+    const canonicalInputs = imageVisibleProducts.map(({ node }) => ({
+      id: node.id,
+      handle: node.handle,
+      productType: node.productType,
+      metafield: node.metafield,
+    }));
+    const urlByProductId = await getProductCanonicalUrls(canonicalInputs);
+
     const productResults = imageVisibleProducts.map(({ node }) => ({
       type: 'product' as const,
       id: node.id,
@@ -181,6 +197,7 @@ export async function GET(request: Request) {
       imageAlt: node.images.edges[0]?.node.altText ?? null,
       price: node.priceRange.minVariantPrice.amount,
       currencyCode: node.priceRange.minVariantPrice.currencyCode,
+      canonicalPath: urlByProductId.get(node.id) ?? `/products/${node.handle}`,
     }));
 
     const baseCollections = categoryData.rows.map((row) => ({

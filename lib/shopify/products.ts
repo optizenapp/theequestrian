@@ -1,8 +1,9 @@
 import { shopifyFetch } from './client';
 import { shopifyAdminFetch } from './admin-client';
-import { GET_PRODUCT_BY_HANDLE, GET_ALL_PRODUCTS, GET_PRODUCTS_BY_QUERY } from './queries';
+import { GET_PRODUCT_BY_HANDLE, GET_PRODUCT_BY_ID, GET_ALL_PRODUCTS, GET_PRODUCTS_BY_QUERY } from './queries';
 import { normalizeColor, isColorValue } from '@/lib/utils/product-options';
 import { getProductAllocationByHandle, getProductAllocationByProductId, getProductAllocationMapByProductIds } from '@/lib/db/product-allocations';
+import { CATEGORY_PRODUCTS_CACHE_MS } from '@/lib/config/collection-cache';
 import { getProductOverridesByHandles, getProductOverrideByHandle } from '@/lib/content/product-overrides';
 import { filterExcludedFrontendVendors, isExcludedFrontendVendor } from './vendor-visibility';
 import type { ShopifyProduct, ProductWithPrimaryCollection } from '@/types/shopify';
@@ -162,6 +163,28 @@ export async function getProductByHandle(
     return data.product;
   } catch (error) {
     console.error('Error fetching product:', error);
+    return null;
+  }
+}
+
+export async function getProductById(
+  id: string,
+  options?: { cache?: RequestCache }
+): Promise<ShopifyProduct | null> {
+  try {
+    const data = await shopifyFetch<ProductResponse>({
+      query: GET_PRODUCT_BY_ID,
+      variables: { id },
+      cache: options?.cache ?? 'force-cache',
+    });
+
+    if (!data.product || isExcludedFrontendVendor(data.product.vendor)) {
+      return null;
+    }
+
+    return data.product;
+  } catch (error) {
+    console.error('Error fetching product by id:', error);
     return null;
   }
 }
@@ -1035,7 +1058,7 @@ export async function getProductCanonicalUrl(
  * 0. Admin allocation (canonical category override)
  * 1. Use primary_collection metafield if set
  * 2. Derive from productType via mapping
- * 3. Fallback to /products/{handle}
+ * 3. Fallback to /products/{handle} (legacy; product sitemap omits these URLs)
  */
 export async function getProductCanonicalUrls(
   products: Array<Pick<ShopifyProduct, 'id' | 'handle' | 'productType'> & { metafield?: { value: string } | null }>
@@ -1128,7 +1151,8 @@ export async function getProductsByCategory(
     brands?: string[];
     sizes?: string[];
     colors?: string[];
-  }
+  },
+  sortBy?: 'featured' | 'on-sale' | 'newest' | 'oldest' | 'price-asc' | 'price-desc'
 ): Promise<{
   products: ProductWithPrimaryCollection[];
   pageInfo: { hasNextPage: boolean; endCursor: string | null };
@@ -1152,12 +1176,18 @@ export async function getProductsByCategory(
     // Disabled by default so we can build and test safely before migration.
     const useDbFirstCollections = process.env.USE_DB_COLLECTIONS_FROM_POSTGRES === 'true';
     if (useDbFirstCollections) {
+      // DB-first path does not support global on-sale ordering yet.
+      // Fall back to Shopify path so /?sort=on-sale is correct and badges appear.
+      if (sortBy === 'on-sale') {
+        console.log('[getProductsByCategory] sort=on-sale requested; skipping DB-first path for accurate ordering');
+      } else {
       try {
         const { getProductsByCategoryFromDB } = await import('@/lib/products/postgres-adapter');
         console.log(`[getProductsByCategory] 🧪 DB-first path enabled for ${categoryPath}`);
         return getProductsByCategoryFromDB(categoryPath, limit, after, filters);
       } catch (dbError) {
         console.error('[getProductsByCategory] DB-first path failed, falling back to Shopify path:', dbError);
+      }
       }
     }
 
@@ -1168,7 +1198,7 @@ export async function getProductsByCategory(
     let allProducts: ProductWithPrimaryCollection[];
     
     // Skip cache if it has 0 products (likely from a previous error)
-    if (cached && cached.products.length > 0 && (now - cached.timestamp) < CACHE_TTL) {
+    if (cached && cached.products.length > 0 && (now - cached.timestamp) < CATEGORY_PRODUCTS_CACHE_MS) {
       console.log(`[getProductsByCategory] ✅ Using cached products for ${categoryPath} (${cached.products.length} products)`);
       allProducts = cached.products;
     } else {
@@ -1452,13 +1482,41 @@ export async function getProductsByCategory(
       price: priceFacet
     };
 
-    // Sort: in-stock first, out-of-stock last
+    // Server-side sorting (before pagination) so /?sort=on-sale surfaces on-sale products on page 1.
     allProducts.sort((a, b) => {
       const aInStock = a.variants.edges.some(({ node }) => node.availableForSale);
       const bInStock = b.variants.edges.some(({ node }) => node.availableForSale);
-      if (aInStock && !bInStock) return -1;
-      if (!aInStock && bInStock) return 1;
-      return 0;
+      const aPrice = parseFloat(a.priceRange?.minVariantPrice?.amount || '0');
+      const bPrice = parseFloat(b.priceRange?.minVariantPrice?.amount || '0');
+      const aCompare = parseFloat(a.compareAtPriceRange?.minVariantPrice?.amount || '0');
+      const bCompare = parseFloat(b.compareAtPriceRange?.minVariantPrice?.amount || '0');
+      const aOnSale = aCompare > aPrice;
+      const bOnSale = bCompare > bPrice;
+      const aCreated = new Date(a.createdAt || 0).getTime();
+      const bCreated = new Date(b.createdAt || 0).getTime();
+
+      switch (sortBy) {
+        case 'on-sale':
+          if (aOnSale !== bOnSale) return aOnSale ? -1 : 1;
+          if (aInStock !== bInStock) return aInStock ? -1 : 1;
+          return 0;
+        case 'newest':
+          if (aInStock !== bInStock) return aInStock ? -1 : 1;
+          return bCreated - aCreated;
+        case 'oldest':
+          if (aInStock !== bInStock) return aInStock ? -1 : 1;
+          return aCreated - bCreated;
+        case 'price-asc':
+          if (aInStock !== bInStock) return aInStock ? -1 : 1;
+          return aPrice - bPrice;
+        case 'price-desc':
+          if (aInStock !== bInStock) return aInStock ? -1 : 1;
+          return bPrice - aPrice;
+        case 'featured':
+        default:
+          if (aInStock !== bInStock) return aInStock ? -1 : 1;
+          return 0;
+      }
     });
 
     // Implement pagination

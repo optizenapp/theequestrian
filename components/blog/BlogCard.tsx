@@ -1,9 +1,19 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { ShopifyArticle } from '@/types/shopify';
+
+export interface BlogCardArticle {
+  id: string;
+  handle: string;
+  title: string;
+  excerpt?: string | null;
+  excerptHtml?: string | null;
+  publishedAt: string;
+  author: { name: string };
+  image?: { url: string; altText?: string | null; width?: number; height?: number } | null;
+}
 
 interface BlogCardProps {
-  article: ShopifyArticle;
+  article: BlogCardArticle;
 }
 
 export function BlogCard({ article }: BlogCardProps) {
@@ -13,7 +23,6 @@ export function BlogCard({ article }: BlogCardProps) {
     day: 'numeric',
   });
 
-  // Truncate excerpt to ~150 characters
   const excerpt = article.excerpt || article.excerptHtml?.replace(/<[^>]*>/g, '') || '';
   const truncatedExcerpt = excerpt.length > 150 ? excerpt.substring(0, 150) + '...' : excerpt;
 

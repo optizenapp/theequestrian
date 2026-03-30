@@ -1,15 +1,7 @@
 'use client';
 
 import { useMemo, useRef, useState } from 'react';
-interface HomeSliderItem {
-  label: string;
-  image: string;
-  title: string;
-  price: string;
-  saving: string;
-  detail: string;
-  handle?: string;
-}
+import type { HomeSliderItem } from '@/lib/content/home';
 
 const DEFAULT_DEAL_IMAGE =
   'https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?auto=format&fit=crop&w=1200&q=80';
@@ -205,7 +197,7 @@ export function BestDealsSlider({
                 
                 {activeDeal.handle && (
                   <a 
-                    href={`/products/${activeDeal.handle}`}
+                    href={activeDeal.productHref ?? `/products/${activeDeal.handle}`}
                     className="mt-4 inline-block text-sm font-medium text-primary hover:text-primary-dark underline"
                   >
                     View Product

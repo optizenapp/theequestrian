@@ -4,6 +4,7 @@ export interface BrandContentRow {
   handle: string;
   title: string;
   products_count: number;
+  rules: string | null;
   h1_title: string | null;
   meta_title: string | null;
   meta_description: string | null;
@@ -41,6 +42,7 @@ async function ensureBrandContentTable() {
   await sql`CREATE INDEX IF NOT EXISTS idx_brand_content_handle ON brand_content(handle)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_brand_content_status ON brand_content(status)`;
   await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS products_count INTEGER DEFAULT 0`;
+  await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS rules TEXT`;
 }
 
 async function loadBrandContent(): Promise<Map<string, BrandContentRow>> {
@@ -50,12 +52,12 @@ async function loadBrandContent(): Promise<Map<string, BrandContentRow>> {
   }
 
   try {
-    await ensureBrandContentTable();
     const result = await sql.query(`
       SELECT
         handle,
         title,
         COALESCE(products_count, 0) AS products_count,
+        rules,
         h1_title,
         meta_title,
         meta_description,
@@ -93,8 +95,75 @@ export async function getAllPublishedBrandContent(): Promise<BrandContentRow[]> 
   return Array.from(contentMap.values());
 }
 
+/**
+ * Short label for /brands index cards (not the long SEO `title`).
+ * Uses `breadcrumb_label` when set; otherwise strips common "Shop …" prefixes and
+ * truncates at subtitle separators (" - ", " | ") or before a trailing " Horse …" /
+ * " … Equestrian …" phrase.
+ */
+export function getBrandIndexDisplayName(brand: BrandContentRow): string {
+  const bc = brand.breadcrumb_label?.trim();
+  if (bc) return bc;
+
+  let s = brand.title.trim().replace(/^Shop\s+(?:&\s+Buy\s+)?/i, '');
+  const dashIdx = s.indexOf(' - ');
+  if (dashIdx !== -1) s = s.slice(0, dashIdx).trim();
+  const pipeIdx = s.indexOf(' | ');
+  if (pipeIdx !== -1) s = s.slice(0, pipeIdx).trim();
+
+  const horsePhrase = s.match(/^(.+?)\s+Horse\s+/i);
+  if (horsePhrase) s = horsePhrase[1].trim();
+
+  const equestrianPhrase = s.match(/^(.+?)\s+Equestrian\s+/i);
+  if (equestrianPhrase) s = equestrianPhrase[1].trim();
+
+  return s || brand.title;
+}
+
+/**
+ * Get allowed vendor names and tag values from published brands in the DB.
+ * Used for the brand filter on category pages so only curated brands appear.
+ * Parses the rules column (Shopify collection rule JSON) to extract VENDOR and TAG conditions.
+ */
+export async function getAllowedBrandVendorsFromDb(): Promise<{
+  vendors: string[];
+  tags: string[];
+}> {
+  const result = await sql.query(`
+    SELECT handle, rules FROM brand_content WHERE status = 'published' AND rules IS NOT NULL AND rules != ''
+  `);
+  const vendors: string[] = [];
+  const tags: string[] = [];
+  const seenV = new Set<string>();
+  const seenT = new Set<string>();
+
+  for (const row of result.rows) {
+    const rulesStr = row.rules;
+    if (!rulesStr || rulesStr === 'Manual Collection') continue;
+    try {
+      const rules = JSON.parse(rulesStr) as Array<{ column?: string; condition?: string }>;
+      if (!Array.isArray(rules)) continue;
+      for (const rule of rules) {
+        if (rule.column === 'VENDOR' && rule.condition && !seenV.has(rule.condition)) {
+          seenV.add(rule.condition);
+          vendors.push(rule.condition);
+        } else if (rule.column === 'TAG' && rule.condition) {
+          const lower = rule.condition.toLowerCase();
+          if (!seenT.has(lower)) {
+            seenT.add(lower);
+            tags.push(lower);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[getAllowedBrandVendorsFromDb] Failed to parse rules for', row.handle, e);
+    }
+  }
+
+  return { vendors, tags };
+}
+
 export async function listBrandsWithOverrides() {
-  await ensureBrandContentTable();
   const result = await sql.query(`
     SELECT
       handle,

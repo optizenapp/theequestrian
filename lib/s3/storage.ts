@@ -26,9 +26,10 @@ function getS3Client(): S3Client {
       );
     }
     const region = process.env.AWS_REGION || 'ap-southeast-2';
+    const sessionToken = (process.env.AWS_SESSION_TOKEN ?? '').trim() || undefined;
     _s3Client = new S3Client({
       region,
-      credentials: { accessKeyId, secretAccessKey },
+      credentials: { accessKeyId, secretAccessKey, ...(sessionToken && { sessionToken }) },
     });
   }
   return _s3Client;

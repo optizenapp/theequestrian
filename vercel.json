@@ -1,16 +1,8 @@
 {
   "crons": [
     {
-      "path": "/api/cron/404-scan",
-      "schedule": "0 2 * * *"
-    },
-    {
       "path": "/api/cron/404-rollup",
       "schedule": "10 2 * * *"
-    },
-    {
-      "path": "/api/cron/redirect-audit",
-      "schedule": "20 2 * * *"
     },
     {
       "path": "/api/cron/gmc-feed",
@@ -23,6 +15,18 @@
     {
       "path": "/api/cron/email-campaigns",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/auto-weekly-build",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/auto-weekly-release",
+      "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/cron/sitemaps",
+      "schedule": "15 2 * * *"
     }
   ]
 }

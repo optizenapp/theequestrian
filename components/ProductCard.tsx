@@ -1,8 +1,11 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { ProductPrice } from './ProductPrice';
 import { ProductReviewBadge, type ReviewStats } from './reviews/ProductReviewBadge';
 import type { ShopifyProduct } from '@/types/shopify';
+import { buildGa4ItemFromProduct, trackSelectItem } from '@/lib/analytics/ga4-ecommerce';
 
 interface ProductCardProps {
   product: ShopifyProduct;
@@ -10,6 +13,10 @@ interface ProductCardProps {
   showBreadcrumbs?: boolean;
   canonicalUrl?: string; // Optional: pass the canonical URL from server component
   reviewStats?: ReviewStats | null; // Optional: pass review stats from server
+  /** When set with index, fires GA4 `select_item` before navigation */
+  itemListId?: string;
+  itemListName?: string;
+  itemIndex?: number;
 }
 
 /**
@@ -19,7 +26,16 @@ interface ProductCardProps {
  * Links directly to the canonical category-based URL (e.g., /horse/rugs/product-handle)
  * If canonicalUrl is not provided, falls back to /products/{handle}
  */
-export function ProductCard({ product, priority = false, showBreadcrumbs = false, canonicalUrl, reviewStats }: ProductCardProps) {
+export function ProductCard({
+  product,
+  priority = false,
+  showBreadcrumbs = false,
+  canonicalUrl,
+  reviewStats,
+  itemListId,
+  itemListName,
+  itemIndex,
+}: ProductCardProps) {
   // Use provided canonical URL, or fallback to /products/{handle}
   const productHref = canonicalUrl || `/products/${product.handle}`;
   const image = product.images.edges[0]?.node;
@@ -28,11 +44,30 @@ export function ProductCard({ product, priority = false, showBreadcrumbs = false
   const price = product.priceRange?.minVariantPrice || { amount: '0', currencyCode: 'USD' };
   const compareAtPrice = product.compareAtPriceRange?.minVariantPrice;
 
+  const handleAnalyticsClick = () => {
+    if (itemListId == null || itemListName == null || itemIndex == null) return;
+    const currency = price.currencyCode || 'AUD';
+    trackSelectItem({
+      item_list_id: itemListId,
+      item_list_name: itemListName,
+      currency,
+      items: [
+        buildGa4ItemFromProduct(product, {
+          index: itemIndex,
+          listId: itemListId,
+          listName: itemListName,
+        }),
+      ],
+    });
+  };
+
   return (
     <Link 
       href={productHref}
       className="group relative flex flex-col h-full bg-surface rounded-2xl p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-1"
+      onClick={handleAnalyticsClick}
     >
+      <article className="flex flex-col h-full">
       {/* Badge / Tag */}
       <div className="absolute top-4 left-4 z-10 flex flex-col gap-1">
         {product.availableForSale && product.compareAtPriceRange?.minVariantPrice && 
@@ -98,6 +133,7 @@ export function ProductCard({ product, priority = false, showBreadcrumbs = false
           )}
         </div>
       </div>
+      </article>
     </Link>
   );
 }

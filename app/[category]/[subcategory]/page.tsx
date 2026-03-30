@@ -1,7 +1,8 @@
 import { notFound, permanentRedirect, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import dynamicImport from 'next/dynamic';
-import { getProductsByCategory, getProductCanonicalUrls } from '@/lib/shopify/products';
+import { getProductsByCategoryForCollectionPage } from '@/lib/shopify/category-collection-fetch';
+import { getProductCanonicalUrls } from '@/lib/shopify/products';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
 import { 
@@ -14,7 +15,7 @@ import { TrustSignals } from '@/components/TrustSignals';
 import { CategoryPills } from '@/components/CategoryPills';
 import { CollectionDescription } from '@/components/CollectionDescription';
 import { CollectionBreadcrumbs } from '@/components/CollectionBreadcrumbs';
-import { getCategoryContent } from '@/lib/content/collections';
+import { getCategoryContent, getParentCollectionLink } from '@/lib/content/collections';
 import { getAllowedBrandVendors } from '@/lib/filters/brand-filter-helper';
 import Link from 'next/link';
 import type { Metadata } from 'next';
@@ -49,8 +50,7 @@ const RichContent = dynamicImport(
   }
 );
 
-// ISR Configuration: Revalidate every 15 minutes
-export const revalidate = 900;
+export const revalidate = 172800;
 export const preferredRegion = 'syd1';
 
 interface SubcategoryPageProps {
@@ -66,8 +66,10 @@ interface SubcategoryPageProps {
  */
 export default async function SubcategoryPage({ params, searchParams }: SubcategoryPageProps) {
   const { category, subcategory } = await params;
-  const { cursor, brand, size, color } = await searchParams;
+  const { cursor, brand, size, color, sort } = await searchParams;
   const afterCursor = typeof cursor === 'string' ? cursor : null;
+  const sortBy =
+    typeof sort === 'string' ? (sort as 'featured' | 'on-sale' | 'newest' | 'oldest' | 'price-asc' | 'price-desc') : undefined;
   const filterBrands = brand ? (Array.isArray(brand) ? brand : brand.split(',')) : undefined;
   const filterSizes = size ? (Array.isArray(size) ? size : size.split(',')) : undefined;
   const filterColors = color ? (Array.isArray(color) ? color : color.split(',')) : undefined;
@@ -82,16 +84,18 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
 
   // Fetch products allocated to this category from product_category_assignments table
   const categoryPath = `/${category}/${subcategory}`;
-  const { products: filteredProducts, pageInfo, facets, totalCount } = await getProductsByCategory(
-    categoryPath,
-    36, 
-    afterCursor,
-    { 
-      brands: filterBrands,
-      sizes: filterSizes,
-      colors: filterColors
-    }
-  );
+  const { products: filteredProducts, pageInfo, facets, totalCount } =
+    await getProductsByCategoryForCollectionPage(
+      categoryPath,
+      36,
+      afterCursor,
+      {
+        brands: filterBrands,
+        sizes: filterSizes,
+        colors: filterColors,
+      },
+      sortBy
+    );
   
   // If no products found, check if category exists in collection_content
   if (totalCount === 0) {
@@ -113,9 +117,9 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
   
   // Get allowed brand vendors from brand-mapping.csv (only for equestrian categories)
   // For pet/accessories categories, show all brands
-  const allowedBrands = (category === 'pet' || category === 'accessories') 
-    ? undefined 
-    : getAllowedBrandVendors();
+  const allowedBrands = (category === 'pet' || category === 'accessories')
+    ? undefined
+    : await getAllowedBrandVendors();
   
   // Generate canonical URLs for all products (fast with Neon DB)
   // Product cards will link directly to category-based URLs
@@ -144,17 +148,19 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
     breadcrumbs[breadcrumbs.length - 1].label = content.breadcrumb_label;
   }
 
-  // Use database content if available, otherwise fallback to mapping
-  const pageTitle = content?.breadcrumb_label || content?.h1_title || mappingTitle;
+  // On-page H1 prefers h1_title; breadcrumb_label only overrides breadcrumb trail, not meta title
+  const pageTitle = content?.h1_title || content?.breadcrumb_label || mappingTitle;
   const description = content?.short_description || '';
-  
+
+  const parentCollectionLink = await getParentCollectionLink(
+    content?.parent_url?.trim() || `/${category}`
+  );
+
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
 
   // Get parent collection info for isPartOf relationship
   const parentCollectionTitle = getCollectionTitle(category);
   
-  // Build "Best in Class" Collection Schema using FAST version (performance optimized)
-  // Uses simple /products/{handle} URLs for schema (canonical URLs still used in product grid)
   const collectionSchema = generateCollectionSchemaFast({
     collectionName: pageTitle,
     collectionUrl: `${siteUrl}/${category}/${subcategory}`,
@@ -187,23 +193,18 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-6">{pageTitle}</h1>
           
-          <CollectionDescription 
+          <CollectionDescription
             description={description}
+            parentCollectionLink={parentCollectionLink}
           />
-        </div>
-
-        {/* Trust Signals */}
-        <div className="mb-8 -mx-4">
-          <TrustSignals />
         </div>
 
         {/* Sub-subcategories as Pills (3rd level) */}
-        <div className="mb-8">
-          <CategoryPills 
-            categories={subSubcategories.map(s => ({ handle: s.handle, label: s.label }))}
-            basePath={`/${category}/${subcategory}`}
-          />
-        </div>
+        <CategoryPills 
+          categories={subSubcategories.map(s => ({ handle: s.handle, label: s.label }))}
+          basePath={`/${category}/${subcategory}`}
+          sectionHeading={`Shop ${mappingTitle} by Type`}
+        />
 
         {/* Products Grid with Filters */}
         <Suspense fallback={<div className="text-center py-12">Loading products...</div>}>
@@ -219,6 +220,11 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
             reviewStatsMap={reviewStats}
           />
         </Suspense>
+
+        {/* Trust Signals */}
+        <div className="mb-8 -mx-4 mt-8">
+          <TrustSignals />
+        </div>
 
         {/* Long Description (Rich Content) */}
         {content?.long_description && (

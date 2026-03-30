@@ -54,6 +54,11 @@ export interface Article {
   pr_contacts: Record<string, unknown> | null;
   created_at: Date | null;
   view_count: number | null;
+  /** Headless storefront: shop CTA path e.g. /rider/helmets */
+  headless_cta_path?: string | null;
+  headless_cta_label?: string | null;
+  /** Comma-separated Shopify product handles */
+  headless_related_handles?: string | null;
   article_category?: ArticleCategory | null;
   article_place?: ArticlePlaceLink[];
 }
