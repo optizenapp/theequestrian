@@ -21,7 +21,6 @@ import Image from 'next/image';
 import type { Metadata } from 'next';
 import { getManualRedirect } from '@/lib/redirects/manual';
 import { getReviewStatsWithCache } from '@/lib/reviews/get-review-stats';
-import { CATEGORY_PAGE_REVALIDATE_SECONDS } from '@/lib/config/route-revalidate';
 
 // Lazy load below-the-fold components for better Speed Index
 const ProductGridWithFilters = dynamicImport(
@@ -53,7 +52,7 @@ const RichContent = dynamicImport(
 );
 
 // ISR: collection shell (48h). Price/stock: client status API.
-export const revalidate = CATEGORY_PAGE_REVALIDATE_SECONDS;
+export const revalidate = 172800;
 export const preferredRegion = 'syd1';
 
 interface CategoryPageProps {

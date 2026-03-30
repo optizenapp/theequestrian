@@ -30,9 +30,8 @@ import { FAQSection } from '@/components/collection/FAQSection';
 import { RelatedCategories } from '@/components/collection/RelatedCategories';
 import { RichContent } from '@/components/collection/RichContent';
 import type { Metadata } from 'next';
-import { CATEGORY_PAGE_REVALIDATE_SECONDS } from '@/lib/config/route-revalidate';
 
-export const revalidate = CATEGORY_PAGE_REVALIDATE_SECONDS;
+export const revalidate = 172800;
 
 interface CategoryPageProps {
   params: Promise<{

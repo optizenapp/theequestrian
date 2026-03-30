@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { LLMS_TXT_REVALIDATE_SECONDS } from '@/lib/config/route-revalidate';
 import { entityTag, ifNoneMatchSatisfied, notModifiedResponse } from '@/lib/http/conditional-response';
 
-export const revalidate = LLMS_TXT_REVALIDATE_SECONDS;
+export const revalidate = 3600;
 
 const LLMS_CACHE_CONTROL = 'public, s-maxage=3600, stale-while-revalidate=7200';
 

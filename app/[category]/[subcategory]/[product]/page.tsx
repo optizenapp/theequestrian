@@ -46,7 +46,6 @@ import { getManualRedirect } from '@/lib/redirects/manual';
 import { getProductOverrideByHandle, resolveProductHandleFromSlug } from '@/lib/content/product-overrides';
 import { buildProductSeoMetadata } from '@/lib/seo/product-metadata';
 import { cache } from 'react';
-import { CATEGORY_PAGE_REVALIDATE_SECONDS } from '@/lib/config/route-revalidate';
 import { ProductViewTracker } from '@/components/analytics/ProductViewTracker';
 
 // Lazy load heavy below-the-fold components to improve LCP
@@ -57,7 +56,7 @@ const ProductReviewSection = dynamicImport(
   }
 );
 
-export const revalidate = CATEGORY_PAGE_REVALIDATE_SECONDS;
+export const revalidate = 172800;
 export const preferredRegion = 'syd1';
 
 interface PageProps {

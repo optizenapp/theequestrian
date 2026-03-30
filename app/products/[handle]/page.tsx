@@ -23,10 +23,9 @@ import { createManualRedirect, getManualRedirect } from '@/lib/redirects/manual'
 import { getProductOverrideByHandle, resolveProductHandleFromSlug } from '@/lib/content/product-overrides';
 import { buildProductSeoMetadata } from '@/lib/seo/product-metadata';
 import { cache } from 'react';
-import { PRODUCT_PAGE_REVALIDATE_SECONDS } from '@/lib/config/route-revalidate';
 import { ProductViewTracker } from '@/components/analytics/ProductViewTracker';
 
-export const revalidate = PRODUCT_PAGE_REVALIDATE_SECONDS;
+export const revalidate = 300;
 export const dynamic = 'force-static';
 
 interface ProductPageProps {

@@ -12,9 +12,8 @@ import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast
 import { FAQItem } from '@/lib/content/collections';
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { BRAND_PAGE_REVALIDATE_SECONDS } from '@/lib/config/route-revalidate';
 
-export const revalidate = BRAND_PAGE_REVALIDATE_SECONDS;
+export const revalidate = 3600;
 
 interface BrandPageProps {
   params: Promise<{
