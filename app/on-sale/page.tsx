@@ -12,8 +12,9 @@ import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast
 import { FAQItem } from '@/lib/content/collections';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { ON_SALE_PAGE_REVALIDATE_SECONDS } from '@/lib/config/route-revalidate';
 
-export const revalidate = 3600; // Revalidate every hour
+export const revalidate = ON_SALE_PAGE_REVALIDATE_SECONDS;
 
 export async function generateMetadata(): Promise<Metadata> {
   const pageData = getSalePageByPath('/on-sale');

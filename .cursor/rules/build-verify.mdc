@@ -1,0 +1,14 @@
+---
+description: Enforce build verification after changes
+globs: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]
+---
+
+After modifying any source file:
+1. Run `npm run build` (or the project's build command)
+2. If it fails, read the FULL error output
+3. Fix the root cause — do not add workarounds or type assertions
+4. Rebuild and confirm zero errors before reporting done
+
+After modifying any TypeScript file:
+1. Run `npx tsc --noEmit`
+2. Fix all type errors before moving on

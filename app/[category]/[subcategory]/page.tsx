@@ -20,6 +20,7 @@ import { getAllowedBrandVendors } from '@/lib/filters/brand-filter-helper';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { getManualRedirect } from '@/lib/redirects/manual';
+import { CATEGORY_PAGE_REVALIDATE_SECONDS } from '@/lib/config/route-revalidate';
 
 // Lazy load below-the-fold components for better Speed Index
 const ProductGridWithFilters = dynamicImport(
@@ -50,7 +51,7 @@ const RichContent = dynamicImport(
   }
 );
 
-export const revalidate = 172800;
+export const revalidate = CATEGORY_PAGE_REVALIDATE_SECONDS;
 export const preferredRegion = 'syd1';
 
 interface SubcategoryPageProps {

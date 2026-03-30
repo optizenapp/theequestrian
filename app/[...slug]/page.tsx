@@ -25,8 +25,10 @@ import ProductReviewSection from '@/components/reviews/ProductReviewSection';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { getReviewStatsWithCache } from '@/lib/reviews/get-review-stats';
 import { cache } from 'react';
+import { PRODUCT_PAGE_REVALIDATE_SECONDS } from '@/lib/config/route-revalidate';
+import { ProductViewTracker } from '@/components/analytics/ProductViewTracker';
 
-export const revalidate = 300;
+export const revalidate = PRODUCT_PAGE_REVALIDATE_SECONDS;
 export const dynamic = 'force-static';
 
 interface ProductCatchAllPageProps {
@@ -180,6 +182,10 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
   );
   const showArcEquineGelPromo = resolvedProduct.handle === 'arcequine-complete-kit';
 
+  const firstAvailableVariant =
+    resolvedProduct.variants.edges.find(({ node }) => node.availableForSale)?.node ??
+    resolvedProduct.variants.edges[0]?.node;
+
   return (
     <>
       <div className="bg-background min-h-screen pb-20">
@@ -198,9 +204,21 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
           additionalPaths={additionalPaths}
         />
 
+        <ProductViewTracker
+          product={resolvedProduct}
+          displayTitle={displayTitle}
+          defaultVariantId={firstAvailableVariant?.id}
+          defaultVariantPrice={
+            firstAvailableVariant
+              ? parseFloat(firstAvailableVariant.price.amount)
+              : undefined
+          }
+        />
+
+        <article aria-labelledby="pdp-product-title">
         {/* Mobile title & rating (between breadcrumbs & image) */}
         <div className="lg:hidden mt-4 mb-8 space-y-2">
-          <h1 className="text-3xl font-bold text-gray-900">{displayTitle}</h1>
+          <h1 id="pdp-product-title" className="text-3xl font-bold text-gray-900">{displayTitle}</h1>
           <ProductPageReviewBadge
             productId={resolvedProduct.id}
             productHandle={resolvedProduct.handle}
@@ -232,7 +250,7 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
 
         <div className="lg:grid lg:grid-cols-12 lg:gap-12 items-start">
           {/* Left Column: Image Gallery & Description */}
-          <div className="lg:col-span-7 space-y-8">
+          <section className="lg:col-span-7 space-y-8" aria-label="Product images and description">
             {/* Image Gallery */}
             <ProductImageGallery 
               images={resolvedProduct.images}
@@ -241,14 +259,14 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
 
             {/* Full Width Description Section */}
             <ProductDescription html={descriptionHtml} productTitle={displayTitle} />
-          </div>
+          </section>
 
           {/* Right Column: Product Info & Buy Box (Sticky) */}
-          <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-6 lg:mb-0">
+          <section className="lg:col-span-5 lg:sticky lg:top-24 space-y-6 lg:mb-0" aria-label="Purchase options">
             
               {/* Title & Rating */}
               <div className="hidden lg:block">
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">{displayTitle}</h2>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">{displayTitle}</h1>
                 <div className="mb-4">
                   <ProductPageReviewBadge
                     productId={resolvedProduct.id}
@@ -286,9 +304,10 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
               <div className="bg-surface rounded-2xl p-6 shadow-sm border border-gray-100">
                 <ProductBuyBox product={resolvedProduct} />
               </div>
-            </div>
-          </div>
+          </section>
         </div>
+        </article>
+      </div>
       </div>
       <ProductReviewSection
         productId={resolvedProduct.id}

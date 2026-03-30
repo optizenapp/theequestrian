@@ -5,10 +5,14 @@ import { ShopifyProduct } from '@/types/shopify';
 import { AddToCartButton } from './AddToCartButton';
 import { BuyNowButton } from './BuyNowButton';
 
+import type { Ga4EcommerceItem } from '@/lib/analytics/ga4-ecommerce';
+
 interface MobileStickyBarProps {
   product: ShopifyProduct;
   selectedVariant: any;
   isAvailable: boolean;
+  analyticsItem?: Ga4EcommerceItem | null;
+  currencyCode?: string;
 }
 
 /**
@@ -18,7 +22,13 @@ interface MobileStickyBarProps {
  * Shows FREE SHIPPING badge + Add to Cart + Buy Now buttons
  * Fixed at bottom of screen for easy access
  */
-export function MobileStickyBar({ product, selectedVariant, isAvailable }: MobileStickyBarProps) {
+export function MobileStickyBar({
+  product,
+  selectedVariant,
+  isAvailable,
+  analyticsItem,
+  currencyCode,
+}: MobileStickyBarProps) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -68,11 +78,15 @@ export function MobileStickyBar({ product, selectedVariant, isAvailable }: Mobil
           <AddToCartButton
             variantId={selectedVariant?.id || ''}
             disabled={!isAvailable || !selectedVariant}
+            analyticsItem={analyticsItem}
+            currencyCode={currencyCode}
           />
           
           <BuyNowButton
             variantId={selectedVariant?.id || ''}
             disabled={!isAvailable || !selectedVariant}
+            analyticsItem={analyticsItem}
+            currencyCode={currencyCode}
           />
         </div>
       </div>

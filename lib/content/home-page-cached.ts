@@ -1,4 +1,5 @@
 import { unstable_cache } from 'next/cache';
+import { HOME_DATA_CACHE_REVALIDATE_SECONDS } from '@/lib/config/route-revalidate';
 import { getHomeSections, type HomeSection } from '@/lib/content/home';
 import { getProductsByHandles } from '@/lib/shopify/products-by-handles';
 import type { ShopifyProductCard } from '@/types/shopify';
@@ -24,5 +25,5 @@ async function loadHomeSectionsWithProducts(): Promise<HomeSectionWithFetchedPro
 export const getCachedHomeSectionsWithProducts = unstable_cache(
   loadHomeSectionsWithProducts,
   ['home-sections-with-products'],
-  { revalidate: 300 }
+  { revalidate: HOME_DATA_CACHE_REVALIDATE_SECONDS }
 );

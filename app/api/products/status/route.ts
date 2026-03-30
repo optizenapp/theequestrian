@@ -13,6 +13,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { shopifyFetch } from '@/lib/shopify/client';
 import { checkRateLimit, rejectBotRequest } from '@/lib/api/endpoint-guards';
+import { jsonWithEtag } from '@/lib/http/json-conditional';
 
 interface ProductStatusRequest {
   productIds: string[];
@@ -57,6 +58,23 @@ function readCache(cacheKey: string): ProductStatusResponse | null {
     return null;
   }
   return hit.data;
+}
+
+function respondStatusJson(
+  request: NextRequest,
+  mode: 'soft' | 'strict',
+  statusMap: ProductStatusResponse,
+  xCache: string
+): NextResponse {
+  const cacheControl =
+    mode === 'strict'
+      ? 'no-store, max-age=0'
+      : 'public, max-age=5, s-maxage=10, stale-while-revalidate=30';
+  const headers = { 'X-Status-Cache': xCache, 'Cache-Control': cacheControl };
+  if (mode === 'strict') {
+    return NextResponse.json(statusMap, { headers });
+  }
+  return jsonWithEtag(request, statusMap, { headers });
 }
 
 function writeCache(cacheKey: string, data: ProductStatusResponse, ttlMs: number): void {
@@ -146,15 +164,7 @@ export async function POST(request: NextRequest) {
     const cacheKey = buildCacheKey(mode, productIds);
     const cached = readCache(cacheKey);
     if (cached) {
-      return NextResponse.json(cached, {
-        headers: {
-          'Cache-Control':
-            mode === 'strict'
-              ? 'no-store, max-age=0'
-              : 'public, max-age=5, s-maxage=10, stale-while-revalidate=30',
-          'X-Status-Cache': 'HIT',
-        },
-      });
+      return respondStatusJson(request, mode, cached, 'HIT');
     }
 
     const existingRequest = inFlightRequests.get(cacheKey);
@@ -198,15 +208,12 @@ export async function POST(request: NextRequest) {
 
     console.log(`[ProductStatus] ✅ Returned status for ${Object.keys(statusMap).length} products`);
 
-    return NextResponse.json(statusMap, {
-      headers: {
-        'Cache-Control':
-          mode === 'strict'
-            ? 'no-store, max-age=0'
-            : 'public, max-age=5, s-maxage=10, stale-while-revalidate=30',
-        'X-Status-Cache': existingRequest ? 'COALESCED' : 'MISS',
-      },
-    });
+    return respondStatusJson(
+      request,
+      mode,
+      statusMap,
+      existingRequest ? 'COALESCED' : 'MISS'
+    );
   } catch (error) {
     inFlightRequests.clear();
     console.error('[ProductStatus] Error:', error);
@@ -230,15 +237,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const productIds = ids.split(',').map(id => id.trim());
+    const productIds = ids.split(',').map((id) => id.trim());
 
-    // Reuse POST logic
-    return POST(
-      new NextRequest(request.url, {
-        method: 'POST',
-        body: JSON.stringify({ productIds }),
-      })
-    );
+    const forward = new NextRequest(request.url, {
+      method: 'POST',
+      headers: request.headers,
+      body: JSON.stringify({ productIds }),
+    });
+    return POST(forward);
   } catch (error) {
     console.error('[ProductStatus] GET Error:', error);
     return NextResponse.json(

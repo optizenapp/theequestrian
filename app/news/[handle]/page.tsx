@@ -19,6 +19,7 @@ import {
 } from '@/lib/blog/news-adapters';
 import { extractEmbeddedRelatedHandles } from '@/lib/blog/extract-embedded-related';
 import { extractCommerceSignalsFromHtml } from '@/lib/blog/extract-commerce-signals';
+import { NEWS_PAGE_REVALIDATE_SECONDS } from '@/lib/config/route-revalidate';
 
 interface ArticlePageProps {
   params: Promise<{
@@ -76,7 +77,7 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
   };
 }
 
-export const revalidate = 300;
+export const revalidate = NEWS_PAGE_REVALIDATE_SECONDS;
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
   const { handle } = await params;

@@ -23,10 +23,8 @@ export const CATEGORY_PRODUCTS_CACHE_MS = envMs(
   TWO_DAYS_MS
 );
 
-/**
- * Data cache TTL for collection grid (matches route `revalidate` in seconds; use a numeric literal in page files — Next 16 rejects `48 * 60 * 60` there).
- */
-export const CATEGORY_PAGE_REVALIDATE_SECONDS = 172800;
+/** Re-export: collection grid data TTL matches category route ISR. */
+export { CATEGORY_PAGE_REVALIDATE_SECONDS } from './route-revalidate';
 
 /** unstable_cache + webhook/admin invalidation */
 export const CATEGORY_PRODUCT_LISTINGS_CACHE_TAG = 'category-product-listings' as const;

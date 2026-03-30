@@ -3,13 +3,14 @@ import { listPublishedNewsArticles } from '@/lib/articles/news-public';
 import { listItemToBlogCardArticle } from '@/lib/blog/news-adapters';
 import { BlogCard } from '@/components/blog/BlogCard';
 import { generateBlogIndexSchema } from '@/lib/utils/site-schema';
+import { NEWS_PAGE_REVALIDATE_SECONDS } from '@/lib/config/route-revalidate';
 
 export const metadata: Metadata = {
   title: 'News & Articles | The Equestrian',
   description: 'Latest news, tips, and insights from The Equestrian',
 };
 
-export const revalidate = 300;
+export const revalidate = NEWS_PAGE_REVALIDATE_SECONDS;
 
 export default async function NewsPage() {
   const title = 'News & Articles | The Equestrian';

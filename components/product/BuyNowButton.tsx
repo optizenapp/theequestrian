@@ -4,13 +4,21 @@ import { useState } from 'react';
 import { useCart } from '@/components/cart/cart-context';
 import { normalizeCheckoutUrl } from '@/lib/shopify/cart-utils';
 import { trackGaEvent } from '@/lib/analytics/ga4';
+import type { Ga4EcommerceItem } from '@/lib/analytics/ga4-ecommerce';
 
 interface BuyNowButtonProps {
   variantId: string;
   disabled?: boolean;
+  analyticsItem?: Ga4EcommerceItem | null;
+  currencyCode?: string;
 }
 
-export function BuyNowButton({ variantId, disabled }: BuyNowButtonProps) {
+export function BuyNowButton({
+  variantId,
+  disabled,
+  analyticsItem,
+  currencyCode,
+}: BuyNowButtonProps) {
   const { addCartItem } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -37,12 +45,14 @@ export function BuyNowButton({ variantId, disabled }: BuyNowButtonProps) {
         throw new Error('Invalid cart response from Shopify');
       }
       
-      // Track analytics
-      trackGaEvent('add_to_cart', {
-        items: [{ item_id: variantId, quantity: 1 }],
-      });
+      const items = analyticsItem
+        ? [{ ...analyticsItem, quantity: 1 }]
+        : [{ item_id: variantId, quantity: 1 }];
+      const currency = currencyCode || 'AUD';
+      trackGaEvent('add_to_cart', { currency, items });
       trackGaEvent('begin_checkout', {
-        items: [{ item_id: variantId, quantity: 1 }],
+        currency,
+        items,
         source: 'buy_now',
       });
       

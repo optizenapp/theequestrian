@@ -46,6 +46,8 @@ import { getManualRedirect } from '@/lib/redirects/manual';
 import { getProductOverrideByHandle, resolveProductHandleFromSlug } from '@/lib/content/product-overrides';
 import { buildProductSeoMetadata } from '@/lib/seo/product-metadata';
 import { cache } from 'react';
+import { CATEGORY_PAGE_REVALIDATE_SECONDS } from '@/lib/config/route-revalidate';
+import { ProductViewTracker } from '@/components/analytics/ProductViewTracker';
 
 // Lazy load heavy below-the-fold components to improve LCP
 const ProductReviewSection = dynamicImport(
@@ -55,7 +57,7 @@ const ProductReviewSection = dynamicImport(
   }
 );
 
-export const revalidate = 172800;
+export const revalidate = CATEGORY_PAGE_REVALIDATE_SECONDS;
 export const preferredRegion = 'syd1';
 
 interface PageProps {
@@ -244,6 +246,10 @@ async function renderProductPage(product: ShopifyProduct, canonicalPath?: string
     : getProductBulletPoints(product.id);
   const showArcEquineGelPromo = product.handle === 'arcequine-complete-kit';
 
+  const firstAvailableVariant =
+    product.variants.edges.find(({ node }) => node.availableForSale)?.node ??
+    product.variants.edges[0]?.node;
+
   return (
     <div className="bg-background min-h-screen pb-20">
       {/* Unified Schema Graph (BreadcrumbList + Product) */}
@@ -261,9 +267,21 @@ async function renderProductPage(product: ShopifyProduct, canonicalPath?: string
           additionalPaths={additionalPaths}
         />
 
+        <ProductViewTracker
+          product={product}
+          displayTitle={displayTitle}
+          defaultVariantId={firstAvailableVariant?.id}
+          defaultVariantPrice={
+            firstAvailableVariant
+              ? parseFloat(firstAvailableVariant.price.amount)
+              : undefined
+          }
+        />
+
+        <article aria-labelledby="pdp-product-title">
         {/* Mobile title & rating */}
         <div className="lg:hidden mt-4 mb-8 space-y-2">
-          <h1 className="text-3xl font-bold text-gray-900">{displayTitle}</h1>
+          <h1 id="pdp-product-title" className="text-3xl font-bold text-gray-900">{displayTitle}</h1>
           <ProductPageReviewBadge
             productId={product.id}
             productHandle={product.handle}
@@ -295,20 +313,20 @@ async function renderProductPage(product: ShopifyProduct, canonicalPath?: string
 
         <div className="lg:grid lg:grid-cols-12 lg:gap-12 items-start">
           {/* Left Column: Image Gallery & Description */}
-          <div className="lg:col-span-7 space-y-8">
+          <section className="lg:col-span-7 space-y-8" aria-label="Product images and description">
             <ProductImageGallery 
               images={product.images}
               productTitle={product.title}
             />
             <ProductDescription html={descriptionHtml} productTitle={displayTitle} />
-          </div>
+          </section>
 
           {/* Right Column: Product Info & Buy Box (Sticky) */}
-          <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-6 lg:mb-0">
+          <section className="lg:col-span-5 lg:sticky lg:top-24 space-y-6 lg:mb-0" aria-label="Purchase options">
             
             {/* Title & Rating */}
             <div className="hidden lg:block">
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">{displayTitle}</h2>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">{displayTitle}</h1>
               <div className="mb-4">
                 <ProductPageReviewBadge
                   productId={product.id}
@@ -346,8 +364,9 @@ async function renderProductPage(product: ShopifyProduct, canonicalPath?: string
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-gray-100">
               <ProductBuyBox product={product} />
             </div>
-          </div>
+          </section>
         </div>
+        </article>
         
         {/* Sizing Guide Link - Between Description and Reviews */}
         <SizingGuideLink

@@ -11,6 +11,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as csv from 'csv-parse/sync';
 import { unstable_cache } from 'next/cache';
+import { SHOPIFY_GRAPHQL_FORCE_CACHE_REVALIDATE_SECONDS } from '@/lib/config/route-revalidate';
 import { getCategoryContent } from '@/lib/content/collections';
 import { sql } from '@/lib/db/client';
 import { resolvePillAnchorText } from '@/lib/seo/pill-anchor-text';
@@ -83,7 +84,7 @@ async function fetchCollectionMappingEntriesImpl(): Promise<MappingEntriesPayloa
 const getCachedMappingEntries =
   typeof process !== 'undefined' && process.env.NEXT_RUNTIME
     ? unstable_cache(fetchCollectionMappingEntriesImpl, ['collection-mapping-entries-v1'], {
-        revalidate: 900,
+        revalidate: SHOPIFY_GRAPHQL_FORCE_CACHE_REVALIDATE_SECONDS,
         tags: ['collection-mapping'],
       })
     : fetchCollectionMappingEntriesImpl;

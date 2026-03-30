@@ -3,6 +3,7 @@ import { listPublishedNewsArticlesByAuthorName } from '@/lib/articles/news-publi
 import { listItemToBlogCardArticle } from '@/lib/blog/news-adapters';
 import { BlogCard } from '@/components/blog/BlogCard';
 import { generateAuthorProfileSchema } from '@/lib/utils/site-schema';
+import { NEWS_PAGE_REVALIDATE_SECONDS } from '@/lib/config/route-revalidate';
 
 interface AuthorPageProps {
   params: Promise<{
@@ -45,7 +46,7 @@ export async function generateMetadata({ params }: AuthorPageProps): Promise<Met
   };
 }
 
-export const revalidate = 300;
+export const revalidate = NEWS_PAGE_REVALIDATE_SECONDS;
 
 export default async function AuthorPage({ params }: AuthorPageProps) {
   const { slug } = await params;

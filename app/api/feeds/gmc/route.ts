@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { entityTag, ifNoneMatchSatisfied, notModifiedResponse } from '@/lib/http/conditional-response';
 import { getAllProducts, getProductCanonicalUrls } from '@/lib/shopify/products';
 import { getGmcBaseUrl } from '@/lib/gmc/content';
 import { getGoogleProductCategory } from '@/lib/gmc/category-mapping';
@@ -190,11 +191,13 @@ function stripGid(gid: string) {
   return parts[parts.length - 1] || gid;
 }
 
-export async function GET() {
+const GMC_STUB_CACHE = 'public, max-age=60, s-maxage=60, stale-while-revalidate=120';
+
+export async function GET(request: NextRequest) {
   // TEMPORARY: GMC feed disabled - moving to S3
   // This endpoint will be re-enabled once S3 migration is complete
   const baseUrl = getGmcBaseUrl();
-  
+
   const xml = [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">',
@@ -206,12 +209,17 @@ export async function GET() {
     '</rss>',
   ].join('');
 
-  return new NextResponse(xml, {
-    headers: {
-      'Content-Type': 'application/xml; charset=utf-8',
-      'Cache-Control': 'public, max-age=60',
-    },
-  });
+  const etag = entityTag(xml);
+  const headers = {
+    'Content-Type': 'application/xml; charset=utf-8',
+    ETag: etag,
+    'Cache-Control': GMC_STUB_CACHE,
+  };
+  if (ifNoneMatchSatisfied(request.headers.get('if-none-match'), etag)) {
+    return notModifiedResponse(headers) as NextResponse;
+  }
+
+  return new NextResponse(xml, { headers });
   
   /* ORIGINAL CODE - WILL BE MOVED TO S3 GENERATION SCRIPT
   const products = await getAllProducts();

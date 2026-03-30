@@ -23,8 +23,10 @@ import { createManualRedirect, getManualRedirect } from '@/lib/redirects/manual'
 import { getProductOverrideByHandle, resolveProductHandleFromSlug } from '@/lib/content/product-overrides';
 import { buildProductSeoMetadata } from '@/lib/seo/product-metadata';
 import { cache } from 'react';
+import { PRODUCT_PAGE_REVALIDATE_SECONDS } from '@/lib/config/route-revalidate';
+import { ProductViewTracker } from '@/components/analytics/ProductViewTracker';
 
-export const revalidate = 300;
+export const revalidate = PRODUCT_PAGE_REVALIDATE_SECONDS;
 export const dynamic = 'force-static';
 
 interface ProductPageProps {
@@ -154,6 +156,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
     ? overrideBullets
     : getProductBulletPoints(product.id);
 
+  const firstAvailableVariant =
+    product.variants.edges.find(({ node }) => node.availableForSale)?.node ??
+    product.variants.edges[0]?.node;
+
   return (
     <div className="bg-background min-h-screen pb-20">
       {/* Unified Schema Graph (BreadcrumbList + Product) */}
@@ -171,9 +177,21 @@ export default async function ProductPage({ params }: ProductPageProps) {
           additionalPaths={additionalPaths}
         />
 
+        <ProductViewTracker
+          product={product}
+          displayTitle={displayTitle}
+          defaultVariantId={firstAvailableVariant?.id}
+          defaultVariantPrice={
+            firstAvailableVariant
+              ? parseFloat(firstAvailableVariant.price.amount)
+              : undefined
+          }
+        />
+
+      <article aria-labelledby="pdp-product-title">
       {/* Mobile title & rating (between breadcrumbs & image) */}
         <div className="lg:hidden mt-4 mb-8 space-y-2">
-        <h1 className="text-3xl font-bold text-gray-900">{displayTitle}</h1>
+        <h1 id="pdp-product-title" className="text-3xl font-bold text-gray-900">{displayTitle}</h1>
           <ProductPageReviewBadge
             productId={product.id}
             productHandle={product.handle}
@@ -193,7 +211,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
         <div className="lg:grid lg:grid-cols-12 lg:gap-12 items-start">
           {/* Left Column: Image Gallery & Description */}
-          <div className="lg:col-span-7 space-y-8">
+          <section className="lg:col-span-7 space-y-8" aria-label="Product images and description">
             {/* Image Gallery */}
             <ProductImageGallery 
               images={product.images}
@@ -202,14 +220,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
             {/* Full Width Description Section */}
             <ProductDescription html={descriptionHtml} productTitle={displayTitle} />
-          </div>
+          </section>
 
           {/* Right Column: Product Info & Buy Box (Sticky) */}
-          <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-6 lg:mb-0">
+          <section className="lg:col-span-5 lg:sticky lg:top-24 space-y-6 lg:mb-0" aria-label="Purchase options">
             
               {/* Title & Rating */}
               <div className="hidden lg:block">
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">{displayTitle}</h2>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">{displayTitle}</h1>
                 <div className="mb-4">
                   <ProductPageReviewBadge
                     productId={product.id}
@@ -235,8 +253,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <div className="bg-surface rounded-2xl p-6 shadow-sm border border-gray-100">
                 <ProductBuyBox product={product} />
               </div>
-            </div>
-          </div>
+          </section>
+        </div>
+      </article>
         
         {/* Reviews Section - Full Width Below Product */}
         <ProductReviewSection
