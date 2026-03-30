@@ -79,6 +79,32 @@ export function invalidateVendorSyncPriceCache(): void {
   priceSyncVendorCache = null;
 }
 
+/** After Dev Dashboard OAuth: create or refresh vendor_shop_connections row. */
+export async function upsertVendorOAuthConnection(
+  shopDomain: string,
+  marketplaceVendorName: string,
+  accessToken: string
+): Promise<void> {
+  await sql`
+    INSERT INTO vendor_shop_connections (
+      shop_domain, marketplace_vendor_name, access_token,
+      inventory_strategy, sync_price, is_active
+    ) VALUES (
+      ${shopDomain.toLowerCase().trim()},
+      ${marketplaceVendorName.trim()},
+      ${accessToken},
+      'single_location',
+      false,
+      true
+    )
+    ON CONFLICT (shop_domain) DO UPDATE SET
+      access_token = EXCLUDED.access_token,
+      marketplace_vendor_name = EXCLUDED.marketplace_vendor_name,
+      updated_at = NOW()
+  `;
+  invalidateVendorSyncPriceCache();
+}
+
 export async function getActiveMapsForVendorInventoryItem(
   connectionId: number,
   vendorInventoryItemId: string
