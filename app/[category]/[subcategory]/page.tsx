@@ -15,7 +15,7 @@ import { TrustSignals } from '@/components/TrustSignals';
 import { CategoryPills } from '@/components/CategoryPills';
 import { CollectionDescription } from '@/components/CollectionDescription';
 import { CollectionBreadcrumbs } from '@/components/CollectionBreadcrumbs';
-import { getCategoryContent } from '@/lib/content/collections';
+import { getCategoryContent, getParentCollectionLink } from '@/lib/content/collections';
 import { getAllowedBrandVendors } from '@/lib/filters/brand-filter-helper';
 import Link from 'next/link';
 import type { Metadata } from 'next';
@@ -151,7 +151,11 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
   // On-page H1 prefers h1_title; breadcrumb_label only overrides breadcrumb trail, not meta title
   const pageTitle = content?.h1_title || content?.breadcrumb_label || mappingTitle;
   const description = content?.short_description || '';
-  
+
+  const parentCollectionLink = await getParentCollectionLink(
+    content?.parent_url?.trim() || `/${category}`
+  );
+
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
 
   // Get parent collection info for isPartOf relationship
@@ -189,8 +193,9 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-6">{pageTitle}</h1>
           
-          <CollectionDescription 
+          <CollectionDescription
             description={description}
+            parentCollectionLink={parentCollectionLink}
           />
         </div>
 

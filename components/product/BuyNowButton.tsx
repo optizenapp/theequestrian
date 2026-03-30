@@ -11,6 +11,7 @@ interface BuyNowButtonProps {
   disabled?: boolean;
   analyticsItem?: Ga4EcommerceItem | null;
   currencyCode?: string;
+  compact?: boolean;
 }
 
 export function BuyNowButton({
@@ -18,6 +19,7 @@ export function BuyNowButton({
   disabled,
   analyticsItem,
   currencyCode,
+  compact = false,
 }: BuyNowButtonProps) {
   const { addCartItem } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -76,6 +78,11 @@ export function BuyNowButton({
     }
   };
 
+  const widthClass = compact ? 'flex-1 min-w-0' : 'w-full';
+  const sizeClass = compact
+    ? 'py-2.5 px-3 text-sm'
+    : 'py-4 px-6 text-lg';
+
   return (
     <button
       onClick={(e) => {
@@ -85,7 +92,7 @@ export function BuyNowButton({
       disabled={disabled || isProcessing}
       type="button"
       style={{ touchAction: 'manipulation' }}
-      className={`w-full py-4 px-6 rounded-full font-semibold text-lg transition-all border ${
+      className={`${widthClass} ${sizeClass} rounded-full font-semibold transition-all border ${
         disabled || isProcessing
           ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed'
           : 'bg-transparent text-action border-gray-300 hover:border-action hover:-translate-y-0.5 active:scale-95'

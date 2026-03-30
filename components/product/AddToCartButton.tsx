@@ -11,6 +11,8 @@ interface AddToCartButtonProps {
   /** Full item row for GA4 / BigQuery joins (falls back to variant id only) */
   analyticsItem?: Ga4EcommerceItem | null;
   currencyCode?: string;
+  /** Smaller padding and type — e.g. mobile sticky bar */
+  compact?: boolean;
 }
 
 export function AddToCartButton({
@@ -18,6 +20,7 @@ export function AddToCartButton({
   disabled,
   analyticsItem,
   currencyCode,
+  compact = false,
 }: AddToCartButtonProps) {
   const { addCartItem, openCart } = useCart();
   const [isAdding, setIsAdding] = useState(false);
@@ -51,11 +54,16 @@ export function AddToCartButton({
     }
   };
 
+  const widthClass = compact ? 'flex-1 min-w-0' : 'w-full';
+  const sizeClass = compact
+    ? 'py-2.5 px-3 text-sm'
+    : 'py-4 px-6 text-lg';
+
   return (
     <button
       onClick={handleAddToCart}
       disabled={disabled || isAdding}
-      className={`w-full py-4 px-6 rounded-full font-semibold text-lg transition-all ${
+      className={`${widthClass} ${sizeClass} rounded-full font-semibold transition-all ${
         showSuccess
           ? 'bg-[#E91E8C] text-white'
           : disabled
@@ -66,8 +74,8 @@ export function AddToCartButton({
       {isAdding ? (
         'Adding...'
       ) : showSuccess ? (
-        <span className="flex items-center justify-center gap-2">
-          ✓ Added to Cart
+        <span className="flex items-center justify-center gap-1">
+          {compact ? '✓ Added' : '✓ Added to Cart'}
         </span>
       ) : (
         'Add to Cart'

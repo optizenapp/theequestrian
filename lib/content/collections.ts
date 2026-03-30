@@ -150,6 +150,34 @@ export async function getCategoryContent(
   return getCollectionContent(path);
 }
 
+export interface ParentCollectionLink {
+  href: string;
+  label: string;
+}
+
+/**
+ * Resolves anchor text for mandatory parent internal linking (Next.js Link, not CMS HTML).
+ * Uses parent row breadcrumb_label, then h1_title.
+ */
+export async function getParentCollectionLink(
+  parentUrl: string | null | undefined
+): Promise<ParentCollectionLink | null> {
+  if (!parentUrl || parentUrl === '/') return null;
+  const href = parentUrl.startsWith('/') ? parentUrl : `/${parentUrl}`;
+  const parent = await getCollectionContent(href);
+  const label =
+    parent?.breadcrumb_label?.trim() ||
+    parent?.h1_title?.trim() ||
+    href
+      .replace(/^\//, '')
+      .split('/')
+      .filter(Boolean)
+      .pop()
+      ?.replace(/-/g, ' ') ||
+    'category';
+  return { href, label };
+}
+
 /**
  * Check if a category exists in the database
  * Returns true if the category exists and is published

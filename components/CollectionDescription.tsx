@@ -9,9 +9,14 @@
  * - Otherwise: legacy line-clamp (3–4 lines) + Read more for the whole block.
  */
 
+import Link from 'next/link';
 import { useState } from 'react';
 
 const READ_MORE_TRIGGER = /<!--\s*read-more-trigger\s*-->/i;
+
+/** Body copy is gray-700; without this, <a> inside CMS HTML looks like plain text */
+const descriptionProseClass =
+  'text-gray-700 leading-relaxed [&_a]:text-primary [&_a]:font-medium [&_a]:underline [&_a]:underline-offset-2 hover:[&_a]:text-primary-dark';
 
 function splitReadMore(html: string): { before: string; after: string } | null {
   const parts = html.split(READ_MORE_TRIGGER);
@@ -24,9 +29,17 @@ function splitReadMore(html: string): { before: string; after: string } | null {
 
 interface CollectionDescriptionProps {
   description: string;
+  /** Renders a real Next.js link to parent category (visible above Read more). Avoids stale ISR HTML for parent links. */
+  parentCollectionLink?: { href: string; label: string } | null;
 }
 
-export function CollectionDescription({ description }: CollectionDescriptionProps) {
+const linkClassName =
+  'font-medium text-primary underline underline-offset-2 hover:text-primary-dark';
+
+export function CollectionDescription({
+  description,
+  parentCollectionLink,
+}: CollectionDescriptionProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   if (!description) return null;
@@ -37,9 +50,18 @@ export function CollectionDescription({ description }: CollectionDescriptionProp
     return (
       <div className="mb-6">
         <div
-          className="text-gray-700 leading-relaxed"
+          className={descriptionProseClass}
           dangerouslySetInnerHTML={{ __html: split.before }}
         />
+        {parentCollectionLink ? (
+          <p className={`${descriptionProseClass} mt-2`}>
+            They are part of our wider{' '}
+            <Link href={parentCollectionLink.href} className={linkClassName}>
+              {parentCollectionLink.label}
+            </Link>{' '}
+            collection.
+          </p>
+        ) : null}
         {!isExpanded && (
           <button
             type="button"
@@ -53,7 +75,7 @@ export function CollectionDescription({ description }: CollectionDescriptionProp
           </button>
         )}
         <div
-          className={`text-gray-700 leading-relaxed space-y-4 ${isExpanded ? 'mt-4 block' : 'hidden'}`}
+          className={`${descriptionProseClass} space-y-4 ${isExpanded ? 'mt-4 block' : 'hidden'}`}
           dangerouslySetInnerHTML={{ __html: split.after }}
           aria-hidden={!isExpanded}
         />
@@ -76,11 +98,18 @@ export function CollectionDescription({ description }: CollectionDescriptionProp
   return (
     <div className="mb-6">
       <div
-        className={`text-gray-700 leading-relaxed ${
-          isExpanded ? '' : 'line-clamp-4'
-        }`}
+        className={`${descriptionProseClass} ${isExpanded ? '' : 'line-clamp-4'}`}
         dangerouslySetInnerHTML={{ __html: description }}
       />
+      {parentCollectionLink ? (
+        <p className={`${descriptionProseClass} mt-2`}>
+          They are part of our wider{' '}
+          <Link href={parentCollectionLink.href} className={linkClassName}>
+            {parentCollectionLink.label}
+          </Link>{' '}
+          collection.
+        </p>
+      ) : null}
       <button
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}

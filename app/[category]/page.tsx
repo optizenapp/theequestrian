@@ -4,7 +4,7 @@ import dynamicImport from 'next/dynamic';
 import { getProductsByCategoryForCollectionPage } from '@/lib/shopify/category-collection-fetch';
 import { getProductByHandle, getProductCanonicalUrl, getProductCanonicalUrls, hasProductImage } from '@/lib/shopify/products';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
-import { getCategoryContent } from '@/lib/content/collections';
+import { getCategoryContent, getParentCollectionLink } from '@/lib/content/collections';
 import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
 import { generateProductSchema } from '@/lib/utils/product-schema';
 import { 
@@ -263,7 +263,9 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   // Use database content if available, otherwise fallback to mapping
   const pageTitle = content?.h1_title || mappingTitle;
   const description = content?.short_description || '';
-  
+
+  const parentCollectionLink = await getParentCollectionLink(content?.parent_url?.trim());
+
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
 
   const collectionSchema = generateCollectionSchemaFast({
@@ -295,8 +297,9 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
           <h1 className="text-4xl font-bold mb-6">{pageTitle}</h1>
           
           {/* Short Description */}
-          <CollectionDescription 
+          <CollectionDescription
             description={description}
+            parentCollectionLink={parentCollectionLink}
           />
         </div>
 

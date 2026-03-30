@@ -25,7 +25,7 @@ import { CollectionBreadcrumbs } from '@/components/CollectionBreadcrumbs';
 import { FAQSection } from '@/components/collection/FAQSection';
 import { RelatedCategories } from '@/components/collection/RelatedCategories';
 import { RichContent } from '@/components/collection/RichContent';
-import { getCategoryContent } from '@/lib/content/collections';
+import { getCategoryContent, getParentCollectionLink } from '@/lib/content/collections';
 import { ProductImageGallery } from '@/components/ProductImageGallery';
 import { ProductBreadcrumbs } from '@/components/ProductBreadcrumbs';
 import { ProductBuyBox } from '@/components/product/ProductBuyBox';
@@ -465,7 +465,11 @@ async function renderSubSubcategoryPage(
   // Use database content if available, otherwise fallback to mapping
   const pageTitle = content?.h1_title || mappingTitle;
   const description = content?.short_description || '';
-  
+
+  const parentCollectionLink = await getParentCollectionLink(
+    content?.parent_url?.trim() || `/${category}/${subcategory}`
+  );
+
   // Generate canonical URLs for all products (fast with Neon DB)
   // Product cards will link directly to category-based URLs
   const { getProductCanonicalUrls } = await import('@/lib/shopify/products');
@@ -513,8 +517,9 @@ async function renderSubSubcategoryPage(
           <h1 className="text-4xl font-bold mb-6">{pageTitle}</h1>
           
           {/* Collection Description */}
-          <CollectionDescription 
+          <CollectionDescription
             description={description}
+            parentCollectionLink={parentCollectionLink}
           />
         </div>
 
