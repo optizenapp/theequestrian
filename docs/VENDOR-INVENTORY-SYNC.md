@@ -85,7 +85,10 @@ npx tsx scripts/register-vendor-store-webhooks.ts
 - `marketplace_vendor_name`: exact `Product.vendor` on the **marketplace** catalog (used for shipping rules when `sync_price` runs).
 - `access_token`: vendor shop Admin API token (`shpat_…` legacy or OAuth `shpua_…`).
 - `inventory_strategy`: `single_location` (use `primary_location_id` or webhook location) or `summed_locations`.
-- `sync_price`: `true` only if you want `products/update` to push prices; then set Webkul / ops so Webkul does not overwrite Shopify for that vendor.
+- `sync_inventory`: enable vendor-driven inventory writes.
+- `sync_price`: enable vendor-driven price writes.
+- `reconcile_enabled`: if `true`, marketplace webhook drift checks will auto-correct Trailrace-only mismatches caused later by Webkul/global dual sync.
+- `reconcile_cooldown_seconds`: debounce window between auto-corrections to reduce API pressure/rate-limit risk.
 
 ## Seed mapping rows
 
@@ -96,13 +99,37 @@ Insert into `vendor_inventory_map` for each vendor variant ↔ marketplace varia
 
 Without a map row, inventory webhooks are accepted but **logged as unmapped** and marketplace stock is not updated.
 
+## Price/inventory drift reconciliation
+
+With Webkul dual sync running globally, enable `reconcile_enabled=true` for Trailrace so this app can:
+
+- listen for marketplace `products/update` and re-check mapped Trailrace variant prices against vendor source + shipping offset;
+- listen for marketplace `inventory_levels/update` and re-check mapped Trailrace inventory against vendor source;
+- only write back when marketplace value is actually wrong (drift detected).
+
+Marketplace inventory reconcile endpoint:
+
+`/api/webhooks/shopify/marketplace-reconcile`
+
+Register this on the **marketplace** shop for topic:
+
+- `inventory_levels/update`
+
+This endpoint uses `SHOPIFY_WEBHOOK_SECRET`.
+
 ## Price offset webhook interaction
 
-`/api/webhooks/shopify-product-update` skips shipping-offset logic for any `marketplace_vendor_name` that has an **active** `vendor_shop_connections` row with `sync_price = true`, so vendor-sync prices are not double-offset.
+`/api/webhooks/shopify-product-update` skips standard shipping-offset rewriting for vendors with `sync_price = true` and instead runs targeted reconcile logic (when `reconcile_enabled = true`) so only drifted Trailrace values are corrected.
 
 ## Webkul
 
-Disable inventory/price sync from Webkul → Shopify for opted-in vendors where possible (Dual Sync / Webkul support). Otherwise a scheduled reconciliation job may be needed to re-apply vendor-sourced values after Webkul runs.
+Webkul dual sync is global-only. Use per-vendor flags in `vendor_shop_connections` to isolate behavior:
+
+- `is_active`: hard kill switch for a vendor.
+- `sync_inventory`: vendor inventory sync on/off per vendor.
+- `sync_price`: vendor price sync on/off per vendor.
+- `reconcile_enabled`: auto-correct marketplace drift for that vendor only.
+- `reconcile_cooldown_seconds`: cooldown between corrections.
 
 ## Health check
 

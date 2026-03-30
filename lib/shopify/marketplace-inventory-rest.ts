@@ -40,6 +40,32 @@ export async function setMarketplaceInventoryLevel(input: {
   }
 }
 
+export async function fetchMarketplaceInventoryLevel(input: {
+  locationId: number;
+  inventoryItemId: number;
+}): Promise<number | null> {
+  const token = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN!;
+  const response = await fetch(
+    marketplaceRestUrl(
+      `/inventory_levels.json?location_ids=${input.locationId}&inventory_item_ids=${input.inventoryItemId}`
+    ),
+    {
+      headers: { 'X-Shopify-Access-Token': token },
+      cache: 'no-store',
+    }
+  );
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Marketplace inventory fetch ${response.status}: ${text.slice(0, 500)}`);
+  }
+  const data = (await response.json()) as {
+    inventory_levels?: Array<{ available?: number | null }>;
+  };
+  const first = data.inventory_levels?.[0];
+  if (!first || typeof first.available !== 'number') return null;
+  return Math.max(0, Math.floor(first.available));
+}
+
 export async function fetchMarketplaceProductTags(productIdNumeric: string): Promise<{
   vendor: string;
   tags: string[];
