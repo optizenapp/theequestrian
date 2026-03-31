@@ -83,8 +83,23 @@ function sqlTemplateTag(strings: TemplateStringsArray, ...values: any[]) {
 
 const sqlWithUnsafe = sqlTemplateTag as ReturnType<typeof neon>;
 Object.defineProperty(sqlWithUnsafe, 'unsafe', {
-  get() {
-    return getSql().unsafe;
+  value: async (query: string) => {
+    const maxAttempts = 3;
+    let lastErr: unknown;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        return await getSql().query(query);
+      } catch (err) {
+        lastErr = err;
+        if (isQuotaError(err)) resetDbClient();
+        if (isTransientPoolError(err) && attempt < maxAttempts - 1) {
+          await new Promise((r) => setTimeout(r, 120 * 2 ** attempt));
+          continue;
+        }
+        throw err;
+      }
+    }
+    throw lastErr;
   },
 });
 

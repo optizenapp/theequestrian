@@ -10,8 +10,10 @@ import { FAQSection } from '@/components/collection/FAQSection';
 import { CollectionDescription } from '@/components/CollectionDescription';
 import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
 import { FAQItem } from '@/lib/content/collections';
+import { getBrandProductsFromDb } from '@/lib/brands/get-brand-products';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import type { ShopifyProduct } from '@/types/shopify';
 
 export const revalidate = 3600;
 
@@ -63,19 +65,28 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
     notFound();
   }
 
-  // 2. Fetch Products from Shopify Collection with pagination and sorting
-  const { products, pageInfo } = await getCollectionWithPagination(
-    brand.handle,
-    36,
-    afterCursor
-  );
-  
-  // Get total product count
-  const totalProductCount = await getCollectionProductCount(brand.handle);
-  
-  // Generate canonical URLs for all products (fast with Neon DB)
-  // Product cards will link directly to category-based URLs
-  const productUrlsMap = await getProductCanonicalUrls(products);
+  let products: ShopifyProduct[] = [];
+  let pageInfo: { hasNextPage: boolean; endCursor: string | null } = {
+    hasNextPage: false,
+    endCursor: null,
+  };
+  let totalProductCount = 0;
+  let productUrlsMap = new Map<string, string>();
+
+  try {
+    const collectionResult = await getCollectionWithPagination(brand.handle, 36, afterCursor);
+    products = collectionResult.products;
+    pageInfo = collectionResult.pageInfo;
+    totalProductCount = await getCollectionProductCount(brand.handle);
+    productUrlsMap = await getProductCanonicalUrls(products);
+  } catch (error) {
+    console.warn(`[BrandPage] Falling back to DB products for ${brand.handle}`, error);
+    const fallbackResult = await getBrandProductsFromDb(brand, 36, afterCursor);
+    products = fallbackResult.products;
+    pageInfo = fallbackResult.pageInfo;
+    totalProductCount = fallbackResult.totalCount;
+    productUrlsMap = fallbackResult.productUrls;
+  }
 
   // Fetch review stats for all products in one batch (server-side)
   const productHandles = products.map(p => p.handle);

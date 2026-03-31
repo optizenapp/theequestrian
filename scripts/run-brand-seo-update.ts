@@ -34,6 +34,7 @@ export interface BrandSEOContent {
   short_description: string;
   long_description: string;
   breadcrumb_label?: string;
+  rules?: Array<{ column: string; relation?: string; condition: string }>;
   faq_items?: BrandFaqItem[];
 }
 
@@ -94,20 +95,47 @@ async function main() {
 
   const sql = neon(resolveConnectionString());
   const faqJson = JSON.stringify(content.faq_items || []);
+  const rulesJson = content.rules ? JSON.stringify(content.rules) : null;
   const result = await sql`
-    UPDATE brand_content
-    SET
-      title = ${content.title},
-      h1_title = ${content.h1_title},
-      meta_title = ${content.meta_title},
-      meta_description = ${content.meta_description},
-      short_description = ${content.short_description},
-      long_description = ${content.long_description},
-      breadcrumb_label = ${content.breadcrumb_label || content.title},
-      faq_json = ${faqJson},
-      status = 'published',
+    INSERT INTO brand_content (
+      handle,
+      title,
+      products_count,
+      rules,
+      h1_title,
+      meta_title,
+      meta_description,
+      short_description,
+      long_description,
+      breadcrumb_label,
+      faq_json,
+      status
+    ) VALUES (
+      ${content.handle},
+      ${content.title},
+      0,
+      ${rulesJson},
+      ${content.h1_title},
+      ${content.meta_title},
+      ${content.meta_description},
+      ${content.short_description},
+      ${content.long_description},
+      ${content.breadcrumb_label || content.title},
+      ${faqJson},
+      'published'
+    )
+    ON CONFLICT (handle) DO UPDATE SET
+      title = EXCLUDED.title,
+      h1_title = EXCLUDED.h1_title,
+      meta_title = EXCLUDED.meta_title,
+      meta_description = EXCLUDED.meta_description,
+      short_description = EXCLUDED.short_description,
+      long_description = EXCLUDED.long_description,
+      rules = EXCLUDED.rules,
+      breadcrumb_label = EXCLUDED.breadcrumb_label,
+      faq_json = EXCLUDED.faq_json,
+      status = EXCLUDED.status,
       updated_at = NOW()
-    WHERE handle = ${content.handle}
     RETURNING handle, title, h1_title, meta_title
   `;
 
