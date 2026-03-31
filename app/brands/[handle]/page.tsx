@@ -169,7 +169,7 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               {pageTitle}
             </h1>
-            <div className="max-w-3xl">
+            <div>
               <CollectionDescription description={shortDescription} />
               {totalProductCount > 0 && (
                 <p className="mt-4 text-sm text-gray-500">

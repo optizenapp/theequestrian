@@ -20,6 +20,11 @@ config({ path: resolve(process.cwd(), '.env.local') });
 
 import { neon } from '@neondatabase/serverless';
 
+export interface PageFaqItem {
+  question: string;
+  answer: string;
+}
+
 export interface PageSEOContent {
   /** e.g. "/horse/rugs" — must match existing collection_content row */
   url_path: string;
@@ -45,6 +50,8 @@ export interface PageSEOContent {
   long_description: string;
   /** Short name for breadcrumb nav — usually 1-3 words */
   breadcrumb_label?: string;
+  /** Toggle FAQ accordion + FAQ schema source. Prefer this over inline FAQ HTML. */
+  faq_items?: PageFaqItem[];
 }
 
 const FLORAL_WIND_POOLER =
@@ -91,6 +98,7 @@ async function main() {
   }
 
   const sql = neon(resolveConnectionString());
+  const faqJson = JSON.stringify(content.faq_items || []);
   const result = await sql`
     UPDATE collection_content
     SET
@@ -100,7 +108,7 @@ async function main() {
       short_description = ${content.short_description},
       long_description  = ${content.long_description},
       ${content.breadcrumb_label ? sql`breadcrumb_label = ${content.breadcrumb_label},` : sql``}
-      faq_items         = '[]'::jsonb,
+      faq_items         = ${faqJson}::jsonb,
       generated_by      = 'manual',
       version           = COALESCE(version, 1) + 1
     WHERE url_path = ${content.url_path}
