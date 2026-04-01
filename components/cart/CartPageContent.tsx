@@ -10,6 +10,10 @@ import { SiAfterpay, SiShopify } from 'react-icons/si';
 import { ShopifyProduct } from '@/types/shopify';
 import { normalizeCheckoutUrl } from '@/lib/shopify/cart-utils';
 import { trackGaEvent } from '@/lib/analytics/ga4';
+import {
+  isPlainLeftClick,
+  redirectToDecoratedCheckout,
+} from '@/lib/analytics/ga4-linker';
 
 interface CartPageContentProps {
   recommendedProducts?: ShopifyProduct[];
@@ -45,6 +49,11 @@ export function CartPageContent({
   deliveryDateEnd.setDate(deliveryDateEnd.getDate() + 5);
   const deliveryOptions = { month: 'short', day: 'numeric' } as const;
   const deliveryString = `${deliveryDateStart.toLocaleDateString('en-US', deliveryOptions)} - ${deliveryDateEnd.toLocaleDateString('en-US', deliveryOptions)}`;
+
+  const checkoutHref =
+    cart && cart.lines.edges.length > 0
+      ? normalizeCheckoutUrl(cart.checkoutUrl)
+      : '';
 
   const handleAddRecommendation = async (product: ShopifyProduct) => {
     // Get the first variant ID
@@ -330,15 +339,18 @@ if (isInCart) return null;
 
                 {/* Checkout Button - Standard Shopify Checkout */}
                 <a
-                  href={normalizeCheckoutUrl(cart.checkoutUrl)}
-                  onClick={() =>
+                  href={checkoutHref}
+                  onClick={(e) => {
+                    if (!isPlainLeftClick(e)) return;
+                    e.preventDefault();
                     trackGaEvent('begin_checkout', {
                       currency: cart.cost.totalAmount.currencyCode,
                       value: total,
                       item_count: cart.totalQuantity,
                       source: 'cart_page',
-                    })
-                  }
+                    });
+                    redirectToDecoratedCheckout(checkoutHref);
+                  }}
                   className="block w-full bg-action text-white text-center py-4 rounded-full font-bold text-lg hover:bg-action-hover hover:shadow-lg transition-all mb-4 transform active:scale-[0.99]"
                 >
                   Checkout

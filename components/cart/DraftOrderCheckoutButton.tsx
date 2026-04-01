@@ -10,6 +10,7 @@
 import { useState } from 'react';
 import { useCart } from './cart-context';
 import { trackGaEvent } from '@/lib/analytics/ga4';
+import { redirectToDecoratedCheckout } from '@/lib/analytics/ga4-linker';
 
 interface DraftOrderCheckoutButtonProps {
   className?: string;
@@ -86,18 +87,36 @@ export function DraftOrderCheckoutButton({ className }: DraftOrderCheckoutButton
           },
         }),
       });
-      
-      const data = await response.json();
-      
+
+      const text = await response.text();
+      let data: { message?: string; draftOrderId?: string; invoiceUrl?: string } =
+        {};
+      if (text) {
+        try {
+          data = JSON.parse(text) as {
+            message?: string;
+            draftOrderId?: string;
+            invoiceUrl?: string;
+          };
+        } catch {
+          if (!response.ok) {
+            throw new Error('Failed to create checkout');
+          }
+          throw new Error('Invalid response from server');
+        }
+      }
+
       if (!response.ok) {
         throw new Error(data.message || 'Failed to create checkout');
       }
-      
+
       console.log('[Checkout] ✅ Draft order created:', data.draftOrderId);
       console.log('[Checkout] Redirecting to invoice...');
-      
-      // Redirect to Shopify invoice page
-      window.location.href = data.invoiceUrl;
+
+      if (!data.invoiceUrl) {
+        throw new Error('Missing invoice URL');
+      }
+      redirectToDecoratedCheckout(data.invoiceUrl);
       
     } catch (err) {
       console.error('[Checkout] Error:', err);

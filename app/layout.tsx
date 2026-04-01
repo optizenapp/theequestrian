@@ -30,6 +30,23 @@ const siteUrl = (
   process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au'
 ).replace(/\/$/, '');
 
+const GA4_CHECKOUT_HOST = 'checkout.theequestrian.com.au';
+const ga4LinkerDomainsJson = JSON.stringify(
+  Array.from(
+    new Set([
+      (() => {
+        try {
+          return new URL(siteUrl).hostname;
+        } catch {
+          return 'www.theequestrian.com.au';
+        }
+      })(),
+      GA4_CHECKOUT_HOST,
+      process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || 'theequestrian.myshopify.com',
+    ])
+  )
+);
+
 export const metadata: Metadata = {
   title: 'Australian Equestrian Marketplace | Horse, Rider & Pet',
   description: 'Shop 10,000+ horse and rider products with FREE SHIPPING sitewide. Discover global brands for horse, rider, and pet.',
@@ -75,17 +92,18 @@ export default function RootLayout({
       <body className={`${manrope.className} overflow-x-hidden`}>
         {gaMeasurementId ? (
           <>
-            {/* Defer GA4 to lazyOnload for better initial load performance */}
+            {/* afterInteractive so gtag is ready before fast checkout clicks */}
             <Script
               src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}
-              strategy="lazyOnload"
+              strategy="afterInteractive"
             />
-            <Script id="ga4-init" strategy="lazyOnload">
+            <Script id="ga4-init" strategy="afterInteractive">
               {`
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){dataLayer.push(arguments);}
                 gtag('js', new Date());
                 gtag('config', '${gaMeasurementId}', {
+                  linker: { domains: ${ga4LinkerDomainsJson} },
                   // Include query params so GA4 can attribute UTMs
                   page_path: window.location.pathname + window.location.search,
                   page_location: window.location.href,
