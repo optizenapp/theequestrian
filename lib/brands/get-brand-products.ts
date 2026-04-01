@@ -1,6 +1,10 @@
 import { sql } from '@/lib/db/client';
 import type { BrandContentRow } from '@/lib/content/brand-content';
-import { dbProductToShopifyFormat } from '@/lib/products/postgres-adapter';
+import {
+  applyLiveStatus,
+  dbProductToShopifyFormat,
+  getLiveStatusByProductIds,
+} from '@/lib/products/postgres-adapter';
 import { enrichDbBrandProducts } from '@/lib/products/enrich-db-brand-products';
 import type { ProductQueryResult } from '@/lib/db/queries';
 
@@ -123,6 +127,10 @@ export async function getBrandProductsFromDb(
   `);
   const rows = (Array.isArray(rowsResult) ? rowsResult : []) as BrandProductRow[];
   const enrichedRows = await enrichDbBrandProducts(rows);
+  const hydratedProducts = applyLiveStatus(
+    enrichedRows.map(dbProductToShopifyFormat),
+    await getLiveStatusByProductIds(enrichedRows.map((row) => row.id))
+  );
 
   const productUrls = new Map<string, string>();
   for (const row of enrichedRows) {
@@ -131,7 +139,7 @@ export async function getBrandProductsFromDb(
 
   const hasNextPage = offset + limit < totalCount;
   return {
-    products: enrichedRows.map(dbProductToShopifyFormat),
+    products: hydratedProducts,
     productUrls,
     totalCount,
     pageInfo: {

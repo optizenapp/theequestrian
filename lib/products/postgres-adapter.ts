@@ -194,7 +194,7 @@ function buildCategoryWhereClause(categoryPath: string, filters?: CategoryFilter
   return conditions.join(' AND ');
 }
 
-async function getLiveStatusByProductIds(productIds: string[]): Promise<Map<string, {
+export async function getLiveStatusByProductIds(productIds: string[]): Promise<Map<string, {
   available: boolean;
   price: string;
   compareAtPrice?: string;
@@ -257,7 +257,7 @@ async function getLiveStatusByProductIds(productIds: string[]): Promise<Map<stri
   return statusMap;
 }
 
-function applyLiveStatus(
+export function applyLiveStatus(
   products: ProductWithPrimaryCollection[],
   statusMap: Map<string, { available: boolean; price: string; compareAtPrice?: string; currencyCode: string }>
 ): ProductWithPrimaryCollection[] {
