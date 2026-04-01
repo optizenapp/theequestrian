@@ -31,10 +31,15 @@ export function isPlainLeftClick(e: {
 export function redirectToDecoratedCheckout(url: string): void {
   if (typeof window === 'undefined') return;
 
+  console.log('[ga4-linker] redirectToDecoratedCheckout called', { url });
+
   if (!getGtag()) {
+    console.warn('[ga4-linker] gtag not available, redirecting without decoration');
     window.location.href = url;
     return;
   }
+
+  console.log('[ga4-linker] gtag available, creating temp anchor for decoration');
 
   try {
     const link = document.createElement('a');
@@ -46,8 +51,11 @@ export function redirectToDecoratedCheckout(url: string): void {
     link.style.cssText = 'position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden';
     document.body.appendChild(link);
 
+    console.log('[ga4-linker] anchor appended, href before decoration:', link.href);
+
     const timeoutId = setTimeout(() => {
       const decorated = link.href;
+      console.log('[ga4-linker] timeout fallback triggered, href:', decorated);
       if (link.parentNode) {
         link.remove();
       }
@@ -57,6 +65,7 @@ export function redirectToDecoratedCheckout(url: string): void {
     requestAnimationFrame(() => {
       clearTimeout(timeoutId);
       const decorated = link.href;
+      console.log('[ga4-linker] rAF complete, decorated href:', decorated);
       if (link.parentNode) {
         link.remove();
       }
