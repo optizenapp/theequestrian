@@ -4,6 +4,7 @@
  */
 
 const FALLBACK_MS = 1000;
+const LINKER_DEBUG_KEY = 'ga4-linker-debug';
 
 function getGtag(): ((...args: unknown[]) => void) | undefined {
   if (typeof window === 'undefined') return undefined;
@@ -28,18 +29,62 @@ export function isPlainLeftClick(e: {
   );
 }
 
-export function redirectToDecoratedCheckout(url: string): void {
+function recordLinkerDebug(stage: string, details: Record<string, unknown>) {
+  if (typeof window === 'undefined') return;
+  console.log(`[ga4-linker] ${stage}`, details);
+  try {
+    const existing = window.sessionStorage.getItem(LINKER_DEBUG_KEY);
+    const events = existing ? (JSON.parse(existing) as Array<Record<string, unknown>>) : [];
+    events.push({
+      stage,
+      timestamp: new Date().toISOString(),
+      ...details,
+    });
+    window.sessionStorage.setItem(LINKER_DEBUG_KEY, JSON.stringify(events.slice(-20)));
+  } catch {
+    // Ignore storage errors while preserving navigation.
+  }
+}
+
+export function bindDecoratedCheckoutLink(
+  link: HTMLAnchorElement,
+  options: {
+    source: string;
+    onPlainLeftClick?: () => void;
+  }
+) {
+  const handleClick = (event: MouseEvent) => {
+    recordLinkerDebug('link click observed', {
+      source: options.source,
+      href: link.href,
+      plainLeftClick: isPlainLeftClick(event),
+    });
+
+    if (!isPlainLeftClick(event)) {
+      return;
+    }
+
+    event.preventDefault();
+    options.onPlainLeftClick?.();
+    redirectToDecoratedCheckout(link.href, options.source);
+  };
+
+  link.addEventListener('click', handleClick, { capture: true });
+  return () => link.removeEventListener('click', handleClick, { capture: true });
+}
+
+export function redirectToDecoratedCheckout(url: string, source = 'unknown'): void {
   if (typeof window === 'undefined') return;
 
-  console.log('[ga4-linker] redirectToDecoratedCheckout called', { url });
+  recordLinkerDebug('redirect called', { source, url });
 
   if (!getGtag()) {
-    console.warn('[ga4-linker] gtag not available, redirecting without decoration');
+    recordLinkerDebug('gtag unavailable', { source, url });
     window.location.href = url;
     return;
   }
 
-  console.log('[ga4-linker] gtag available, creating temp anchor for decoration');
+  recordLinkerDebug('gtag available', { source, url });
 
   try {
     const link = document.createElement('a');
@@ -51,11 +96,19 @@ export function redirectToDecoratedCheckout(url: string): void {
     link.style.cssText = 'position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden';
     document.body.appendChild(link);
 
-    console.log('[ga4-linker] anchor appended, href before decoration:', link.href);
+    recordLinkerDebug('anchor appended', {
+      source,
+      originalUrl: url,
+      currentHref: link.href,
+    });
 
     const timeoutId = setTimeout(() => {
       const decorated = link.href;
-      console.log('[ga4-linker] timeout fallback triggered, href:', decorated);
+      recordLinkerDebug('timeout fallback', {
+        source,
+        originalUrl: url,
+        decoratedUrl: decorated,
+      });
       if (link.parentNode) {
         link.remove();
       }
@@ -65,7 +118,11 @@ export function redirectToDecoratedCheckout(url: string): void {
     requestAnimationFrame(() => {
       clearTimeout(timeoutId);
       const decorated = link.href;
-      console.log('[ga4-linker] rAF complete, decorated href:', decorated);
+      recordLinkerDebug('raf complete', {
+        source,
+        originalUrl: url,
+        decoratedUrl: decorated,
+      });
       if (link.parentNode) {
         link.remove();
       }
@@ -73,6 +130,11 @@ export function redirectToDecoratedCheckout(url: string): void {
     });
   } catch (err) {
     console.error('[ga4-linker] redirect setup failed', err);
+    recordLinkerDebug('redirect setup failed', {
+      source,
+      url,
+      message: err instanceof Error ? err.message : 'unknown error',
+    });
     window.location.href = url;
   }
 }

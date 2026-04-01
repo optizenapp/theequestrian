@@ -1,14 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useCart } from './cart-context';
 import Image from 'next/image';
 import Link from 'next/link';
 import { normalizeCheckoutUrl } from '@/lib/shopify/cart-utils';
 import { trackGaEvent } from '@/lib/analytics/ga4';
 import {
-  isPlainLeftClick,
-  redirectToDecoratedCheckout,
+  bindDecoratedCheckoutLink,
 } from '@/lib/analytics/ga4-linker';
 import { FaCcVisa, FaCcMastercard, FaCcPaypal } from 'react-icons/fa';
 import { SiAfterpay, SiShopify } from 'react-icons/si';
@@ -16,6 +15,7 @@ import { SiAfterpay, SiShopify } from 'react-icons/si';
 export function CartDrawer() {
   const { cart, isOpen, closeCart, updateCartItem, removeCartItem } = useCart();
   const [productHrefByHandle, setProductHrefByHandle] = useState<Record<string, string>>({});
+  const checkoutLinkRef = useRef<HTMLAnchorElement | null>(null);
 
   const handlesKey = useMemo(() => {
     const handles =
@@ -63,6 +63,22 @@ export function CartDrawer() {
     cart && cart.lines.edges.length > 0
       ? normalizeCheckoutUrl(cart.checkoutUrl)
       : '';
+
+  useEffect(() => {
+    const link = checkoutLinkRef.current;
+    if (!link || !checkoutHref) return;
+
+    return bindDecoratedCheckoutLink(link, {
+      source: 'cart_drawer',
+      onPlainLeftClick: () =>
+        trackGaEvent('begin_checkout', {
+          currency: currencyCode,
+          value: parseFloat(subtotal),
+          item_count: itemCount,
+          source: 'cart_drawer',
+        }),
+    });
+  }, [checkoutHref, currencyCode, itemCount, subtotal]);
 
   return (
     <>
@@ -187,18 +203,8 @@ export function CartDrawer() {
               Shipping and taxes calculated at checkout
             </p>
             <a
+              ref={checkoutLinkRef}
               href={checkoutHref}
-              onClick={(e) => {
-                if (!isPlainLeftClick(e)) return;
-                e.preventDefault();
-                trackGaEvent('begin_checkout', {
-                  currency: currencyCode,
-                  value: parseFloat(subtotal),
-                  item_count: itemCount,
-                  source: 'cart_drawer',
-                });
-                redirectToDecoratedCheckout(checkoutHref);
-              }}
               className="block w-full bg-action text-white text-center py-3 rounded-full font-semibold hover:bg-action-hover hover:-translate-y-0.5 hover:shadow-md transition-all"
             >
               Checkout
