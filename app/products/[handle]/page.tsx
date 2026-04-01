@@ -19,6 +19,8 @@ import { getBreadcrumbsForProduct } from '@/lib/mapping/collection-mapping';
 import ProductReviewSection from '@/components/reviews/ProductReviewSection';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
+import { shouldRenderPdpCroLayout, type PdpSearchParams } from '@/lib/products/pdp-cro-trial';
+import ProductPdpCroTrialMain from '@/components/product/ProductPdpCroTrialMain';
 import { createManualRedirect, getManualRedirect } from '@/lib/redirects/manual';
 import { getProductOverrideByHandle, resolveProductHandleFromSlug } from '@/lib/content/product-overrides';
 import { buildProductSeoMetadata } from '@/lib/seo/product-metadata';
@@ -32,6 +34,7 @@ interface ProductPageProps {
   params: Promise<{
     handle: string;
   }>;
+  searchParams: Promise<PdpSearchParams>;
 }
 
 const getResolvedProduct = cache(async (rawHandle: string) => {
@@ -49,8 +52,9 @@ const getResolvedProduct = cache(async (rawHandle: string) => {
  * 
  * Example redirect: /products/ariat-boot → /clothing/footwear/boots/ariat-boot
  */
-export default async function ProductPage({ params }: ProductPageProps) {
+export default async function ProductPage({ params, searchParams }: ProductPageProps) {
   const { handle: rawHandle } = await params;
+  const sp = await searchParams;
   const { resolvedHandle, product } = await getResolvedProduct(rawHandle);
   const manualRedirect = await getManualRedirect(`/products/${rawHandle}`);
   if (manualRedirect) {
@@ -154,6 +158,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const featureHighlights = override?.use_headless_bullets && overrideBullets.length > 0
     ? overrideBullets
     : getProductBulletPoints(product.id);
+  const isCroTrialPdp = shouldRenderPdpCroLayout(product.handle, sp);
 
   const firstAvailableVariant =
     product.variants.edges.find(({ node }) => node.availableForSale)?.node ??
@@ -187,74 +192,65 @@ export default async function ProductPage({ params }: ProductPageProps) {
           }
         />
 
+      {isCroTrialPdp ? (
+        <ProductPdpCroTrialMain
+          product={product}
+          displayTitle={displayTitle}
+          descriptionHtml={descriptionHtml}
+          featureHighlights={featureHighlights}
+          reviewBadgeStats={reviewBadgeStats}
+        />
+      ) : (
       <article aria-labelledby="pdp-product-title">
-      {/* Mobile title & rating (between breadcrumbs & image) */}
-        <div className="lg:hidden mt-4 mb-8 space-y-2">
-        <h1 id="pdp-product-title" className="text-3xl font-bold text-gray-900">{displayTitle}</h1>
-          <ProductPageReviewBadge
-            productId={product.id}
-            productHandle={product.handle}
-            initialStats={reviewBadgeStats}
-          />
-          <div className="space-y-2 mt-4">
-            {featureHighlights.map((feature) => (
-              <div key={feature} className="flex items-start gap-2 text-sm text-gray-700">
-                <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>{feature}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="lg:grid lg:grid-cols-12 lg:gap-12 items-start">
-          {/* Left Column: Image Gallery & Description */}
-          <section className="lg:col-span-7 space-y-8" aria-label="Product images and description">
-            {/* Image Gallery */}
-            <ProductImageGallery 
-              images={product.images}
-              productTitle={product.title}
-            />
-
-            {/* Full Width Description Section */}
-            <ProductDescription html={descriptionHtml} productTitle={displayTitle} />
+        <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-12 items-start">
+          <section
+            className="order-1 lg:order-none lg:col-span-5 lg:col-start-8 lg:row-start-1 mt-4 lg:mt-0 mb-6 lg:mb-0 space-y-2"
+            aria-label="Product summary"
+          >
+            <h1 id="pdp-product-title" className="text-3xl font-bold text-gray-900 lg:mb-2">
+              {displayTitle}
+            </h1>
+            <div className="lg:mb-4">
+              <ProductPageReviewBadge
+                productId={product.id}
+                productHandle={product.handle}
+                initialStats={reviewBadgeStats}
+              />
+            </div>
+            <div className="space-y-2 mt-4">
+              {featureHighlights.map((feature) => (
+                <div key={feature} className="flex items-start gap-2 text-sm text-gray-700">
+                  <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>{feature}</span>
+                </div>
+              ))}
+            </div>
           </section>
 
-          {/* Right Column: Product Info & Buy Box (Sticky) */}
-          <section className="lg:col-span-5 lg:sticky lg:top-24 space-y-6 lg:mb-0" aria-label="Purchase options">
-            
-              {/* Title & Rating */}
-              <div className="hidden lg:block">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">{displayTitle}</h1>
-                <div className="mb-4">
-                  <ProductPageReviewBadge
-                    productId={product.id}
-                    productHandle={product.handle}
-                    initialStats={reviewBadgeStats}
-                  />
-                </div>
+          <section className="order-2 lg:order-none lg:col-span-7 lg:row-start-1 lg:row-span-2" aria-label="Product images">
+            <ProductImageGallery images={product.images} productTitle={product.title} />
+          </section>
 
-                {/* Key Features/Benefits */}
-                <div className="space-y-2 mt-4">
-                  {featureHighlights.map((feature) => (
-                    <div key={feature} className="flex items-start gap-2 text-sm text-gray-700">
-                      <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      <span>{feature}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+          <section
+            className="order-3 lg:order-none lg:col-span-5 lg:col-start-8 lg:row-start-2 lg:sticky lg:top-24 lg:self-start lg:z-10 mt-6 lg:mt-0"
+            aria-label="Purchase options"
+          >
+            <div className="bg-surface rounded-2xl p-6 shadow-sm border border-gray-100">
+              <ProductBuyBox product={product} />
+            </div>
+          </section>
 
-              {/* Buy Box */}
-              <div className="bg-surface rounded-2xl p-6 shadow-sm border border-gray-100">
-                <ProductBuyBox product={product} />
-              </div>
+          <section
+            className="order-4 lg:order-none lg:col-span-7 lg:row-start-3 space-y-8 mt-8 lg:mt-0"
+            aria-label="Product description"
+          >
+            <ProductDescription html={descriptionHtml} productTitle={displayTitle} />
           </section>
         </div>
       </article>
+      )}
         
         {/* Reviews Section - Full Width Below Product */}
         <ProductReviewSection

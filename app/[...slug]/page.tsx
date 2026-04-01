@@ -17,6 +17,8 @@ import { generateProductSchemaGraph } from '@/lib/utils/product-schema';
 import { getBreadcrumbsForProduct } from '@/lib/mapping/collection-mapping';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
+import { shouldRenderPdpCroLayout, type PdpSearchParams } from '@/lib/products/pdp-cro-trial';
+import ProductPdpCroTrialMain from '@/components/product/ProductPdpCroTrialMain';
 import { getManualRedirect } from '@/lib/redirects/manual';
 import { getEmptyCategoryRedirectTarget } from '@/lib/redirects/empty-category-redirect';
 import { getProductOverrideByHandle, resolveProductHandleFromSlug } from '@/lib/content/product-overrides';
@@ -34,6 +36,7 @@ interface ProductCatchAllPageProps {
   params: Promise<{
     slug: string[];
   }>;
+  searchParams: Promise<PdpSearchParams>;
 }
 
 const getResolvedProduct = cache(async (rawHandle: string) => {
@@ -51,8 +54,9 @@ const getResolvedProduct = cache(async (rawHandle: string) => {
  * 
  * The last segment is always the product handle
  */
-export default async function ProductCatchAllPage({ params }: ProductCatchAllPageProps) {
+export default async function ProductCatchAllPage({ params, searchParams }: ProductCatchAllPageProps) {
   const { slug } = await params;
+  const sp = await searchParams;
 
   const requestedPath = `/${slug.join('/')}`;
   const manualRedirect = await getManualRedirect(requestedPath);
@@ -180,6 +184,7 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
     relatedProducts.map((p) => [p.handle, relatedUrlMap.get(p.id) ?? `/products/${p.handle}`])
   );
   const showArcEquineGelPromo = resolvedProduct.handle === 'arcequine-complete-kit';
+  const isCroTrialPdp = shouldRenderPdpCroLayout(resolvedProduct.handle, sp);
 
   const firstAvailableVariant =
     resolvedProduct.variants.edges.find(({ node }) => node.availableForSale)?.node ??
@@ -214,98 +219,77 @@ export default async function ProductCatchAllPage({ params }: ProductCatchAllPag
           }
         />
 
-        <article aria-labelledby="pdp-product-title">
-        {/* Mobile title & rating (between breadcrumbs & image) */}
-        <div className="lg:hidden mt-4 mb-8 space-y-2">
-          <h1 id="pdp-product-title" className="text-3xl font-bold text-gray-900">{displayTitle}</h1>
-          <ProductPageReviewBadge
-            productId={resolvedProduct.id}
-            productHandle={resolvedProduct.handle}
-            initialStats={reviewBadgeStats}
+        {isCroTrialPdp ? (
+          <ProductPdpCroTrialMain
+            product={resolvedProduct}
+            displayTitle={displayTitle}
+            descriptionHtml={descriptionHtml}
+            featureHighlights={featureHighlights}
+            reviewBadgeStats={reviewBadgeStats}
           />
-          <div className="space-y-2 mt-4">
-            {featureHighlights.map((feature) => (
-              <div key={feature} className="flex items-start gap-2 text-sm text-gray-700">
-                <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>{feature}</span>
-              </div>
-            ))}
-          </div>
-          {showArcEquineGelPromo && (
-            <div className="mt-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
-              <div className="flex items-start gap-2">
-                <svg className="h-5 w-5 flex-shrink-0 text-green-500 mt-0.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3.5a2.5 2.5 0 01-2 2.45V16a1 1 0 01-1 1H6a1 1 0 01-1-1V8.95A2.5 2.5 0 013 6.5V3zm2 2v1.5a.5.5 0 00.5.5H9V5H5zm6 0v2h3.5a.5.5 0 00.5-.5V5h-4zM9 9H7v6h2V9zm2 0v6h2V9h-2z" />
-                </svg>
-                <p className="text-sm font-semibold text-green-900">
-                  Get a FREE Bonus ArcEquine Conductive Gel with every order.
-                </p>
-              </div>
+        ) : (
+        <article aria-labelledby="pdp-product-title">
+        <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-12 items-start">
+          <section
+            className="order-1 lg:order-none lg:col-span-5 lg:col-start-8 lg:row-start-1 mt-4 lg:mt-0 mb-6 lg:mb-0 space-y-2"
+            aria-label="Product summary"
+          >
+            <h1 id="pdp-product-title" className="text-3xl font-bold text-gray-900 lg:mb-2">
+              {displayTitle}
+            </h1>
+            <div className="lg:mb-4">
+              <ProductPageReviewBadge
+                productId={resolvedProduct.id}
+                productHandle={resolvedProduct.handle}
+                initialStats={reviewBadgeStats}
+              />
             </div>
-          )}
-        </div>
-
-        <div className="lg:grid lg:grid-cols-12 lg:gap-12 items-start">
-          {/* Left Column: Image Gallery & Description */}
-          <section className="lg:col-span-7 space-y-8" aria-label="Product images and description">
-            {/* Image Gallery */}
-            <ProductImageGallery 
-              images={resolvedProduct.images}
-              productTitle={resolvedProduct.title}
-            />
-
-            {/* Full Width Description Section */}
-            <ProductDescription html={descriptionHtml} productTitle={displayTitle} />
+            <div className="space-y-2 mt-4">
+              {featureHighlights.map((feature) => (
+                <div key={feature} className="flex items-start gap-2 text-sm text-gray-700">
+                  <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>{feature}</span>
+                </div>
+              ))}
+            </div>
+            {showArcEquineGelPromo && (
+              <div className="mt-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
+                <div className="flex items-start gap-2">
+                  <svg className="h-5 w-5 flex-shrink-0 text-green-500 mt-0.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3.5a2.5 2.5 0 01-2 2.45V16a1 1 0 01-1 1H6a1 1 0 01-1-1V8.95A2.5 2.5 0 013 6.5V3zm2 2v1.5a.5.5 0 00.5.5H9V5H5zm6 0v2h3.5a.5.5 0 00.5-.5V5h-4zM9 9H7v6h2V9zm2 0v6h2V9h-2z" />
+                  </svg>
+                  <p className="text-sm font-semibold text-green-900">
+                    Get a FREE Bonus ArcEquine Conductive Gel with every order.
+                  </p>
+                </div>
+              </div>
+            )}
           </section>
 
-          {/* Right Column: Product Info & Buy Box (Sticky) */}
-          <section className="lg:col-span-5 lg:sticky lg:top-24 space-y-6 lg:mb-0" aria-label="Purchase options">
-            
-              {/* Title & Rating */}
-              <div className="hidden lg:block">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">{displayTitle}</h1>
-                <div className="mb-4">
-                  <ProductPageReviewBadge
-                    productId={resolvedProduct.id}
-                    productHandle={resolvedProduct.handle}
-                    initialStats={reviewBadgeStats}
-                  />
-                </div>
+          <section className="order-2 lg:order-none lg:col-span-7 lg:row-start-1 lg:row-span-2" aria-label="Product images">
+            <ProductImageGallery images={resolvedProduct.images} productTitle={resolvedProduct.title} />
+          </section>
 
-                {/* Key Features/Benefits */}
-                <div className="space-y-2 mt-4">
-                  {featureHighlights.map((feature) => (
-                    <div key={feature} className="flex items-start gap-2 text-sm text-gray-700">
-                      <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      <span>{feature}</span>
-                    </div>
-                  ))}
-                </div>
-                {showArcEquineGelPromo && (
-                  <div className="mt-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
-                    <div className="flex items-start gap-2">
-                      <svg className="h-5 w-5 flex-shrink-0 text-green-500 mt-0.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3.5a2.5 2.5 0 01-2 2.45V16a1 1 0 01-1 1H6a1 1 0 01-1-1V8.95A2.5 2.5 0 013 6.5V3zm2 2v1.5a.5.5 0 00.5.5H9V5H5zm6 0v2h3.5a.5.5 0 00.5-.5V5h-4zM9 9H7v6h2V9zm2 0v6h2V9h-2z" />
-                      </svg>
-                      <p className="text-sm font-semibold text-green-900">
-                        Get a FREE Bonus ArcEquine Conductive Gel with every order.
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
+          <section
+            className="order-3 lg:order-none lg:col-span-5 lg:col-start-8 lg:row-start-2 lg:sticky lg:top-24 lg:self-start lg:z-10 mt-6 lg:mt-0"
+            aria-label="Purchase options"
+          >
+            <div className="bg-surface rounded-2xl p-6 shadow-sm border border-gray-100">
+              <ProductBuyBox product={resolvedProduct} />
+            </div>
+          </section>
 
-              {/* Buy Box */}
-              <div className="bg-surface rounded-2xl p-6 shadow-sm border border-gray-100">
-                <ProductBuyBox product={resolvedProduct} />
-              </div>
+          <section
+            className="order-4 lg:order-none lg:col-span-7 lg:row-start-3 space-y-8 mt-8 lg:mt-0"
+            aria-label="Product description"
+          >
+            <ProductDescription html={descriptionHtml} productTitle={displayTitle} />
           </section>
         </div>
         </article>
+        )}
       </div>
       </div>
       <ProductReviewSection
