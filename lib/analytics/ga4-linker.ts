@@ -31,34 +31,13 @@ export function isPlainLeftClick(e: {
 export function redirectToDecoratedCheckout(url: string): void {
   if (typeof window === 'undefined') return;
 
-  let navigated = false;
-  const navigate = (target: string) => {
-    if (navigated) return;
-    navigated = true;
-    window.location.href = target;
-  };
-
   if (!getGtag()) {
-    navigate(url);
+    window.location.href = url;
     return;
   }
 
-  let link: HTMLAnchorElement | null = null;
-  let timeoutId: ReturnType<typeof setTimeout> | null = null;
-
-  const cleanup = () => {
-    if (timeoutId !== null) {
-      clearTimeout(timeoutId);
-      timeoutId = null;
-    }
-    if (link?.parentNode) {
-      link.remove();
-    }
-    link = null;
-  };
-
   try {
-    link = document.createElement('a');
+    const link = document.createElement('a');
     link.href = url;
     link.target = '_self';
     link.rel = 'noopener noreferrer';
@@ -67,29 +46,24 @@ export function redirectToDecoratedCheckout(url: string): void {
     link.style.cssText = 'position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden';
     document.body.appendChild(link);
 
-    timeoutId = setTimeout(() => {
-      if (navigated) {
-        cleanup();
-        return;
+    const timeoutId = setTimeout(() => {
+      const decorated = link.href;
+      if (link.parentNode) {
+        link.remove();
       }
-      cleanup();
-      navigate(url);
+      window.location.href = decorated;
     }, FALLBACK_MS);
 
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (navigated) {
-          cleanup();
-          return;
-        }
-        const href = link?.href ?? url;
-        cleanup();
-        navigate(href);
-      });
+      clearTimeout(timeoutId);
+      const decorated = link.href;
+      if (link.parentNode) {
+        link.remove();
+      }
+      window.location.href = decorated;
     });
   } catch (err) {
     console.error('[ga4-linker] redirect setup failed', err);
-    cleanup();
-    navigate(url);
+    window.location.href = url;
   }
 }
