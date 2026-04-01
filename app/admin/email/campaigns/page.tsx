@@ -433,6 +433,8 @@ export default function AdminEmailCampaignsPage() {
 
   const updateCampaign = async () => {
     if (!editingCampaignId) return;
+    const currentlyEditing = campaigns.find((c) => c.id === editingCampaignId) || null;
+    const wasCancelled = String(currentlyEditing?.status || '').toLowerCase() === 'cancelled';
     if (!name.trim() || !templateVersionId) {
       setError('Campaign name and template are required');
       return;
@@ -498,8 +500,13 @@ export default function AdminEmailCampaignsPage() {
       if (!updateRes.ok) {
         throw new Error(updatePayload?.error || 'Failed to update campaign');
       }
-      setStatusMessage(`Campaign "${name.trim()}" updated. Use "Send queued" to send it.`);
+      const successMessage = wasCancelled
+        ? `Campaign "${name.trim()}" reactivated. ${
+            Number(updatePayload?.reactivatedRecipients || 0)
+          } unsent recipients re-queued. Use "Send queued" to continue.`
+        : `Campaign "${name.trim()}" updated. Use "Send queued" to send it.`;
       clearEditor();
+      setStatusMessage(successMessage);
       await loadAll();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update campaign');
@@ -1443,6 +1450,7 @@ export default function AdminEmailCampaignsPage() {
               <div className="flex flex-wrap items-center gap-2">
                 {(() => {
                   const normalizedStatus = String(campaign.status || '').toLowerCase();
+                  const isCancelledStatus = normalizedStatus === 'cancelled';
                   const isCompletedStatus =
                     normalizedStatus === 'completed' ||
                     normalizedStatus === 'complete' ||
@@ -1456,6 +1464,27 @@ export default function AdminEmailCampaignsPage() {
                       className="rounded-full border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 cursor-default"
                     >
                       Complete
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isDuplicatingCampaign}
+                      className="rounded-full border border-action px-3 py-1.5 text-xs font-semibold text-action hover:bg-action hover:text-white disabled:opacity-60"
+                      onClick={() => duplicateCampaign(campaign)}
+                    >
+                      {isDuplicatingCampaign ? 'Duplicating…' : 'Duplicate'}
+                    </button>
+                  </>
+                    );
+                  }
+                  if (isCancelledStatus) {
+                    return (
+                  <>
+                    <button
+                      type="button"
+                      className="rounded-full border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 cursor-default"
+                      disabled
+                    >
+                      Cancelled
                     </button>
                     <button
                       type="button"
@@ -1614,13 +1643,17 @@ export default function AdminEmailCampaignsPage() {
                     Mark completed
                   </button>
                 ) : null}
-                {campaign.status === 'draft' ? (
+                {campaign.status === 'draft' || campaign.status === 'cancelled' ? (
                   <button
                     type="button"
                     className="rounded-full border border-blue-200 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:border-blue-400"
                     onClick={() => applyCampaignToEditor(campaign)}
                   >
-                    {duplicatedCampaignId === campaign.id ? 'Edit duplicate' : 'Edit'}
+                    {campaign.status === 'cancelled'
+                      ? 'Edit to resend'
+                      : duplicatedCampaignId === campaign.id
+                        ? 'Edit duplicate'
+                        : 'Edit'}
                   </button>
                 ) : null}
                 <button

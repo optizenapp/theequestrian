@@ -23,8 +23,11 @@ export async function PATCH(
       return NextResponse.json({ error: 'Campaign not found' }, { status: 404 });
     }
     const status = String(campaign.status || '');
-    if (status !== 'draft' && status !== 'pending_approval') {
-      return NextResponse.json({ error: 'Only draft or pending_approval campaigns can be edited' }, { status: 409 });
+    if (status !== 'draft' && status !== 'pending_approval' && status !== 'cancelled') {
+      return NextResponse.json(
+        { error: 'Only draft, pending_approval, or cancelled campaigns can be edited' },
+        { status: 409 }
+      );
     }
 
     const name = typeof body?.name === 'string' && body.name.trim() ? body.name.trim() : String(campaign.name || '');
@@ -37,6 +40,8 @@ export async function PATCH(
         ? JSON.stringify(body.metadata)
         : undefined;
 
+    const nextStatus = status === 'cancelled' ? 'draft' : status;
+
     if (metadata !== undefined) {
       await sql`
         UPDATE email_campaigns
@@ -44,6 +49,9 @@ export async function PATCH(
           name = ${name},
           template_version_id = COALESCE(${templateVersionId}, template_version_id),
           audience = ${audience}::jsonb,
+          status = ${nextStatus},
+          failure_reason = CASE WHEN ${status} = 'cancelled' THEN NULL ELSE failure_reason END,
+          completed_at = CASE WHEN ${status} = 'cancelled' THEN NULL ELSE completed_at END,
           metadata = ${metadata}::jsonb,
           updated_at = NOW()
         WHERE id = ${id}
@@ -55,13 +63,15 @@ export async function PATCH(
           name = ${name},
           template_version_id = COALESCE(${templateVersionId}, template_version_id),
           audience = ${audience}::jsonb,
+          status = ${nextStatus},
+          failure_reason = CASE WHEN ${status} = 'cancelled' THEN NULL ELSE failure_reason END,
+          completed_at = CASE WHEN ${status} = 'cancelled' THEN NULL ELSE completed_at END,
           updated_at = NOW()
         WHERE id = ${id}
       `;
     }
 
-    // Rebuild queued recipients whenever audience changes on a draft campaign (not for pending_approval).
-    // This prevents stale recipients from previous list/segment selections.
+    // Rebuild queued recipients whenever audience changes on a draft campaign.
     if (status === 'draft') {
       await sql`
         DELETE FROM email_campaign_recipients
@@ -77,10 +87,67 @@ export async function PATCH(
         action: 'campaign_updated',
         entityType: 'email_campaign',
         entityId: id,
-        payload: { name, templateVersionId, listIds, segmentIds, queuedRecipients, audienceBreakdown },
+        payload: {
+          name,
+          templateVersionId,
+          listIds,
+          segmentIds,
+          queuedRecipients,
+          audienceBreakdown,
+          previousStatus: status,
+          nextStatus: nextStatus,
+        },
       });
 
       return NextResponse.json({ ok: true, id, queuedRecipients, audienceBreakdown });
+    }
+
+    // For cancelled campaigns, only continue sending to previously unsent recipients.
+    // Do not rebuild audience and do not requeue sent/delivered/failed rows.
+    if (status === 'cancelled') {
+      const reactivated = await sql`
+        UPDATE email_campaign_recipients
+        SET status = 'queued',
+            skip_reason = NULL,
+            updated_at = NOW()
+        WHERE campaign_id = ${id}
+          AND status IN ('cancelled', 'scheduled', 'queued')
+      `;
+
+      const queuedCountResult = await sql`
+        SELECT COUNT(*) AS queued_count
+        FROM email_campaign_recipients
+        WHERE campaign_id = ${id}
+          AND status = 'queued'
+      `;
+      const queuedRecipients = Number(queuedCountResult.rows[0]?.queued_count || 0);
+      const audienceBreakdown = await getAudienceBreakdown({ listIds, segmentIds });
+
+      await logEmailAudit({
+        actor: 'admin',
+        action: 'campaign_reactivated',
+        entityType: 'email_campaign',
+        entityId: id,
+        payload: {
+          name,
+          templateVersionId,
+          listIds,
+          segmentIds,
+          reactivatedRecipients: Number(reactivated.rowCount || 0),
+          queuedRecipients,
+          audienceBreakdown,
+          previousStatus: status,
+          nextStatus: nextStatus,
+        },
+      });
+
+      return NextResponse.json({
+        ok: true,
+        id,
+        reactivatedRecipients: Number(reactivated.rowCount || 0),
+        queuedRecipients,
+        audienceBreakdown,
+      });
     }
 
     const audienceBreakdown = await getAudienceBreakdown({ listIds, segmentIds });
