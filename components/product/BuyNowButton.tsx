@@ -13,6 +13,7 @@ interface BuyNowButtonProps {
   analyticsItem?: Ga4EcommerceItem | null;
   currencyCode?: string;
   compact?: boolean;
+  quantity?: number;
 }
 
 export function BuyNowButton({
@@ -21,6 +22,7 @@ export function BuyNowButton({
   analyticsItem,
   currencyCode,
   compact = false,
+  quantity = 1,
 }: BuyNowButtonProps) {
   const { addCartItem } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -31,26 +33,22 @@ export function BuyNowButton({
     e.stopPropagation();
     
     // Validate inputs
-    if (disabled || !variantId) {
-      console.error('Buy Now button clicked but disabled or no variant', { disabled, variantId });
-      return;
-    }
+    if (disabled || !variantId) return;
 
-    console.log('Buy Now: Starting checkout process', { variantId });
     setIsProcessing(true);
-    
+
     try {
-      // Add item to cart
-      const cart = await addCartItem(variantId, 1);
-      
+      const qty = Math.max(1, Math.floor(quantity));
+      const cart = await addCartItem(variantId, qty);
+
       // Validate cart response
       if (!cart || !cart.checkoutUrl) {
         throw new Error('Invalid cart response from Shopify');
       }
-      
+
       const items = analyticsItem
-        ? [{ ...analyticsItem, quantity: 1 }]
-        : [{ item_id: variantId, quantity: 1 }];
+        ? [{ ...analyticsItem, quantity: qty }]
+        : [{ item_id: variantId, quantity: qty }];
       const currency = currencyCode || 'AUD';
       trackGaEvent('add_to_cart', { currency, items });
       trackGaEvent('begin_checkout', {
@@ -86,7 +84,6 @@ export function BuyNowButton({
   return (
     <button
       onClick={(e) => {
-        console.log('Buy Now button clicked!');
         handleBuyNow(e);
       }}
       disabled={disabled || isProcessing}

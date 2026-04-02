@@ -52,10 +52,6 @@ export function CartDrawer() {
     return () => controller.abort();
   }, [handlesKey]);
 
-  const hrefFor = (handle: string) => productHrefByHandle[handle] ?? `/products/${handle}`;
-
-  if (!isOpen) return null;
-
   const itemCount = cart?.totalQuantity || 0;
   const subtotal = cart?.cost.subtotalAmount.amount || '0';
   const currencyCode = cart?.cost.subtotalAmount.currencyCode || 'AUD';
@@ -65,6 +61,7 @@ export function CartDrawer() {
       : '';
 
   useEffect(() => {
+    if (!isOpen) return;
     const link = checkoutLinkRef.current;
     if (!link || !checkoutHref) return;
 
@@ -78,7 +75,11 @@ export function CartDrawer() {
           source: 'cart_drawer',
         }),
     });
-  }, [checkoutHref, currencyCode, itemCount, subtotal]);
+  }, [isOpen, checkoutHref, currencyCode, itemCount, subtotal]);
+
+  const hrefFor = (handle: string) => productHrefByHandle[handle] ?? `/products/${handle}`;
+
+  if (!isOpen) return null;
 
   return (
     <>

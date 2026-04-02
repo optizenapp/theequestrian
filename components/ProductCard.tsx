@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ProductPrice } from './ProductPrice';
 import { ProductReviewBadge, type ReviewStats } from './reviews/ProductReviewBadge';
+import { ProductCardActions } from './product/ProductCardActions';
 import type { ShopifyProduct } from '@/types/shopify';
 import { buildGa4ItemFromProduct, trackSelectItem } from '@/lib/analytics/ga4-ecommerce';
 
@@ -11,21 +12,13 @@ interface ProductCardProps {
   product: ShopifyProduct;
   priority?: boolean;
   showBreadcrumbs?: boolean;
-  canonicalUrl?: string; // Optional: pass the canonical URL from server component
-  reviewStats?: ReviewStats | null; // Optional: pass review stats from server
-  /** When set with index, fires GA4 `select_item` before navigation */
+  canonicalUrl?: string;
+  reviewStats?: ReviewStats | null;
   itemListId?: string;
   itemListName?: string;
   itemIndex?: number;
 }
 
-/**
- * Product Card Component
- * Modeled after Back Market's clean card style
- * 
- * Links directly to the canonical category-based URL (e.g., /horse/rugs/product-handle)
- * If canonicalUrl is not provided, falls back to /products/{handle}
- */
 export function ProductCard({
   product,
   priority = false,
@@ -36,11 +29,9 @@ export function ProductCard({
   itemListName,
   itemIndex,
 }: ProductCardProps) {
-  // Use provided canonical URL, or fallback to /products/{handle}
+  void showBreadcrumbs;
   const productHref = canonicalUrl || `/products/${product.handle}`;
   const image = product.images.edges[0]?.node;
-  
-  // Ensure we have a valid price object
   const price = product.priceRange?.minVariantPrice || { amount: '0', currencyCode: 'USD' };
   const compareAtPrice = product.compareAtPriceRange?.minVariantPrice;
 
@@ -62,78 +53,82 @@ export function ProductCard({
   };
 
   return (
-    <Link 
-      href={productHref}
-      className="group relative flex flex-col h-full bg-surface rounded-2xl p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-1"
-      onClick={handleAnalyticsClick}
-    >
-      <article className="flex flex-col h-full">
-      {/* Badge / Tag */}
-      <div className="absolute top-4 left-4 z-10 flex flex-col gap-1">
-        {product.availableForSale && product.compareAtPriceRange?.minVariantPrice && 
-         parseFloat(product.compareAtPriceRange.minVariantPrice.amount) > parseFloat(product.priceRange.minVariantPrice.amount) && (
-          <span className="bg-primary text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm">
-            Sale
-          </span>
-        )}
-      </div>
-
-      {/* Image Container */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-white mb-4">
-        {image ? (
-          <Image
-            src={image.url}
-            alt={image.altText || product.title}
-            fill
-            className="object-contain object-center transition-transform duration-300 group-hover:scale-105"
-            sizes="(max-width: 640px) 92vw, (max-width: 1024px) 46vw, (max-width: 1536px) 31vw, 380px"
-            quality={72}
-            priority={priority}
-            loading={priority ? 'eager' : 'lazy'}
-            fetchPriority={priority ? 'high' : 'auto'}
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-white text-gray-400">
-            <span className="text-sm">No image</span>
-          </div>
-        )}
-      </div>
-
-      {/* Content */}
-      <div className="flex flex-1 flex-col justify-between">
-        <div>
-          <h3 className="text-sm font-medium text-gray-900 line-clamp-2 mb-2 group-hover:text-primary transition-colors">
-            {product.title}
-          </h3>
-          
-          {/* Review Badge */}
-          <div className="mb-2">
-            <ProductReviewBadge 
-              productId={product.id} 
-              productHandle={product.handle} 
-              initialStats={reviewStats}
-            />
-          </div>
-        </div>
-
-        <div className="mt-2">
-          <ProductPrice 
-            price={price} 
-            compareAtPrice={compareAtPrice}
-            currencyCode={price.currencyCode}
-            vendor={product.vendor}
-            tags={product.tags}
-            includeShipping={false}
-          />
-          
-          {!product.availableForSale && (
-             <span className="text-xs text-red-600 font-medium mt-1 block">
-               Out of stock
-             </span>
+    <div className="group relative flex h-full flex-col rounded-2xl bg-surface p-4 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
+      <div className="absolute left-4 top-4 z-10 flex flex-col gap-1">
+        {product.availableForSale &&
+          product.compareAtPriceRange?.minVariantPrice &&
+          parseFloat(product.compareAtPriceRange.minVariantPrice.amount) >
+            parseFloat(product.priceRange.minVariantPrice.amount) && (
+            <span className="rounded-md bg-primary px-2 py-1 text-xs font-bold text-white shadow-sm">
+              Sale
+            </span>
           )}
-        </div>
       </div>
-      </article>
-    </Link>
+
+      <Link
+        href={productHref}
+        className="flex min-h-0 flex-1 flex-col rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+        onClick={handleAnalyticsClick}
+      >
+        <article className="flex min-h-0 flex-1 flex-col">
+          <div className="relative mb-4 aspect-[4/3] w-full overflow-hidden rounded-2xl bg-white">
+            {image ? (
+              <Image
+                src={image.url}
+                alt={image.altText || product.title}
+                fill
+                className="object-contain object-center transition-transform duration-300 group-hover:scale-105"
+                sizes="(max-width: 640px) 92vw, (max-width: 1024px) 46vw, (max-width: 1536px) 31vw, 380px"
+                quality={72}
+                priority={priority}
+                loading={priority ? 'eager' : 'lazy'}
+                fetchPriority={priority ? 'high' : 'auto'}
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-white text-gray-400">
+                <span className="text-sm">No image</span>
+              </div>
+            )}
+          </div>
+
+          <div className="flex min-h-0 flex-1 flex-col justify-between">
+            <div>
+              <h3 className="mb-2 line-clamp-2 text-sm font-medium text-gray-900 transition-colors group-hover:text-primary">
+                {product.title}
+              </h3>
+              <div className="mb-2">
+                <ProductReviewBadge
+                  productId={product.id}
+                  productHandle={product.handle}
+                  initialStats={reviewStats}
+                />
+              </div>
+            </div>
+            <div className="mt-2">
+              <ProductPrice
+                price={price}
+                compareAtPrice={compareAtPrice}
+                currencyCode={price.currencyCode}
+                vendor={product.vendor}
+                tags={product.tags}
+                includeShipping={false}
+              />
+              {!product.availableForSale && (
+                <span className="mt-1 block text-xs font-medium text-red-600">Out of stock</span>
+              )}
+            </div>
+          </div>
+        </article>
+      </Link>
+
+      <div className="mt-3 shrink-0 border-t border-gray-100 pt-3">
+        <ProductCardActions
+          product={product}
+          itemListId={itemListId}
+          itemListName={itemListName}
+          itemIndex={itemIndex}
+        />
+      </div>
+    </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { ShopifyProduct } from '@/types/shopify';
 import { ProductVariantSelector } from '@/components/ProductVariantSelector';
 import { AddToCartButton } from './AddToCartButton';
@@ -9,6 +9,7 @@ import { MobileStickyBar } from './MobileStickyBar';
 import { ProductBuyBoxPostCta } from './ProductBuyBoxPostCta';
 import { ProductBuyBoxPriceAndBadges } from './ProductBuyBoxPriceAndBadges';
 import { buildGa4ItemFromProduct } from '@/lib/analytics/ga4-ecommerce';
+import { useProductVariantSelection } from '@/hooks/useProductVariantSelection';
 
 interface ProductBuyBoxProps {
   product: ShopifyProduct;
@@ -17,34 +18,7 @@ interface ProductBuyBoxProps {
 }
 
 export function ProductBuyBox({ product, layout = 'default' }: ProductBuyBoxProps) {
-  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() => {
-    const firstAvailableVariant = product.variants.edges.find(
-      ({ node }) => node.availableForSale
-    )?.node;
-    const variantToSelect = firstAvailableVariant || product.variants.edges[0]?.node;
-    if (!variantToSelect) return {};
-    const initialOptions: Record<string, string> = {};
-    variantToSelect.selectedOptions.forEach((option) => {
-      initialOptions[option.name] = option.value;
-    });
-    return initialOptions;
-  });
-
-  const selectedVariant = useMemo(() => {
-    if (Object.keys(selectedOptions).length === 0) {
-      const firstAvailable = product.variants.edges.find(
-        ({ node }) => node.availableForSale
-      )?.node;
-      return firstAvailable || product.variants.edges[0]?.node;
-    }
-    return product.variants.edges.find(({ node: variant }) =>
-      variant.selectedOptions.every((option) => selectedOptions[option.name] === option.value)
-    )?.node;
-  }, [selectedOptions, product.variants.edges]);
-
-  const handleOptionSelect = (optionName: string, value: string) => {
-    setSelectedOptions((prev) => ({ ...prev, [optionName]: value }));
-  };
+  const { selectedOptions, selectedVariant, handleOptionSelect } = useProductVariantSelection(product);
 
   const basePrice = selectedVariant?.price.amount || product.priceRange.minVariantPrice.amount;
   const baseCompareAtPrice = selectedVariant?.compareAtPrice?.amount;
