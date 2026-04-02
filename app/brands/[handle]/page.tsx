@@ -1,7 +1,4 @@
-
 import { notFound } from 'next/navigation';
-import { getCollectionWithPagination, getCollectionProductCount } from '@/lib/shopify/collections';
-import { getProductCanonicalUrls } from '@/lib/shopify/products';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { getBrandContentByHandle } from '@/lib/content/brand-content';
@@ -13,7 +10,6 @@ import { FAQItem } from '@/lib/content/collections';
 import { getBrandProductsFromDb } from '@/lib/brands/get-brand-products';
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import type { ShopifyProduct } from '@/types/shopify';
 
 export const revalidate = 3600;
 
@@ -65,28 +61,14 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
     notFound();
   }
 
-  let products: ShopifyProduct[] = [];
-  let pageInfo: { hasNextPage: boolean; endCursor: string | null } = {
-    hasNextPage: false,
-    endCursor: null,
-  };
-  let totalProductCount = 0;
-  let productUrlsMap = new Map<string, string>();
-
-  try {
-    const collectionResult = await getCollectionWithPagination(brand.handle, 36, afterCursor);
-    products = collectionResult.products;
-    pageInfo = collectionResult.pageInfo;
-    totalProductCount = await getCollectionProductCount(brand.handle);
-    productUrlsMap = await getProductCanonicalUrls(products);
-  } catch (error) {
-    console.warn(`[BrandPage] Falling back to DB products for ${brand.handle}`, error);
-    const fallbackResult = await getBrandProductsFromDb(brand, 36, afterCursor);
-    products = fallbackResult.products;
-    pageInfo = fallbackResult.pageInfo;
-    totalProductCount = fallbackResult.totalCount;
-    productUrlsMap = fallbackResult.productUrls;
-  }
+  // Brand PLPs always use Postgres + brand rules so new brands work without a matching Shopify collection.
+  // Variants for cart CTAs are merged from Storefront inside getBrandProductsFromDb.
+  const {
+    products,
+    pageInfo,
+    totalCount: totalProductCount,
+    productUrls: productUrlsMap,
+  } = await getBrandProductsFromDb(brand, 36, afterCursor);
 
   // Fetch review stats for all products in one batch (server-side)
   const productHandles = products.map(p => p.handle);
@@ -136,12 +118,11 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
     url: `${siteUrl}/brands/${handle}`,
     description: brand.meta_description || shortDescription,
   };
+  const schemaRecord = collectionSchema as Record<string, unknown>;
+  const existingGraph = Array.isArray(schemaRecord['@graph']) ? schemaRecord['@graph'] : [];
   const enhancedSchema = {
     ...collectionSchema,
-    '@graph': [
-      ...(Array.isArray((collectionSchema as any)['@graph']) ? (collectionSchema as any)['@graph'] : []),
-      brandEntity,
-    ],
+    '@graph': [...existingGraph, brandEntity],
   };
 
   return (

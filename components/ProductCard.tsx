@@ -124,6 +124,7 @@ export function ProductCard({
       <div className="mt-3 shrink-0 border-t border-gray-100 pt-3">
         <ProductCardActions
           product={product}
+          productHref={productHref}
           itemListId={itemListId}
           itemListName={itemListName}
           itemIndex={itemIndex}

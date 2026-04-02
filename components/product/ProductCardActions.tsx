@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { AddToCartButton } from './AddToCartButton';
 import { BuyNowButton } from './BuyNowButton';
@@ -10,6 +11,8 @@ import { buildGa4ItemFromProduct } from '@/lib/analytics/ga4-ecommerce';
 
 interface ProductCardActionsProps {
   product: ShopifyProduct;
+  /** PDP / canonical URL when we cannot resolve variants (still need a clear CTA). */
+  productHref: string;
   itemListId?: string;
   itemListName?: string;
   itemIndex?: number;
@@ -17,6 +20,7 @@ interface ProductCardActionsProps {
 
 export function ProductCardActions({
   product,
+  productHref,
   itemListId,
   itemListName,
   itemIndex,
@@ -47,7 +51,18 @@ export function ProductCardActions({
   const variantId = selectedVariant?.id ?? '';
   const isAvailable = selectedVariant?.availableForSale ?? false;
 
-  if (edges.length === 0) return null;
+  if (edges.length === 0) {
+    return (
+      <div className="flex flex-row gap-2" onClick={(e) => e.stopPropagation()}>
+        <Link
+          href={productHref}
+          className="min-w-0 flex-1 rounded-full bg-action py-2.5 px-3 text-center text-sm font-semibold text-white transition-all hover:bg-action-hover"
+        >
+          View product
+        </Link>
+      </div>
+    );
+  }
 
   if (edges.length === 1) {
     const node = edges[0].node;

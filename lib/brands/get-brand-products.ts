@@ -6,7 +6,10 @@ import {
   getLiveStatusByProductIds,
 } from '@/lib/products/postgres-adapter';
 import { enrichDbBrandProducts } from '@/lib/products/enrich-db-brand-products';
+import { fetchProductVariantsByHandles } from '@/lib/shopify/fetch-product-variants-by-handles';
+import { getProductByHandle } from '@/lib/shopify/products';
 import type { ProductQueryResult } from '@/lib/db/queries';
+import type { ProductWithPrimaryCollection } from '@/types/shopify';
 
 type BrandRule = { column?: string; relation?: string; condition?: string };
 type BrandProductRow = ProductQueryResult & { canonical_path: string | null };
@@ -74,6 +77,52 @@ function buildRuleClause(rule: BrandRule): string | null {
   return null;
 }
 
+const HANDLE_FALLBACK_CHUNK = 10;
+
+async function attachStorefrontVariants(
+  products: ProductWithPrimaryCollection[]
+): Promise<ProductWithPrimaryCollection[]> {
+  const missingHandles = products
+    .filter((p) => !(p.variants?.edges?.length))
+    .map((p) => p.handle);
+  if (missingHandles.length === 0) return products;
+
+  const variantMap = await fetchProductVariantsByHandles(missingHandles);
+
+  let merged = products.map((p) => {
+    const v = variantMap.get(p.handle.toLowerCase());
+    if (v?.edges?.length) return { ...p, variants: v };
+    return p;
+  });
+
+  const stillMissing = merged
+    .filter((p) => !(p.variants?.edges?.length))
+    .map((p) => p.handle);
+  if (stillMissing.length === 0) return merged;
+
+  for (let i = 0; i < stillMissing.length; i += HANDLE_FALLBACK_CHUNK) {
+    const slice = stillMissing.slice(i, i + HANDLE_FALLBACK_CHUNK);
+    const rows = await Promise.all(
+      slice.map(async (handle) => {
+        const full = await getProductByHandle(handle);
+        return {
+          handleKey: handle.toLowerCase(),
+          variants: full?.variants,
+        };
+      })
+    );
+    const byLower = new Map(rows.map((r) => [r.handleKey, r.variants]));
+    merged = merged.map((p) => {
+      if (p.variants?.edges?.length) return p;
+      const v = byLower.get(p.handle.toLowerCase());
+      if (v?.edges?.length) return { ...p, variants: v };
+      return p;
+    });
+  }
+
+  return merged;
+}
+
 export async function getBrandProductsFromDb(
   brand: BrandContentRow,
   limit: number = 36,
@@ -132,6 +181,8 @@ export async function getBrandProductsFromDb(
     await getLiveStatusByProductIds(enrichedRows.map((row) => row.id))
   );
 
+  const productsWithVariants = await attachStorefrontVariants(hydratedProducts);
+
   const productUrls = new Map<string, string>();
   for (const row of enrichedRows) {
     productUrls.set(row.id, row.canonical_path || `/products/${row.handle}`);
@@ -139,7 +190,7 @@ export async function getBrandProductsFromDb(
 
   const hasNextPage = offset + limit < totalCount;
   return {
-    products: hydratedProducts,
+    products: productsWithVariants,
     productUrls,
     totalCount,
     pageInfo: {
