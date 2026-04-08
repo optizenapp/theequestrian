@@ -35,8 +35,6 @@ export async function GET(request: NextRequest) {
   }
 
   const shop = request.nextUrl.searchParams.get('shop')?.trim() || '';
-  const marketplaceVendorName =
-    request.nextUrl.searchParams.get('marketplace_vendor_name')?.trim() || '';
 
   if (!isValidShopHostname(shop)) {
     return NextResponse.json(
@@ -44,9 +42,23 @@ export async function GET(request: NextRequest) {
       { status: 400 }
     );
   }
+
+  // marketplace_vendor_name can be passed explicitly or looked up via env var.
+  // Env var: VENDOR_MARKETPLACE_NAME_<SLUG> e.g. VENDOR_MARKETPLACE_NAME_ASCOT_SADDLERY_VIC
+  const slug = shop
+    .replace(/\.myshopify\.com$/i, '')
+    .toUpperCase()
+    .replace(/-/g, '_');
+  const marketplaceVendorName =
+    request.nextUrl.searchParams.get('marketplace_vendor_name')?.trim() ||
+    process.env[`VENDOR_MARKETPLACE_NAME_${slug}`]?.trim() ||
+    '';
+
   if (!marketplaceVendorName) {
     return NextResponse.json(
-      { error: 'Missing marketplace_vendor_name (exact Product.vendor on marketplace)' },
+      {
+        error: `Missing marketplace_vendor_name. Pass as query param or set VENDOR_MARKETPLACE_NAME_${slug} env var.`,
+      },
       { status: 400 }
     );
   }
