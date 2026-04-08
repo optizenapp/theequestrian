@@ -157,16 +157,7 @@ async function fetchAllVariants(domain, token, vendorFilter) {
         ${r.sku},
         'active'
       )
-      ON CONFLICT ON CONSTRAINT idx_vendor_inventory_map_unique_row DO UPDATE SET
-        vendor_shopify_product_id = EXCLUDED.vendor_shopify_product_id,
-        vendor_shopify_variant_id = EXCLUDED.vendor_shopify_variant_id,
-        marketplace_product_id = EXCLUDED.marketplace_product_id,
-        marketplace_variant_id = EXCLUDED.marketplace_variant_id,
-        marketplace_inventory_item_id = EXCLUDED.marketplace_inventory_item_id,
-        marketplace_location_id = EXCLUDED.marketplace_location_id,
-        sku = EXCLUDED.sku,
-        status = 'active',
-        updated_at = NOW()
+      ON CONFLICT DO NOTHING
       RETURNING (xmax = 0) AS was_inserted
     `;
     if (result[0]?.was_inserted) inserted++;

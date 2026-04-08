@@ -95,15 +95,7 @@ export async function processVendorProductCreateWebhook(
           ${mkt.sku},
           'active'
         )
-        ON CONFLICT ON CONSTRAINT idx_vendor_inventory_map_unique_row DO UPDATE SET
-          vendor_shopify_product_id = EXCLUDED.vendor_shopify_product_id,
-          vendor_shopify_variant_id = EXCLUDED.vendor_shopify_variant_id,
-          marketplace_product_id = EXCLUDED.marketplace_product_id,
-          marketplace_variant_id = EXCLUDED.marketplace_variant_id,
-          marketplace_inventory_item_id = EXCLUDED.marketplace_inventory_item_id,
-          sku = EXCLUDED.sku,
-          status = 'active',
-          updated_at = NOW()
+        ON CONFLICT DO NOTHING
       `;
       mapped++;
       console.log('[vendor-sync] auto-mapped SKU', sku, '→ marketplace variant', mkt.variantId);
