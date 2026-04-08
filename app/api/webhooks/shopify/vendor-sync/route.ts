@@ -3,6 +3,7 @@ import { after } from 'next/server';
 import { verifyVendorSyncWebhook } from '@/lib/inventory/vendor-sync/verify-webhook';
 import { processVendorInventoryLevelsWebhook } from '@/lib/inventory/vendor-sync/process-inventory';
 import { processVendorProductUpdateWebhook } from '@/lib/inventory/vendor-sync/process-product';
+import { processVendorProductCreateWebhook } from '@/lib/inventory/vendor-sync/process-product-map';
 import { getAppCredentialsForShop, getAllAppSecrets } from '@/lib/shopify/vendor-oauth';
 
 export const runtime = 'nodejs';
@@ -55,7 +56,11 @@ export async function POST(request: NextRequest) {
       if (topic === 'inventory_levels/update') {
         await processVendorInventoryLevelsWebhook(shop, rawBody);
       } else if (topic === 'products/update') {
+        // Auto-map any new variants added to existing products, then sync price
+        await processVendorProductCreateWebhook(shop, rawBody);
         await processVendorProductUpdateWebhook(shop, rawBody);
+      } else if (topic === 'products/create') {
+        await processVendorProductCreateWebhook(shop, rawBody);
       } else {
         console.log('[vendor-sync] ignored topic', topic, shop);
       }
