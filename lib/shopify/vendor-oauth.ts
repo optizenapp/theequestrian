@@ -5,6 +5,61 @@
 
 import crypto from 'crypto';
 
+/**
+ * Derive an env-var suffix from a shop domain.
+ * "ascot-saddlery-vic.myshopify.com" → "ASCOT_SADDLERY_VIC"
+ * "trailrace.myshopify.com"          → "TRAILRACE"
+ */
+function shopSlug(shop: string): string {
+  return shop
+    .replace(/\.myshopify\.com$/i, '')
+    .toUpperCase()
+    .replace(/-/g, '_');
+}
+
+export type AppCredentials = {
+  clientId: string;
+  clientSecret: string;
+};
+
+/**
+ * Look up app credentials for a given vendor shop domain.
+ * Checks VENDOR_SYNC_APP_CLIENT_ID_<SLUG> first, then falls back to
+ * VENDOR_SYNC_APP_CLIENT_ID (the default / first vendor app).
+ *
+ * Add per-vendor env vars in Vercel for each additional vendor app:
+ *   VENDOR_SYNC_APP_CLIENT_ID_ASCOT_SADDLERY_VIC=<id>
+ *   VENDOR_SYNC_APP_CLIENT_SECRET_ASCOT_SADDLERY_VIC=<secret>
+ */
+export function getAppCredentialsForShop(shop: string): AppCredentials | null {
+  const slug = shopSlug(shop);
+  const specificId = process.env[`VENDOR_SYNC_APP_CLIENT_ID_${slug}`];
+  const specificSecret = process.env[`VENDOR_SYNC_APP_CLIENT_SECRET_${slug}`];
+  if (specificId && specificSecret) {
+    return { clientId: specificId, clientSecret: specificSecret };
+  }
+  const defaultId = process.env.VENDOR_SYNC_APP_CLIENT_ID;
+  const defaultSecret = process.env.VENDOR_SYNC_APP_CLIENT_SECRET;
+  if (defaultId && defaultSecret) {
+    return { clientId: defaultId, clientSecret: defaultSecret };
+  }
+  return null;
+}
+
+/**
+ * Collect all configured app secrets so the webhook handler can try each one
+ * when the per-shop lookup fails (e.g. a new vendor not yet given specific creds).
+ */
+export function getAllAppSecrets(): string[] {
+  const secrets: string[] = [];
+  for (const [key, val] of Object.entries(process.env)) {
+    if (key.startsWith('VENDOR_SYNC_APP_CLIENT_SECRET') && val) {
+      secrets.push(val);
+    }
+  }
+  return [...new Set(secrets)];
+}
+
 const OAUTH_SCOPES = 'read_products,read_inventory,read_locations';
 
 export function getVendorOAuthScopes(): string {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   buildAuthorizeRedirectUrl,
   encodeOAuthState,
+  getAppCredentialsForShop,
   isValidShopHostname,
 } from '@/lib/shopify/vendor-oauth';
 
@@ -19,21 +20,12 @@ function getPublicBaseUrl(): string | null {
  * Start OAuth for a vendor store (Dev Dashboard app, 2026+).
  * GET /api/shopify/vendor-oauth/install?shop=trailrace.myshopify.com&marketplace_vendor_name=Trailrace
  * Optional: &secret=... if VENDOR_OAUTH_START_SECRET is set.
+ *
+ * Per-vendor credentials are resolved via VENDOR_SYNC_APP_CLIENT_ID_<SLUG> /
+ * VENDOR_SYNC_APP_CLIENT_SECRET_<SLUG> env vars, falling back to the defaults.
  */
 export async function GET(request: NextRequest) {
-  const clientId = process.env.VENDOR_SYNC_APP_CLIENT_ID;
-  const clientSecret = process.env.VENDOR_SYNC_APP_CLIENT_SECRET;
   const startSecret = process.env.VENDOR_OAUTH_START_SECRET;
-
-  if (!clientId || !clientSecret) {
-    return NextResponse.json(
-      {
-        error:
-          'Missing VENDOR_SYNC_APP_CLIENT_ID or VENDOR_SYNC_APP_CLIENT_SECRET (Dev Dashboard app credentials)',
-      },
-      { status: 503 }
-    );
-  }
 
   if (startSecret) {
     const q = request.nextUrl.searchParams.get('secret');
@@ -59,6 +51,17 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  const creds = getAppCredentialsForShop(shop);
+  if (!creds) {
+    return NextResponse.json(
+      {
+        error:
+          'No app credentials configured for this shop. Set VENDOR_SYNC_APP_CLIENT_ID_<SLUG> or the default VENDOR_SYNC_APP_CLIENT_ID.',
+      },
+      { status: 503 }
+    );
+  }
+
   const base = getPublicBaseUrl();
   if (!base) {
     return NextResponse.json(
@@ -68,10 +71,10 @@ export async function GET(request: NextRequest) {
   }
 
   const redirectUri = `${base}/api/shopify/vendor-oauth/callback`;
-  const state = encodeOAuthState(marketplaceVendorName, clientSecret, 10 * 60 * 1000);
+  const state = encodeOAuthState(marketplaceVendorName, creds.clientSecret, 10 * 60 * 1000);
   const url = buildAuthorizeRedirectUrl({
     shop,
-    clientId,
+    clientId: creds.clientId,
     redirectUri,
     state,
   });
