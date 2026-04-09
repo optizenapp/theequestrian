@@ -16,7 +16,7 @@ function isPdpCroQueryPreviewEnabled(): boolean {
 }
 
 function isLocalCro2DefaultEnabled(): boolean {
-  return process.env.NODE_ENV === 'development';
+  return true;
 }
 
 export function getPdpCroTrialHandle(): string | null {
