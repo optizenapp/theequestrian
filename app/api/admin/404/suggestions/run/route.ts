@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     const baseUrl =
       typeof body?.baseUrl === 'string' && body.baseUrl.trim()
         ? body.baseUrl.trim().replace(/\/$/, '')
-        : (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3003').replace(/\/$/, '');
+        : (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
     const rawModel = typeof body?.model === 'string' ? body.model : 'gpt-4o';
     const model: RedirectSuggestionModel = rawModel === 'gpt-5.2-codex' ? 'gpt-5.2-codex' : 'gpt-4o';
     const limit = Number.isFinite(Number(body?.limit)) ? Math.max(1, Math.min(500, Number(body.limit))) : 200;

@@ -63,6 +63,23 @@ export function MegaMenu({
   customSubcategoryCards,
   onClose,
 }: MegaMenuProps) {
+  const normalizeMenuHref = (rawHref: string | undefined, fallback: string): string => {
+    const value = (rawHref || '').trim();
+    if (!value) return fallback;
+    if (value.startsWith('/')) return value;
+    if (/^https?:\/\//i.test(value)) {
+      try {
+        const parsed = new URL(value);
+        const normalizedPath = `${parsed.pathname || '/'}${parsed.search || ''}${parsed.hash || ''}`;
+        return normalizedPath.startsWith('/') ? normalizedPath : `/${normalizedPath}`;
+      } catch {
+        return fallback;
+      }
+    }
+    if (value.startsWith('#') || value.startsWith('?')) return fallback;
+    return value.startsWith('/') ? value : `/${value}`;
+  };
+
   const categoryHandle = categoryLabel.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and');
   
   // Use custom subcategory cards if provided, otherwise use auto-generated from mapping
@@ -74,7 +91,7 @@ export function MegaMenu({
   }> = customSubcategoryCards || subcategories.slice(0, 6).map(sub => ({
     title: sub.label,
     imageUrl: sub.image?.url || '',
-    link: `/${categoryHandle}/${sub.handle}`,
+    link: normalizeMenuHref(`/${categoryHandle}/${sub.handle}`, `/${categoryHandle}`),
     count: sub.count
   }));
   
@@ -82,7 +99,7 @@ export function MegaMenu({
   const quickLinksToShow = customQuickLinks || cardsToShow.slice(0, 2).map(card => ({
     title: card.title,
     imageUrl: card.imageUrl,
-    link: card.link
+    link: normalizeMenuHref(card.link, `/${categoryHandle}`)
   }));
 
   if (cardsToShow.length === 0) {
@@ -124,7 +141,7 @@ export function MegaMenu({
           <div className="hidden lg:flex lg:flex-col space-y-4">
             {featuredImage ? (
               <Link
-                href={featuredImage.link || `/${categoryHandle}`}
+                href={normalizeMenuHref(featuredImage.link, `/${categoryHandle}`)}
                 className="group block rounded-3xl overflow-hidden h-[220px] relative bg-gray-100"
                 onClick={onClose}
               >
@@ -156,8 +173,8 @@ export function MegaMenu({
             <div className="grid gap-4 sm:grid-cols-2">
               {quickLinksToShow.map((quickLink, index) => (
                 <Link
-                  key={quickLink.link}
-                  href={quickLink.link}
+                  key={`${quickLink.title}-${index}`}
+                  href={normalizeMenuHref(quickLink.link, `/${categoryHandle}`)}
                   className="group rounded-2xl border border-gray-100 bg-white shadow-sm p-4 flex items-center gap-3 hover:shadow-md transition-shadow"
                   onClick={onClose}
                 >
@@ -191,7 +208,7 @@ export function MegaMenu({
               return (
                 <Link
                   key={card.link || index}
-                  href={card.link}
+                  href={normalizeMenuHref(card.link, `/${categoryHandle}`)}
                   className="group rounded-2xl border border-gray-100 bg-white shadow-sm p-4 flex items-center gap-3 hover:shadow-md transition-shadow"
                   onClick={onClose}
                 >

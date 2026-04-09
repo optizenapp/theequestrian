@@ -10,7 +10,7 @@ import { useState } from 'react';
  * - What API endpoints are available
  * - How to send/receive messages
  * 
- * Access at: http://localhost:3000/test-chat-proxy
+ * Access at: /test-chat-proxy
  */
 
 export default function TestChatProxyPage() {
