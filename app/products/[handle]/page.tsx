@@ -19,8 +19,13 @@ import { getBreadcrumbsForProduct } from '@/lib/mapping/collection-mapping';
 import ProductReviewSection from '@/components/reviews/ProductReviewSection';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
-import { shouldRenderPdpCroLayout, type PdpSearchParams } from '@/lib/products/pdp-cro-trial';
+import {
+  getPdpCroVariant,
+  withPreservedPdpCroQuery,
+  type PdpSearchParams,
+} from '@/lib/products/pdp-cro-trial';
 import ProductPdpCroTrialMain from '@/components/product/ProductPdpCroTrialMain';
+import ProductPdpCroTwoMain from '@/components/product/ProductPdpCroTwoMain';
 import { createManualRedirect, getManualRedirect } from '@/lib/redirects/manual';
 import { getProductOverrideByHandle, resolveProductHandleFromSlug } from '@/lib/content/product-overrides';
 import { buildProductSeoMetadata } from '@/lib/seo/product-metadata';
@@ -28,7 +33,6 @@ import { cache } from 'react';
 import { ProductViewTracker } from '@/components/analytics/ProductViewTracker';
 
 export const revalidate = 300;
-export const dynamic = 'force-static';
 
 interface ProductPageProps {
   params: Promise<{
@@ -89,7 +93,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
     } catch (error) {
       console.error('Failed to create auto redirect:', error);
     }
-    permanentRedirect(canonicalUrl);
+    permanentRedirect(withPreservedPdpCroQuery(canonicalUrl, sp));
   }
 
   // If we reach here, product has no mapping - render fallback page
@@ -158,7 +162,9 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
   const featureHighlights = override?.use_headless_bullets && overrideBullets.length > 0
     ? overrideBullets
     : getProductBulletPoints(product.id);
-  const isCroTrialPdp = shouldRenderPdpCroLayout(product.handle, sp);
+  const pdpCroVariant = getPdpCroVariant(product.handle, sp);
+  const isCroTrialPdp = pdpCroVariant === 'cro1';
+  const isCroTwoPdp = pdpCroVariant === 'cro2';
 
   const firstAvailableVariant =
     product.variants.edges.find(({ node }) => node.availableForSale)?.node ??
@@ -194,6 +200,20 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
 
       {isCroTrialPdp ? (
         <ProductPdpCroTrialMain
+          product={product}
+          displayTitle={displayTitle}
+          descriptionHtml={descriptionHtml}
+          featureHighlights={featureHighlights}
+          reviewBadgeStats={reviewBadgeStats}
+        >
+          <ProductReviewSection
+            productId={product.id}
+            productHandle={product.handle}
+            productTitle={product.title}
+          />
+        </ProductPdpCroTrialMain>
+      ) : isCroTwoPdp ? (
+        <ProductPdpCroTwoMain
           product={product}
           displayTitle={displayTitle}
           descriptionHtml={descriptionHtml}
@@ -252,12 +272,13 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
       </article>
       )}
         
-        {/* Reviews Section - Full Width Below Product */}
-        <ProductReviewSection
-          productId={product.id}
-          productHandle={product.handle}
-          productTitle={product.title}
-        />
+        {!isCroTrialPdp ? (
+          <ProductReviewSection
+            productId={product.id}
+            productHandle={product.handle}
+            productTitle={product.title}
+          />
+        ) : null}
 
         {/* Related Products */}
         <RelatedProducts

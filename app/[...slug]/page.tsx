@@ -17,8 +17,13 @@ import { generateProductSchemaGraph } from '@/lib/utils/product-schema';
 import { getBreadcrumbsForProduct } from '@/lib/mapping/collection-mapping';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
-import { shouldRenderPdpCroLayout, type PdpSearchParams } from '@/lib/products/pdp-cro-trial';
+import {
+  getPdpCroVariant,
+  withPreservedPdpCroQuery,
+  type PdpSearchParams,
+} from '@/lib/products/pdp-cro-trial';
 import ProductPdpCroTrialMain from '@/components/product/ProductPdpCroTrialMain';
+import ProductPdpCroTwoMain from '@/components/product/ProductPdpCroTwoMain';
 import { getManualRedirect } from '@/lib/redirects/manual';
 import { getEmptyCategoryRedirectTarget } from '@/lib/redirects/empty-category-redirect';
 import { getProductOverrideByHandle, resolveProductHandleFromSlug } from '@/lib/content/product-overrides';
@@ -30,7 +35,6 @@ import { cache } from 'react';
 import { ProductViewTracker } from '@/components/analytics/ProductViewTracker';
 
 export const revalidate = 300;
-export const dynamic = 'force-static';
 
 interface ProductCatchAllPageProps {
   params: Promise<{
@@ -117,8 +121,8 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
       // Product has no category mapping, render it here
       // (This prevents redirect loops for unmapped products)
     } else {
-      // Redirect to the correct category-based URL
-      redirect(canonicalUrl);
+      // Redirect to the correct category-based URL (preserve ?cro= for CRO preview)
+      redirect(withPreservedPdpCroQuery(canonicalUrl, sp));
     }
   }
   
@@ -184,7 +188,9 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
     relatedProducts.map((p) => [p.handle, relatedUrlMap.get(p.id) ?? `/products/${p.handle}`])
   );
   const showArcEquineGelPromo = resolvedProduct.handle === 'arcequine-complete-kit';
-  const isCroTrialPdp = shouldRenderPdpCroLayout(resolvedProduct.handle, sp);
+  const pdpCroVariant = getPdpCroVariant(resolvedProduct.handle, sp);
+  const isCroTrialPdp = pdpCroVariant === 'cro1';
+  const isCroTwoPdp = pdpCroVariant === 'cro2';
 
   const firstAvailableVariant =
     resolvedProduct.variants.edges.find(({ node }) => node.availableForSale)?.node ??
@@ -226,6 +232,21 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
             descriptionHtml={descriptionHtml}
             featureHighlights={featureHighlights}
             reviewBadgeStats={reviewBadgeStats}
+          >
+            <ProductReviewSection
+              productId={resolvedProduct.id}
+              productHandle={resolvedProduct.handle}
+              productTitle={resolvedProduct.title}
+            />
+          </ProductPdpCroTrialMain>
+        ) : isCroTwoPdp ? (
+          <ProductPdpCroTwoMain
+            product={resolvedProduct}
+            displayTitle={displayTitle}
+            descriptionHtml={descriptionHtml}
+            featureHighlights={featureHighlights}
+            reviewBadgeStats={reviewBadgeStats}
+            showArcEquineGelPromo={showArcEquineGelPromo}
           />
         ) : (
         <article aria-labelledby="pdp-product-title">
@@ -292,11 +313,13 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
         )}
       </div>
       </div>
-      <ProductReviewSection
-        productId={resolvedProduct.id}
-        productHandle={resolvedProduct.handle}
-        productTitle={resolvedProduct.title}
-      />
+      {!isCroTrialPdp ? (
+        <ProductReviewSection
+          productId={resolvedProduct.id}
+          productHandle={resolvedProduct.handle}
+          productTitle={resolvedProduct.title}
+        />
+      ) : null}
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <RelatedProducts
           products={relatedProducts}

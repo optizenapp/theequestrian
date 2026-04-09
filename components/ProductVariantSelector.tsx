@@ -79,11 +79,16 @@ export function ProductVariantSelector({ product, selectedOptions, onOptionSelec
   return (
     <div className="space-y-4">
       {Array.from(optionTypes.entries()).map(([optionName, values]) => {
-        const isColorOption = optionName.toLowerCase() === 'color' || optionName.toLowerCase() === 'colour';
+        const normalizedOptionName = optionName.toLowerCase();
+        const isColorOption = normalizedOptionName === 'color' || normalizedOptionName === 'colour';
+        const shouldShowDashedGroup = isColorOption || normalizedOptionName === 'size';
         const valuesArray = Array.from(values);
 
         return (
-          <div key={optionName}>
+          <div
+            key={optionName}
+            className={shouldShowDashedGroup ? 'rounded-2xl border border-dashed border-green-500 p-4' : undefined}
+          >
             <label className="text-sm font-semibold text-gray-900 mb-2 block">
               {optionName}
             </label>

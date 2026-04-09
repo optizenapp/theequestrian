@@ -39,8 +39,13 @@ import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { getAllowedBrandVendors } from '@/lib/filters/brand-filter-helper';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
-import { shouldRenderPdpCroLayout, type PdpSearchParams } from '@/lib/products/pdp-cro-trial';
+import {
+  getPdpCroVariant,
+  withPreservedPdpCroQuery,
+  type PdpSearchParams,
+} from '@/lib/products/pdp-cro-trial';
 import ProductPdpCroTrialMain from '@/components/product/ProductPdpCroTrialMain';
+import ProductPdpCroTwoMain from '@/components/product/ProductPdpCroTwoMain';
 import { LazySection } from '@/components/LazySection';
 import type { Metadata } from 'next';
 import type { ShopifyProduct } from '@/types/shopify';
@@ -170,7 +175,7 @@ export default async function Page({ params, searchParams }: PageProps) {
   // If we're already at the canonical URL, render the product page
   // Otherwise, redirect to the canonical URL
   if (currentPath !== canonicalUrl) {
-    redirect(canonicalUrl);
+    redirect(withPreservedPdpCroQuery(canonicalUrl, sp));
   }
   
   // Render the product page (we're at the canonical URL)
@@ -262,7 +267,9 @@ async function renderProductPage(
     ? overrideBullets
     : getProductBulletPoints(product.id);
   const showArcEquineGelPromo = product.handle === 'arcequine-complete-kit';
-  const isCroTrialPdp = shouldRenderPdpCroLayout(product.handle, searchParams);
+  const pdpCroVariant = getPdpCroVariant(product.handle, searchParams);
+  const isCroTrialPdp = pdpCroVariant === 'cro1';
+  const isCroTwoPdp = pdpCroVariant === 'cro2';
 
   const firstAvailableVariant =
     product.variants.edges.find(({ node }) => node.availableForSale)?.node ??
@@ -303,6 +310,35 @@ async function renderProductPage(
             descriptionHtml={descriptionHtml}
             featureHighlights={featureHighlights}
             reviewBadgeStats={reviewBadgeStats}
+          >
+            <LazySection
+              fallback={<div className="h-96 bg-gray-50 animate-pulse rounded-lg" />}
+              minHeight="24rem"
+              rootMargin="300px"
+            >
+              <ProductReviewSection
+                productId={product.id}
+                productHandle={product.handle}
+                productTitle={product.title}
+              />
+            </LazySection>
+          </ProductPdpCroTrialMain>
+        ) : isCroTwoPdp ? (
+          <ProductPdpCroTwoMain
+            product={product}
+            displayTitle={displayTitle}
+            descriptionHtml={descriptionHtml}
+            featureHighlights={featureHighlights}
+            reviewBadgeStats={reviewBadgeStats}
+            showArcEquineGelPromo={showArcEquineGelPromo}
+            afterDescription={
+              <SizingGuideLink
+                vendor={product.vendor}
+                productType={product.productType}
+                productTitle={product.title}
+                productHandle={product.handle}
+              />
+            }
           />
         ) : (
         <>
@@ -378,18 +414,19 @@ async function renderProductPage(
         </>
         )}
         
-        {/* Reviews Section - Full Width Below Product */}
-        <LazySection
-          fallback={<div className="h-96 bg-gray-50 animate-pulse rounded-lg" />}
-          minHeight="24rem"
-          rootMargin="300px"
-        >
-          <ProductReviewSection
-            productId={product.id}
-            productHandle={product.handle}
-            productTitle={product.title}
-          />
-        </LazySection>
+        {!isCroTrialPdp ? (
+          <LazySection
+            fallback={<div className="h-96 bg-gray-50 animate-pulse rounded-lg" />}
+            minHeight="24rem"
+            rootMargin="300px"
+          >
+            <ProductReviewSection
+              productId={product.id}
+              productHandle={product.handle}
+              productTitle={product.title}
+            />
+          </LazySection>
+        ) : null}
 
         {/* Related Products - Already has intersection observer built-in */}
         <RelatedProducts 

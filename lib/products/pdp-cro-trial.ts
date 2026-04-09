@@ -9,6 +9,7 @@
  */
 
 export type PdpSearchParams = { [key: string]: string | string[] | undefined };
+export type PdpCroVariant = 'control' | 'cro1' | 'cro2';
 
 export function getPdpCroTrialHandle(): string | null {
   const fromEnv =
@@ -34,9 +35,39 @@ export function isPdpCroDevQueryEnabled(searchParams: PdpSearchParams): boolean 
   return v === '1' || v === 'true';
 }
 
+/** Dev-only: `?cro=2` on the PDP URL. */
+export function isPdpCroTwoDevQueryEnabled(searchParams: PdpSearchParams): boolean {
+  if (process.env.NODE_ENV !== 'development') return false;
+  return croQueryValue(searchParams)?.toLowerCase() === '2';
+}
+
+export function getPdpCroVariant(
+  productHandle: string,
+  searchParams: PdpSearchParams
+): PdpCroVariant {
+  if (isPdpCroTwoDevQueryEnabled(searchParams)) return 'cro2';
+  if (isPdpCroTrialHandle(productHandle) || isPdpCroDevQueryEnabled(searchParams)) return 'cro1';
+  return 'control';
+}
+
 export function shouldRenderPdpCroLayout(
   productHandle: string,
   searchParams: PdpSearchParams
 ): boolean {
-  return isPdpCroTrialHandle(productHandle) || isPdpCroDevQueryEnabled(searchParams);
+  return getPdpCroVariant(productHandle, searchParams) !== 'control';
+}
+
+/**
+ * Keep `?cro=` when sending users to the canonical PDP path so dev previews survive
+ * `redirect()` / `permanentRedirect()` (they only receive a pathname by default).
+ */
+export function withPreservedPdpCroQuery(
+  pathname: string,
+  searchParams: PdpSearchParams
+): string {
+  const raw = searchParams.cro;
+  const v = Array.isArray(raw) ? raw[0] : raw;
+  if (v === undefined || v === '') return pathname;
+  const sep = pathname.includes('?') ? '&' : '?';
+  return `${pathname}${sep}cro=${encodeURIComponent(v)}`;
 }

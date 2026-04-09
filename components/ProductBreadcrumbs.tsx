@@ -32,16 +32,16 @@ export function ProductBreadcrumbs({
   const [showAllPaths, setShowAllPaths] = useState(false);
 
   const renderBreadcrumbPath = (path: BreadcrumbPath[], isVisible: boolean, pathIndex: number) => (
-    <nav 
+    <nav
       key={pathIndex}
-      className={`flex text-sm text-gray-500 ${isVisible ? '' : 'sr-only'}`}
+      className={`flex items-center flex-wrap gap-y-1 text-sm text-gray-500 ${isVisible ? '' : 'sr-only'}`}
       aria-label={pathIndex === 0 ? 'Primary breadcrumb' : `Alternative breadcrumb ${pathIndex}`}
     >
-      <Link href="/" className="hover:text-action transition-colors">Home</Link>
+      <Link href="/" className="hover:text-action transition-colors whitespace-nowrap">Home</Link>
       {path.map((crumb, i) => (
-        <span key={i} className="flex items-center">
-          <span className="mx-2">/</span>
-          <Link 
+        <span key={i} className="flex items-center whitespace-nowrap">
+          <span className="mx-1.5 text-gray-400">/</span>
+          <Link
             href={crumb.href}
             className="hover:text-action capitalize transition-colors"
           >
@@ -49,8 +49,10 @@ export function ProductBreadcrumbs({
           </Link>
         </span>
       ))}
-      <span className="mx-2">/</span>
-      <span className="text-gray-900 font-medium truncate">{productTitle}</span>
+      <span className="flex items-center min-w-0">
+        <span className="mx-1.5 text-gray-400">/</span>
+        <span className="text-gray-900 font-medium truncate">{productTitle}</span>
+      </span>
     </nav>
   );
 

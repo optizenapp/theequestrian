@@ -1,11 +1,19 @@
 interface ProductPdpValueSummaryProps {
   summaryLine: string;
   bullets: string[];
+  /** Default `full`. Use `summaryOnly` / `bulletsOnly` to split the CRO desktop column layout. */
+  variant?: 'full' | 'summaryOnly' | 'bulletsOnly';
 }
 
-export default function ProductPdpValueSummary({ summaryLine, bullets }: ProductPdpValueSummaryProps) {
+export default function ProductPdpValueSummary({
+  summaryLine,
+  bullets,
+  variant = 'full',
+}: ProductPdpValueSummaryProps) {
   const items = bullets.filter((b) => b.trim().length > 0).slice(0, 5);
-  if (!summaryLine.trim() && items.length === 0) return null;
+  const showSummary = variant !== 'bulletsOnly' && summaryLine.trim().length > 0;
+  const showBullets = variant !== 'summaryOnly' && items.length > 0;
+  if (!showSummary && !showBullets) return null;
 
   return (
     <section
@@ -15,8 +23,8 @@ export default function ProductPdpValueSummary({ summaryLine, bullets }: Product
       <h2 id="pdp-value-summary-heading" className="sr-only">
         At a glance
       </h2>
-      {summaryLine.trim() ? <p className="text-sm font-medium text-gray-900 mb-3">{summaryLine}</p> : null}
-      {items.length > 0 ? (
+      {showSummary ? <p className="text-sm font-medium text-gray-900 mb-3">{summaryLine}</p> : null}
+      {showBullets ? (
         <ul className="list-none space-y-2 p-0 m-0">
           {items.map((item) => (
             <li key={item} className="flex items-start gap-2 text-sm text-gray-700">
