@@ -79,6 +79,7 @@ export default function ProductPdpCroTwoDesktop({
               <ProductDescription
                 html={descriptionHtml}
                 productTitle={displayTitle}
+                collapsedHeight={520}
                 className="flex-1"
                 accentBorder
               />
@@ -105,15 +106,19 @@ export default function ProductPdpCroTwoDesktop({
                 <ProductBuyBox product={product} />
               </div>
             </div>
+
+            {remainingHighlights.length > 0 && (
+              <section
+                aria-label="Additional product highlights"
+                className="rounded-2xl border border-black bg-surface p-6"
+              >
+                <FeatureHighlights featureHighlights={remainingHighlights} />
+              </section>
+            )}
+
+            {showArcEquineGelPromo ? <ArcEquinePromo /> : null}
           </div>
         </div>
-
-        {remainingHighlights.length > 0 && (
-          <section aria-label="Additional product highlights">
-            <FeatureHighlights featureHighlights={remainingHighlights} columns={2} />
-            {showArcEquineGelPromo ? <ArcEquinePromo /> : null}
-          </section>
-        )}
       </div>
     </article>
   );

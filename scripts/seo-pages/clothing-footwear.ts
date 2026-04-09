@@ -35,22 +35,22 @@ Horse riding footwear is built to give riders the right balance of support, comf
 
 <h3>Tall Riding Boots & Long Equestrian Boots</h3>
 <p>
-Search demand is strongest around <strong>horse riding boots</strong>, tall equestrian boots and long riding boots. These styles are popular with riders who want a neat leg line, closer contact through the calf and a more traditional competition look for lessons, clinics and show days. If you want to narrow your options further, browse our dedicated <a href="/clothing/footwear/riding-boots">riding boots</a> range.
+<strong>Horse riding boots</strong>, tall equestrian boots and long riding boots are popular with riders who want a neat leg line, close contact through the calf and a traditional competition look. If you want to narrow your options further, browse our dedicated <a href="/clothing/footwear/riding-boots">riding boots</a> range.
 </p>
 
 <h3>Yard Boots, Waterproof Boots & Everyday Stable Wear</h3>
 <p>
-Queries for yard boots, waterproof riding boots and equestrian work boots show clear demand for practical footwear that can handle wet conditions and long days around the stables. These styles are ideal for riders who split their time between horse care, paddock jobs and time in the saddle.
+Yard boots, waterproof riding boots and equestrian work boots are practical choices for wet conditions and long days around the stables. These styles are ideal for riders who split their time between horse care, paddock jobs and time in the saddle.
 </p>
 
 <h3>Jodhpur Boots, Riding Shoes & Fit Options</h3>
 <p>
-Searches also cover horse riding shoes, jodhpur boots and men's and women's riding boots, which points to a mix of smart short boots and everyday footwear intent. For shorter boot styles suited to regular riding and stable use, see our <a href="/clothing/footwear/ankle-boots">ankle boots</a> collection.
+Horse riding shoes, jodhpur boots and men's and women's riding boots offer a mix of smart short boots and everyday footwear options. For shorter boot styles suited to regular riding and stable use, see our <a href="/clothing/footwear/ankle-boots">ankle boots</a> collection.
 </p>
 
 <h2>Shop Horse Riding Boots by Brand</h2>
 <p>
-Shop leading footwear brands including <a href="/brands/ariat">Ariat</a>, <a href="/brands/cavallo">Cavallo</a> and <a href="/brands/tucci">Tucci</a>, all relevant to the riding boot and equestrian footwear demand showing in search data for this page.
+Shop leading footwear brands including <a href="/brands/ariat">Ariat</a>, <a href="/brands/cavallo">Cavallo</a> and <a href="/brands/tucci">Tucci</a> for premium riding boots and equestrian footwear in Australia.
 </p>`,
 
   faq_items: [

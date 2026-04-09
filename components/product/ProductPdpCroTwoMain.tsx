@@ -116,11 +116,20 @@ export default function ProductPdpCroTwoMain({
             className="order-4 space-y-8 mt-8"
             aria-label="Product description"
           >
-            <ProductDescription html={descriptionHtml} productTitle={displayTitle} accentBorder />
+            <ProductDescription
+              html={descriptionHtml}
+              productTitle={displayTitle}
+              collapsedHeight={520}
+              accentBorder
+            />
           </section>
 
           <section className="order-5" aria-label="Additional product highlights">
-            <FeatureHighlights featureHighlights={remainingHighlights} />
+            {remainingHighlights.length > 0 && (
+              <div className="bg-surface rounded-2xl p-6 shadow-sm border border-black">
+                <FeatureHighlights featureHighlights={remainingHighlights} />
+              </div>
+            )}
             {showArcEquineGelPromo ? <ArcEquinePromo /> : null}
           </section>
         </div>

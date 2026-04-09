@@ -40,17 +40,17 @@ For daily riding, many riders look for breathable fabrics, stretch panels and pr
 
 <h3>Competition Breeches, Show Breeches & White Styles</h3>
 <p>
-Competition demand is strong on this page, especially for <strong>competition breeches</strong>, white breeches and polished show-ready looks. These styles are chosen for clean presentation, supportive fit and reliable grip, helping riders feel secure and smart in the arena.
+<strong>Competition breeches</strong>, white breeches and polished show-ready styles are chosen for clean presentation, supportive fit and reliable grip, helping riders feel secure and smart in the arena.
 </p>
 
 <h3>Denim, Cotton & High Waisted Breeches</h3>
 <p>
-Searches around denim breeches, cotton riding breeches and high waisted styles show that riders want more than one fit or finish. Some prefer traditional breeches with a classic feel, while others want modern silhouettes, deeper waistbands and versatile colours such as black, navy and beige.
+Denim breeches, cotton riding breeches and high waisted styles give riders more choice in fit and finish. Some prefer traditional breeches with a classic feel, while others want modern silhouettes, deeper waistbands and versatile colours such as black, navy and beige.
 </p>
 
 <h2>Shop Women's Breeches by Brand</h2>
 <p>
-Shop breeches from leading equestrian brands including <a href="/brands/samshield">Samshield</a> and <a href="/brands/equiline">Equiline</a>, both popular with riders searching for premium competition and everyday riding breeches.
+Shop breeches from leading equestrian brands including <a href="/brands/samshield">Samshield</a> and <a href="/brands/equiline">Equiline</a> for premium competition and everyday riding breeches.
 </p>`,
 
   faq_items: [

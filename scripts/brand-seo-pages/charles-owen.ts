@@ -28,7 +28,7 @@ Charles Owen is one of the best-known names in equestrian safety, with a long-st
 
 <h3>Charles Owen 4 Star & Cross Country Helmets</h3>
 <p>
-Search demand for Charles Owen 4 Star helmets shows strong interest in protective cross country options. These styles are built for riders who need dependable safety features and secure fit for higher-impact disciplines.
+Charles Owen 4 Star helmets are a popular choice for riders looking at protective cross country options. These styles are built for riders who need dependable safety features and secure fit for higher-impact disciplines.
 </p>
 
 <h3>Charles Owen Halo, Hampton & Fian</h3>
@@ -38,12 +38,12 @@ Halo, Hampton and Fian are among the most recognisable Charles Owen helmets for 
 
 <h3>MIPS & Premium Riding Helmet Options</h3>
 <p>
-Charles Owen also attracts searches around MIPS helmets and technical safety upgrades. If you are comparing brands or browsing the wider range, explore our full <a href="/rider/helmets">horse riding helmets</a> collection for more riding helmet options.
+Charles Owen also offers MIPS helmet options and technical safety upgrades for riders comparing premium features. If you are browsing the wider range, explore our full <a href="/rider/helmets">horse riding helmets</a> collection for more riding helmet options.
 </p>
 
 <h2>Why Riders Choose Charles Owen</h2>
 <ul>
-<li>Well-known helmet brand with strong demand across competition and general riding searches</li>
+<li>Well-known helmet brand trusted across competition and general riding</li>
 <li>Popular models including Halo, Hampton, Fian, 4 Star and Pro II Plus</li>
 <li>Options suited to show riding, everyday riding and cross country disciplines</li>
 </ul>`,

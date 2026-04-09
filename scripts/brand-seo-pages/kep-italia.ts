@@ -20,7 +20,7 @@ const content: BrandSEOContent = {
 <p>Explore popular KEP styles including Cromo, Smart and Nova helmets, plus liner and configurator options for riders comparing fit, finish and custom details.</p>`,
 
   long_description: `<h2>About KEP Italia</h2>
-<p>KEP Italia is known for premium riding helmets that combine Italian styling with practical comfort and modern equestrian safety features. Search demand centres on KEP helmets, KEP Italia helmets and KEP riding helmets, showing strong interest from riders looking for a polished helmet with a distinctive fit and finish.</p>
+<p>KEP Italia is known for premium riding helmets that combine Italian styling with practical comfort and modern equestrian safety features. The brand is popular with riders looking for a polished helmet with a distinctive fit and finish.</p>
 
 <h2>Popular KEP Helmet Styles</h2>
 
@@ -31,7 +31,7 @@ const content: BrandSEOContent = {
 <p>Keyword demand also shows interest in KEP Nova helmets, KEP helmet liners and sizing-related searches. That tells us riders are actively comparing fit systems, replacement liners and model differences before they buy.</p>
 
 <h3>Custom & Premium KEP Designs</h3>
-<p>Queries around custom KEP helmets, glossy finishes, rose gold trims and Cromo 2.0 styles point to demand for premium details and configurable looks. If you are comparing across the wider helmet range, browse our full <a href="/rider/helmets">horse riding helmets</a> collection.</p>
+<p>Custom KEP helmets, glossy finishes, rose gold trims and Cromo 2.0 styles appeal to riders who want premium details and configurable looks. If you are comparing across the wider helmet range, browse our full <a href="/rider/helmets">horse riding helmets</a> collection.</p>
 
 <h2>Why Riders Choose KEP Italia</h2>
 <ul>

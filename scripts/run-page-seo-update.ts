@@ -57,6 +57,54 @@ export interface PageSEOContent {
 const FLORAL_WIND_POOLER =
   'ep-floral-wind-a7w6deck-pooler.ap-southeast-2.aws.neon.tech';
 
+const PROCESS_LANGUAGE_PATTERNS: Array<{ label: string; regex: RegExp }> = [
+  { label: 'search demand', regex: /\bsearch demand\b/i },
+  { label: 'queries such as', regex: /\bqueries such as\b/i },
+  { label: 'this page also', regex: /\bthis page also\b/i },
+  { label: 'picks up intent', regex: /\bpicks up intent\b/i },
+  { label: 'intent around', regex: /\bintent around\b/i },
+  { label: 'showing in search data', regex: /\bshowing in search data\b/i },
+  { label: 'relevant to current search demand', regex: /\brelevant to current search demand\b/i },
+  { label: 'gsc', regex: /\bgsc\b/i },
+];
+
+function assertNoProcessLanguage(content: PageSEOContent): void {
+  const skipGuard = process.argv.includes('--allow-process-language');
+  if (skipGuard) return;
+
+  const fieldsToCheck: Array<{ field: string; value: string }> = [
+    { field: 'meta_title', value: content.meta_title },
+    { field: 'meta_description', value: content.meta_description },
+    { field: 'h1_title', value: content.h1_title },
+    { field: 'short_description', value: content.short_description },
+    { field: 'long_description', value: content.long_description },
+  ];
+
+  for (const faq of content.faq_items || []) {
+    fieldsToCheck.push({ field: 'faq_items.question', value: faq.question });
+    fieldsToCheck.push({ field: 'faq_items.answer', value: faq.answer });
+  }
+
+  const hits: string[] = [];
+  for (const { field, value } of fieldsToCheck) {
+    for (const pattern of PROCESS_LANGUAGE_PATTERNS) {
+      if (pattern.regex.test(value)) {
+        hits.push(`${field}: "${pattern.label}"`);
+      }
+    }
+  }
+
+  if (hits.length > 0) {
+    throw new Error(
+      [
+        `Process language detected in scripts/seo-pages content module for "${content.url_path}".`,
+        ...hits.map((hit) => ` - ${hit}`),
+        'Rewrite customer-facing copy and run again, or pass --allow-process-language to override intentionally.',
+      ].join('\n')
+    );
+  }
+}
+
 function resolveConnectionString(): string {
   if (process.env.CUSTOM_DATABASE_URL) return process.env.CUSTOM_DATABASE_URL;
   if (process.argv.includes('--floral-prod')) {
@@ -90,6 +138,8 @@ async function main() {
   } catch {
     throw new Error(`No content module found at scripts/seo-pages/${slug}.ts`);
   }
+
+  assertNoProcessLanguage(content);
 
   if (DRY) {
     console.log('[dry-run] Would write to collection_content:');

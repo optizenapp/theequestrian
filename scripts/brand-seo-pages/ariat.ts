@@ -25,14 +25,14 @@ const content: BrandSEOContent = {
 
   long_description: `<h2>About Ariat</h2>
 <p>
-Ariat is a globally recognised equestrian and country lifestyle brand known for combining rider-focused performance with practical everyday wear. Search demand around Ariat in Australia is spread across both clothing and footwear, making the brand especially relevant for riders who want dependable gear that works in and out of the saddle.
+Ariat is a globally recognised equestrian and country lifestyle brand known for combining rider-focused performance with practical everyday wear. In Australia, the brand is especially popular across both clothing and footwear for riders who want dependable gear that works in and out of the saddle.
 </p>
 
 <h2>Ariat Product Range</h2>
 
 <h3>Ariat Riding Boots & Footwear</h3>
 <p>
-Ariat attracts strong interest for boots, footwear and online shopping intent, with riders often searching for paddock boots, waterproof styles and practical everyday options. If you are browsing the wider range, explore our <a href="/clothing/footwear">equestrian footwear</a> collection for more Ariat and riding boot styles.
+Ariat is well known for boots and footwear, including paddock boots, waterproof styles and practical everyday options for stable and riding use. If you are browsing the wider range, explore our <a href="/clothing/footwear">equestrian footwear</a> collection for more Ariat and riding boot styles.
 </p>
 
 <h3>Ariat Riding Clothing & Apparel</h3>
@@ -42,12 +42,12 @@ Ariat clothing is another core demand area, covering polos, technical tops, jack
 
 <h3>Ariat Breeches, Tights & Everyday Rider Wear</h3>
 <p>
-The range also includes legwear and everyday rider essentials, with searches around women's Ariat clothing and riding wear showing interest in versatile pieces for regular training and stable use. Ariat styles often balance technical comfort with a polished look that works well for riding, travel and general equestrian lifestyle wear.
+The range also includes legwear and everyday rider essentials, with versatile pieces for regular training, stable use and casual wear. Ariat styles often balance technical comfort with a polished look that works well for riding, travel and general equestrian lifestyle wear.
 </p>
 
 <h2>Why Choose Ariat</h2>
 <ul>
-<li>Well-known equestrian brand with strong demand for both apparel and footwear</li>
+<li>Well-known equestrian brand trusted for both apparel and footwear</li>
 <li>Popular for riding boots, jackets, polos, breeches and casual rider clothing</li>
 <li>Designed for practical comfort across riding, stable work and everyday wear</li>
 </ul>`,
