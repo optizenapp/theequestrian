@@ -26,6 +26,9 @@ export async function POST(request: NextRequest) {
       last_name?: string | null;
       accepts_marketing?: boolean;
       tags?: string;
+      default_address?: {
+        zip?: string | null;
+      } | null;
     };
 
     const email = typeof payload.email === 'string' ? payload.email.trim() : '';
@@ -41,7 +44,11 @@ export async function POST(request: NextRequest) {
       shopifyCustomerId: payload.id ? String(payload.id) : null,
       acceptsMarketing: payload.accepts_marketing !== false,
       source: 'shopify_webhook',
-      metadata: { shopifyTags: tags },
+      metadata: {
+        shopifyTags: tags,
+        shopifyPostcode:
+          typeof payload.default_address?.zip === 'string' ? payload.default_address.zip.trim() : null,
+      },
     });
 
     return NextResponse.json({ received: true });

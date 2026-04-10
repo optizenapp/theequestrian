@@ -12,6 +12,7 @@ type ShopifyCustomer = {
   lastName: string | null;
   tags: string[];
   acceptsMarketing: boolean;
+  postcode?: string | null;
 };
 
 function normalizeEmail(email: string): string {
@@ -36,6 +37,30 @@ async function hasPurchasesForContact(email: string, shopifyCustomerId: string |
     ) AS has_purchases
   `;
   return result.rows[0]?.has_purchases === true || result.rows[0]?.has_purchases === 't';
+}
+
+function extractPostcode(metadata: Record<string, unknown>): string | null {
+  const directCandidates = ['postcode', 'postalCode', 'zip', 'shopifyPostcode'];
+  for (const key of directCandidates) {
+    const value = metadata[key];
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value.trim();
+    }
+  }
+
+  const nestedCandidates = ['shopifyDefaultAddress', 'default_address', 'defaultAddress'];
+  for (const key of nestedCandidates) {
+    const node = metadata[key];
+    if (!node || typeof node !== 'object') {
+      continue;
+    }
+    const zip = (node as Record<string, unknown>).zip;
+    if (typeof zip === 'string' && zip.trim().length > 0) {
+      return zip.trim();
+    }
+  }
+
+  return null;
 }
 
 export async function upsertEmailContact(input: {
@@ -145,6 +170,8 @@ export async function upsertEmailContact(input: {
         firstName: input.firstName ?? null,
         lastName: input.lastName ?? null,
         shopifyCustomerId,
+        countryCode: 'AU',
+        postcode: extractPostcode(metadata),
         acceptsMarketing: input.acceptsMarketing !== false,
         customerType: hasPurchases ? 'purchaser' : 'non_purchaser',
         source,
@@ -186,15 +213,17 @@ export async function backfillCustomerSheetFromContacts(): Promise<{ syncedRows:
   `;
 
   const rows = result.rows.map((row) => ({
+    metadata: (row.metadata as Record<string, unknown> | null) || {},
     email: row.primary_email as string,
     firstName: (row.first_name as string | null) ?? null,
     lastName: (row.last_name as string | null) ?? null,
     shopifyCustomerId: (row.shopify_customer_id as string | null) ?? null,
+    countryCode: 'AU' as const,
+    postcode: extractPostcode(((row.metadata as Record<string, unknown> | null) || {})),
     acceptsMarketing: (row.accepts_marketing as boolean | null) !== false,
     customerType: Number(row.order_count || 0) > 0 ? ('purchaser' as const) : ('non_purchaser' as const),
     source: (row.source as string | null) || 'import',
     createdAtIso: new Date(row.created_at as string).toISOString(),
-    metadata: (row.metadata as Record<string, unknown> | null) || {},
   }));
 
   await replaceCustomerSheetRows(rows);
@@ -215,7 +244,10 @@ export async function upsertContactFromShopifyCustomer(
     shopifyCustomerId: customer.id,
     acceptsMarketing: customer.acceptsMarketing,
     source: 'shopify_sync',
-    metadata: { shopifyTags: customer.tags },
+    metadata: {
+      shopifyTags: customer.tags,
+      shopifyPostcode: customer.postcode ?? null,
+    },
   });
 }
 

@@ -5,6 +5,8 @@ type EmailContactSheetRow = {
   firstName?: string | null;
   lastName?: string | null;
   shopifyCustomerId?: string | null;
+  countryCode: 'AU';
+  postcode?: string | null;
   acceptsMarketing: boolean;
   customerType: 'purchaser' | 'non_purchaser';
   source: string;
@@ -84,7 +86,7 @@ export async function appendCustomerToSheet(row: EmailContactSheetRow): Promise<
 
   const { sheetId, sheetTab } = readSheetConfig();
   const accessToken = await getGoogleSheetsAccessToken();
-  const range = encodeURIComponent(`${sheetTab}!A:I`);
+  const range = encodeURIComponent(`${sheetTab}!A:K`);
   const endpoint = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;
   const values = [
     row.createdAtIso,
@@ -92,6 +94,8 @@ export async function appendCustomerToSheet(row: EmailContactSheetRow): Promise<
     row.firstName || '',
     row.lastName || '',
     row.shopifyCustomerId || '',
+    row.countryCode,
+    row.postcode || '',
     row.acceptsMarketing ? 'subscribed' : 'unsubscribed',
     row.customerType,
     row.source,
@@ -121,7 +125,7 @@ export async function replaceCustomerSheetRows(rows: EmailContactSheetRow[]): Pr
 
   const { sheetId, sheetTab } = readSheetConfig();
   const accessToken = await getGoogleSheetsAccessToken();
-  const clearRange = encodeURIComponent(`${sheetTab}!A:I`);
+  const clearRange = encodeURIComponent(`${sheetTab}!A:K`);
   const clearEndpoint = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${clearRange}:clear`;
   const clearResponse = await fetch(clearEndpoint, {
     method: 'POST',
@@ -137,7 +141,19 @@ export async function replaceCustomerSheetRows(rows: EmailContactSheetRow[]): Pr
     throw new Error(`Failed to clear customer sheet rows: ${errorText || clearResponse.statusText}`);
   }
 
-  const header = ['created_at', 'email', 'first_name', 'last_name', 'shopify_customer_id', 'subscription_status', 'customer_type', 'source', 'metadata'];
+  const header = [
+    'created_at',
+    'email',
+    'first_name',
+    'last_name',
+    'shopify_customer_id',
+    'country_code',
+    'postcode',
+    'subscription_status',
+    'customer_type',
+    'source',
+    'metadata',
+  ];
   await appendRows(accessToken, sheetId, sheetTab, [header]);
   const chunkSize = 500;
   for (let i = 0; i < rows.length; i += chunkSize) {
@@ -147,6 +163,8 @@ export async function replaceCustomerSheetRows(rows: EmailContactSheetRow[]): Pr
       row.firstName || '',
       row.lastName || '',
       row.shopifyCustomerId || '',
+      row.countryCode,
+      row.postcode || '',
       row.acceptsMarketing ? 'subscribed' : 'unsubscribed',
       row.customerType,
       row.source,
@@ -162,7 +180,7 @@ async function appendRows(
   sheetTab: string,
   values: string[][]
 ): Promise<void> {
-  const range = encodeURIComponent(`${sheetTab}!A:I`);
+  const range = encodeURIComponent(`${sheetTab}!A:K`);
   const endpoint = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;
   const response = await fetch(endpoint, {
     method: 'POST',
