@@ -14,8 +14,15 @@ function isOnSale(v: ShopifyVariant): boolean {
   );
 }
 
+function getVariantNodes(product: ShopifyProduct): ShopifyVariant[] {
+  const edges = product.variants?.edges;
+  if (!Array.isArray(edges)) return [];
+  return edges.map((edge) => edge.node);
+}
+
 function findBestDefaultVariant(product: ShopifyProduct): ShopifyVariant | undefined {
-  const variants = product.variants.edges.map((e) => e.node);
+  const variants = getVariantNodes(product);
+  if (variants.length === 0) return undefined;
   const inStock = variants.filter((v) => v.availableForSale);
 
   // 1. Cheapest discounted in-stock variant
@@ -44,15 +51,16 @@ export function useProductVariantSelection(product: ShopifyProduct) {
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() =>
     buildInitialSelectedOptions(product)
   );
+  const variantNodes = useMemo(() => getVariantNodes(product), [product]);
 
   const selectedVariant = useMemo((): ShopifyVariant | undefined => {
     if (Object.keys(selectedOptions).length === 0) {
       return findBestDefaultVariant(product);
     }
-    return product.variants.edges.find(({ node: variant }) =>
+    return variantNodes.find((variant) =>
       variant.selectedOptions.every((option) => selectedOptions[option.name] === option.value)
-    )?.node;
-  }, [selectedOptions, product.variants.edges]);
+    );
+  }, [selectedOptions, product, variantNodes]);
 
   const handleOptionSelect = useCallback((optionName: string, value: string) => {
     setSelectedOptions((prev) => ({ ...prev, [optionName]: value }));
