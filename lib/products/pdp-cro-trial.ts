@@ -15,8 +15,8 @@ function isPdpCroQueryPreviewEnabled(): boolean {
   return process.env.PDP_CRO_QUERY_PREVIEW_ENABLED === 'true';
 }
 
-function isLocalCro2DefaultEnabled(): boolean {
-  return true;
+function getDefaultCroVariant(): PdpCroVariant {
+  return process.env.NODE_ENV === 'development' ? 'cro3' : 'cro2';
 }
 
 export function getPdpCroTrialHandle(): string | null {
@@ -62,10 +62,9 @@ export function getPdpCroVariant(
   searchParams: PdpSearchParams
 ): PdpCroVariant {
   if (isPdpCroThreeDevQueryEnabled(searchParams)) return 'cro3';
-  if (isLocalCro2DefaultEnabled()) return 'cro2';
   if (isPdpCroTwoDevQueryEnabled(searchParams)) return 'cro2';
   if (isPdpCroTrialHandle(productHandle) || isPdpCroDevQueryEnabled(searchParams)) return 'cro1';
-  return 'control';
+  return getDefaultCroVariant();
 }
 
 export function shouldRenderPdpCroLayout(
