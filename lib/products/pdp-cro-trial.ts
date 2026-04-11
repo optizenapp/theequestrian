@@ -16,7 +16,7 @@ function isPdpCroQueryPreviewEnabled(): boolean {
 }
 
 function getDefaultCroVariant(): PdpCroVariant {
-  return process.env.NODE_ENV === 'development' ? 'cro3' : 'cro2';
+  return 'cro3';
 }
 
 export function getPdpCroTrialHandle(): string | null {
