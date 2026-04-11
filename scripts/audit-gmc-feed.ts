@@ -199,7 +199,7 @@ async function auditFeed() {
 
   const violations: Violation[] = [];
   const imageMismatches: string[] = [];
-  const missingVariantLinks: string[] = [];
+  const unexpectedFeedLinks: string[] = [];
   const titleMissingParts: string[] = [];
 
   let totalVariants = 0;
@@ -243,10 +243,10 @@ async function auditFeed() {
         }
       }
 
-      const expectedLink = `${productUrl}?variant=${variantId}`;
+      const expectedLink = productUrl;
       if (feedItem.link && feedItem.link !== expectedLink) {
-        if (missingVariantLinks.length < 10) {
-          missingVariantLinks.push(`variant_id=${variantId}, feed_link=${feedItem.link}, expected=${expectedLink}`);
+        if (unexpectedFeedLinks.length < 10) {
+          unexpectedFeedLinks.push(`variant_id=${variantId}, feed_link=${feedItem.link}, expected=${expectedLink}`);
         }
       }
 
@@ -275,13 +275,13 @@ async function auditFeed() {
     }
   }
 
-  if (missingVariantLinks.length > 0) {
+  if (unexpectedFeedLinks.length > 0) {
     violations.push({
       severity: 'High',
-      issue: 'Variant deep links missing ?variant=ID',
-      count: missingVariantLinks.length,
-      sample: missingVariantLinks,
-      recommendation: 'Update feed link to include ?variant=VARIANT_ID for each variant.',
+      issue: 'Feed link is not canonical product URL',
+      count: unexpectedFeedLinks.length,
+      sample: unexpectedFeedLinks,
+      recommendation: 'Use canonical product URL without variant query parameters in feed links.',
     });
   }
 
@@ -398,7 +398,7 @@ async function auditFeed() {
       const size = getVariantOption(variant, 'size');
       const title = buildTitle([sampleFamily.vendor || null, sampleFamily.title, color, size]);
       const image = variant.image?.url || sampleFamily.images.edges[0]?.node.url || '';
-      const link = `${productUrl}?variant=${variantId}`;
+      const link = productUrl;
 
       sampleRows.push([
         variantId,
@@ -435,7 +435,7 @@ async function auditFeed() {
   reportLines.push('## Phase 1 — Critical Compliance Audit');
   reportLines.push(`- Variant grouping: ${violations.some((v) => v.issue.includes('Variant grouping')) ? 'Issues found' : 'No issues detected'}`);
   reportLines.push(`- Variant images: ${variantImagesWithMismatch > 0 ? 'Issues found' : 'No issues detected'}`);
-  reportLines.push(`- Variant deep links: ${missingVariantLinks.length > 0 ? 'Issues found' : 'No issues detected'}`);
+  reportLines.push(`- Feed canonical links: ${unexpectedFeedLinks.length > 0 ? 'Issues found' : 'No issues detected'}`);
   reportLines.push(`- ID stability: ${idChurnSummary}`);
   reportLines.push('');
 
@@ -472,7 +472,7 @@ async function auditFeed() {
   reportLines.push('');
 
   reportLines.push('## Phase 6 — Technical Source Verification');
-  reportLines.push('- Feed generation method: `app/api/feeds/gmc` (dynamic XML via Storefront API)');
+  reportLines.push('- Feed generation method: `lib/gmc/feed.ts` + `scripts/upload-gmc-feed.ts` (S3 XML via Storefront API)');
   reportLines.push('- ID source: Shopify GIDs (numeric tail stripped)');
   reportLines.push('- Update frequency: Cache-Control 15 minutes; GMC scheduled fetch configured in `lib/gmc/content.ts` (03:00 Australia/Sydney)');
   reportLines.push('');
@@ -504,7 +504,7 @@ async function auditFeed() {
         id: variantId,
         item_group_id: stripGid(sampleFamily.id),
         title: buildTitle([sampleFamily.vendor || null, sampleFamily.title, color, size]),
-        link: `${productUrl}?variant=${variantId}`,
+        link: productUrl,
         image_link: variant.image?.url || findColorSpecificImage(sampleFamily.images.edges, color) || sampleFamily.images.edges[0]?.node.url || '',
       };
       reportLines.push(`- id: ${corrected.id}`);
