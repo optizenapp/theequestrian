@@ -21,16 +21,21 @@ export function ProductBuyBox({ product, layout = 'default' }: ProductBuyBoxProp
   const { selectedOptions, selectedVariant, handleOptionSelect } = useProductVariantSelection(product);
 
   const basePrice = selectedVariant?.price.amount || product.priceRange.minVariantPrice.amount;
-  const baseCompareAtPrice = selectedVariant?.compareAtPrice?.amount;
+  // Use variant-level compareAtPrice when available; fall back to product-level
+  // compareAtPriceRange so the badge matches what the category card shows.
+  const baseCompareAtPrice =
+    selectedVariant?.compareAtPrice?.amount ??
+    product.compareAtPriceRange?.minVariantPrice?.amount;
   const isAvailable = selectedVariant?.availableForSale ?? true;
 
   const displayPrice = {
     amount: basePrice,
     currencyCode: product.priceRange.minVariantPrice.currencyCode,
   };
-  const displayCompareAtPrice = baseCompareAtPrice
-    ? { amount: baseCompareAtPrice, currencyCode: product.priceRange.minVariantPrice.currencyCode }
-    : null;
+  const displayCompareAtPrice =
+    baseCompareAtPrice && parseFloat(baseCompareAtPrice) > parseFloat(basePrice)
+      ? { amount: baseCompareAtPrice, currencyCode: product.priceRange.minVariantPrice.currencyCode }
+      : null;
 
   const analyticsItem = useMemo(() => {
     if (!selectedVariant) return null;

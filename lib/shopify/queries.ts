@@ -503,6 +503,10 @@ export const CREATE_CART = `
                     amount
                     currencyCode
                   }
+                  compareAtPrice {
+                    amount
+                    currencyCode
+                  }
                   product {
                     handle
                     title
@@ -552,6 +556,10 @@ export const ADD_TO_CART = `
                   id
                   title
                   price {
+                    amount
+                    currencyCode
+                  }
+                  compareAtPrice {
                     amount
                     currencyCode
                   }
@@ -607,6 +615,10 @@ export const UPDATE_CART = `
                     amount
                     currencyCode
                   }
+                  compareAtPrice {
+                    amount
+                    currencyCode
+                  }
                   product {
                     handle
                     title
@@ -659,6 +671,10 @@ export const REMOVE_FROM_CART = `
                     amount
                     currencyCode
                   }
+                  compareAtPrice {
+                    amount
+                    currencyCode
+                  }
                   product {
                     handle
                     title
@@ -707,6 +723,10 @@ export const GET_CART = `
                 id
                 title
                 price {
+                  amount
+                  currencyCode
+                }
+                compareAtPrice {
                   amount
                   currencyCode
                 }

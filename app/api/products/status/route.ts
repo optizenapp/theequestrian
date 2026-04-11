@@ -102,16 +102,19 @@ const GET_PRODUCTS_STATUS = `
         id
         availableForSale
         totalInventory
-        priceRange {
-          minVariantPrice {
-            amount
-            currencyCode
-          }
-        }
-        compareAtPriceRange {
-          minVariantPrice {
-            amount
-            currencyCode
+        variants(first: 100) {
+          edges {
+            node {
+              availableForSale
+              price {
+                amount
+                currencyCode
+              }
+              compareAtPrice {
+                amount
+                currencyCode
+              }
+            }
           }
         }
       }
@@ -182,9 +185,32 @@ export async function POST(request: NextRequest) {
         for (const node of data.nodes) {
           if (!node || !node.id) continue;
 
-          const price = parseFloat(node.priceRange?.minVariantPrice?.amount || '0');
-          const compareAtPrice = node.compareAtPriceRange?.minVariantPrice?.amount
-            ? parseFloat(node.compareAtPriceRange.minVariantPrice.amount)
+          type RawVariant = {
+            availableForSale: boolean;
+            price: { amount: string };
+            compareAtPrice?: { amount: string } | null;
+          };
+          const allVariants: RawVariant[] =
+            (node.variants?.edges ?? []).map((e: { node: RawVariant }) => e.node);
+
+          // Prefer cheapest in-stock variant; fall back to cheapest overall if all OOS.
+          const inStock = allVariants.filter((v) => v.availableForSale);
+          const pool = inStock.length > 0 ? inStock : allVariants;
+          const byPrice = (a: RawVariant, b: RawVariant) =>
+            parseFloat(a.price.amount) - parseFloat(b.price.amount);
+          const cheapest = [...pool].sort(byPrice)[0];
+
+          const price = cheapest ? parseFloat(cheapest.price.amount) : 0;
+
+          // Compare-at from the cheapest in-stock on-sale variant, if any.
+          const onSalePool = pool.filter(
+            (v) =>
+              v.compareAtPrice &&
+              parseFloat(v.compareAtPrice.amount) > parseFloat(v.price.amount)
+          );
+          const cheapestOnSale = [...onSalePool].sort(byPrice)[0];
+          const compareAtPrice = cheapestOnSale?.compareAtPrice
+            ? parseFloat(cheapestOnSale.compareAtPrice.amount)
             : undefined;
 
           statusMap[node.id] = {

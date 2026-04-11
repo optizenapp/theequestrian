@@ -111,15 +111,10 @@ export function CartPageContent({
                 {cart.lines.edges.map(({ node: line }) => {
                   const product = line.merchandise.product;
                   const image = product?.images.edges[0]?.node;
-                  const basePrice = parseFloat(line.merchandise.price.amount);
-                  
-                  // Calculate display price with shipping
-                  // Use Shopify price directly (shipping already included via Webkul middleware)
                   const price = parseFloat(line.merchandise.price.amount);
-                  
-                  // Mock "Compare At" price for savings demo (10% more)
-                  const compareAtPrice = price * 1.1;
-                  const savings = compareAtPrice - price;
+                  const compareAtRaw = line.merchandise.compareAtPrice?.amount;
+                  const compareAtPrice = compareAtRaw ? parseFloat(compareAtRaw) : null;
+                  const savings = compareAtPrice !== null && compareAtPrice > price ? compareAtPrice - price : 0;
 
                   return (
                     <div key={line.id} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
@@ -174,14 +169,14 @@ export function CartPageContent({
                               <p className="text-xl font-bold text-gray-900">
                                 ${price.toFixed(2)}
                               </p>
-                              {savings > 0 && (
+                              {savings > 0 && compareAtPrice !== null && (
                                 <>
-                                  <div className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-1.5 py-0.5 rounded text-xs font-medium">
-                                    <span>Save ${savings.toFixed(2)}</span>
-                                  </div>
                                   <p className="text-xs text-gray-400 line-through">
                                     ${compareAtPrice.toFixed(2)}
                                   </p>
+                                  <div className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-1.5 py-0.5 rounded text-xs font-medium">
+                                    <span>Save ${savings.toFixed(2)}</span>
+                                  </div>
                                 </>
                               )}
                             </div>

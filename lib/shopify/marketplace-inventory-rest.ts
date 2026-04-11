@@ -138,8 +138,9 @@ export async function updateMarketplaceVariantPriceRest(input: {
     id: Number(input.variantIdNumeric),
     price: input.price,
   };
-  if (input.compareAtPrice !== undefined && input.compareAtPrice !== null) {
-    variant.compare_at_price = input.compareAtPrice;
+  if (input.compareAtPrice !== undefined) {
+    // Pass null explicitly to clear compare_at_price when vendor no longer has a sale price
+    variant.compare_at_price = input.compareAtPrice ?? null;
   }
   const response = await fetch(
     marketplaceRestUrl(`/variants/${input.variantIdNumeric}.json`),
