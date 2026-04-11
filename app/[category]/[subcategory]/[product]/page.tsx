@@ -38,7 +38,9 @@ import { getReviewStatsWithCache } from '@/lib/reviews/get-review-stats';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { getAllowedBrandVendors } from '@/lib/filters/brand-filter-helper';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
+import ProductIdentifierMetaRow from '@/components/product/ProductIdentifierMetaRow';
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
+import { getProductIdentifiers } from '@/lib/products/product-identifiers';
 import {
   getPdpCroVariant,
   withPreservedPdpCroQuery,
@@ -267,6 +269,7 @@ async function renderProductPage(
     ? overrideBullets
     : getProductBulletPoints(product.id);
   const showArcEquineGelPromo = product.handle === 'arcequine-complete-kit';
+  const identifiers = getProductIdentifiers(product);
   const pdpCroVariant = getPdpCroVariant(product.handle, searchParams);
   const isCroTrialPdp = pdpCroVariant === 'cro1';
   const isCroTwoPdp = pdpCroVariant === 'cro2';
@@ -359,6 +362,7 @@ async function renderProductPage(
                 productHandle={product.handle}
                 initialStats={reviewBadgeStats}
               />
+              <ProductIdentifierMetaRow identifiers={identifiers} />
             </div>
             <div className="space-y-2 mt-4">
               {featureHighlights.map((feature) => (

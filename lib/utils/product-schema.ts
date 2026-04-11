@@ -18,6 +18,7 @@
  */
 
 import type { ShopifyProduct } from '@/types/shopify';
+import { getProductIdentifiers } from '@/lib/products/product-identifiers';
 
 /**
  * Review statistics for AggregateRating
@@ -181,14 +182,15 @@ export function generateProductSchema(
     : 'https://schema.org/OutOfStock';
   
   // Extract Shopify product ID as SKU
-  const sku = product.id.split('/').pop() || '';
+  const identifiers = getProductIdentifiers(product);
+  const sku = identifiers.sku || product.id.split('/').pop() || '';
   
   // Get all product images (not just first one)
   const images = product.images.edges.map(({ node }) => node.url);
   
   // Extract optional identifiers and attributes
-  const gtin = extractGTIN(product);
-  const mpn = extractMPN(product);
+  const gtin = identifiers.upc || extractGTIN(product);
+  const mpn = identifiers.model || extractMPN(product);
   const additionalProperties = extractAdditionalProperties(product);
   const firstMaterial = additionalProperties.find((property) => property.name === 'Material')?.value as string | undefined;
   const color = extractColor(product);

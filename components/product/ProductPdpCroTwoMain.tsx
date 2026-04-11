@@ -2,7 +2,9 @@ import type { ReactNode } from 'react';
 import { ProductImageGallery } from '@/components/ProductImageGallery';
 import { ProductBuyBox } from '@/components/product/ProductBuyBox';
 import { ProductDescription } from '@/components/product/ProductDescription';
+import ProductIdentifierMetaRow from '@/components/product/ProductIdentifierMetaRow';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
+import { getProductIdentifiers } from '@/lib/products/product-identifiers';
 import ProductPdpCroTwoDesktop from '@/components/product/ProductPdpCroTwoDesktop';
 import type { ShopifyProduct } from '@/types/shopify';
 
@@ -81,6 +83,7 @@ export default function ProductPdpCroTwoMain({
   styleMode = 'cro2',
 }: ProductPdpCroTwoMainProps) {
   const { topHighlights, remainingHighlights } = splitFeatureHighlights(featureHighlights);
+  const identifiers = getProductIdentifiers(product);
 
   return (
     <>
@@ -98,6 +101,7 @@ export default function ProductPdpCroTwoMain({
               productHandle={product.handle}
               initialStats={reviewBadgeStats}
             />
+            <ProductIdentifierMetaRow identifiers={identifiers} />
             <FeatureHighlights featureHighlights={topHighlights} />
           </section>
 
@@ -146,6 +150,7 @@ export default function ProductPdpCroTwoMain({
         reviewBadgeStats={reviewBadgeStats}
         showArcEquineGelPromo={showArcEquineGelPromo}
         styleMode={styleMode}
+        identifiers={identifiers}
       />
       {afterDescription}
     </>

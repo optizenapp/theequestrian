@@ -18,7 +18,9 @@ import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { getBreadcrumbsForProduct } from '@/lib/mapping/collection-mapping';
 import ProductReviewSection from '@/components/reviews/ProductReviewSection';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
+import ProductIdentifierMetaRow from '@/components/product/ProductIdentifierMetaRow';
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
+import { getProductIdentifiers } from '@/lib/products/product-identifiers';
 import {
   getPdpCroVariant,
   withPreservedPdpCroQuery,
@@ -162,6 +164,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
   const featureHighlights = override?.use_headless_bullets && overrideBullets.length > 0
     ? overrideBullets
     : getProductBulletPoints(product.id);
+  const identifiers = getProductIdentifiers(product);
   const pdpCroVariant = getPdpCroVariant(product.handle, sp);
   const isCroTrialPdp = pdpCroVariant === 'cro1';
   const isCroTwoPdp = pdpCroVariant === 'cro2';
@@ -238,6 +241,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
                 productHandle={product.handle}
                 initialStats={reviewBadgeStats}
               />
+              <ProductIdentifierMetaRow identifiers={identifiers} />
             </div>
             <div className="space-y-2 mt-4">
               {featureHighlights.map((feature) => (

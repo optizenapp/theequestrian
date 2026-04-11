@@ -3,10 +3,12 @@ import { ProductImageGallery } from '@/components/ProductImageGallery';
 import { ProductBuyBox } from '@/components/product/ProductBuyBox';
 import { ProductDescription } from '@/components/product/ProductDescription';
 import { SizingGuideLink } from '@/components/product/SizingGuideLink';
+import ProductIdentifierMetaRow from '@/components/product/ProductIdentifierMetaRow';
 import ProductPdpStructuredDetails from '@/components/product/ProductPdpStructuredDetails';
 import ProductPdpValueSummary from '@/components/product/ProductPdpValueSummary';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
 import { extractCareSectionPlainText } from '@/lib/products/extract-care-from-html';
+import { getProductIdentifiers } from '@/lib/products/product-identifiers';
 import { buildPdpSummaryLine } from '@/lib/products/pdp-summary-line';
 import type { ShopifyProduct } from '@/types/shopify';
 
@@ -35,6 +37,7 @@ export default function ProductPdpCroTrialMain({
 }: ProductPdpCroTrialMainProps) {
   const croSummaryLine = buildPdpSummaryLine(descriptionHtml, displayTitle);
   const croCarePlain = extractCareSectionPlainText(descriptionHtml);
+  const identifiers = getProductIdentifiers(product);
 
   return (
     <article aria-labelledby="pdp-product-title">
@@ -59,6 +62,7 @@ export default function ProductPdpCroTrialMain({
             productHandle={product.handle}
             initialStats={reviewBadgeStats}
           />
+          <ProductIdentifierMetaRow identifiers={identifiers} />
         </section>
 
         {/* Left: gallery spans the hero rows on desktop */}

@@ -85,6 +85,24 @@ export const PRODUCT_FRAGMENT = `
     metafield(namespace: "custom", key: "primary_collection") {
       value
     }
+    metafields(
+      identifiers: [
+        { namespace: "custom", key: "model" },
+        { namespace: "custom", key: "model_number" },
+        { namespace: "custom", key: "mpn" },
+        { namespace: "custom", key: "upc" },
+        { namespace: "custom", key: "gtin" },
+        { namespace: "custom", key: "barcode" },
+        { namespace: "global", key: "model" },
+        { namespace: "global", key: "mpn" },
+        { namespace: "global", key: "upc" },
+        { namespace: "global", key: "gtin" }
+      ]
+    ) {
+      namespace
+      key
+      value
+    }
   }
 `;
 

@@ -17,6 +17,8 @@ import { generateProductSchemaGraph } from '@/lib/utils/product-schema';
 import { getBreadcrumbsForProduct } from '@/lib/mapping/collection-mapping';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
+import ProductIdentifierMetaRow from '@/components/product/ProductIdentifierMetaRow';
+import { getProductIdentifiers } from '@/lib/products/product-identifiers';
 import {
   getPdpCroVariant,
   withPreservedPdpCroQuery,
@@ -188,6 +190,7 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
     relatedProducts.map((p) => [p.handle, relatedUrlMap.get(p.id) ?? `/products/${p.handle}`])
   );
   const showArcEquineGelPromo = resolvedProduct.handle === 'arcequine-complete-kit';
+  const identifiers = getProductIdentifiers(resolvedProduct);
   const pdpCroVariant = getPdpCroVariant(resolvedProduct.handle, sp);
   const isCroTrialPdp = pdpCroVariant === 'cro1';
   const isCroTwoPdp = pdpCroVariant === 'cro2';
@@ -266,6 +269,7 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
                 productHandle={resolvedProduct.handle}
                 initialStats={reviewBadgeStats}
               />
+              <ProductIdentifierMetaRow identifiers={identifiers} />
             </div>
             <div className="space-y-2 mt-4">
               {featureHighlights.map((feature) => (

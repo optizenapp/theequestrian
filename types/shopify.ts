@@ -60,6 +60,11 @@ export interface ShopifyProduct {
   metafield?: {
     value: string;
   } | null;
+  metafields?: Array<{
+    namespace: string;
+    key: string;
+    value: string | null;
+  }> | null;
   // Additional metafields for specific use cases
   primaryCollection?: {
     value: string;

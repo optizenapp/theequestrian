@@ -1,7 +1,9 @@
 import { ProductImageGallery } from '@/components/ProductImageGallery';
 import { ProductDescription } from '@/components/product/ProductDescription';
 import { ProductBuyBox } from '@/components/product/ProductBuyBox';
+import ProductIdentifierMetaRow from '@/components/product/ProductIdentifierMetaRow';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
+import type { ProductIdentifiers } from '@/lib/products/product-identifiers';
 import type { ShopifyProduct } from '@/types/shopify';
 
 interface ReviewBadgeStats {
@@ -18,6 +20,7 @@ interface ProductPdpCroTwoDesktopProps {
   reviewBadgeStats: ReviewBadgeStats | null;
   showArcEquineGelPromo?: boolean;
   styleMode?: 'cro2' | 'cro3';
+  identifiers: ProductIdentifiers;
 }
 
 function FeatureHighlights({ featureHighlights, columns = 1 }: { featureHighlights: string[]; columns?: 1 | 2 }) {
@@ -62,6 +65,7 @@ export default function ProductPdpCroTwoDesktop({
   reviewBadgeStats,
   showArcEquineGelPromo = false,
   styleMode = 'cro2',
+  identifiers,
 }: ProductPdpCroTwoDesktopProps) {
   return (
     <article aria-labelledby="pdp-product-title-desktop" className="hidden lg:block">
@@ -98,6 +102,7 @@ export default function ProductPdpCroTwoDesktop({
                 productHandle={product.handle}
                 initialStats={reviewBadgeStats}
               />
+              <ProductIdentifierMetaRow identifiers={identifiers} />
               {topHighlights.length > 0 && (
                 <FeatureHighlights featureHighlights={topHighlights} />
               )}
