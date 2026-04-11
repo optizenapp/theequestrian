@@ -5,7 +5,7 @@ import { FaCcVisa, FaCcMastercard, FaCcPaypal } from 'react-icons/fa';
 import { SiAfterpay, SiShopify } from 'react-icons/si';
 
 interface ProductBuyBoxPostCtaProps {
-  layout: 'default' | 'croTrial';
+  layout: 'default' | 'croTrial' | 'croTheme3';
 }
 
 function PaymentMethodsRow() {
@@ -85,7 +85,7 @@ function TrustRowsDefault() {
 
 /** Trust strip + payment icons after primary CTAs (order differs for CRO trial). */
 export function ProductBuyBoxPostCta({ layout }: ProductBuyBoxPostCtaProps) {
-  const isCro = layout === 'croTrial';
+  const isCro = layout === 'croTrial' || layout === 'croTheme3';
   const trustBlock = (
     <div className={`space-y-3 ${isCro ? 'pt-2' : 'pt-4 border-t'}`}>
       {isCro ? <TrustRowsCro /> : <TrustRowsDefault />}

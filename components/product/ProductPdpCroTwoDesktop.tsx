@@ -17,6 +17,7 @@ interface ProductPdpCroTwoDesktopProps {
   remainingHighlights: string[];
   reviewBadgeStats: ReviewBadgeStats | null;
   showArcEquineGelPromo?: boolean;
+  styleMode?: 'cro2' | 'cro3';
 }
 
 function FeatureHighlights({ featureHighlights, columns = 1 }: { featureHighlights: string[]; columns?: 1 | 2 }) {
@@ -60,6 +61,7 @@ export default function ProductPdpCroTwoDesktop({
   remainingHighlights,
   reviewBadgeStats,
   showArcEquineGelPromo = false,
+  styleMode = 'cro2',
 }: ProductPdpCroTwoDesktopProps) {
   return (
     <article aria-labelledby="pdp-product-title-desktop" className="hidden lg:block">
@@ -103,7 +105,7 @@ export default function ProductPdpCroTwoDesktop({
 
             <div className="flex-1 flex flex-col min-h-0">
               <div className="bg-surface rounded-2xl p-6 shadow-sm border border-black flex-1">
-                <ProductBuyBox product={product} />
+                <ProductBuyBox product={product} layout={styleMode === 'cro3' ? 'croTheme3' : 'croTrial'} />
               </div>
             </div>
 

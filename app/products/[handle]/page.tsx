@@ -165,6 +165,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
   const pdpCroVariant = getPdpCroVariant(product.handle, sp);
   const isCroTrialPdp = pdpCroVariant === 'cro1';
   const isCroTwoPdp = pdpCroVariant === 'cro2';
+  const isCroThreePdp = pdpCroVariant === 'cro3';
 
   const firstAvailableVariant =
     product.variants.edges.find(({ node }) => node.availableForSale)?.node ??
@@ -212,13 +213,14 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
             productTitle={product.title}
           />
         </ProductPdpCroTrialMain>
-      ) : isCroTwoPdp ? (
+      ) : isCroTwoPdp || isCroThreePdp ? (
         <ProductPdpCroTwoMain
           product={product}
           displayTitle={displayTitle}
           descriptionHtml={descriptionHtml}
           featureHighlights={featureHighlights}
           reviewBadgeStats={reviewBadgeStats}
+          styleMode={isCroThreePdp ? 'cro3' : 'cro2'}
         />
       ) : (
       <article aria-labelledby="pdp-product-title">

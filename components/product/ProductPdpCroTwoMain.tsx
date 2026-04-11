@@ -19,6 +19,7 @@ interface ProductPdpCroTwoMainProps {
   reviewBadgeStats: ReviewBadgeStats | null;
   showArcEquineGelPromo?: boolean;
   afterDescription?: ReactNode;
+  styleMode?: 'cro2' | 'cro3';
 }
 
 function FeatureHighlights({
@@ -77,6 +78,7 @@ export default function ProductPdpCroTwoMain({
   reviewBadgeStats,
   showArcEquineGelPromo = false,
   afterDescription,
+  styleMode = 'cro2',
 }: ProductPdpCroTwoMainProps) {
   const { topHighlights, remainingHighlights } = splitFeatureHighlights(featureHighlights);
 
@@ -108,7 +110,7 @@ export default function ProductPdpCroTwoMain({
             aria-label="Purchase options"
           >
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-black">
-              <ProductBuyBox product={product} />
+              <ProductBuyBox product={product} layout={styleMode === 'cro3' ? 'croTheme3' : 'croTrial'} />
             </div>
           </section>
 
@@ -143,6 +145,7 @@ export default function ProductPdpCroTwoMain({
         remainingHighlights={remainingHighlights}
         reviewBadgeStats={reviewBadgeStats}
         showArcEquineGelPromo={showArcEquineGelPromo}
+        styleMode={styleMode}
       />
       {afterDescription}
     </>

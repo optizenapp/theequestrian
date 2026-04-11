@@ -191,6 +191,7 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
   const pdpCroVariant = getPdpCroVariant(resolvedProduct.handle, sp);
   const isCroTrialPdp = pdpCroVariant === 'cro1';
   const isCroTwoPdp = pdpCroVariant === 'cro2';
+  const isCroThreePdp = pdpCroVariant === 'cro3';
 
   const firstAvailableVariant =
     resolvedProduct.variants.edges.find(({ node }) => node.availableForSale)?.node ??
@@ -239,7 +240,7 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
               productTitle={resolvedProduct.title}
             />
           </ProductPdpCroTrialMain>
-        ) : isCroTwoPdp ? (
+        ) : isCroTwoPdp || isCroThreePdp ? (
           <ProductPdpCroTwoMain
             product={resolvedProduct}
             displayTitle={displayTitle}
@@ -247,6 +248,7 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
             featureHighlights={featureHighlights}
             reviewBadgeStats={reviewBadgeStats}
             showArcEquineGelPromo={showArcEquineGelPromo}
+            styleMode={isCroThreePdp ? 'cro3' : 'cro2'}
           />
         ) : (
         <article aria-labelledby="pdp-product-title">

@@ -270,6 +270,7 @@ async function renderProductPage(
   const pdpCroVariant = getPdpCroVariant(product.handle, searchParams);
   const isCroTrialPdp = pdpCroVariant === 'cro1';
   const isCroTwoPdp = pdpCroVariant === 'cro2';
+  const isCroThreePdp = pdpCroVariant === 'cro3';
 
   const firstAvailableVariant =
     product.variants.edges.find(({ node }) => node.availableForSale)?.node ??
@@ -323,7 +324,7 @@ async function renderProductPage(
               />
             </LazySection>
           </ProductPdpCroTrialMain>
-        ) : isCroTwoPdp ? (
+        ) : isCroTwoPdp || isCroThreePdp ? (
           <ProductPdpCroTwoMain
             product={product}
             displayTitle={displayTitle}
@@ -331,6 +332,7 @@ async function renderProductPage(
             featureHighlights={featureHighlights}
             reviewBadgeStats={reviewBadgeStats}
             showArcEquineGelPromo={showArcEquineGelPromo}
+            styleMode={isCroThreePdp ? 'cro3' : 'cro2'}
             afterDescription={
               <SizingGuideLink
                 vendor={product.vendor}

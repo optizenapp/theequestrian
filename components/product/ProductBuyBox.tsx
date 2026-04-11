@@ -14,7 +14,7 @@ import { useProductVariantSelection } from '@/hooks/useProductVariantSelection';
 interface ProductBuyBoxProps {
   product: ShopifyProduct;
   /** CRO PDP trial: accurate trust copy, sale %, trust under CTAs, sticky ATC-only. */
-  layout?: 'default' | 'croTrial';
+  layout?: 'default' | 'croTrial' | 'croTheme3';
 }
 
 export function ProductBuyBox({ product, layout = 'default' }: ProductBuyBoxProps) {
@@ -41,7 +41,7 @@ export function ProductBuyBox({ product, layout = 'default' }: ProductBuyBoxProp
   }, [product, selectedVariant]);
 
   const currencyCode = product.priceRange.minVariantPrice.currencyCode;
-  const isCro = layout === 'croTrial';
+  const isCro = layout === 'croTrial' || layout === 'croTheme3';
   const compareNum = displayCompareAtPrice ? parseFloat(displayCompareAtPrice.amount) : null;
   const priceNum = parseFloat(displayPrice.amount);
   const onSale = compareNum !== null && compareNum > priceNum;
@@ -59,7 +59,7 @@ export function ProductBuyBox({ product, layout = 'default' }: ProductBuyBoxProp
         onSale={onSale}
         saveAmount={saveAmount}
         savePercent={savePercent}
-        isCro={isCro}
+        layout={layout}
       />
 
       {product.variants.edges.length > 1 && (
@@ -67,6 +67,7 @@ export function ProductBuyBox({ product, layout = 'default' }: ProductBuyBoxProp
           product={product}
           selectedOptions={selectedOptions}
           onOptionSelect={handleOptionSelect}
+          styleMode={layout === 'croTheme3' ? 'croTheme3' : 'default'}
         />
       )}
 

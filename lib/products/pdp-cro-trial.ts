@@ -9,7 +9,7 @@
  */
 
 export type PdpSearchParams = { [key: string]: string | string[] | undefined };
-export type PdpCroVariant = 'control' | 'cro1' | 'cro2';
+export type PdpCroVariant = 'control' | 'cro1' | 'cro2' | 'cro3';
 
 function isPdpCroQueryPreviewEnabled(): boolean {
   return process.env.PDP_CRO_QUERY_PREVIEW_ENABLED === 'true';
@@ -51,10 +51,17 @@ export function isPdpCroTwoDevQueryEnabled(searchParams: PdpSearchParams): boole
   return croQueryValue(searchParams)?.toLowerCase() === '2';
 }
 
+/** Dev-only: `?cro=3` on the PDP URL. */
+export function isPdpCroThreeDevQueryEnabled(searchParams: PdpSearchParams): boolean {
+  if (process.env.NODE_ENV !== 'development') return false;
+  return croQueryValue(searchParams)?.toLowerCase() === '3';
+}
+
 export function getPdpCroVariant(
   productHandle: string,
   searchParams: PdpSearchParams
 ): PdpCroVariant {
+  if (isPdpCroThreeDevQueryEnabled(searchParams)) return 'cro3';
   if (isLocalCro2DefaultEnabled()) return 'cro2';
   if (isPdpCroTwoDevQueryEnabled(searchParams)) return 'cro2';
   if (isPdpCroTrialHandle(productHandle) || isPdpCroDevQueryEnabled(searchParams)) return 'cro1';
