@@ -169,7 +169,7 @@ export function generateProductSchema(
   siteUrl: string = '',
   reviewStats?: ReviewStats | null
 ) {
-  const baseSiteUrl = (siteUrl || 'https://theequestrian.com.au').replace(/\/+$/, '');
+  const baseSiteUrl = (siteUrl || 'https://www.theequestrian.com.au').replace(/\/+$/, '');
   const normalizedProductPath = productUrl.startsWith('/') ? productUrl : `/${productUrl}`;
   const productAbsoluteUrl = `${baseSiteUrl}${normalizedProductPath}`;
   const price = product.priceRange.minVariantPrice;

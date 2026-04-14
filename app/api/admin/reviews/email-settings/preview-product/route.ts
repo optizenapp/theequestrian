@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     const canonical = await getProductCanonicalUrl(product);
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au';
     const imageUrl = product.images?.edges?.[0]?.node?.url || null;
     const productUrl = `${siteUrl}${canonical}#reviews`;
 

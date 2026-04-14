@@ -104,7 +104,7 @@ export async function rewriteInternalArticleLinks(html: string): Promise<string>
 
   const siteHosts = getSiteHosts();
   const base =
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, '') || 'https://theequestrian.com.au';
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, '') || 'https://www.theequestrian.com.au';
 
   const $ = cheerio.load(html, undefined, false);
 

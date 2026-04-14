@@ -31,7 +31,7 @@ export type ArticleSchemaInput = {
 };
 
 export function generateArticleSchema(article: ArticleSchemaInput) {
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au').replace(/\/+$/, '');
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/+$/, '');
   const articleUrl = `${siteUrl}/news/${article.handle}`;
   const authorSlug = article.author.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 

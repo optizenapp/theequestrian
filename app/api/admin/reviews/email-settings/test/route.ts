@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     const settings = await getReviewEmailSettings();
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au';
 
     let productImageUrl = `${siteUrl}/window.svg`;
     let productUrl = `${siteUrl}/products/sample-product#reviews`;

@@ -306,7 +306,7 @@ async function sendReviewRequestEmail({
   products: ReviewEmailProduct[];
   settings: Awaited<ReturnType<typeof getReviewEmailSettings>>;
 }) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au';
   const reviewUrl =
     productUrl || `${siteUrl}/review?product=${productHandle || ''}&order=${orderId}`;
   const cleanImageUrl = productImageUrl
@@ -482,7 +482,7 @@ async function buildProductReviewUrl(product: {
   featuredImage?: { url: string; altText: string | null } | null;
   metafield: { value: string } | null;
 }) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au';
   const canonicalPath = await getProductCanonicalUrl({
     id: product.id,
     handle: product.handle,

@@ -30,7 +30,7 @@ export default function PrivacyPolicyPage() {
         <div className="space-y-6 text-gray-700">
         <p>
           Equine Marketplace Pty Ltd ("us", "we", or "our") operates{' '}
-          <a href="https://theequestrian.com.au" className="text-action hover:text-action-hover">
+          <a href="https://www.theequestrian.com.au" className="text-action hover:text-action-hover">
             theequestrian.com.au
           </a>{' '}
           (the "Site"). This page informs you of our policies regarding the collection, use and disclosure of Personal Information we receive from users of the Site.

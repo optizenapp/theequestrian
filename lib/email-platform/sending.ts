@@ -83,7 +83,7 @@ export async function sendQueuedCampaignRecipients(input: {
   frequencyCapCount?: number;
   frequencyCapDays?: number;
 }): Promise<{ sent: number; failed: number; skipped: number }> {
-  const defaultSiteUrl = input.defaultSiteUrl || process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
+  const defaultSiteUrl = input.defaultSiteUrl || process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au';
   const frequencyCapCount = input.frequencyCapCount ?? 3;
   const frequencyCapDays = input.frequencyCapDays ?? 7;
 

@@ -1,4 +1,4 @@
-const DEFAULT_SITE_URL = 'https://theequestrian.com.au';
+const DEFAULT_SITE_URL = 'https://www.theequestrian.com.au';
 
 export interface FaqItem {
   question: string;

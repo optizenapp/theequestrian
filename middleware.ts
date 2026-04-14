@@ -16,6 +16,13 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const decodedPath = decodeURIComponent(pathname);
 
+  // Force www — redirect apex domain to www before any other logic.
+  if (request.nextUrl.hostname === 'theequestrian.com.au') {
+    const wwwUrl = request.nextUrl.clone();
+    wwwUrl.hostname = 'www.theequestrian.com.au';
+    return NextResponse.redirect(wwwUrl, 301);
+  }
+
   // Duplicate brand URLs: consolidate on canonical brand handles.
   if (pathname === '/brands/kentucky-horsewear') {
     const redirectUrl = request.nextUrl.clone();
