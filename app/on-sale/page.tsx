@@ -21,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
   // Default values if CSV is missing or empty
   const title = pageData?.meta_title || 'On Sale | The Equestrian';
   const description = pageData?.meta_description || 'Shop our best deals and clearance items at The Equestrian.';
-  const canonicalUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au'}/on-sale`;
+  const canonicalUrl = `${(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '')}/on-sale`;
 
   return {
     title,
@@ -85,7 +85,7 @@ export default async function OnSalePage({
   }
 
   // Generate structured data
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
   
   // Build breadcrumbs array for schema
   const breadcrumbs = [

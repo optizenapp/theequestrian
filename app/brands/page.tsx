@@ -7,12 +7,18 @@ import {
 import type { Metadata } from 'next';
 import { generateBrandIndexSchema } from '@/lib/utils/site-schema';
 
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
+
 export const metadata: Metadata = {
   title: 'Brands | The Equestrian',
   description: 'Shop top equestrian brands including Equipe, Pikeur, Ariat and more.',
+  alternates: {
+    canonical: `${siteUrl}/brands`,
+  },
   openGraph: {
     title: 'Shop Top Equestrian Brands | The Equestrian',
     description: 'Browse our extensive collection of premium equestrian brands.',
+    url: `${siteUrl}/brands`,
     type: 'website',
   },
 };

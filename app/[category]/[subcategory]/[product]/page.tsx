@@ -628,7 +628,7 @@ async function renderSubSubcategoryPage(
  */
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { category, subcategory, product: thirdSegment } = await params;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
   
   // Check if it's a collection
   const allowedProductTypes = await getProductTypesForCollection(category, subcategory, thirdSegment);
@@ -691,7 +691,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: 'Product Not Found',
     };
   }
-  const canonicalUrl = `${siteUrl}/${category}/${subcategory}/${thirdSegment}`;
+  const productCanonicalPath = await getProductCanonicalUrl(product);
+  const canonicalUrl = `${siteUrl}${productCanonicalPath}`;
   const displayTitle = override?.use_headless_title ? (override?.title_override || product.title) : product.title;
   const seoMetadata = buildProductSeoMetadata({
     displayTitle,

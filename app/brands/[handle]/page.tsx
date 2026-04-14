@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
 
   const title = brand.meta_title || `${brand.title} | The Equestrian`;
   const description = brand.meta_description || `Shop the full range of ${brand.title} equestrian products. Saddles, tack, clothing and more from ${brand.title}.`;
-  const canonicalUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au'}/brands/${handle}`;
+  const canonicalUrl = `${(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '')}/brands/${handle}`;
 
   return {
     title,
@@ -93,7 +93,7 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
   }
 
   // Generate structured data
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
   
   // Build breadcrumbs array for schema
   const breadcrumbs = [

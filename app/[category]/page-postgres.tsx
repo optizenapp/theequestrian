@@ -261,7 +261,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   const { category } = await params;
   const content = await getCategoryContent(category);
   const mappingTitle = getCollectionTitle(category);
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
   const canonicalUrl = `${siteUrl}/${category}`;
 
   const title = content?.meta_title || `${mappingTitle} | The Equestrian`;

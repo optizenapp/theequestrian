@@ -258,7 +258,7 @@ export async function generateMetadata({ params }: SubcategoryPageProps): Promis
   const { category, subcategory } = await params;
   const content = await getCategoryContent(category, subcategory);
   const mappingTitle = getCollectionTitle(category, subcategory);
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
   const canonicalUrl = `${siteUrl}/${category}/${subcategory}`;
 
   const title = content?.meta_title || `${mappingTitle} | The Equestrian`;

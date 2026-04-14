@@ -5,6 +5,7 @@ import { logServerNotFound } from '@/lib/not-found/log';
 export const metadata = {
   title: '404 | The Equestrian',
   description: 'We could not find the page you requested.',
+  robots: { index: false, follow: true },
 };
 
 export default async function NotFoundPage() {

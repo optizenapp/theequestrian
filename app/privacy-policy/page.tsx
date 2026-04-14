@@ -2,9 +2,14 @@ import { Metadata } from 'next';
 import { PolicyLayout } from '@/components/policy/PolicyLayout';
 import { generatePolicyPageSchema } from '@/lib/utils/site-schema';
 
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
+
 export const metadata: Metadata = {
   title: 'Privacy Policy | The Equestrian',
   description: 'Read our privacy policy to understand how we collect, use, and protect your personal information.',
+  alternates: {
+    canonical: `${siteUrl}/privacy-policy`,
+  },
 };
 
 export default function PrivacyPolicyPage() {

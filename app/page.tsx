@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import type { Metadata } from 'next';
 import { Hero } from '@/components/Hero';
 import { TrustSignals } from '@/components/TrustSignals';
 import dynamicImport from 'next/dynamic';
@@ -11,6 +12,17 @@ import Image from 'next/image';
 
 /** Build: skip static prerender of `/` (Neon + Shopify exceed Vercel’s ~60s SSG budget from iad1). Runtime: `getCachedHomeSectionsWithProducts` uses unstable_cache (5m). */
 export const dynamic = 'force-dynamic';
+
+const _homeSiteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/+$/, '');
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: _homeSiteUrl,
+    types: {
+      'application/rss+xml': `${_homeSiteUrl}/rss.xml`,
+    },
+  },
+};
 
 // Aggressively lazy load below-the-fold components to improve LCP
 const MostWantedCarousel = dynamicImport(
@@ -131,7 +143,7 @@ function InlineHtml({ html }: { html?: string }) {
 export default async function Home() {
   const sectionsWithProducts = await getCachedHomeSectionsWithProducts();
 
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au').replace(/\/+$/, '');
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/+$/, '');
 
   // Schema.org structured data for homepage
   const schemaData = {

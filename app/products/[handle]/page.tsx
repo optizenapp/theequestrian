@@ -321,7 +321,7 @@ export async function generateMetadata({ params }: ProductPageProps) {
       title: 'Product Not Found',
     };
   }
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
   const canonicalUrl = `${siteUrl}${await getProductCanonicalUrl(product)}`;
   
   const displayTitle = override?.use_headless_title ? (override?.title_override || product.title) : product.title;
