@@ -17,14 +17,8 @@ export type CampaignWorkerResult = {
  * Find campaigns with queued recipients and process batches.
  * Safe to run repeatedly via cron - will not re-send to already-sent recipients.
  */
-export async function processCampaignQueues(input?: {
-  maxCampaigns?: number;
-  frequencyCapCount?: number;
-  frequencyCapDays?: number;
-}): Promise<CampaignWorkerResult> {
+export async function processCampaignQueues(input?: { maxCampaigns?: number }): Promise<CampaignWorkerResult> {
   const maxCampaigns = input?.maxCampaigns ?? 5;
-  const frequencyCapCount = input?.frequencyCapCount ?? 3;
-  const frequencyCapDays = input?.frequencyCapDays ?? 7;
 
   // Find campaigns that have queued recipients and are in active states only
   const campaignsWithQueue = await sql`
@@ -73,11 +67,7 @@ export async function processCampaignQueues(input?: {
     }
 
     // Process this campaign's queue
-    const result = await sendQueuedCampaignRecipients({
-      campaignId,
-      frequencyCapCount,
-      frequencyCapDays,
-    });
+    const result = await sendQueuedCampaignRecipients({ campaignId });
 
     // Get after stats
     const afterStats = await sql`

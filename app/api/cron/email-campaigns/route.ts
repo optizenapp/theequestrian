@@ -34,11 +34,7 @@ async function handleCron(request: NextRequest) {
     }
 
     // Process campaign queues
-    const result = await processCampaignQueues({
-      maxCampaigns: 5,
-      frequencyCapCount: 3,
-      frequencyCapDays: 7,
-    });
+    const result = await processCampaignQueues({ maxCampaigns: 5 });
 
     console.log('Campaign cron processed:', result);
 

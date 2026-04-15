@@ -1,18 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { sendQueuedCampaignRecipients } from '@/lib/email-platform/sending';
 
 export async function POST(
-  request: NextRequest,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
-    const body = await request.json().catch(() => ({}));
-    const result = await sendQueuedCampaignRecipients({
-      campaignId: id,
-      frequencyCapCount: Number(body?.frequencyCapCount || 3),
-      frequencyCapDays: Number(body?.frequencyCapDays || 7),
-    });
+    const result = await sendQueuedCampaignRecipients({ campaignId: id });
     return NextResponse.json({ ok: true, ...result });
   } catch (error) {
     console.error('Failed to send campaign:', error);
