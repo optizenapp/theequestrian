@@ -52,8 +52,11 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
 
 export default async function BrandPage({ params, searchParams }: BrandPageProps) {
   const { handle } = await params;
-  const { cursor } = await searchParams;
+  const { cursor, brand: brandParam, size, color } = await searchParams;
   const afterCursor = typeof cursor === 'string' ? cursor : null;
+  const filterBrands = brandParam ? (Array.isArray(brandParam) ? brandParam : brandParam.split(',')) : undefined;
+  const filterSizes = size ? (Array.isArray(size) ? size : size.split(',')) : undefined;
+  const filterColors = color ? (Array.isArray(color) ? color : color.split(',')) : undefined;
 
   // 1. Verify Brand Exists in Mapping
   const brand = await getBrandContentByHandle(handle);
@@ -68,7 +71,12 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
     pageInfo,
     totalCount: totalProductCount,
     productUrls: productUrlsMap,
-  } = await getBrandProductsFromDb(brand, 36, afterCursor);
+    facets,
+  } = await getBrandProductsFromDb(brand, 36, afterCursor, {
+    brands: filterBrands,
+    sizes: filterSizes,
+    colors: filterColors,
+  });
 
   // Fetch review stats for all products in one batch (server-side)
   const productHandles = products.map(p => p.handle);
@@ -183,6 +191,7 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
               endCursor: pageInfo.endCursor
             }}
             totalCount={totalProductCount}
+            serverFacets={facets}
             productUrls={productUrls}
             reviewStatsMap={reviewStats}
           />
