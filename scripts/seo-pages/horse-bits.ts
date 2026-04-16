@@ -46,7 +46,8 @@ Mouthpiece material plays a big role in acceptance and comfort. Rubber bits can 
 <h3>Bit Choice for Training and Competition</h3>
 <p>
 Bit selection is often adjusted as training progresses, with different choices for schooling, jumping, dressage and stronger horses. If you are reviewing your full setup, you can also browse our <a href="/horse/tack">horse tack</a> and <a href="/horse/tack/bridles">bridles</a> collections to match your bit with the right bridle and rein arrangement.
-</p>`,
+</p>
+`,
 
   faq_items: [
     {

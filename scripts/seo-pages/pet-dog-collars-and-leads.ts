@@ -21,7 +21,6 @@ import type { PageSEOContent } from '../run-page-seo-update';
  * Internal links:
  *   - Parent: /pet/dog - rendered by CollectionDescription (NOT in HTML)
  *   - Sibling: /pet/dog/beds (general dog essentials)
- *   - Sibling: /pet/dog/bowls-feeding (daily-use essentials)
  */
 const content: PageSEOContent = {
   url_path: '/pet/dog/collars-and-leads',
@@ -71,7 +70,14 @@ Many shoppers looking for collars and leads are also comparing harnesses, especi
 <h2>Choosing the Right Collar or Lead</h2>
 <p>
 When choosing a dog collar or lead, consider your dog's size, strength, coat type and behaviour on the lead. Small dogs and puppies often need lighter collars and narrower leads, while larger or stronger dogs benefit from heavier hardware and reinforced materials. Waterproof and easy-clean leads suit beach, trail and wet-weather walks, while padded collars can improve comfort for regular daily wear.
-</p>`,
+</p>
+<ul>
+<li>Personalised dog collars are a practical option for dogs that travel regularly or need quick identification.</li>
+<li>Long leads and 10 metre training leads suit recall work, controlled freedom and early lead training.</li>
+<li>Small dogs and puppies often benefit from lighter collars, narrower leads and softer materials.</li>
+<li>Waterproof and easy-clean leads are useful for beach walks, wet weather and active outdoor dogs.</li>
+<li>Harness-led setups can be worth considering for dogs that pull or need pressure distributed away from the neck.</li>
+</ul>`,
 
   faq_items: [
     {

@@ -45,7 +45,8 @@ The right stirrup setup can improve grip, comfort and balance, whether you are f
 <h3>Competition Tack & Everyday Essentials</h3>
 <p>
 Alongside everyday riding essentials, many tack setups also include competition accessories such as bridle numbers and horse number holders for show days and events. For horses in regular work, many riders also shop supportive gear such as <a href="/horse/boots">horse boots</a> alongside their tack setup.
-</p>`,
+</p>
+`,
 
   faq_items: [
     {

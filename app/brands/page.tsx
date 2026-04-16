@@ -9,6 +9,9 @@ import { generateBrandIndexSchema } from '@/lib/utils/site-schema';
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
 
+/** Regenerate the A–Z index periodically so new `brand_content` rows appear without a full redeploy. */
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
   title: 'Brands | The Equestrian',
   description: 'Shop top equestrian brands including Equipe, Pikeur, Ariat and more.',

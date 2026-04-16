@@ -45,7 +45,8 @@ Numnahs, saddle cloths and everyday schooling pads remain popular because they o
 <h3>Choosing Padding, Grip & Support</h3>
 <p>
 Some riders look for extra grip, cushioning or specialised materials, while others simply want a practical pad for daily use. For horses in regular work, overall comfort can also depend on the rest of the equipment used around the leg and back, including supportive <a href="/horse/boots">horse boots</a> where appropriate.
-</p>`,
+</p>
+`,
 
   faq_items: [
     {

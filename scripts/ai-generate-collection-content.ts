@@ -44,6 +44,7 @@ interface CategoryPath {
 const DRY_RUN = process.env.DRY_RUN === 'true';
 const SAMPLE_SIZE = parseInt(process.env.SAMPLE_SIZE || '0', 10);
 const TARGET_PATH = process.env.TARGET_PATH || '';
+const CATEGORY_FRAMEWORK_PATH = process.env.CATEGORY_FRAMEWORK_PATH || path.join('docs', 'ECOMMERCE-CATEGORY-PAGE-FRAMEWORK.md');
 
 async function generateCollectionContent() {
   console.log('🚀 AI Collection Content Generator\n');
@@ -74,7 +75,16 @@ async function generateCollectionContent() {
     console.error('❌ AI prompt file not found:', promptPath);
     process.exit(1);
   }
-  const systemPrompt = fs.readFileSync(promptPath, 'utf-8');
+  const basePrompt = fs.readFileSync(promptPath, 'utf-8');
+
+  // Load category framework brief guide (required)
+  const frameworkPath = path.join(process.cwd(), CATEGORY_FRAMEWORK_PATH);
+  if (!fs.existsSync(frameworkPath)) {
+    console.error('❌ Category framework file not found:', frameworkPath);
+    process.exit(1);
+  }
+  const categoryFramework = fs.readFileSync(frameworkPath, 'utf-8');
+  const systemPrompt = `${basePrompt}\n\n---\n\n## Category Framework (Mandatory)\nUse this framework when generating category page content. Prioritize ecommerce category intent, quick-answer clarity, and structured below-grid guidance while still following all SQL/output constraints above.\n\n${categoryFramework}`;
 
   // Load mapping CSV
   console.log('📄 Loading category mapping...');

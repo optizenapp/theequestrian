@@ -47,7 +47,8 @@ Many riders now look for advanced safety and comfort features such as MIPS techn
 <h3>Popular Equestrian Helmet Brands</h3>
 <p>
 Popular brands in this category include Charles Owen, KEP, Kask, Samshield, Champion and Uvex, with riders often shopping by brand as well as by fit and finish. If glare, dust or changing light affect visibility, many riders also add <a href="/rider/eyewear">riding eyewear</a> to round out their everyday riding setup.
-</p>`,
+</p>
+`,
 
   faq_items: [
     {

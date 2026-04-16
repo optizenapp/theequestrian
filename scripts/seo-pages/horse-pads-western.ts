@@ -73,7 +73,9 @@ Non-slip western saddle pads have a grippy underside that helps prevent the sadd
 <h2>Shop Western Saddle Pads by Brand</h2>
 <p>
 For riders looking for quality fitted and shimmable options, <a href="/brands/mattes">Mattes</a> is a well-regarded choice for western and performance pads, offering a range of contoured styles with interchangeable shim inserts. ThinLine is another strong option in this space, especially for riders comparing felt, liner and correction styles, so you can also browse <a href="/brands/thinline-global-australia">ThinLine Global Australia</a>. For a broader view of saddle support and correction options, our <a href="/horse/tack">horse tack</a> collection covers related riding equipment.
-</p>`,
+</p>
+
+`,
 
   faq_items: [
     {

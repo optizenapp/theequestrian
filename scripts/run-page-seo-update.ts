@@ -44,8 +44,11 @@ export interface PageSEOContent {
    *   1. Core section (<h2> … explained)
    *   2. GSC cluster <h3> sections
    *   3. Brand block (if brands appear in GSC + brand pages exist)
-   *   4. FAQ block (<h2> … FAQs, then <h3>Q</h3><p>A</p>)
-   * Keep max 2-3 contextual <a> links (pills are primary IA).
+   *   4. Optional bullet section (<ul>) for scannable points
+   * Prefer FAQs in `faq_items` (toggle + schema), not duplicate HTML FAQ blocks.
+   * Required: at least one `<ul>` in long_description and at least 4 internal
+   * `<a href="/...">` links across short_description + long_description combined
+   * (validated unless --skip-below-grid-validation).
    */
   long_description: string;
   /** Short name for breadcrumb nav — usually 1-3 words */
@@ -105,6 +108,38 @@ function assertNoProcessLanguage(content: PageSEOContent): void {
   }
 }
 
+const MIN_INTERNAL_LINKS = 4;
+
+/** Count relative internal links only (href starting with single `/`, not `//`). */
+function countInternalAnchorLinks(html: string): number {
+  const re = /<a\b[^>]*\bhref\s*=\s*["'](\/[^"'#?]*)["']/gi;
+  let match: RegExpExecArray | null;
+  let n = 0;
+  while ((match = re.exec(html)) !== null) {
+    const path = match[1];
+    if (path && !path.startsWith('//')) n += 1;
+  }
+  return n;
+}
+
+function assertBelowGridCategoryRules(content: PageSEOContent): void {
+  if (process.argv.includes('--skip-below-grid-validation')) return;
+
+  if (!/<ul\b/i.test(content.long_description)) {
+    throw new Error(
+      `Below-grid validation failed for "${content.url_path}": long_description must include at least one <ul> bullet list.`
+    );
+  }
+
+  const combined = `${content.short_description}\n${content.long_description}`;
+  const linkCount = countInternalAnchorLinks(combined);
+  if (linkCount < MIN_INTERNAL_LINKS) {
+    throw new Error(
+      `Below-grid validation failed for "${content.url_path}": need at least ${MIN_INTERNAL_LINKS} internal <a href="/..."> links across short_description + long_description (found ${linkCount}). Prefer same-category siblings first.`
+    );
+  }
+}
+
 function resolveConnectionString(): string {
   if (process.env.CUSTOM_DATABASE_URL) return process.env.CUSTOM_DATABASE_URL;
   if (process.argv.includes('--floral-prod')) {
@@ -126,6 +161,33 @@ function getPageSlug(): string {
   return process.argv[idx + 1];
 }
 
+function unwrapPageModule(
+  mod: unknown
+): PageSEOContent {
+  let current = mod;
+
+  while (
+    current &&
+    typeof current === 'object' &&
+    'default' in current &&
+    typeof current.default === 'object' &&
+    current.default !== null
+  ) {
+    current = current.default;
+  }
+
+  if (
+    !current ||
+    typeof current !== 'object' ||
+    !('url_path' in current) ||
+    typeof current.url_path !== 'string'
+  ) {
+    throw new Error('SEO content module must export a default PageSEOContent object');
+  }
+
+  return current as PageSEOContent;
+}
+
 async function main() {
   const slug = getPageSlug();
   const DRY = process.argv.includes('--dry-run');
@@ -133,13 +195,14 @@ async function main() {
   const modulePath = resolve(process.cwd(), 'scripts', 'seo-pages', `${slug}.ts`);
   let content: PageSEOContent;
   try {
-    const mod = await import(modulePath) as { default: PageSEOContent };
-    content = mod.default;
+    const mod = await import(modulePath);
+    content = unwrapPageModule(mod);
   } catch {
     throw new Error(`No content module found at scripts/seo-pages/${slug}.ts`);
   }
 
   assertNoProcessLanguage(content);
+  assertBelowGridCategoryRules(content);
 
   if (DRY) {
     console.log('[dry-run] Would write to collection_content:');

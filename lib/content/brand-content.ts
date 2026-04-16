@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/client';
 
 export interface BrandContentRow {
   handle: string;
@@ -52,7 +52,7 @@ async function loadBrandContent(): Promise<Map<string, BrandContentRow>> {
   }
 
   try {
-    const result = await sql.query(`
+    const result = await sql`
       SELECT
         handle,
         title,
@@ -70,10 +70,11 @@ async function loadBrandContent(): Promise<Map<string, BrandContentRow>> {
       FROM brand_content
       WHERE status = 'published'
       ORDER BY handle
-    `);
+    `;
+    const rows = (Array.isArray(result) ? result : []) as BrandContentRow[];
     const map = new Map<string, BrandContentRow>();
-    for (const row of result.rows) {
-      map.set(row.handle, row as BrandContentRow);
+    for (const row of rows) {
+      map.set(row.handle, row);
     }
     brandContentCache = map;
     cacheTimestamp = now;
@@ -129,15 +130,16 @@ export async function getAllowedBrandVendorsFromDb(): Promise<{
   vendors: string[];
   tags: string[];
 }> {
-  const result = await sql.query(`
+  const result = await sql`
     SELECT handle, rules FROM brand_content WHERE status = 'published' AND rules IS NOT NULL AND rules != ''
-  `);
+  `;
   const vendors: string[] = [];
   const tags: string[] = [];
   const seenV = new Set<string>();
   const seenT = new Set<string>();
 
-  for (const row of result.rows) {
+  const rows = (Array.isArray(result) ? result : []) as Array<{ handle: string; rules: string | null }>;
+  for (const row of rows) {
     const rulesStr = row.rules;
     if (!rulesStr || rulesStr === 'Manual Collection') continue;
     try {
@@ -164,7 +166,7 @@ export async function getAllowedBrandVendorsFromDb(): Promise<{
 }
 
 export async function listBrandsWithOverrides() {
-  const result = await sql.query(`
+  const result = await sql`
     SELECT
       handle,
       title,
@@ -172,13 +174,14 @@ export async function listBrandsWithOverrides() {
       updated_at
     FROM brand_content
     ORDER BY handle
-  `);
-  return result.rows as Array<{
+  `;
+  const rows = (Array.isArray(result) ? result : []) as Array<{
     handle: string;
     title: string;
     status: string;
     updated_at: string | null;
   }>;
+  return rows;
 }
 
 export function invalidateBrandContentCache() {
