@@ -1183,7 +1183,13 @@ export async function getProductsByCategory(
     if (!dbFirstDisabled && sortBy !== 'on-sale') {
       try {
         const { getProductsByCategoryFromDB } = await import('@/lib/products/postgres-adapter');
-        return getProductsByCategoryFromDB(categoryPath, limit, after, filters);
+        // IMPORTANT: await here so a rejection is caught by the catch below
+        // and we can safely fall back to the legacy Shopify path. Without the
+        // await, the rejected promise bypasses this try/catch and the entire
+        // category page 500s (which is what just happened in prod when the
+        // DB path threw on a missing table).
+        const result = await getProductsByCategoryFromDB(categoryPath, limit, after, filters);
+        return result;
       } catch (dbError) {
         console.error('[getProductsByCategory] DB-first path failed, falling back to Shopify path:', dbError);
       }
