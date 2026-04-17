@@ -8,6 +8,9 @@ import { CollectionDescription } from '@/components/CollectionDescription';
 import { generateBrandPageSchema } from '@/lib/utils/brand-page-schema';
 import { FAQItem } from '@/lib/content/collections';
 import { getBrandProductsFromDb } from '@/lib/brands/get-brand-products';
+import { getBrandCategories } from '@/lib/brands/get-brand-categories';
+import { BrandQuickAnswer } from '@/components/brand/BrandQuickAnswer';
+import { BrandProductLines } from '@/components/brand/BrandProductLines';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
@@ -66,17 +69,23 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
 
   // Brand PLPs always use Postgres + brand rules so new brands work without a matching Shopify collection.
   // Variants for cart CTAs are merged from Storefront inside getBrandProductsFromDb.
-  const {
-    products,
-    pageInfo,
-    totalCount: totalProductCount,
-    productUrls: productUrlsMap,
-    facets,
-  } = await getBrandProductsFromDb(brand, 36, afterCursor, {
-    brands: filterBrands,
-    sizes: filterSizes,
-    colors: filterColors,
-  });
+  const [
+    {
+      products,
+      pageInfo,
+      totalCount: totalProductCount,
+      productUrls: productUrlsMap,
+      facets,
+    },
+    brandCategories,
+  ] = await Promise.all([
+    getBrandProductsFromDb(brand, 36, afterCursor, {
+      brands: filterBrands,
+      sizes: filterSizes,
+      colors: filterColors,
+    }),
+    getBrandCategories(brand, 12),
+  ]);
 
   // Fetch review stats for all products in one batch (server-side)
   const productHandles = products.map(p => p.handle);
@@ -152,7 +161,8 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               {pageTitle}
             </h1>
-            <div>
+            {brand.quick_answer && <BrandQuickAnswer text={brand.quick_answer} />}
+            <div className="mt-6">
               <CollectionDescription description={shortDescription} />
               {totalProductCount > 0 && (
                 <p className="mt-4 text-sm text-gray-500">
@@ -179,21 +189,15 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
             reviewStatsMap={reviewStats}
           />
 
-          {/* Long Description (Rich Content) */}
-          {longDescription ? (
-            <RichContent html={longDescription} />
-          ) : (
-             /* Fallback content if no custom long description */
-             <div className="mt-16 bg-white rounded-lg p-8 shadow-sm">
-                <h2>About {brand.title}</h2>
-                <p>Discover the premium range of <strong>{brand.title}</strong> products at The Equestrian. 
-                Known for their quality and innovation, {brand.title} is a trusted name in the equestrian world.</p>
-             </div>
-          )}
+          {/* Long Description (editorial: Brand Explained, What Sets Apart, etc.) */}
+          {longDescription && <RichContent html={longDescription} />}
 
-          {/* FAQ Section */}
+          {/* Auto-generated Product Lines from product → category joins */}
+          <BrandProductLines brandName={brand.title} categories={brandCategories} />
+
+          {/* FAQ Section (emits FAQPage JSON-LD) */}
           {faqItems.length > 0 && (
-            <FAQSection 
+            <FAQSection
               faqs={faqItems}
               categoryTitle={brand.title}
             />

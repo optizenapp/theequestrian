@@ -1,4 +1,5 @@
 import { sql } from '@/lib/db/client';
+import { ensureBrandContentColumns } from '@/lib/db/ensure-brand-content-columns';
 
 export interface BrandContentRow {
   handle: string;
@@ -12,6 +13,7 @@ export interface BrandContentRow {
   long_description: string | null;
   breadcrumb_label: string | null;
   faq_json: string | null;
+  quick_answer: string | null;
   status: string | null;
   updated_at?: string | null;
 }
@@ -43,6 +45,7 @@ async function ensureBrandContentTable() {
   await sql`CREATE INDEX IF NOT EXISTS idx_brand_content_status ON brand_content(status)`;
   await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS products_count INTEGER DEFAULT 0`;
   await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS rules TEXT`;
+  await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS quick_answer TEXT`;
 }
 
 async function loadBrandContent(): Promise<Map<string, BrandContentRow>> {
@@ -52,6 +55,7 @@ async function loadBrandContent(): Promise<Map<string, BrandContentRow>> {
   }
 
   try {
+    await ensureBrandContentColumns();
     const result = await sql`
       SELECT
         handle,
@@ -65,6 +69,7 @@ async function loadBrandContent(): Promise<Map<string, BrandContentRow>> {
         long_description,
         breadcrumb_label,
         faq_json,
+        quick_answer,
         status,
         updated_at
       FROM brand_content
