@@ -1,4 +1,5 @@
 import { sql } from '@/lib/db/client';
+import { ensureProductsBrandColumns } from '@/lib/db/ensure-products-brand-columns';
 import type { BrandContentRow } from '@/lib/content/brand-content';
 import {
   applyLiveStatus,
@@ -486,6 +487,8 @@ export async function getBrandProductsFromDb(
   pageInfo: { hasNextPage: boolean; endCursor: string | null };
   facets: BrandFacets;
 }> {
+  await ensureProductsBrandColumns();
+
   const brandBase = buildBrandBaseClause(brand);
   if (!brandBase) return EMPTY_RESULT;
 

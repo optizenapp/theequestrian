@@ -1,4 +1,5 @@
 import { sql } from '@/lib/db/client';
+import { ensureProductsBrandColumns } from '@/lib/db/ensure-products-brand-columns';
 
 export type ProductBrandDisplay = {
   brand: string | null;
@@ -11,6 +12,7 @@ export type ProductBrandDisplay = {
 export async function getProductBrandForDisplay(handle: string): Promise<ProductBrandDisplay> {
   if (!handle) return { brand: null, brandHubHandle: null };
   try {
+    await ensureProductsBrandColumns();
     const rows = (await sql`
       SELECT brand, brand_hub_handle FROM products WHERE handle = ${handle} LIMIT 1
     `) as unknown as Array<{ brand: string | null; brand_hub_handle: string | null }>;

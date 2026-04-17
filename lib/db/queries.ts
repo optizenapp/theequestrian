@@ -4,6 +4,7 @@
  */
 
 import { sql } from './client';
+import { ensureProductsBrandColumns } from './ensure-products-brand-columns';
 
 export interface ProductFilters {
   brands?: string[];
@@ -52,6 +53,7 @@ export async function searchProducts(
   hasNextPage: boolean;
 }> {
   try {
+    await ensureProductsBrandColumns();
     // Build WHERE clause dynamically
     const conditions: string[] = [];
     const params: any[] = [];
@@ -159,6 +161,7 @@ export async function calculateFacets(
   filters: ProductFilters = {}
 ): Promise<FacetResult> {
   try {
+    await ensureProductsBrandColumns();
     // Build WHERE clause (same as searchProducts)
     const conditions: string[] = [];
     const params: any[] = [];

@@ -6,6 +6,7 @@
 import { shopifyFetch } from '@/lib/shopify/client';
 import { searchProducts, type ProductFilters, type ProductQueryResult } from '@/lib/db/queries';
 import { sql } from '@/lib/db/client';
+import { ensureProductsBrandColumns } from '@/lib/db/ensure-products-brand-columns';
 import type { ProductWithPrimaryCollection } from '@/types/shopify';
 
 type CategoryFilters = {
@@ -399,6 +400,10 @@ export async function getProductsByCategoryFromDB(
   totalCount: number;
   facets: CollectionFacets;
 }> {
+  // Self-heal `products.brand` / `brand_hub_handle` columns on first call so the
+  // SELECTs below don't 500 if a deploy ran before the migration script.
+  await ensureProductsBrandColumns();
+
   // Full filter where clause (for products + count)
   const whereClause = buildCategoryWhereClause(categoryPath, filters);
   // Per-dimension where clauses for disjunctive facets:
