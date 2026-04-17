@@ -1172,23 +1172,23 @@ export async function getProductsByCategory(
   };
 
   try {
-    // Feature-flagged DB-first path for local validation.
-    // Disabled by default so we can build and test safely before migration.
-    const useDbFirstCollections = process.env.USE_DB_COLLECTIONS_FROM_POSTGRES === 'true';
-    if (useDbFirstCollections) {
-      // DB-first path does not support global on-sale ordering yet.
-      // Fall back to Shopify path so /?sort=on-sale is correct and badges appear.
-      if (sortBy === 'on-sale') {
-        console.log('[getProductsByCategory] sort=on-sale requested; skipping DB-first path for accurate ordering');
-      } else {
+    // DB-first path is now the default for category pages. It is the only path
+    // that has access to `products.brand` (canonical brand) and the
+    // `variant_options` table (size / colour facets and filtering). The
+    // Shopify path is retained below as a fallback for: (a) sort=on-sale,
+    // which still needs Shopify ordering, and (b) any unexpected DB failure.
+    // Setting USE_DB_COLLECTIONS_FROM_POSTGRES=false explicitly opts back into
+    // the legacy Shopify path for emergency use.
+    const dbFirstDisabled = process.env.USE_DB_COLLECTIONS_FROM_POSTGRES === 'false';
+    if (!dbFirstDisabled && sortBy !== 'on-sale') {
       try {
         const { getProductsByCategoryFromDB } = await import('@/lib/products/postgres-adapter');
-        console.log(`[getProductsByCategory] 🧪 DB-first path enabled for ${categoryPath}`);
         return getProductsByCategoryFromDB(categoryPath, limit, after, filters);
       } catch (dbError) {
         console.error('[getProductsByCategory] DB-first path failed, falling back to Shopify path:', dbError);
       }
-      }
+    } else if (sortBy === 'on-sale') {
+      console.log('[getProductsByCategory] sort=on-sale requested; using Shopify path for accurate ordering');
     }
 
     // Check cache first
@@ -1357,11 +1357,27 @@ export async function getProductsByCategory(
     // Apply filters
     if (filters) {
       if (filters.brands && filters.brands.length > 0) {
-        allProducts = allProducts.filter(p => 
-          filters.brands!.some(brand => 
-            p.vendor.toLowerCase() === brand.toLowerCase()
-          )
-        );
+        // Brand filter on the Shopify-path fallback uses canonical
+        // `products.brand` from Postgres (looked up by handle) rather than the
+        // Shopify `vendor` field, so it matches what category and brand pages
+        // resolve to via the DB-first path.
+        const handles = allProducts.map((p) => p.handle);
+        const brandLower = filters.brands.map((b) => b.toLowerCase());
+        try {
+          const { sql } = await import('@/lib/db/client');
+          const rows = (await sql`
+            SELECT handle, LOWER(TRIM(COALESCE(brand, ''))) AS brand_lower
+            FROM products
+            WHERE handle = ANY(${handles})
+          `) as unknown as Array<{ handle: string; brand_lower: string }>;
+          const matchHandles = new Set(
+            rows.filter((r) => r.brand_lower && brandLower.includes(r.brand_lower)).map((r) => r.handle)
+          );
+          allProducts = allProducts.filter((p) => matchHandles.has(p.handle));
+        } catch (e) {
+          console.error('[getProductsByCategory] brand filter DB lookup failed:', e);
+          allProducts = [];
+        }
       }
 
       if (filters.sizes && filters.sizes.length > 0) {
@@ -1393,29 +1409,35 @@ export async function getProductsByCategory(
     const brandCounts = new Map<string, { count: number; displayName: string }>();
     const sizeCounts = new Map<string, number>();
     const colorCounts = new Map<string, { count: number; originalValue: string }>();
-    const countedBrands = new Set<string>();
     let minPrice = Infinity;
     let maxPrice = 0;
 
-    allProducts.forEach(p => {
-      // Brands (from tags)
-      p.tags.forEach(tag => {
-        const normalizedTag = tag.toLowerCase();
-        if (normalizedTag.startsWith('brand:') && !countedBrands.has(normalizedTag)) {
-          const brandName = tag.substring(6).trim();
-          const count = brandCounts.get(normalizedTag) || 0;
-          if (count === 0) {
-            const displayName = brandName.split(' ').map(word => 
-              word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-            ).join(' ');
-            brandCounts.set(normalizedTag, {
-              count: 1,
-              displayName: displayName
-            });
-          }
-          countedBrands.add(normalizedTag);
+    // Brand facet derives from canonical `products.brand` (DB), not Shopify
+    // vendor or `brand:` tags. Mirrors the DB-first path so the on-sale
+    // Shopify fallback returns the same brand options users see elsewhere.
+    try {
+      const handles = allProducts.map((p) => p.handle);
+      if (handles.length > 0) {
+        const { sql } = await import('@/lib/db/client');
+        const rows = (await sql`
+          SELECT TRIM(brand) AS brand
+          FROM products
+          WHERE handle = ANY(${handles})
+            AND COALESCE(TRIM(brand), '') <> ''
+        `) as unknown as Array<{ brand: string }>;
+        for (const row of rows) {
+          const display = row.brand;
+          const key = display.toLowerCase();
+          const existing = brandCounts.get(key);
+          if (existing) existing.count++;
+          else brandCounts.set(key, { count: 1, displayName: display });
         }
-      });
+      }
+    } catch (e) {
+      console.error('[getProductsByCategory] brand facet DB lookup failed:', e);
+    }
+
+    allProducts.forEach(p => {
       
       // Prices
       const pMin = parseFloat(p.priceRange.minVariantPrice.amount);

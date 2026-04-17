@@ -150,12 +150,9 @@ function buildWhereClause(
   const conditions: string[] = [`(${brandBase})`];
 
   if (filters?.brands?.length) {
+    // Brand filter uses canonical `products.brand` only (matches category page).
     const arr = asLowerArrayLiteral(filters.brands);
-    conditions.push(`(
-      LOWER(TRIM(COALESCE(p.brand, ''))) = ANY(${arr})
-      OR LOWER(COALESCE(p.vendor, '')) = ANY(${arr})
-      OR EXISTS (SELECT 1 FROM unnest(COALESCE(p.tags, ARRAY[]::text[])) AS t(tag) WHERE LOWER(tag) = ANY(${arr}))
-    )`);
+    conditions.push(`LOWER(TRIM(COALESCE(p.brand, ''))) = ANY(${arr})`);
   }
 
   if (filters?.sizes?.length) {
@@ -197,13 +194,13 @@ async function getBrandFacetsFromDb(
   const [brandRows, sizeRows, colorRows] = await Promise.all([
     sql.unsafe(`
       SELECT
-        LOWER(TRIM(COALESCE(NULLIF(TRIM(p.brand), ''), p.vendor, ''))) AS value,
-        MIN(TRIM(COALESCE(NULLIF(TRIM(p.brand), ''), p.vendor, ''))) AS display_name,
+        LOWER(TRIM(p.brand)) AS value,
+        MIN(TRIM(p.brand)) AS display_name,
         COUNT(DISTINCT p.id)::int AS count
       FROM products p
       WHERE ${brandWhere}
-        AND TRIM(COALESCE(NULLIF(TRIM(p.brand), ''), p.vendor, '')) <> ''
-      GROUP BY LOWER(TRIM(COALESCE(NULLIF(TRIM(p.brand), ''), p.vendor, '')))
+        AND COALESCE(TRIM(p.brand), '') <> ''
+      GROUP BY LOWER(TRIM(p.brand))
       ORDER BY count DESC
     `) as unknown as Array<{ value: string; display_name: string; count: number }>,
 

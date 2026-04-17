@@ -158,16 +158,12 @@ function buildCategoryWhereClause(categoryPath: string, filters?: CategoryFilter
   ];
 
   if (filters?.brands && filters.brands.length > 0) {
+    // Brand filter uses the canonical `products.brand` column only.
+    // We deliberately no longer fall back to vendor / tags: the parent-brand
+    // rollup made `brand` the single source of truth, and unmapped products
+    // are NULL by design (so they should not appear in any brand filter).
     const brands = asLowerArrayLiteral(filters.brands);
-    conditions.push(`(
-      LOWER(TRIM(COALESCE(p.brand, ''))) = ANY(${brands})
-      OR LOWER(COALESCE(p.vendor, '')) = ANY(${brands})
-      OR EXISTS (
-        SELECT 1
-        FROM unnest(COALESCE(p.tags, ARRAY[]::text[])) AS t(tag)
-        WHERE LOWER(tag) = ANY(${brands})
-      )
-    )`);
+    conditions.push(`LOWER(TRIM(COALESCE(p.brand, ''))) = ANY(${brands})`);
   }
 
   if (filters?.sizes && filters.sizes.length > 0) {
@@ -313,16 +309,18 @@ async function getCollectionFacetsFromDb(
   colorWhereClause: string, // category + size + brand (no colour filter)
   brandWhereClause: string, // category + size + colour (no brand filter)
 ): Promise<CollectionFacets> {
+  // Brand facet derives from the canonical `products.brand` column only.
+  // Products without an assigned brand do not contribute to any brand option.
   const brandRows = await sql.unsafe(`
     SELECT
-      LOWER(TRIM(COALESCE(NULLIF(TRIM(p.brand), ''), p.vendor, ''))) AS value,
-      MIN(TRIM(COALESCE(NULLIF(TRIM(p.brand), ''), p.vendor, ''))) AS display_name,
+      LOWER(TRIM(p.brand)) AS value,
+      MIN(TRIM(p.brand)) AS display_name,
       COUNT(DISTINCT p.id)::int AS count
     FROM product_category_assignments pca
     JOIN products p ON p.id = pca.product_id
     WHERE ${brandWhereClause}
-      AND TRIM(COALESCE(NULLIF(TRIM(p.brand), ''), p.vendor, '')) <> ''
-    GROUP BY LOWER(TRIM(COALESCE(NULLIF(TRIM(p.brand), ''), p.vendor, '')))
+      AND COALESCE(TRIM(p.brand), '') <> ''
+    GROUP BY LOWER(TRIM(p.brand))
     ORDER BY count DESC
   `) as unknown as Array<{ value: string; display_name: string; count: number }>;
 
