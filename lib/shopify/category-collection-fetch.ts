@@ -6,7 +6,7 @@ import {
 import { getProductsByCategory } from '@/lib/shopify/products';
 
 type CategoryGridArgs = Parameters<typeof getProductsByCategory>;
-const COLLECTION_GRID_CACHE_VERSION = 'v3';
+const COLLECTION_GRID_CACHE_VERSION = 'v4';
 
 /**
  * Collection pages: cache the heavy Neon + Shopify work in the Data Cache so ISR can be multi-day
