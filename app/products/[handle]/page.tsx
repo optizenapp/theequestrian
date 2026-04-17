@@ -129,14 +129,18 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
       }
     : null;
 
-  // Generate unified @graph with BreadcrumbList + Product (including review stats)
-  // This creates a single knowledge graph entity for better entity resolution
+  // Resolve canonical brand + hub handle BEFORE schema so the Product schema's
+  // brand entity links to /brands/[hub] (not a slugified vendor guess) and uses
+  // a stable @id for cross-page entity resolution.
+  const { brand: canonicalBrand, brandHubHandle } = await getProductBrandForDisplay(product.handle);
+
   const schemaGraph = generateProductSchemaGraph(
     { ...product, title: displayTitle },
     currentUrl,
     breadcrumbSchemas,
     siteUrl,
-    reviewStats
+    reviewStats,
+    { brandHubHandle, brandName: canonicalBrand }
   );
 
   // Fetch related products (limit 4)
@@ -165,7 +169,6 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
   const featureHighlights = override?.use_headless_bullets && overrideBullets.length > 0
     ? overrideBullets
     : getProductBulletPoints(product.id);
-  const { brand: canonicalBrand, brandHubHandle } = await getProductBrandForDisplay(product.handle);
   const identifiers = getProductIdentifiers(product, { canonicalBrand, brandHubHandle });
   const pdpCroVariant = getPdpCroVariant(product.handle, sp);
   const isCroTrialPdp = pdpCroVariant === 'cro1';

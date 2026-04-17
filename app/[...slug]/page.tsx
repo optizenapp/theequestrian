@@ -174,12 +174,17 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
         average_rating: reviewStats.averageRating,
       }
     : null;
+  // Resolve canonical brand + hub handle BEFORE schema so the Product schema's
+  // brand entity links to /brands/[hub] and uses a stable @id.
+  const { brand: canonicalBrand, brandHubHandle } = await getProductBrandForDisplay(resolvedProduct.handle);
+
   const schemaGraph = generateProductSchemaGraph(
     { ...resolvedProduct, title: displayTitle },
     canonicalUrl,
     breadcrumbSchemas,
     siteUrl,
-    reviewStats
+    reviewStats,
+    { brandHubHandle, brandName: canonicalBrand }
   );
 
   // Fetch related products and review stats (server-side batch)
@@ -191,7 +196,6 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
     relatedProducts.map((p) => [p.handle, relatedUrlMap.get(p.id) ?? `/products/${p.handle}`])
   );
   const showArcEquineGelPromo = resolvedProduct.handle === 'arcequine-complete-kit';
-  const { brand: canonicalBrand, brandHubHandle } = await getProductBrandForDisplay(resolvedProduct.handle);
   const identifiers = getProductIdentifiers(resolvedProduct, { canonicalBrand, brandHubHandle });
   const pdpCroVariant = getPdpCroVariant(resolvedProduct.handle, sp);
   const isCroTrialPdp = pdpCroVariant === 'cro1';

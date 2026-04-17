@@ -5,7 +5,7 @@ import { getBrandContentByHandle } from '@/lib/content/brand-content';
 import { RichContent } from '@/components/collection/RichContent';
 import { FAQSection } from '@/components/collection/FAQSection';
 import { CollectionDescription } from '@/components/CollectionDescription';
-import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
+import { generateBrandPageSchema } from '@/lib/utils/brand-page-schema';
 import { FAQItem } from '@/lib/content/collections';
 import { getBrandProductsFromDb } from '@/lib/brands/get-brand-products';
 import Link from 'next/link';
@@ -100,38 +100,21 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
     console.warn(`Failed to parse FAQ JSON for brand ${brand.handle}`, e);
   }
 
-  // Generate structured data
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
-  
-  // Build breadcrumbs array for schema
-  const breadcrumbs = [
-    { label: 'Brands', href: '/brands' },
-    { label: brand.breadcrumb_label || brand.title, href: `/brands/${handle}` }
-  ];
 
-  const collectionSchema = generateCollectionSchemaFast({
-    collectionName: pageTitle,
-    collectionUrl: `${siteUrl}/brands/${handle}`,
-    collectionDescription: brand.meta_description || `Shop premium ${brand.title} equestrian products. Official retailer with fast shipping across Australia.`,
-    breadcrumbs,
+  const enhancedSchema = generateBrandPageSchema({
+    brand: {
+      handle,
+      name: brand.title,
+      description: brand.meta_description || shortDescription,
+      breadcrumbLabel: brand.breadcrumb_label,
+    },
     products,
-    canonicalProductUrls: productUrlsMap,
+    totalProductCount: totalProductCount || brand.products_count || products.length,
+    productUrls: productUrlsMap,
     siteUrl,
-    maxProducts: 12, // Limit schema to 12 products for performance
+    maxProductsInSchema: 12,
   });
-  const brandEntity = {
-    '@type': 'Brand',
-    '@id': `${siteUrl}/brands/${handle}#brand`,
-    name: brand.title,
-    url: `${siteUrl}/brands/${handle}`,
-    description: brand.meta_description || shortDescription,
-  };
-  const schemaRecord = collectionSchema as Record<string, unknown>;
-  const existingGraph = Array.isArray(schemaRecord['@graph']) ? schemaRecord['@graph'] : [];
-  const enhancedSchema = {
-    ...collectionSchema,
-    '@graph': [...existingGraph, brandEntity],
-  };
 
   return (
     <>

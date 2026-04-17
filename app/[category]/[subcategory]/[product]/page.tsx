@@ -233,14 +233,18 @@ async function renderProductPage(
       }
     : null;
 
-  // Generate unified @graph with BreadcrumbList + Product (including review stats)
+  // Resolve canonical brand + hub handle BEFORE schema so the Product schema's
+  // brand entity links to /brands/[hub] and uses a stable @id.
+  const { brand: canonicalBrand, brandHubHandle } = await getProductBrandForDisplay(product.handle);
+
   const canonicalUrl = canonicalPath || await getProductCanonicalUrl(product);
   const schemaGraph = generateProductSchemaGraph(
     { ...product, title: displayTitle },
     canonicalUrl,
     breadcrumbSchemas,
     siteUrl,
-    reviewStats
+    reviewStats,
+    { brandHubHandle, brandName: canonicalBrand }
   );
 
   // Fetch related products (limit 4)
@@ -270,7 +274,6 @@ async function renderProductPage(
     ? overrideBullets
     : getProductBulletPoints(product.id);
   const showArcEquineGelPromo = product.handle === 'arcequine-complete-kit';
-  const { brand: canonicalBrand, brandHubHandle } = await getProductBrandForDisplay(product.handle);
   const identifiers = getProductIdentifiers(product, { canonicalBrand, brandHubHandle });
   const pdpCroVariant = getPdpCroVariant(product.handle, searchParams);
   const isCroTrialPdp = pdpCroVariant === 'cro1';
