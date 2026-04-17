@@ -110,6 +110,9 @@ export function generateBrandPageSchema(input: BrandPageSchemaInput) {
     itemListElement: itemListElements,
   };
 
+  // mainEntity → ItemList is the Google-recommended pattern for product
+  // collection pages. The Brand is surfaced via `about` (valid target) and as
+  // a top-level entity in the @graph so it can be linked from PDPs by @id.
   const collectionPage = {
     '@type': 'CollectionPage',
     '@id': pageId,
@@ -120,8 +123,8 @@ export function generateBrandPageSchema(input: BrandPageSchemaInput) {
     isPartOf: { '@type': 'WebSite', '@id': `${baseUrl}#website` },
     publisher: { '@id': orgId },
     breadcrumb: { '@id': `${brandUrl}#breadcrumbs` },
-    mainEntity: { '@id': brandId },
-    hasPart: { '@id': itemListId },
+    about: { '@id': brandId },
+    mainEntity: { '@id': itemListId },
   };
 
   return {
