@@ -1172,29 +1172,25 @@ export async function getProductsByCategory(
   };
 
   try {
-    // DB-first path is now the default for category pages. It is the only path
-    // that has access to `products.brand` (canonical brand) and the
-    // `variant_options` table (size / colour facets and filtering). The
-    // Shopify path is retained below as a fallback for: (a) sort=on-sale,
-    // which still needs Shopify ordering, and (b) any unexpected DB failure.
-    // Setting USE_DB_COLLECTIONS_FROM_POSTGRES=false explicitly opts back into
-    // the legacy Shopify path for emergency use.
-    const dbFirstDisabled = process.env.USE_DB_COLLECTIONS_FROM_POSTGRES === 'false';
-    if (!dbFirstDisabled && sortBy !== 'on-sale') {
+    // The DB-first path is OPT-IN (set USE_DB_COLLECTIONS_FROM_POSTGRES=true).
+    // It depends on `variant_options` for size/colour facets, which is not
+    // populated in every environment. The Shopify path below derives those
+    // facets from live Shopify variant data and works everywhere.
+    //
+    // Brand filtering is handled correctly in BOTH paths: the Shopify path was
+    // patched to do a DB lookup against `products.brand` so canonical-brand
+    // filtering matches the DB-first behaviour without needing variant_options.
+    const dbFirstEnabled = process.env.USE_DB_COLLECTIONS_FROM_POSTGRES === 'true';
+    if (dbFirstEnabled && sortBy !== 'on-sale') {
       try {
         const { getProductsByCategoryFromDB } = await import('@/lib/products/postgres-adapter');
-        // IMPORTANT: await here so a rejection is caught by the catch below
-        // and we can safely fall back to the legacy Shopify path. Without the
-        // await, the rejected promise bypasses this try/catch and the entire
-        // category page 500s (which is what just happened in prod when the
-        // DB path threw on a missing table).
+        // Await so rejections are caught here and we can safely fall back to
+        // the Shopify path instead of 500ing the whole category page.
         const result = await getProductsByCategoryFromDB(categoryPath, limit, after, filters);
         return result;
       } catch (dbError) {
         console.error('[getProductsByCategory] DB-first path failed, falling back to Shopify path:', dbError);
       }
-    } else if (sortBy === 'on-sale') {
-      console.log('[getProductsByCategory] sort=on-sale requested; using Shopify path for accurate ordering');
     }
 
     // Check cache first
