@@ -2,7 +2,14 @@ import Link from 'next/link';
 import type { BrandCategoryEntry } from '@/lib/brands/get-brand-categories';
 
 interface BrandProductLinesProps {
+  /** Short display name used in copy and headings (e.g. "Acavallo"). */
   brandName: string;
+  /**
+   * Canonical brand value for the `?brand=` URL param — must match
+   * `LOWER(TRIM(products.brand))`. May differ from `brandName` (e.g.
+   * brandName="Acavallo" vs filter="acavallo horse riding essentials").
+   */
+  brandFilterValue: string | null;
   categories: BrandCategoryEntry[];
 }
 
@@ -14,8 +21,13 @@ interface BrandProductLinesProps {
  * relevant category page filtered to this brand, satisfying the framework's
  * internal linking requirement without per-brand authoring overhead.
  */
-export function BrandProductLines({ brandName, categories }: BrandProductLinesProps) {
+export function BrandProductLines({
+  brandName,
+  brandFilterValue,
+  categories,
+}: BrandProductLinesProps) {
   if (!categories?.length) return null;
+  if (!brandFilterValue) return null;
 
   return (
     <section className="mt-12 rounded-lg bg-white p-8 shadow-sm">
@@ -28,7 +40,7 @@ export function BrandProductLines({ brandName, categories }: BrandProductLinesPr
       </p>
       <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {categories.map((c) => {
-          const href = `${c.url_path}?brand=${encodeURIComponent(brandName.toLowerCase())}`;
+          const href = `${c.url_path}?brand=${encodeURIComponent(brandFilterValue)}`;
           return (
             <li key={c.url_path} className="rounded-md border border-gray-200 p-4 transition-colors hover:border-primary hover:bg-primary/5">
               <h3 className="text-lg font-semibold text-gray-900">

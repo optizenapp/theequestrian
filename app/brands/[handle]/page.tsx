@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
-import { getBrandContentByHandle } from '@/lib/content/brand-content';
+import { getBrandContentByHandle, getBrandIndexDisplayName } from '@/lib/content/brand-content';
 import { RichContent } from '@/components/collection/RichContent';
 import { FAQSection } from '@/components/collection/FAQSection';
 import { CollectionDescription } from '@/components/CollectionDescription';
@@ -193,7 +193,11 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
           {longDescription && <RichContent html={longDescription} />}
 
           {/* Auto-generated Product Lines from product → category joins */}
-          <BrandProductLines brandName={brand.title} categories={brandCategories} />
+          <BrandProductLines
+            brandName={getBrandIndexDisplayName(brand)}
+            brandFilterValue={brandCategories.brandFilterValue}
+            categories={brandCategories.categories}
+          />
 
           {/* FAQ Section (emits FAQPage JSON-LD) */}
           {faqItems.length > 0 && (

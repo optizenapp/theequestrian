@@ -7,6 +7,17 @@ export interface BrandCategoryEntry {
   count: number;
 }
 
+export interface BrandCategoriesResult {
+  categories: BrandCategoryEntry[];
+  /**
+   * Canonical brand value to use for the `?brand=` URL param on category pages.
+   * Derived from the actual `products.brand` value of products matched to this
+   * brand row, so the link filter matches what the category page expects.
+   * `null` when no matching products carry a non-empty brand.
+   */
+  brandFilterValue: string | null;
+}
+
 type BrandRule = { column?: string; relation?: string; condition?: string };
 
 function escapeLiteral(value: string): string {
@@ -90,28 +101,44 @@ function parentCategoryPath(canonicalPath: string): string | null {
 export async function getBrandCategories(
   brand: BrandContentRow,
   limit: number = 12
-): Promise<BrandCategoryEntry[]> {
+): Promise<BrandCategoriesResult> {
   const where = buildBrandWhereClause(brand);
-  if (!where) return [];
+  if (!where) return { categories: [], brandFilterValue: null };
 
-  // Pull product canonical paths for this brand, then aggregate by parent category.
-  // We do the parent-stripping in TS rather than SQL to keep the query simple.
+  // Pull canonical_path AND the product's brand value in a single pass so we
+  // can derive the canonical brand filter value for category-page links from
+  // the same set of products that drive the category counts.
   const rows = (await sql.unsafe(`
-    SELECT pca.canonical_path
+    SELECT
+      pca.canonical_path,
+      LOWER(TRIM(COALESCE(p.brand, ''))) AS brand_value
     FROM products p
     JOIN product_category_assignments pca ON pca.product_id = p.id
     WHERE (${where})
       AND pca.canonical_path IS NOT NULL
-  `)) as unknown as Array<{ canonical_path: string }>;
+  `)) as unknown as Array<{ canonical_path: string; brand_value: string }>;
 
   const counts = new Map<string, number>();
+  const brandCounts = new Map<string, number>();
   for (const r of rows) {
     const parent = parentCategoryPath(r.canonical_path);
-    if (!parent) continue;
-    counts.set(parent, (counts.get(parent) || 0) + 1);
+    if (parent) counts.set(parent, (counts.get(parent) || 0) + 1);
+    if (r.brand_value) {
+      brandCounts.set(r.brand_value, (brandCounts.get(r.brand_value) || 0) + 1);
+    }
   }
 
-  if (counts.size === 0) return [];
+  // Pick the most common non-empty brand value as the canonical filter value.
+  let brandFilterValue: string | null = null;
+  let topCount = 0;
+  for (const [value, count] of brandCounts) {
+    if (count > topCount) {
+      topCount = count;
+      brandFilterValue = value;
+    }
+  }
+
+  if (counts.size === 0) return { categories: [], brandFilterValue };
 
   const paths = Array.from(counts.keys());
   const labels = (await sql`
@@ -134,9 +161,11 @@ export async function getBrandCategories(
     count: counts.get(path) || 0,
   }));
 
-  return entries
+  const categories = entries
     .sort((a, b) => (b.count - a.count) || a.label.localeCompare(b.label))
     .slice(0, limit);
+
+  return { categories, brandFilterValue };
 }
 
 function titleFromPath(path: string): string {
