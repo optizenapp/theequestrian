@@ -22,6 +22,8 @@ interface ProductPdpCroTwoMainProps {
   showArcEquineGelPromo?: boolean;
   afterDescription?: ReactNode;
   styleMode?: 'cro2' | 'cro3';
+  canonicalBrand?: string | null;
+  brandHubHandle?: string | null;
 }
 
 function FeatureHighlights({
@@ -81,9 +83,11 @@ export default function ProductPdpCroTwoMain({
   showArcEquineGelPromo = false,
   afterDescription,
   styleMode = 'cro2',
+  canonicalBrand = null,
+  brandHubHandle = null,
 }: ProductPdpCroTwoMainProps) {
   const { topHighlights, remainingHighlights } = splitFeatureHighlights(featureHighlights);
-  const identifiers = getProductIdentifiers(product);
+  const identifiers = getProductIdentifiers(product, { canonicalBrand, brandHubHandle });
 
   return (
     <>

@@ -55,13 +55,15 @@ const LIVE_STATUS_QUERY = `
 export function dbProductToShopifyFormat(dbProduct: ProductQueryResult): ProductWithPrimaryCollection {
   const desc = dbProduct.description ?? '';
   const tags = dbProduct.tags ?? [];
+  const displayVendor = (dbProduct.brand?.trim() || dbProduct.vendor || '').trim();
   return {
     id: dbProduct.id,
     handle: dbProduct.handle,
     title: dbProduct.title,
     description: desc,
     descriptionHtml: desc,
-    vendor: dbProduct.vendor,
+    vendor: displayVendor || dbProduct.vendor,
+    brand: dbProduct.brand?.trim() || null,
     productType: dbProduct.product_type,
     tags,
     availableForSale: dbProduct.available_for_sale,
@@ -157,7 +159,8 @@ function buildCategoryWhereClause(categoryPath: string, filters?: CategoryFilter
   if (filters?.brands && filters.brands.length > 0) {
     const brands = asLowerArrayLiteral(filters.brands);
     conditions.push(`(
-      LOWER(COALESCE(p.vendor, '')) = ANY(${brands})
+      LOWER(TRIM(COALESCE(p.brand, ''))) = ANY(${brands})
+      OR LOWER(COALESCE(p.vendor, '')) = ANY(${brands})
       OR EXISTS (
         SELECT 1
         FROM unnest(COALESCE(p.tags, ARRAY[]::text[])) AS t(tag)
@@ -311,14 +314,14 @@ async function getCollectionFacetsFromDb(
 ): Promise<CollectionFacets> {
   const brandRows = await sql.unsafe(`
     SELECT
-      LOWER(COALESCE(p.vendor, '')) AS value,
-      MIN(COALESCE(p.vendor, '')) AS display_name,
+      LOWER(TRIM(COALESCE(NULLIF(TRIM(p.brand), ''), p.vendor, ''))) AS value,
+      MIN(TRIM(COALESCE(NULLIF(TRIM(p.brand), ''), p.vendor, ''))) AS display_name,
       COUNT(DISTINCT p.id)::int AS count
     FROM product_category_assignments pca
     JOIN products p ON p.id = pca.product_id
     WHERE ${brandWhereClause}
-      AND COALESCE(p.vendor, '') <> ''
-    GROUP BY LOWER(COALESCE(p.vendor, ''))
+      AND TRIM(COALESCE(NULLIF(TRIM(p.brand), ''), p.vendor, '')) <> ''
+    GROUP BY LOWER(TRIM(COALESCE(NULLIF(TRIM(p.brand), ''), p.vendor, '')))
     ORDER BY count DESC
   `) as unknown as Array<{ value: string; display_name: string; count: number }>;
 
@@ -434,6 +437,7 @@ export async function getProductsByCategoryFromDB(
       p.handle,
       p.title,
       p.vendor,
+      p.brand,
       p.product_type,
       p.image_url,
       p.image_alt,

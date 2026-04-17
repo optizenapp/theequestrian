@@ -19,6 +19,7 @@ import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBa
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
 import ProductIdentifierMetaRow from '@/components/product/ProductIdentifierMetaRow';
 import { getProductIdentifiers } from '@/lib/products/product-identifiers';
+import { getProductBrandForDisplay } from '@/lib/db/product-brand';
 import {
   getPdpCroVariant,
   withPreservedPdpCroQuery,
@@ -190,7 +191,8 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
     relatedProducts.map((p) => [p.handle, relatedUrlMap.get(p.id) ?? `/products/${p.handle}`])
   );
   const showArcEquineGelPromo = resolvedProduct.handle === 'arcequine-complete-kit';
-  const identifiers = getProductIdentifiers(resolvedProduct);
+  const { brand: canonicalBrand, brandHubHandle } = await getProductBrandForDisplay(resolvedProduct.handle);
+  const identifiers = getProductIdentifiers(resolvedProduct, { canonicalBrand, brandHubHandle });
   const pdpCroVariant = getPdpCroVariant(resolvedProduct.handle, sp);
   const isCroTrialPdp = pdpCroVariant === 'cro1';
   const isCroTwoPdp = pdpCroVariant === 'cro2';
@@ -236,6 +238,8 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
             descriptionHtml={descriptionHtml}
             featureHighlights={featureHighlights}
             reviewBadgeStats={reviewBadgeStats}
+            canonicalBrand={canonicalBrand}
+            brandHubHandle={brandHubHandle}
           >
             <ProductReviewSection
               productId={resolvedProduct.id}
@@ -252,6 +256,8 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
             reviewBadgeStats={reviewBadgeStats}
             showArcEquineGelPromo={showArcEquineGelPromo}
             styleMode={isCroThreePdp ? 'cro3' : 'cro2'}
+            canonicalBrand={canonicalBrand}
+            brandHubHandle={brandHubHandle}
           />
         ) : (
         <article aria-labelledby="pdp-product-title">

@@ -1,6 +1,9 @@
 import type { ShopifyProduct } from '@/types/shopify';
 
 export interface ProductIdentifiers {
+  brand?: string;
+  /** When set, PDP may link the brand label to this path (e.g. `/brands/kentucky`). */
+  brandHref?: string;
   model?: string;
   upc?: string;
   sku?: string;
@@ -44,7 +47,10 @@ function extractMetafieldValue(
   return undefined;
 }
 
-export function getProductIdentifiers(product: ShopifyProduct): ProductIdentifiers {
+export function getProductIdentifiers(
+  product: ShopifyProduct,
+  options?: { canonicalBrand?: string | null; brandHubHandle?: string | null }
+): ProductIdentifiers {
   const variantEdges = product.variants?.edges ?? [];
   const firstSku = clean(variantEdges.find(({ node }) => clean(node.sku))?.node.sku);
   const firstBarcode = clean(variantEdges.find(({ node }) => clean(node.barcode))?.node.barcode);
@@ -70,7 +76,13 @@ export function getProductIdentifiers(product: ShopifyProduct): ProductIdentifie
   const model =
     metafieldModel || extractTagValue(product.tags, ['model:', 'model number:', 'model no:', 'model#:', 'mpn:']);
 
+  const brand = options?.canonicalBrand?.trim() || product.brand?.trim();
+  const hub = options?.brandHubHandle?.trim();
+  const brandHref = hub ? `/brands/${hub}` : undefined;
+
   return {
+    brand,
+    brandHref,
     model,
     upc,
     sku: firstSku,

@@ -47,6 +47,8 @@ export interface ShopifyProduct {
   };
   tags: string[];
   vendor: string;
+  /** Canonical brand from Postgres when hydrated on PDP */
+  brand?: string | null;
   productType: string;
   collections: {
     edges: Array<{

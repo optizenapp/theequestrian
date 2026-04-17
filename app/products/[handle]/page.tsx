@@ -21,6 +21,7 @@ import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBa
 import ProductIdentifierMetaRow from '@/components/product/ProductIdentifierMetaRow';
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
 import { getProductIdentifiers } from '@/lib/products/product-identifiers';
+import { getProductBrandForDisplay } from '@/lib/db/product-brand';
 import {
   getPdpCroVariant,
   withPreservedPdpCroQuery,
@@ -164,7 +165,8 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
   const featureHighlights = override?.use_headless_bullets && overrideBullets.length > 0
     ? overrideBullets
     : getProductBulletPoints(product.id);
-  const identifiers = getProductIdentifiers(product);
+  const { brand: canonicalBrand, brandHubHandle } = await getProductBrandForDisplay(product.handle);
+  const identifiers = getProductIdentifiers(product, { canonicalBrand, brandHubHandle });
   const pdpCroVariant = getPdpCroVariant(product.handle, sp);
   const isCroTrialPdp = pdpCroVariant === 'cro1';
   const isCroTwoPdp = pdpCroVariant === 'cro2';
@@ -209,6 +211,8 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
           descriptionHtml={descriptionHtml}
           featureHighlights={featureHighlights}
           reviewBadgeStats={reviewBadgeStats}
+          canonicalBrand={canonicalBrand}
+          brandHubHandle={brandHubHandle}
         >
           <ProductReviewSection
             productId={product.id}
@@ -224,6 +228,8 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
           featureHighlights={featureHighlights}
           reviewBadgeStats={reviewBadgeStats}
           styleMode={isCroThreePdp ? 'cro3' : 'cro2'}
+          canonicalBrand={canonicalBrand}
+          brandHubHandle={brandHubHandle}
         />
       ) : (
       <article aria-labelledby="pdp-product-title">

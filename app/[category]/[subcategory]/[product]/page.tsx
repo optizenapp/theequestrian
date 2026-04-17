@@ -41,6 +41,7 @@ import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBa
 import ProductIdentifierMetaRow from '@/components/product/ProductIdentifierMetaRow';
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
 import { getProductIdentifiers } from '@/lib/products/product-identifiers';
+import { getProductBrandForDisplay } from '@/lib/db/product-brand';
 import {
   getPdpCroVariant,
   withPreservedPdpCroQuery,
@@ -269,7 +270,8 @@ async function renderProductPage(
     ? overrideBullets
     : getProductBulletPoints(product.id);
   const showArcEquineGelPromo = product.handle === 'arcequine-complete-kit';
-  const identifiers = getProductIdentifiers(product);
+  const { brand: canonicalBrand, brandHubHandle } = await getProductBrandForDisplay(product.handle);
+  const identifiers = getProductIdentifiers(product, { canonicalBrand, brandHubHandle });
   const pdpCroVariant = getPdpCroVariant(product.handle, searchParams);
   const isCroTrialPdp = pdpCroVariant === 'cro1';
   const isCroTwoPdp = pdpCroVariant === 'cro2';
@@ -314,6 +316,8 @@ async function renderProductPage(
             descriptionHtml={descriptionHtml}
             featureHighlights={featureHighlights}
             reviewBadgeStats={reviewBadgeStats}
+            canonicalBrand={canonicalBrand}
+            brandHubHandle={brandHubHandle}
           >
             <LazySection
               fallback={<div className="h-96 bg-gray-50 animate-pulse rounded-lg" />}
@@ -336,6 +340,8 @@ async function renderProductPage(
             reviewBadgeStats={reviewBadgeStats}
             showArcEquineGelPromo={showArcEquineGelPromo}
             styleMode={isCroThreePdp ? 'cro3' : 'cro2'}
+            canonicalBrand={canonicalBrand}
+            brandHubHandle={brandHubHandle}
             afterDescription={
               <SizingGuideLink
                 vendor={product.vendor}

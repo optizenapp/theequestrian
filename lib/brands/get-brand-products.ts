@@ -73,17 +73,24 @@ function asLowerArrayLiteral(values: string[]): string {
   return `ARRAY[${escaped}]::text[]`;
 }
 
-function parseRules(rawRules: string | null, handle: string): BrandRule[] {
+function parseRules(rawRules: string | null, brand: BrandContentRow): BrandRule[] {
   if (!rawRules) {
-    return [{ column: 'HANDLE', relation: 'STARTS_WITH', condition: `${handle}-` }];
+    const label = (brand.breadcrumb_label?.trim() || brand.title.trim())
+      .replace(/^Shop\s+/i, '')
+      .replace(/^Shop\s+&?\s*Buy\s+/i, '')
+      .trim();
+    const rules: BrandRule[] = [];
+    if (label) rules.push({ column: 'BRAND', relation: 'EQUALS', condition: label });
+    rules.push({ column: 'HANDLE', relation: 'STARTS_WITH', condition: `${brand.handle}-` });
+    return rules;
   }
   try {
     const parsed = JSON.parse(rawRules) as BrandRule[];
     return Array.isArray(parsed) && parsed.length > 0
       ? parsed
-      : [{ column: 'HANDLE', relation: 'STARTS_WITH', condition: `${handle}-` }];
+      : parseRules(null, brand);
   } catch {
-    return [{ column: 'HANDLE', relation: 'STARTS_WITH', condition: `${handle}-` }];
+    return parseRules(null, brand);
   }
 }
 
@@ -112,6 +119,9 @@ function buildRuleClause(rule: BrandRule): string | null {
       ? `LOWER(COALESCE(p.handle, '')) = '${escaped}'`
       : `LOWER(COALESCE(p.handle, '')) LIKE '%${escaped}%'`;
   }
+  if (column === 'BRAND') {
+    return `LOWER(TRIM(COALESCE(p.brand, ''))) = '${escaped}'`;
+  }
   return null;
 }
 
@@ -120,7 +130,7 @@ function buildRuleClause(rule: BrandRule): string | null {
  * Does NOT include size/color sub-selects — those are added by buildWhereClause.
  */
 function buildBrandBaseClause(brand: BrandContentRow): string | null {
-  const clauses = parseRules(brand.rules, brand.handle)
+  const clauses = parseRules(brand.rules, brand)
     .map(buildRuleClause)
     .filter(Boolean) as string[];
   if (clauses.length === 0) return null;
@@ -141,7 +151,8 @@ function buildWhereClause(
   if (filters?.brands?.length) {
     const arr = asLowerArrayLiteral(filters.brands);
     conditions.push(`(
-      LOWER(COALESCE(p.vendor, '')) = ANY(${arr})
+      LOWER(TRIM(COALESCE(p.brand, ''))) = ANY(${arr})
+      OR LOWER(COALESCE(p.vendor, '')) = ANY(${arr})
       OR EXISTS (SELECT 1 FROM unnest(COALESCE(p.tags, ARRAY[]::text[])) AS t(tag) WHERE LOWER(tag) = ANY(${arr}))
     )`);
   }
@@ -185,13 +196,13 @@ async function getBrandFacetsFromDb(
   const [brandRows, sizeRows, colorRows] = await Promise.all([
     sql.unsafe(`
       SELECT
-        LOWER(COALESCE(p.vendor, '')) AS value,
-        MIN(COALESCE(p.vendor, '')) AS display_name,
+        LOWER(TRIM(COALESCE(NULLIF(TRIM(p.brand), ''), p.vendor, ''))) AS value,
+        MIN(TRIM(COALESCE(NULLIF(TRIM(p.brand), ''), p.vendor, ''))) AS display_name,
         COUNT(DISTINCT p.id)::int AS count
       FROM products p
       WHERE ${brandWhere}
-        AND COALESCE(p.vendor, '') <> ''
-      GROUP BY LOWER(COALESCE(p.vendor, ''))
+        AND TRIM(COALESCE(NULLIF(TRIM(p.brand), ''), p.vendor, '')) <> ''
+      GROUP BY LOWER(TRIM(COALESCE(NULLIF(TRIM(p.brand), ''), p.vendor, '')))
       ORDER BY count DESC
     `) as unknown as Array<{ value: string; display_name: string; count: number }>,
 
@@ -264,7 +275,7 @@ async function fetchBrandProductsFast(
     sql.unsafe(`
       SELECT
         p.id, p.handle, p.title, p.description,
-        p.vendor, p.product_type, p.tags,
+        p.vendor, p.brand, p.product_type, p.tags,
         p.image_url, p.image_alt,
         p.available_for_sale, p.shopify_created_at,
         pca.canonical_path
@@ -371,7 +382,7 @@ function buildFacetsInMemory(
 
   const brandCounts = new Map<string, { count: number; displayName: string }>();
   for (const p of withoutBrand) {
-    const display = p.vendor?.trim();
+    const display = p.brand?.trim() || p.vendor?.trim();
     if (!display) continue;
     const key = display.toLowerCase();
     const e = brandCounts.get(key);
@@ -401,7 +412,7 @@ async function fetchBrandProductsInMemory(
   const rowsResult = await sql.unsafe(`
     SELECT
       p.id, p.handle, p.title, p.description,
-      p.vendor, p.product_type, p.tags,
+      p.vendor, p.brand, p.product_type, p.tags,
       p.image_url, p.image_alt,
       p.available_for_sale, p.shopify_created_at,
       pca.canonical_path

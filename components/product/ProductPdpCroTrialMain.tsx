@@ -25,6 +25,8 @@ interface ProductPdpCroTrialMainProps {
   reviewBadgeStats: ReviewBadgeStats | null;
   /** Full review block below description. */
   children: ReactNode;
+  canonicalBrand?: string | null;
+  brandHubHandle?: string | null;
 }
 
 export default function ProductPdpCroTrialMain({
@@ -34,10 +36,12 @@ export default function ProductPdpCroTrialMain({
   featureHighlights,
   reviewBadgeStats,
   children,
+  canonicalBrand = null,
+  brandHubHandle = null,
 }: ProductPdpCroTrialMainProps) {
   const croSummaryLine = buildPdpSummaryLine(descriptionHtml, displayTitle);
   const croCarePlain = extractCareSectionPlainText(descriptionHtml);
-  const identifiers = getProductIdentifiers(product);
+  const identifiers = getProductIdentifiers(product, { canonicalBrand, brandHubHandle });
 
   return (
     <article aria-labelledby="pdp-product-title">

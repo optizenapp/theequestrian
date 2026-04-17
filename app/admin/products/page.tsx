@@ -9,6 +9,7 @@ interface ProductResult {
   handle: string;
   title: string;
   vendor: string | null;
+  brand: string | null;
   product_type: string | null;
   is_published_headless?: boolean;
 }
@@ -19,6 +20,8 @@ interface ProductContentResponse {
     handle: string;
     title: string;
     descriptionHtml: string;
+    vendor?: string | null;
+    brand?: string | null;
     images: Array<{ url: string; altText?: string | null }>;
   };
   override: {
@@ -64,6 +67,7 @@ export default function AdminProductContentPage() {
   const [useHeadlessDescription, setUseHeadlessDescription] = useState(false);
   const [useHeadlessBullets, setUseHeadlessBullets] = useState(false);
   const [useHeadlessSlug, setUseHeadlessSlug] = useState(false);
+  const [productBrand, setProductBrand] = useState('');
 
   useEffect(() => {
     loadCategories();
@@ -96,6 +100,7 @@ export default function AdminProductContentPage() {
     setUseHeadlessDescription(Boolean(data.override?.use_headless_description));
     setUseHeadlessBullets(Boolean(data.override?.use_headless_bullets));
     setUseHeadlessSlug(Boolean(data.override?.use_headless_slug));
+    setProductBrand(data.product?.brand?.trim() || '');
   };
 
   const searchProducts = async (mode: 'reset' | 'more' | 'all' = 'reset') => {
@@ -229,6 +234,7 @@ export default function AdminProductContentPage() {
           use_headless_description: useHeadlessDescription,
           use_headless_bullets: useHeadlessBullets,
           use_headless_slug: useHeadlessSlug,
+          brand: productBrand,
         }),
       });
 
@@ -238,7 +244,18 @@ export default function AdminProductContentPage() {
         return;
       }
       const data = await response.json();
-      setSelected((prev) => (prev ? { ...prev, override: data.override } : prev));
+      if (typeof data.brand === 'string' || data.brand === null) {
+        setProductBrand(data.brand?.trim() || '');
+      }
+      setSelected((prev) =>
+        prev
+          ? {
+              ...prev,
+              override: data.override,
+              product: { ...prev.product, brand: data.brand ?? prev.product.brand ?? null },
+            }
+          : prev
+      );
     } catch (error) {
       console.error('Failed to save product content:', error);
     } finally {
@@ -381,7 +398,9 @@ export default function AdminProductContentPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="text-xs text-gray-500">{product.vendor || '—'}</div>
+                  <div className="text-xs text-gray-500">
+                    {product.brand || product.vendor || '—'}
+                  </div>
                   <button
                     type="button"
                     onClick={() => loadProduct(product.handle)}
@@ -404,6 +423,23 @@ export default function AdminProductContentPage() {
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+              <label className="text-sm font-medium text-gray-700">Brand (canonical)</label>
+              <input
+                value={productBrand}
+                onChange={(event) => setProductBrand(event.target.value)}
+                placeholder="Matches products.brand in Postgres"
+                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              />
+              <p className="mt-1 text-xs text-gray-500">Shown on PDP with SKU / UPC; drives /brands after sync.</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700">Shopify vendor</label>
+              <div className="mt-2 rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                {selected.product.vendor?.trim() || '—'}
+              </div>
+              <p className="mt-1 text-xs text-gray-500">Read-only reference from Shopify / DB vendor field.</p>
+            </div>
             <div>
               <label className="text-sm font-medium text-gray-700">Title Override</label>
               <input

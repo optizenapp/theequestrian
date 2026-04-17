@@ -12,6 +12,8 @@ CREATE TABLE products (
   title TEXT NOT NULL,
   description TEXT,
   vendor TEXT,
+  brand TEXT,
+  brand_hub_handle TEXT,
   product_type TEXT,
   tags TEXT[] DEFAULT '{}',
   
@@ -36,6 +38,7 @@ CREATE TABLE products (
 -- Indexes for fast filtering and searching
 CREATE INDEX idx_handle ON products(handle);
 CREATE INDEX idx_vendor ON products(vendor);
+CREATE INDEX IF NOT EXISTS idx_products_brand_lower ON products (LOWER(TRIM(brand)));
 CREATE INDEX idx_product_type ON products(product_type);
 CREATE INDEX idx_tags ON products USING GIN(tags);
 CREATE INDEX idx_available ON products(available_for_sale);
@@ -52,6 +55,7 @@ BEGIN
     setweight(to_tsvector('english', COALESCE(NEW.title, '')), 'A') ||
     setweight(to_tsvector('english', COALESCE(NEW.description, '')), 'B') ||
     setweight(to_tsvector('english', COALESCE(NEW.vendor, '')), 'C') ||
+    setweight(to_tsvector('english', COALESCE(NEW.brand, '')), 'C') ||
     setweight(to_tsvector('english', COALESCE(array_to_string(NEW.tags, ' '), '')), 'D');
   RETURN NEW;
 END;

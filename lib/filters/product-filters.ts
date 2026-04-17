@@ -286,11 +286,14 @@ export function filterByBrand(
   if (brands.length === 0) return products;
 
   return products.filter((product) => {
-    // Check vendor (case-insensitive)
-    if (product.vendor && brands.some(b => b.toLowerCase() === product.vendor.toLowerCase())) {
+    const canonical = product.brand?.trim();
+    if (canonical && brands.some((b) => b.toLowerCase() === canonical.toLowerCase())) {
       return true;
     }
-    
+    if (product.vendor && brands.some((b) => b.toLowerCase() === product.vendor.toLowerCase())) {
+      return true;
+    }
+
     // Check tags (if the brand name matches a tag)
     // Note: Brand options from tags are usually capitalized, but tags in product are lowercase
     return product.tags.some(tag => 

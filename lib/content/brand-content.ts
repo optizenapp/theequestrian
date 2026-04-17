@@ -124,7 +124,7 @@ export function getBrandIndexDisplayName(brand: BrandContentRow): string {
 /**
  * Get allowed vendor names and tag values from published brands in the DB.
  * Used for the brand filter on category pages so only curated brands appear.
- * Parses the rules column (Shopify collection rule JSON) to extract VENDOR and TAG conditions.
+ * Parses the rules column (Shopify collection rule JSON) to extract VENDOR, BRAND, and TAG conditions.
  */
 export async function getAllowedBrandVendorsFromDb(): Promise<{
   vendors: string[];
@@ -146,8 +146,13 @@ export async function getAllowedBrandVendorsFromDb(): Promise<{
       const rules = JSON.parse(rulesStr) as Array<{ column?: string; condition?: string }>;
       if (!Array.isArray(rules)) continue;
       for (const rule of rules) {
-        if (rule.column === 'VENDOR' && rule.condition && !seenV.has(rule.condition)) {
-          seenV.add(rule.condition);
+        const col = rule.column?.toUpperCase();
+        if (
+          (col === 'VENDOR' || col === 'BRAND') &&
+          rule.condition &&
+          !seenV.has(rule.condition.toLowerCase())
+        ) {
+          seenV.add(rule.condition.toLowerCase());
           vendors.push(rule.condition);
         } else if (rule.column === 'TAG' && rule.condition) {
           const lower = rule.condition.toLowerCase();

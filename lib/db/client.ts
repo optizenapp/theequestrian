@@ -142,6 +142,7 @@ export async function initializeSchema(): Promise<void> {
         title TEXT NOT NULL,
         description TEXT,
         vendor TEXT,
+        brand TEXT,
         product_type TEXT,
         tags TEXT[] DEFAULT '{}',
         image_url TEXT,
@@ -153,12 +154,15 @@ export async function initializeSchema(): Promise<void> {
         search_vector tsvector
       )
     `;
-    
+    await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS brand TEXT`;
+    await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS brand_hub_handle TEXT`;
+
     // Create indexes
     console.log('[DB] Creating indexes...');
     const indexes = [
       'CREATE INDEX IF NOT EXISTS idx_handle ON products(handle)',
       'CREATE INDEX IF NOT EXISTS idx_vendor ON products(vendor)',
+      'CREATE INDEX IF NOT EXISTS idx_products_brand_lower ON products (LOWER(TRIM(brand)))',
       'CREATE INDEX IF NOT EXISTS idx_product_type ON products(product_type)',
       'CREATE INDEX IF NOT EXISTS idx_tags ON products USING GIN(tags)',
       'CREATE INDEX IF NOT EXISTS idx_available ON products(available_for_sale)',
