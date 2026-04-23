@@ -1,5 +1,4 @@
 import { sql } from '@vercel/postgres';
-import { Resend } from 'resend';
 import { getProductsByHandles } from '@/lib/shopify/products-by-handles';
 import type { EmailBlock } from '@/lib/email-platform/types';
 import { getTemplateVersion } from '@/lib/email-platform/templates';
@@ -9,8 +8,7 @@ import { selectProductsForAutoWeekly } from './product-selection';
 import { generateAutoWeeklyIntro } from './intro-generator';
 import { generateAutoWeeklySubjectLine } from './subject-line-generator';
 import { generateAutoWeeklyHeading } from './heading-generator';
-
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
+import { sendSesEmail } from '@/lib/email-platform/ses-mailer';
 const APPROVAL_EMAIL = 'jono@theequestrian.com.au';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au';
 const ADMIN_CAMPAIGNS_URL = `${SITE_URL}/admin/email/campaigns`;
@@ -216,10 +214,9 @@ export async function buildAutoWeeklyCampaign(): Promise<BuildResult> {
   const campaignId = inserted.rows[0]?.id as string;
 
   let approvalEmailSent = false;
-  if (RESEND_API_KEY) {
-    const resend = new Resend(RESEND_API_KEY);
-    const { error } = await resend.emails.send({
-      from: 'The Equestrian <support@theequestrian.com.au>',
+  try {
+    await sendSesEmail({
+      from: process.env.SES_AWS_FROM_EMAIL || 'support@theequestrian.com.au',
       to: [APPROVAL_EMAIL],
       subject: `Email campaign ready for approval: ${name}`,
       html: `
@@ -230,10 +227,9 @@ export async function buildAutoWeeklyCampaign(): Promise<BuildResult> {
         <p>If approved, it will be sent at the scheduled time. If not approved, it will not be sent.</p>
       `,
     });
-    approvalEmailSent = !error;
-    if (error) {
-      console.error('[auto-weekly] Failed to send approval email:', error);
-    }
+    approvalEmailSent = true;
+  } catch (error) {
+    console.error('[auto-weekly] Failed to send approval email:', error);
   }
 
   return {

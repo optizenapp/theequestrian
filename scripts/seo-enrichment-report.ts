@@ -3,7 +3,7 @@
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import { sql } from '@vercel/postgres';
-import { Resend } from 'resend';
+import { sendSesEmail } from '@/lib/email-platform/ses-mailer';
 
 config({ path: resolve(process.cwd(), '.env.local') });
 config({ path: resolve(process.cwd(), '.env') });
@@ -108,18 +108,13 @@ async function sendEmail(input: {
   html: string;
   recipients: string[];
 }) {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    throw new Error('RESEND_API_KEY is required to send report email.');
-  }
-  const fromEmail = process.env.RESEND_FROM_EMAIL || 'noreply@theequestrian.com.au';
-  const resend = new Resend(apiKey);
-  await resend.emails.send({
+  const fromEmail = process.env.SES_AWS_FROM_EMAIL || process.env.RESEND_FROM_EMAIL || 'noreply@theequestrian.com.au';
+  await sendSesEmail({
     from: `The Equestrian <${fromEmail}>`,
     to: input.recipients,
     subject: input.subject,
-    text: input.text,
     html: input.html,
+    text: input.text,
   });
 }
 

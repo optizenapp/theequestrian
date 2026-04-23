@@ -21,66 +21,23 @@ export type ShopifyOrderCancellationState = {
   displayFulfillmentStatus: string;
 };
 
-function getResendApiKey(): string {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) {
-    throw new Error('RESEND_API_KEY is not set');
-  }
-  return key;
-}
-
 function toOrderGid(orderId: string): string {
   return orderId.startsWith('gid://shopify/Order/') ? orderId : `gid://shopify/Order/${orderId}`;
 }
 
 export function extractResendEmailId(sendResult: unknown): string | null {
-  if (!sendResult || typeof sendResult !== 'object') {
-    return null;
+  if (typeof sendResult === 'string' && sendResult.length > 0) {
+    return sendResult;
   }
-
-  const asRecord = sendResult as Record<string, unknown>;
-  const directId = asRecord.id;
-  if (typeof directId === 'string' && directId.length > 0) {
-    return directId;
-  }
-
-  const data = asRecord.data;
-  if (data && typeof data === 'object') {
-    const nestedId = (data as Record<string, unknown>).id;
-    if (typeof nestedId === 'string' && nestedId.length > 0) {
-      return nestedId;
-    }
-  }
-
   return null;
 }
 
 async function cancelResendScheduledEmail(resendEmailId: string): Promise<{ ok: boolean; message: string }> {
-  try {
-    const response = await fetch(`https://api.resend.com/emails/${resendEmailId}/cancel`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${getResendApiKey()}`,
-        'Content-Type': 'application/json',
-      },
-      cache: 'no-store',
-    });
-
-    if (response.ok) {
-      return { ok: true, message: 'Cancelled in Resend' };
-    }
-
-    const responseBody = await response.text();
-    return {
-      ok: false,
-      message: `Resend cancel failed (${response.status}): ${responseBody || response.statusText}`,
-    };
-  } catch (error) {
-    return {
-      ok: false,
-      message: `Resend cancel failed: ${error instanceof Error ? error.message : String(error)}`,
-    };
-  }
+  void resendEmailId;
+  return {
+    ok: true,
+    message: 'Cancelled in DB only (SES has no scheduled-send cancel API)',
+  };
 }
 
 async function loadScheduledEmailById(emailSendId: string): Promise<ScheduledEmailRow | null> {

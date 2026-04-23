@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { Resend } from 'resend';
 import { sql } from '@vercel/postgres';
 import { shopifyAdminFetch } from '@/lib/shopify/admin-client';
 import { getProductCanonicalUrl } from '@/lib/shopify/products';
 import { applyTemplate, getReviewEmailSettings } from '@/lib/reviews/email-settings';
 import {
   cancelScheduledReviewEmailsByOrderId,
-  extractResendEmailId,
   getShopifyOrderCancellationState,
   shouldCancelReviewScheduleFromOrderState,
 } from '@/lib/reviews/review-email-cancellation';
@@ -17,8 +15,7 @@ import {
   type ReviewEmailRenderData,
   type ReviewEmailProduct,
 } from '@/lib/reviews/email-template';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { sendSesEmail } from '@/lib/email-platform/ses-mailer';
 const SUPPORTED_TOPICS = new Set(['orders/create', 'orders/fulfilled', 'orders/cancelled', 'refunds/create']);
 
 /**
@@ -384,14 +381,15 @@ async function sendReviewRequestEmail({
   }
 
   try {
-    const sendResult = await resend.emails.send({
+    if (scheduledAt) {
+      console.log('ℹ️ SES does not support provider-side scheduled send; scheduled_at tracked in DB only');
+    }
+    const resendEmailId = await sendSesEmail({
       from: `${settings.fromName} <${settings.fromEmail}>`,
-      to: customerEmail,
+      to: [customerEmail],
       subject,
       html,
-      ...(scheduledAt ? { scheduledAt } : {}),
     });
-    const resendEmailId = extractResendEmailId(sendResult);
 
     if (emailSendId) {
       try {

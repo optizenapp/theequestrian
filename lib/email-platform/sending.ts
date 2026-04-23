@@ -1,26 +1,7 @@
 import { sql } from '@vercel/postgres';
-import { Resend } from 'resend';
 import { getTemplateVersion, renderTemplateContent, addUtmParamsToEmailHtml, proxyEmailImages } from '@/lib/email-platform/templates';
 import { buildUnsubscribeUrl } from '@/lib/email-platform/unsubscribe';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-function extractResendId(sendResult: unknown): string | null {
-  if (!sendResult || typeof sendResult !== 'object') {
-    return null;
-  }
-  const root = sendResult as Record<string, unknown>;
-  if (typeof root.id === 'string' && root.id) {
-    return root.id;
-  }
-  if (root.data && typeof root.data === 'object') {
-    const nested = root.data as Record<string, unknown>;
-    if (typeof nested.id === 'string' && nested.id) {
-      return nested.id;
-    }
-  }
-  return null;
-}
+import { sendSesEmail } from '@/lib/email-platform/ses-mailer';
 
 export async function shouldSuppressContact(contactId: string): Promise<{ suppress: boolean; reason?: string }> {
   const subscription = await sql`
@@ -275,22 +256,21 @@ export async function sendQueuedCampaignRecipients(input: {
     const sendId = sendRecord.rows[0]?.id as string;
 
     try {
-      const providerResult = await resend.emails.send({
+      const providerMessageId = await sendSesEmail({
         from: `${templateVersion.fromName || 'The Equestrian'} <${templateVersion.fromEmail || 'support@theequestrian.com.au'}>`,
-        to: email,
+        to: [email],
         subject,
         html: rendered.html,
-        headers: {
-          'List-Unsubscribe': `<${variables.unsubscribeUrl}>`,
-          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-        },
+        headers: [
+          { name: 'List-Unsubscribe', value: `<${variables.unsubscribeUrl}>` },
+          { name: 'List-Unsubscribe-Post', value: 'List-Unsubscribe=One-Click' },
+        ],
         tags: [
           { name: 'campaign_id', value: input.campaignId },
           { name: 'campaign_recipient_id', value: recipientId },
           { name: 'template_version_id', value: templateVersion.id },
         ],
       });
-      const providerMessageId = extractResendId(providerResult);
 
       await sql`
         UPDATE email_campaign_recipients
