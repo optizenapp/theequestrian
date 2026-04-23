@@ -32,7 +32,7 @@ export async function GET(
       );
     }
 
-    const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au').replace(
+    const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(
       /\/+$/,
       ''
     );

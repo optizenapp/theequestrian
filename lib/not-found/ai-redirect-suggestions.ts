@@ -119,7 +119,7 @@ export function parseSuggestionInput(payload: {
   baseUrl?: string;
 }): SuggestionInputRow[] {
   const byPath = new Map<string, SuggestionInputRow>();
-  const baseOrigin = new URL(payload.baseUrl || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3003')
+  const baseOrigin = new URL(payload.baseUrl || process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au')
     .origin;
 
   if (payload.csvText && payload.csvText.trim()) {

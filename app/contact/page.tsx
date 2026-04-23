@@ -2,9 +2,14 @@ import { Metadata } from 'next';
 import { ContactForm } from '@/components/contact/ContactForm';
 import { generateContactPageSchema } from '@/lib/utils/site-schema';
 
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
+
 export const metadata: Metadata = {
   title: 'Contact Us | The Equestrian',
   description: 'Get in touch with The Equestrian. We\'re here to help with any questions about our products, orders, or services.',
+  alternates: {
+    canonical: `${siteUrl}/contact`,
+  },
 };
 
 export default function ContactPage() {

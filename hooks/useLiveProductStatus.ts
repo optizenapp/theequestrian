@@ -166,6 +166,10 @@ export function useLiveProductStatusOptimized(
 
   useEffect(() => {
     productsRef.current = products;
+    // Keep rendered cards in sync with the latest server payload even when
+    // product IDs are unchanged but fields like images have been refreshed.
+    setHydratedProducts(products);
+    setIsLoading(products.length > 0);
   }, [products]);
 
   useEffect(() => {

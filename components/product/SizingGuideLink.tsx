@@ -6,6 +6,8 @@ interface SizingGuideLinkProps {
   productType: string | null | undefined;
   productTitle?: string | null | undefined;
   productHandle?: string | null | undefined;
+  /** Tighter block for use beside the buy box (CRO PDP trial). */
+  variant?: 'default' | 'compact';
 }
 
 /**
@@ -19,6 +21,7 @@ export function SizingGuideLink({
   productType,
   productTitle,
   productHandle,
+  variant = 'default',
 }: SizingGuideLinkProps) {
   // Get the appropriate sizing URL
   const specificSizingUrl = getSizingUrl({
@@ -35,6 +38,26 @@ export function SizingGuideLink({
   const description = specificSizingUrl 
     ? 'View our detailed sizing charts to find your perfect fit.'
     : 'Find the perfect fit with our comprehensive sizing guides.';
+
+  if (variant === 'compact') {
+    return (
+      <div className="rounded-xl border border-blue-200 bg-blue-50/80 p-4">
+        <h3 className="text-base font-bold text-gray-900 mb-1">Need help with sizing?</h3>
+        <p className="text-sm text-gray-600 mb-3">
+          {description} Exchanges for size are subject to our returns policy.
+        </p>
+        <Link
+          href={finalUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-900"
+        >
+          {label}
+          <span aria-hidden>↗</span>
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 my-8">

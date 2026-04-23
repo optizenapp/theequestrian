@@ -2,7 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { neon } from '@neondatabase/serverless';
 import { loadShippingRates, resolveShippingOffset, normalizeTags } from '@/lib/shipping/rates';
-import { getMarketplaceVendorsWithPriceSyncEnabled } from '@/lib/inventory/vendor-sync/repository';
+import { fetchVendorProduct } from '@/lib/shopify/vendor-shopify-rest';
+import {
+  canRunReconcile,
+  getActiveMapsForMarketplaceProduct,
+  getMarketplaceVendorsWithPriceSyncEnabled,
+  getReconcilePriceConnectionsByMarketplaceVendor,
+  markReconcileRun,
+} from '@/lib/inventory/vendor-sync/repository';
 
 const SHOPIFY_WEBHOOK_SECRET = process.env.SHOPIFY_WEBHOOK_SECRET || '';
 const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || '';
@@ -54,6 +61,91 @@ async function updateVariantPrice(variantId: string, price: string, compareAtPri
   return response.json();
 }
 
+type MarketplaceWebhookVariant = {
+  id: number;
+  price: string;
+  compare_at_price?: string | null;
+};
+
+type MarketplaceWebhookProduct = {
+  id: number;
+  title?: string;
+  vendor?: string;
+  tags?: string | string[];
+  variants?: MarketplaceWebhookVariant[];
+};
+
+async function reconcileDirectVendorPriceDrift(
+  product: MarketplaceWebhookProduct,
+  shippingOffset: number,
+  vendorName: string
+): Promise<number> {
+  const connections = await getReconcilePriceConnectionsByMarketplaceVendor(vendorName);
+  if (connections.length === 0) return 0;
+
+  const marketplaceVariantMap = new Map<string, MarketplaceWebhookVariant>();
+  for (const variant of product.variants || []) {
+    marketplaceVariantMap.set(String(variant.id), variant);
+  }
+
+  let reconciled = 0;
+  for (const connection of connections) {
+    if (!canRunReconcile(connection)) continue;
+
+    const maps = await getActiveMapsForMarketplaceProduct(connection.id, String(product.id));
+    if (maps.length === 0) continue;
+
+    const vendorProductIds = Array.from(new Set(maps.map((m) => m.vendor_shopify_product_id)));
+    const vendorVariantMap = new Map<string, { price: string; compare_at_price?: string | null }>();
+
+    for (const vendorProductId of vendorProductIds) {
+      const vendorProduct = await fetchVendorProduct(
+        connection.shop_domain,
+        connection.access_token,
+        Number(vendorProductId)
+      );
+      for (const vv of vendorProduct.variants) {
+        vendorVariantMap.set(String(vv.id), { price: vv.price, compare_at_price: vv.compare_at_price });
+      }
+    }
+
+    let touched = false;
+    for (const mapRow of maps) {
+      const vendorVariant = vendorVariantMap.get(mapRow.vendor_shopify_variant_id);
+      const marketplaceVariant = marketplaceVariantMap.get(mapRow.marketplace_variant_id);
+      if (!vendorVariant || !marketplaceVariant) continue;
+
+      const basePrice = parseFloat(vendorVariant.price);
+      const currentPrice = parseFloat(marketplaceVariant.price);
+      if (Number.isNaN(basePrice) || Number.isNaN(currentPrice)) continue;
+
+      const desiredPrice = (basePrice + shippingOffset).toFixed(2);
+      if (Math.abs(currentPrice - parseFloat(desiredPrice)) < 0.01) {
+        continue;
+      }
+
+      const vendorCompare = vendorVariant.compare_at_price
+        ? parseFloat(String(vendorVariant.compare_at_price))
+        : null;
+      let desiredCompareAt: string | null = null;
+      if (vendorCompare != null && !Number.isNaN(vendorCompare) && vendorCompare > basePrice) {
+        const ratio = basePrice / vendorCompare;
+        desiredCompareAt = (parseFloat(desiredPrice) / ratio).toFixed(2);
+      }
+
+      await updateVariantPrice(mapRow.marketplace_variant_id, desiredPrice, desiredCompareAt);
+      reconciled += 1;
+      touched = true;
+    }
+
+    if (touched) {
+      await markReconcileRun(connection.id);
+    }
+  }
+
+  return reconciled;
+}
+
 /**
  * Shopify Product Update Webhook
  * 
@@ -77,7 +169,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
 
-    const product = JSON.parse(rawBody);
+    const product = JSON.parse(rawBody) as MarketplaceWebhookProduct;
     const productId = product.id;
     const vendor = product.vendor || '';
     const tags = normalizeTags(product.tags);
@@ -88,11 +180,18 @@ export async function POST(req: NextRequest) {
     const directPriceVendors = await getMarketplaceVendorsWithPriceSyncEnabled();
     const vendorNorm = (vendor || '').toLowerCase().trim();
     if (directPriceVendors.some((x) => x.toLowerCase().trim() === vendorNorm)) {
-      console.log(`[Shopify Webhook] Skipping offset: vendor uses direct vendor-store price sync (${vendor})`);
+      const rates = await loadShippingRates();
+      const { shippingOffset } = resolveShippingOffset(vendor, tags, rates);
+      const offset = shippingOffset ?? 0;
+      const reconciled = await reconcileDirectVendorPriceDrift(product, offset, vendor);
+      console.log(
+        `[Shopify Webhook] Direct sync vendor (${vendor}) reconcile completed; variants corrected: ${reconciled}`
+      );
       return NextResponse.json({
         ok: true,
         skipped: true,
-        reason: 'vendor_direct_price_sync',
+        reason: 'vendor_direct_price_sync_reconcile',
+        reconciled,
         processingTime: Date.now() - startTime,
       });
     }
@@ -190,7 +289,7 @@ export async function POST(req: NextRequest) {
       }
 
       // Update the variant price
-      await updateVariantPrice(variant.id, newPrice, newCompareAt);
+      await updateVariantPrice(String(variant.id), newPrice, newCompareAt);
       
       // Log to audit database
       await sql`

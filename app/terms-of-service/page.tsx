@@ -2,9 +2,14 @@ import { Metadata } from 'next';
 import { PolicyLayout } from '@/components/policy/PolicyLayout';
 import { generatePolicyPageSchema } from '@/lib/utils/site-schema';
 
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
+
 export const metadata: Metadata = {
   title: 'Terms of Service | The Equestrian',
   description: 'Read our terms of service to understand the conditions of use for The Equestrian marketplace.',
+  alternates: {
+    canonical: `${siteUrl}/terms-of-service`,
+  },
 };
 
 export default function TermsOfServicePage() {

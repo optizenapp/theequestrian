@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
 }
 
 async function sendAdminNotification(review: any) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au';
   const adminEmail = process.env.CONTACT_EMAIL || 'support@theequestrian.com.au';
   
   // Generate star rating display

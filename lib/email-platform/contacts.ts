@@ -1,4 +1,9 @@
 import { sql } from '@vercel/postgres';
+import {
+  appendCustomerToSheet,
+  isCustomerSheetSyncEnabled,
+  replaceCustomerSheetRows,
+} from '@/lib/email-platform/google-sheets-sync';
 
 type ShopifyCustomer = {
   id: string;
@@ -7,6 +12,7 @@ type ShopifyCustomer = {
   lastName: string | null;
   tags: string[];
   acceptsMarketing: boolean;
+  postcode?: string | null;
 };
 
 function normalizeEmail(email: string): string {
@@ -19,6 +25,42 @@ function toShopifyNumericId(gidOrNumeric: string): string {
     return gidOrNumeric.slice(prefix.length);
   }
   return gidOrNumeric;
+}
+
+async function hasPurchasesForContact(email: string, shopifyCustomerId: string | null): Promise<boolean> {
+  const result = await sql`
+    SELECT EXISTS (
+      SELECT 1
+      FROM customer_order_facts
+      WHERE customer_email = ${email}
+        OR (${shopifyCustomerId} IS NOT NULL AND shopify_customer_id = ${shopifyCustomerId})
+    ) AS has_purchases
+  `;
+  return result.rows[0]?.has_purchases === true || result.rows[0]?.has_purchases === 't';
+}
+
+function extractPostcode(metadata: Record<string, unknown>): string | null {
+  const directCandidates = ['postcode', 'postalCode', 'zip', 'shopifyPostcode'];
+  for (const key of directCandidates) {
+    const value = metadata[key];
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value.trim();
+    }
+  }
+
+  const nestedCandidates = ['shopifyDefaultAddress', 'default_address', 'defaultAddress'];
+  for (const key of nestedCandidates) {
+    const node = metadata[key];
+    if (!node || typeof node !== 'object') {
+      continue;
+    }
+    const zip = (node as Record<string, unknown>).zip;
+    if (typeof zip === 'string' && zip.trim().length > 0) {
+      return zip.trim();
+    }
+  }
+
+  return null;
 }
 
 export async function upsertEmailContact(input: {
@@ -36,6 +78,7 @@ export async function upsertEmailContact(input: {
     : null;
   const metadata = input.metadata || {};
   const source = input.source || 'import';
+  const createdAtIso = new Date().toISOString();
 
   const result = await sql`
     INSERT INTO email_contacts (
@@ -64,10 +107,11 @@ export async function upsertEmailContact(input: {
       accepts_marketing = EXCLUDED.accepts_marketing,
       metadata = email_contacts.metadata || EXCLUDED.metadata,
       updated_at = NOW()
-    RETURNING id
+    RETURNING id, (xmax = 0) AS inserted
   `;
 
   const contactId = result.rows[0]?.id as string;
+  const inserted = result.rows[0]?.inserted === true || result.rows[0]?.inserted === 't';
 
   if (shopifyCustomerId) {
     await sql`
@@ -118,7 +162,72 @@ export async function upsertEmailContact(input: {
       updated_at = NOW()
   `;
 
+  if (inserted && isCustomerSheetSyncEnabled()) {
+    try {
+      const hasPurchases = await hasPurchasesForContact(email, shopifyCustomerId);
+      await appendCustomerToSheet({
+        email,
+        firstName: input.firstName ?? null,
+        lastName: input.lastName ?? null,
+        shopifyCustomerId,
+        countryCode: 'AU',
+        postcode: extractPostcode(metadata),
+        acceptsMarketing: input.acceptsMarketing !== false,
+        customerType: hasPurchases ? 'purchaser' : 'non_purchaser',
+        source,
+        createdAtIso,
+        metadata,
+      });
+    } catch (error) {
+      console.error('[email-contact-sync] failed to append new contact to Google Sheet', {
+        email,
+        source,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
   return { contactId };
+}
+
+export async function backfillCustomerSheetFromContacts(): Promise<{ syncedRows: number }> {
+  if (!isCustomerSheetSyncEnabled()) {
+    throw new Error('Google Sheets customer sync is not configured');
+  }
+
+  const result = await sql`
+    SELECT
+      c.primary_email,
+      c.first_name,
+      c.last_name,
+      c.shopify_customer_id,
+      c.accepts_marketing,
+      c.created_at,
+      c.metadata,
+      COALESCE(s.source, 'import') AS source,
+      COALESCE(m.order_count, 0) AS order_count
+    FROM email_contacts c
+    LEFT JOIN email_subscriptions s ON s.contact_id = c.id
+    LEFT JOIN customer_aggregate_metrics m ON m.contact_id = c.id
+    ORDER BY c.created_at ASC
+  `;
+
+  const rows = result.rows.map((row) => ({
+    metadata: (row.metadata as Record<string, unknown> | null) || {},
+    email: row.primary_email as string,
+    firstName: (row.first_name as string | null) ?? null,
+    lastName: (row.last_name as string | null) ?? null,
+    shopifyCustomerId: (row.shopify_customer_id as string | null) ?? null,
+    countryCode: 'AU' as const,
+    postcode: extractPostcode(((row.metadata as Record<string, unknown> | null) || {})),
+    acceptsMarketing: (row.accepts_marketing as boolean | null) !== false,
+    customerType: Number(row.order_count || 0) > 0 ? ('purchaser' as const) : ('non_purchaser' as const),
+    source: (row.source as string | null) || 'import',
+    createdAtIso: new Date(row.created_at as string).toISOString(),
+  }));
+
+  await replaceCustomerSheetRows(rows);
+  return { syncedRows: rows.length };
 }
 
 export async function upsertContactFromShopifyCustomer(
@@ -135,7 +244,10 @@ export async function upsertContactFromShopifyCustomer(
     shopifyCustomerId: customer.id,
     acceptsMarketing: customer.acceptsMarketing,
     source: 'shopify_sync',
-    metadata: { shopifyTags: customer.tags },
+    metadata: {
+      shopifyTags: customer.tags,
+      shopifyPostcode: customer.postcode ?? null,
+    },
   });
 }
 

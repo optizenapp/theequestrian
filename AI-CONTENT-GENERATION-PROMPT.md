@@ -45,17 +45,23 @@ You will receive a request with:
 - **Constraint**: 1-2 sentences max.
 
 #### E. `long_description` (HTML - Critical)
-You must generate **Semantic HTML** stored as a text string.
+You must generate **Semantic HTML** stored as a text string. This is the content **below the product grid**.
 
 **Structure**:
 1. `<h2>` opening heading.
 2. `<p>` introduction paragraph (2-3 sentences).
-3. `<h3>` "What Makes Great [Category]?"
-4. `<ul>` with 4x `<li><strong>Feature:</strong> Benefit</li>` points.
-5. `<h3>` "Shop by Type" or "Usage Guide".
-6. `<p>` closing with internal links (placeholders if specific URLs aren't known, or generic `/parent/child` structure).
+3. `<h3>` "What Makes Great [Category]?" (or equivalent topical heading).
+4. **Required:** `<ul>` with at least **4** `<li>` items (use `<li><strong>Feature:</strong> Benefit</li>` or plain `<li>` with clear benefit text). This bullet block must appear in the below-grid body so shoppers can scan key points quickly.
+5. `<h3>` "Shop by Type", "Usage Guide", or another topical `<h3>` cluster section.
+6. Additional `<p>` and/or `<h3>` sections as needed for the category.
 
-**Constraint**: No `<h1>`, no `<script>`, no inline styles. Link text must be descriptive entities (e.g., "winter rugs" not "click here").
+**Internal links (required)**:
+- Embed **at least 4** internal links using `<a href="/path">descriptive anchor text</a>` across **`short_description` + `long_description` combined** (relative paths only, starting with `/`).
+- **Priority:** link to sibling or child categories under the **same parent** first (e.g. for `/horse/pads/half-pads`, prefer `/horse/pads`, `/horse/pads/gel-pads`, `/horse/pads/sheepskin`, etc.).
+- If fewer than four same-tree targets exist, add the remainder from the **closest related** category (e.g. `/horse/tack`, `/horse/saddles`).
+- Do not use "click here" or bare URLs as anchor text.
+
+**Constraint**: No `<h1>`, no `<script>`, no inline styles. Link text must be descriptive entities (e.g., "gel saddle pads" not "click here").
 
 #### F. `faq_items` (JSONB)
 Generate a valid JSON array with **2 high-value Q&A pairs**.

@@ -10,11 +10,24 @@ CREATE TABLE IF NOT EXISTS vendor_shop_connections (
     CHECK (inventory_strategy IN ('single_location', 'summed_locations')),
   primary_location_id TEXT,
   allowed_location_ids JSONB DEFAULT '[]'::jsonb,
+  sync_inventory BOOLEAN NOT NULL DEFAULT true,
   sync_price BOOLEAN NOT NULL DEFAULT false,
+  reconcile_enabled BOOLEAN NOT NULL DEFAULT false,
+  reconcile_cooldown_seconds INTEGER NOT NULL DEFAULT 20,
+  last_reconcile_at TIMESTAMPTZ,
   is_active BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+ALTER TABLE vendor_shop_connections
+  ADD COLUMN IF NOT EXISTS sync_inventory BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE vendor_shop_connections
+  ADD COLUMN IF NOT EXISTS reconcile_enabled BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE vendor_shop_connections
+  ADD COLUMN IF NOT EXISTS reconcile_cooldown_seconds INTEGER NOT NULL DEFAULT 20;
+ALTER TABLE vendor_shop_connections
+  ADD COLUMN IF NOT EXISTS last_reconcile_at TIMESTAMPTZ;
 
 CREATE INDEX IF NOT EXISTS idx_vendor_shop_connections_active
   ON vendor_shop_connections (is_active) WHERE is_active = true;

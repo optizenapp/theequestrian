@@ -1,8 +1,20 @@
 import { env } from '@/lib/env';
 import { getGmcIntegration, saveGmcFeedConfig } from '@/lib/db/gmc';
 import { getValidAccessToken } from '@/lib/gmc/oauth';
+import { getGmcS3Config } from '@/lib/gmc/s3';
 
 const CONTENT_API_BASE = 'https://shoppingcontent.googleapis.com/content/v2.1';
+
+function getConfiguredGmcFeedUrl(): string {
+  const explicitFeedUrl = process.env.GMC_FEED_URL?.trim();
+  if (explicitFeedUrl) {
+    return explicitFeedUrl;
+  }
+
+  const { bucket, region, key } = getGmcS3Config();
+  const safeKey = key.split('/').map(encodeURIComponent).join('/');
+  return `https://${bucket}.s3.${region}.amazonaws.com/${safeKey}`;
+}
 
 export function getGmcBaseUrl(): string {
   const baseUrl = env.GMC_BASE_URL || env.NEXT_PUBLIC_SITE_URL;
@@ -20,7 +32,7 @@ export async function ensureGmcDatafeed() {
   }
 
   const accessToken = await getValidAccessToken();
-  const feedUrl = `${getGmcBaseUrl()}/api/feeds/gmc`;
+  const feedUrl = getConfiguredGmcFeedUrl();
   const feedName = 'The Equestrian - Dynamic Products';
 
   if (integration?.feed_id && integration.feed_fetch_url === feedUrl) {

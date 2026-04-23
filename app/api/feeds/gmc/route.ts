@@ -194,8 +194,8 @@ function stripGid(gid: string) {
 const GMC_STUB_CACHE = 'public, max-age=60, s-maxage=60, stale-while-revalidate=120';
 
 export async function GET(request: NextRequest) {
-  // TEMPORARY: GMC feed disabled - moving to S3
-  // This endpoint will be re-enabled once S3 migration is complete
+  // Deprecated: Merchant Center should fetch from the S3 feed URL.
+  // This endpoint intentionally serves a stub to avoid dual-feed drift.
   const baseUrl = getGmcBaseUrl();
 
   const xml = [
@@ -204,7 +204,7 @@ export async function GET(request: NextRequest) {
     '<channel>',
     '<title>The Equestrian Product Feed</title>',
     `<link>${escapeXml(baseUrl)}</link>`,
-    '<description>Feed temporarily unavailable - migrating to S3</description>',
+    '<description>Deprecated endpoint. Use the S3-managed GMC feed URL configured in Merchant Center.</description>',
     '</channel>',
     '</rss>',
   ].join('');

@@ -4,12 +4,15 @@ import { useCart } from './cart-context';
 import Image from 'next/image';
 import Link from 'next/link';
 import { TrustSignals } from '@/components/TrustSignals';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FaCcVisa, FaCcMastercard, FaCcPaypal } from 'react-icons/fa';
 import { SiAfterpay, SiShopify } from 'react-icons/si';
 import { ShopifyProduct } from '@/types/shopify';
 import { normalizeCheckoutUrl } from '@/lib/shopify/cart-utils';
 import { trackGaEvent } from '@/lib/analytics/ga4';
+import {
+  bindDecoratedCheckoutLink,
+} from '@/lib/analytics/ga4-linker';
 
 interface CartPageContentProps {
   recommendedProducts?: ShopifyProduct[];
@@ -25,6 +28,7 @@ export function CartPageContent({
   const { cart, addCartItem, updateCartItem, removeCartItem } = useCart();
   const [showAllRecommendations, setShowAllRecommendations] = useState(false);
   const [addingToCartId, setAddingToCartId] = useState<string | null>(null);
+  const checkoutLinkRef = useRef<HTMLAnchorElement | null>(null);
 
   const itemCount = cart?.totalQuantity || 0;
   
@@ -45,6 +49,27 @@ export function CartPageContent({
   deliveryDateEnd.setDate(deliveryDateEnd.getDate() + 5);
   const deliveryOptions = { month: 'short', day: 'numeric' } as const;
   const deliveryString = `${deliveryDateStart.toLocaleDateString('en-US', deliveryOptions)} - ${deliveryDateEnd.toLocaleDateString('en-US', deliveryOptions)}`;
+
+  const checkoutHref =
+    cart && cart.lines.edges.length > 0
+      ? normalizeCheckoutUrl(cart.checkoutUrl)
+      : '';
+
+  useEffect(() => {
+    const link = checkoutLinkRef.current;
+    if (!link || !checkoutHref || !cart) return;
+
+    return bindDecoratedCheckoutLink(link, {
+      source: 'cart_page',
+      onPlainLeftClick: () =>
+        trackGaEvent('begin_checkout', {
+          currency: cart.cost.totalAmount.currencyCode,
+          value: total,
+          item_count: cart.totalQuantity,
+          source: 'cart_page',
+        }),
+    });
+  }, [cart, checkoutHref, total]);
 
   const handleAddRecommendation = async (product: ShopifyProduct) => {
     // Get the first variant ID
@@ -86,15 +111,10 @@ export function CartPageContent({
                 {cart.lines.edges.map(({ node: line }) => {
                   const product = line.merchandise.product;
                   const image = product?.images.edges[0]?.node;
-                  const basePrice = parseFloat(line.merchandise.price.amount);
-                  
-                  // Calculate display price with shipping
-                  // Use Shopify price directly (shipping already included via Webkul middleware)
                   const price = parseFloat(line.merchandise.price.amount);
-                  
-                  // Mock "Compare At" price for savings demo (10% more)
-                  const compareAtPrice = price * 1.1;
-                  const savings = compareAtPrice - price;
+                  const compareAtRaw = line.merchandise.compareAtPrice?.amount;
+                  const compareAtPrice = compareAtRaw ? parseFloat(compareAtRaw) : null;
+                  const savings = compareAtPrice !== null && compareAtPrice > price ? compareAtPrice - price : 0;
 
                   return (
                     <div key={line.id} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
@@ -149,14 +169,14 @@ export function CartPageContent({
                               <p className="text-xl font-bold text-gray-900">
                                 ${price.toFixed(2)}
                               </p>
-                              {savings > 0 && (
+                              {savings > 0 && compareAtPrice !== null && (
                                 <>
-                                  <div className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-1.5 py-0.5 rounded text-xs font-medium">
-                                    <span>Save ${savings.toFixed(2)}</span>
-                                  </div>
                                   <p className="text-xs text-gray-400 line-through">
                                     ${compareAtPrice.toFixed(2)}
                                   </p>
+                                  <div className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-1.5 py-0.5 rounded text-xs font-medium">
+                                    <span>Save ${savings.toFixed(2)}</span>
+                                  </div>
                                 </>
                               )}
                             </div>
@@ -330,15 +350,8 @@ if (isInCart) return null;
 
                 {/* Checkout Button - Standard Shopify Checkout */}
                 <a
-                  href={normalizeCheckoutUrl(cart.checkoutUrl)}
-                  onClick={() =>
-                    trackGaEvent('begin_checkout', {
-                      currency: cart.cost.totalAmount.currencyCode,
-                      value: total,
-                      item_count: cart.totalQuantity,
-                      source: 'cart_page',
-                    })
-                  }
+                  ref={checkoutLinkRef}
+                  href={checkoutHref}
                   className="block w-full bg-action text-white text-center py-4 rounded-full font-bold text-lg hover:bg-action-hover hover:shadow-lg transition-all mb-4 transform active:scale-[0.99]"
                 >
                   Checkout

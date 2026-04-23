@@ -33,6 +33,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: BrandSizingPageProps): Promise<Metadata> {
   const { brand: brandSlug } = await params;
   const brand = getBrandSizing(brandSlug);
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
 
   if (!brand) {
     return {
@@ -43,9 +44,13 @@ export async function generateMetadata({ params }: BrandSizingPageProps): Promis
   return {
     title: `${brand.displayName} Sizing Guide | The Equestrian`,
     description: `Find the perfect fit with our comprehensive ${brand.displayName} sizing charts. View detailed sizing information for boots, apparel, and accessories.`,
+    alternates: {
+      canonical: `${siteUrl}/sizing/${brandSlug}`,
+    },
     openGraph: {
       title: `${brand.displayName} Sizing Guide | The Equestrian`,
       description: `Find the perfect fit with our comprehensive ${brand.displayName} sizing charts.`,
+      url: `${siteUrl}/sizing/${brandSlug}`,
     },
   };
 }
@@ -62,7 +67,7 @@ export default async function BrandSizingPage({ params }: BrandSizingPageProps) 
     a.displayName.localeCompare(b.displayName)
   );
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
 
   return (
     <>

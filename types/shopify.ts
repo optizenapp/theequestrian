@@ -47,6 +47,8 @@ export interface ShopifyProduct {
   };
   tags: string[];
   vendor: string;
+  /** Canonical brand from Postgres when hydrated on PDP */
+  brand?: string | null;
   productType: string;
   collections: {
     edges: Array<{
@@ -60,6 +62,11 @@ export interface ShopifyProduct {
   metafield?: {
     value: string;
   } | null;
+  metafields?: Array<{
+    namespace: string;
+    key: string;
+    value: string | null;
+  }> | null;
   // Additional metafields for specific use cases
   primaryCollection?: {
     value: string;

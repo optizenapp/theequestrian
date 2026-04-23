@@ -62,7 +62,7 @@ export async function getOrCreateUnsubscribeToken(contactId: string): Promise<st
 
 export async function buildUnsubscribeUrl(contactId: string): Promise<string> {
   const token = await getOrCreateUnsubscribeToken(contactId);
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au';
   return `${siteUrl}/api/email/unsubscribe?token=${encodeURIComponent(token)}`;
 }
 

@@ -11,6 +11,6 @@ export function getArticleUrl(
     | ArticleWithRelations
     | { slug: string; article_type?: string; article_category?: { slug: string } | null; article_place?: unknown[] }
 ): string {
-  const base = (process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au').replace(/\/+$/, '');
+  const base = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/+$/, '');
   return `${base}/news/${article.slug}`;
 }

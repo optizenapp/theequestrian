@@ -332,6 +332,7 @@ NOT:
 | Path | Purpose |
 |---|---|
 | `scripts/run-page-seo-update.ts` | Shared DB writer |
+| `docs/ECOMMERCE-CATEGORY-PAGE-FRAMEWORK.md` | Category brief framework used by AI generation |
 | `scripts/seo-pages/*.ts` | Per-page content modules |
 | `lib/content/collections.ts` | Reads `collection_content` for the app (cache TTL: `COLLECTION_CONTENT_CACHE_TTL_MS`) |
 | `lib/db/schema/collection-content.sql` | Full schema reference |

@@ -16,10 +16,29 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const decodedPath = decodeURIComponent(pathname);
 
-  // Duplicate brand URL: consolidate on canonical /brands/kentucky (Shopify collection handle kentucky).
+  // Force www — redirect apex domain to www before any other logic.
+  if (request.nextUrl.hostname === 'theequestrian.com.au') {
+    const wwwUrl = request.nextUrl.clone();
+    wwwUrl.hostname = 'www.theequestrian.com.au';
+    return NextResponse.redirect(wwwUrl, 301);
+  }
+
+  // Duplicate brand URLs: consolidate on canonical brand handles.
   if (pathname === '/brands/kentucky-horsewear') {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = '/brands/kentucky';
+    return NextResponse.redirect(redirectUrl, 301);
+  }
+
+  if (pathname === '/brands/ego-7') {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = '/brands/ego7';
+    return NextResponse.redirect(redirectUrl, 301);
+  }
+
+  if (pathname === '/accessories/collectibles') {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = '/accessories/toys';
     return NextResponse.redirect(redirectUrl, 301);
   }
 

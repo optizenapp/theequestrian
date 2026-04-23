@@ -77,15 +77,22 @@ export async function queueCampaignRecipients(campaignId: string, contactIds: st
   return queued;
 }
 
+function isPositiveInt(n: number | undefined): n is number {
+  return typeof n === 'number' && Number.isFinite(n) && Number.isInteger(n) && n > 0;
+}
+
 export async function sendQueuedCampaignRecipients(input: {
   campaignId: string;
   defaultSiteUrl?: string;
+  /** When both are positive integers, enforce max emails per contact in the window. Omit or invalid = no cap. */
   frequencyCapCount?: number;
   frequencyCapDays?: number;
 }): Promise<{ sent: number; failed: number; skipped: number }> {
-  const defaultSiteUrl = input.defaultSiteUrl || process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
-  const frequencyCapCount = input.frequencyCapCount ?? 3;
-  const frequencyCapDays = input.frequencyCapDays ?? 7;
+  const defaultSiteUrl = input.defaultSiteUrl || process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au';
+  const frequencyCapEnabled =
+    isPositiveInt(input.frequencyCapCount) && isPositiveInt(input.frequencyCapDays);
+  const frequencyCapCount = frequencyCapEnabled ? input.frequencyCapCount! : 0;
+  const frequencyCapDays = frequencyCapEnabled ? input.frequencyCapDays! : 0;
 
   const campaignResult = await sql`
     SELECT id, name, status, template_version_id, metadata
@@ -201,7 +208,10 @@ export async function sendQueuedCampaignRecipients(input: {
       continue;
     }
 
-    if (await isFrequencyCapped({ contactId, maxEmails: frequencyCapCount, windowDays: frequencyCapDays })) {
+    if (
+      frequencyCapEnabled &&
+      (await isFrequencyCapped({ contactId, maxEmails: frequencyCapCount, windowDays: frequencyCapDays }))
+    ) {
       await sql`
         UPDATE email_campaign_recipients
         SET status = 'skipped',

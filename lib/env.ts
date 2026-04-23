@@ -33,6 +33,10 @@ const envSchema = z.object({
   GOOGLE_OAUTH_REDIRECT_URI: z.string().url().optional(),
   GMC_MERCHANT_ID: z.string().optional(),
   GMC_BASE_URL: z.string().url().optional(),
+  GOOGLE_SHEETS_CUSTOMER_SHEET_ID: z.string().optional(),
+  GOOGLE_SHEETS_CUSTOMER_TAB: z.string().optional(),
+  GOOGLE_SHEETS_SERVICE_ACCOUNT_EMAIL: z.string().optional(),
+  GOOGLE_SHEETS_SERVICE_ACCOUNT_PRIVATE_KEY: z.string().optional(),
 
   // Shopify Inbox
   NEXT_PUBLIC_SHOPIFY_INBOX_SCRIPT_URL: z.string().url().optional(),

@@ -16,6 +16,7 @@ interface ProductVariantSelectorProps {
   product: ShopifyProduct;
   selectedOptions: Record<string, string>;
   onOptionSelect: (optionName: string, value: string) => void;
+  styleMode?: 'default' | 'croTheme3';
 }
 
 // Color mapping for common color names
@@ -57,7 +58,12 @@ function getColorHex(colorName: string): string | null {
   return COLOR_MAP[normalized] || null;
 }
 
-export function ProductVariantSelector({ product, selectedOptions, onOptionSelect }: ProductVariantSelectorProps) {
+export function ProductVariantSelector({
+  product,
+  selectedOptions,
+  onOptionSelect,
+  styleMode = 'default',
+}: ProductVariantSelectorProps) {
   const variants = product.variants.edges;
 
   if (variants.length <= 1) {
@@ -79,11 +85,20 @@ export function ProductVariantSelector({ product, selectedOptions, onOptionSelec
   return (
     <div className="space-y-4">
       {Array.from(optionTypes.entries()).map(([optionName, values]) => {
-        const isColorOption = optionName.toLowerCase() === 'color' || optionName.toLowerCase() === 'colour';
+        const normalizedOptionName = optionName.toLowerCase();
+        const isColorOption = normalizedOptionName === 'color' || normalizedOptionName === 'colour';
+        const shouldShowDashedGroup = isColorOption || normalizedOptionName === 'size';
+        const optionGroupClassName = styleMode === 'croTheme3'
+          ? 'rounded-2xl border border-solid p-4'
+          : 'rounded-2xl border border-dashed border-green-500 p-4';
         const valuesArray = Array.from(values);
 
         return (
-          <div key={optionName}>
+          <div
+            key={optionName}
+            className={shouldShowDashedGroup ? optionGroupClassName : undefined}
+            style={shouldShowDashedGroup && styleMode === 'croTheme3' ? { borderColor: '#D9D9D9' } : undefined}
+          >
             <label className="text-sm font-semibold text-gray-900 mb-2 block">
               {optionName}
             </label>

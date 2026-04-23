@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}));
     const blocks = Array.isArray(body?.blocks) ? body.blocks : [];
     const metadata = body?.metadata && typeof body.metadata === 'object' ? body.metadata : {};
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au';
 
     const result = await generateExampleEmail({
       blocks,

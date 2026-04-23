@@ -29,6 +29,7 @@ interface MappingRow {
 let cachedMapping: Map<string, MappingRow[]> | null = null;
 let lastCacheTime: number = 0;
 const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
+const COLLECTION_MAPPING_CACHE_VERSION = 'v2';
 
 /** Serializable form for Next.js Data Cache (cross-request / cross-instance). */
 type MappingEntriesPayload = Array<[string, MappingRow[]]>;
@@ -83,7 +84,7 @@ async function fetchCollectionMappingEntriesImpl(): Promise<MappingEntriesPayloa
 
 const getCachedMappingEntries =
   typeof process !== 'undefined' && process.env.NEXT_RUNTIME
-    ? unstable_cache(fetchCollectionMappingEntriesImpl, ['collection-mapping-entries-v1'], {
+    ? unstable_cache(fetchCollectionMappingEntriesImpl, [`collection-mapping-entries-${COLLECTION_MAPPING_CACHE_VERSION}`], {
         revalidate: SHOPIFY_GRAPHQL_FORCE_CACHE_REVALIDATE_SECONDS,
         tags: ['collection-mapping'],
       })

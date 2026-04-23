@@ -7,6 +7,9 @@ type ShopifyCustomerNode = {
   email: string | null;
   firstName: string | null;
   lastName: string | null;
+  defaultAddress: {
+    zip: string | null;
+  } | null;
   emailMarketingConsent: {
     marketingState: string;
   } | null;
@@ -61,6 +64,9 @@ async function fetchCustomersPage(afterCursor?: string | null) {
             email
             firstName
             lastName
+            defaultAddress {
+              zip
+            }
             emailMarketingConsent {
               marketingState
             }
@@ -207,6 +213,7 @@ export async function syncShopifyCustomersAndOrders(options?: {
         email: edge.node.email,
         firstName: edge.node.firstName,
         lastName: edge.node.lastName,
+        postcode: edge.node.defaultAddress?.zip ?? null,
         acceptsMarketing: customerAcceptsMarketing(edge.node),
         tags: edge.node.tags,
       });

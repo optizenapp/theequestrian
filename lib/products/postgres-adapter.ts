@@ -6,6 +6,7 @@
 import { shopifyFetch } from '@/lib/shopify/client';
 import { searchProducts, type ProductFilters, type ProductQueryResult } from '@/lib/db/queries';
 import { sql } from '@/lib/db/client';
+import { ensureProductsBrandColumns } from '@/lib/db/ensure-products-brand-columns';
 import type { ProductWithPrimaryCollection } from '@/types/shopify';
 
 type CategoryFilters = {
@@ -23,6 +24,22 @@ type CollectionFacets = {
 
 const DEFAULT_CURRENCY = process.env.NEXT_PUBLIC_DEFAULT_CURRENCY || 'AUD';
 const PRICE_FACET_FALLBACK = { min: 0, max: 500 };
+
+/**
+ * Run a raw SQL query and degrade to an empty result on failure.
+ *
+ * Used for non-critical facet/filter queries (sizes, colours) that join the
+ * `variant_options` table, which may be missing or out of sync. Without this,
+ * a single broken sub-query would 500 the entire category page.
+ */
+async function safeSql<T>(query: string, label: string): Promise<T[]> {
+  try {
+    return (await sql.unsafe(query)) as unknown as T[];
+  } catch (err) {
+    console.error(`[postgres-adapter] ${label} query failed, degrading to empty:`, err);
+    return [];
+  }
+}
 
 const LIVE_STATUS_QUERY = `
   query GetProductsStatus($ids: [ID!]!) {
@@ -55,13 +72,15 @@ const LIVE_STATUS_QUERY = `
 export function dbProductToShopifyFormat(dbProduct: ProductQueryResult): ProductWithPrimaryCollection {
   const desc = dbProduct.description ?? '';
   const tags = dbProduct.tags ?? [];
+  const displayVendor = (dbProduct.brand?.trim() || dbProduct.vendor || '').trim();
   return {
     id: dbProduct.id,
     handle: dbProduct.handle,
     title: dbProduct.title,
     description: desc,
     descriptionHtml: desc,
-    vendor: dbProduct.vendor,
+    vendor: displayVendor || dbProduct.vendor,
+    brand: dbProduct.brand?.trim() || null,
     productType: dbProduct.product_type,
     tags,
     availableForSale: dbProduct.available_for_sale,
@@ -155,15 +174,12 @@ function buildCategoryWhereClause(categoryPath: string, filters?: CategoryFilter
   ];
 
   if (filters?.brands && filters.brands.length > 0) {
+    // Brand filter uses the canonical `products.brand` column only.
+    // We deliberately no longer fall back to vendor / tags: the parent-brand
+    // rollup made `brand` the single source of truth, and unmapped products
+    // are NULL by design (so they should not appear in any brand filter).
     const brands = asLowerArrayLiteral(filters.brands);
-    conditions.push(`(
-      LOWER(COALESCE(p.vendor, '')) = ANY(${brands})
-      OR EXISTS (
-        SELECT 1
-        FROM unnest(COALESCE(p.tags, ARRAY[]::text[])) AS t(tag)
-        WHERE LOWER(tag) = ANY(${brands})
-      )
-    )`);
+    conditions.push(`LOWER(TRIM(COALESCE(p.brand, ''))) = ANY(${brands})`);
   }
 
   if (filters?.sizes && filters.sizes.length > 0) {
@@ -194,7 +210,7 @@ function buildCategoryWhereClause(categoryPath: string, filters?: CategoryFilter
   return conditions.join(' AND ');
 }
 
-async function getLiveStatusByProductIds(productIds: string[]): Promise<Map<string, {
+export async function getLiveStatusByProductIds(productIds: string[]): Promise<Map<string, {
   available: boolean;
   price: string;
   compareAtPrice?: string;
@@ -257,7 +273,7 @@ async function getLiveStatusByProductIds(productIds: string[]): Promise<Map<stri
   return statusMap;
 }
 
-function applyLiveStatus(
+export function applyLiveStatus(
   products: ProductWithPrimaryCollection[],
   statusMap: Map<string, { available: boolean; price: string; compareAtPrice?: string; currencyCode: string }>
 ): ProductWithPrimaryCollection[] {
@@ -309,47 +325,55 @@ async function getCollectionFacetsFromDb(
   colorWhereClause: string, // category + size + brand (no colour filter)
   brandWhereClause: string, // category + size + colour (no brand filter)
 ): Promise<CollectionFacets> {
-  const brandRows = await sql.unsafe(`
+  // Brand facet derives from the canonical `products.brand` column only.
+  // Products without an assigned brand do not contribute to any brand option.
+  const brandRows = (await sql.unsafe(`
     SELECT
-      LOWER(COALESCE(p.vendor, '')) AS value,
-      MIN(COALESCE(p.vendor, '')) AS display_name,
+      LOWER(TRIM(p.brand)) AS value,
+      MIN(TRIM(p.brand)) AS display_name,
       COUNT(DISTINCT p.id)::int AS count
     FROM product_category_assignments pca
     JOIN products p ON p.id = pca.product_id
     WHERE ${brandWhereClause}
-      AND COALESCE(p.vendor, '') <> ''
-    GROUP BY LOWER(COALESCE(p.vendor, ''))
+      AND COALESCE(TRIM(p.brand), '') <> ''
+    GROUP BY LOWER(TRIM(p.brand))
     ORDER BY count DESC
-  `) as unknown as Array<{ value: string; display_name: string; count: number }>;
+  `)) as unknown as Array<{ value: string; display_name: string; count: number }>;
 
-  const sizeRows = await sql.unsafe(`
-    SELECT
-      vo.option_value AS value,
-      COUNT(DISTINCT p.id)::int AS count
-    FROM product_category_assignments pca
-    JOIN products p ON p.id = pca.product_id
-    JOIN variant_options vo ON vo.product_id = p.id
-    WHERE ${sizeWhereClause}
-      AND vo.option_name_normalized = 'size'
-      AND COALESCE(vo.option_value, '') <> ''
-    GROUP BY vo.option_value
-    ORDER BY count DESC
-  `) as unknown as Array<{ value: string; count: number }>;
+  // Size and colour facets join `variant_options`. That table is populated by
+  // the catalogue sync job, but if it's missing on a fresh DB or its sync is
+  // behind, we must NOT 500 the entire category page — degrade to empty
+  // size/colour facets and let the brand filter still work.
+  const sizeRows = await safeSql<{ value: string; count: number }>(
+    `SELECT
+       vo.option_value AS value,
+       COUNT(DISTINCT p.id)::int AS count
+     FROM product_category_assignments pca
+     JOIN products p ON p.id = pca.product_id
+     JOIN variant_options vo ON vo.product_id = p.id
+     WHERE ${sizeWhereClause}
+       AND vo.option_name_normalized = 'size'
+       AND COALESCE(vo.option_value, '') <> ''
+     GROUP BY vo.option_value
+     ORDER BY count DESC`,
+    'size facet'
+  );
 
-  const colorRows = await sql.unsafe(`
-    SELECT
-      vo.option_value_normalized AS value,
-      MIN(vo.option_value) AS original_value,
-      COUNT(DISTINCT p.id)::int AS count
-    FROM product_category_assignments pca
-    JOIN products p ON p.id = pca.product_id
-    JOIN variant_options vo ON vo.product_id = p.id
-    WHERE ${colorWhereClause}
-      AND vo.option_name_normalized IN ('color', 'colour')
-      AND COALESCE(vo.option_value_normalized, '') <> ''
-    GROUP BY vo.option_value_normalized
-    ORDER BY count DESC
-  `) as unknown as Array<{ value: string; original_value: string; count: number }>;
+  const colorRows = await safeSql<{ value: string; original_value: string; count: number }>(
+    `SELECT
+       vo.option_value_normalized AS value,
+       MIN(vo.option_value) AS original_value,
+       COUNT(DISTINCT p.id)::int AS count
+     FROM product_category_assignments pca
+     JOIN products p ON p.id = pca.product_id
+     JOIN variant_options vo ON vo.product_id = p.id
+     WHERE ${colorWhereClause}
+       AND vo.option_name_normalized IN ('color', 'colour')
+       AND COALESCE(vo.option_value_normalized, '') <> ''
+     GROUP BY vo.option_value_normalized
+     ORDER BY count DESC`,
+    'color facet'
+  );
 
   const brands = brandRows
     .filter((row) => row.value)
@@ -396,6 +420,10 @@ export async function getProductsByCategoryFromDB(
   totalCount: number;
   facets: CollectionFacets;
 }> {
+  // Self-heal `products.brand` / `brand_hub_handle` columns on first call so the
+  // SELECTs below don't 500 if a deploy ran before the migration script.
+  await ensureProductsBrandColumns();
+
   // Full filter where clause (for products + count)
   const whereClause = buildCategoryWhereClause(categoryPath, filters);
   // Per-dimension where clauses for disjunctive facets:
@@ -434,6 +462,7 @@ export async function getProductsByCategoryFromDB(
       p.handle,
       p.title,
       p.vendor,
+      p.brand,
       p.product_type,
       p.image_url,
       p.image_alt,

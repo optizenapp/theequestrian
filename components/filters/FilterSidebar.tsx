@@ -77,6 +77,15 @@ export function FilterSidebar({
         currencyCode={currencyCode}
       />
 
+      {/* Brand Filter */}
+      {brandOptions.length > 0 && (
+        <AttributeFilter
+          title="Brand"
+          options={brandOptions}
+          paramName="brand"
+        />
+      )}
+
       {/* Size Filter */}
       {sizeOptions.length > 0 && (
         <AttributeFilter
@@ -92,15 +101,6 @@ export function FilterSidebar({
           title="Color"
           options={colorOptions}
           paramName="color"
-        />
-      )}
-
-      {/* Brand Filter */}
-      {brandOptions.length > 0 && (
-        <AttributeFilter
-          title="Brand"
-          options={brandOptions}
-          paramName="brand"
         />
       )}
     </div>

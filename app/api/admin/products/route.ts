@@ -125,6 +125,7 @@ export async function GET(request: NextRequest) {
       )
     `;
     await sql`ALTER TABLE product_content_overrides ADD COLUMN IF NOT EXISTS is_published_headless BOOLEAN NOT NULL DEFAULT true`;
+    await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS brand TEXT`;
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search')?.trim() || '';
     const categoryPath = normalizePath(searchParams.get('categoryPath')?.trim() || '');
@@ -137,6 +138,7 @@ export async function GET(request: NextRequest) {
       handle: string;
       title: string;
       vendor: string | null;
+      brand: string | null;
       product_type: string | null;
       is_published_headless: boolean;
     }> = [];
@@ -174,9 +176,26 @@ export async function GET(request: NextRequest) {
         handle: row.handle,
         title: row.title,
         vendor: row.vendor,
+        brand: null as string | null,
         product_type: row.productType,
         is_published_headless: visibilityMap.get(row.handle) ?? true,
       }));
+
+      if (mapped.length > 0) {
+        try {
+          await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS brand TEXT`;
+          const handles = mapped.map((m) => m.handle);
+          const rows = (await sql`
+            SELECT handle, brand FROM products WHERE handle = ANY(${handles})
+          `) as unknown as Array<{ handle: string; brand: string | null }>;
+          const map = new Map(rows.map((r) => [r.handle, r.brand?.trim() || null]));
+          for (const m of mapped) {
+            m.brand = map.get(m.handle) ?? null;
+          }
+        } catch {
+          /* ignore */
+        }
+      }
 
       totalCount = mapped.length;
       products = mapped.slice(offset, offset + limit);
@@ -187,6 +206,7 @@ export async function GET(request: NextRequest) {
           p.handle,
           p.title,
           p.vendor,
+          p.brand,
           p.product_type,
           COALESCE(pco.is_published_headless, true) AS is_published_headless
         FROM products p
@@ -221,6 +241,7 @@ export async function GET(request: NextRequest) {
           p.handle,
           p.title,
           p.vendor,
+          p.brand,
           p.product_type,
           COALESCE(pco.is_published_headless, true) AS is_published_headless
         FROM products p

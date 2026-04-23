@@ -4,6 +4,7 @@
  */
 
 import { sql } from './client';
+import { ensureProductsBrandColumns } from './ensure-products-brand-columns';
 
 export interface ProductFilters {
   brands?: string[];
@@ -22,6 +23,7 @@ export interface ProductQueryResult {
   /** Omitted in list/search queries to cut Neon egress; present on single-product fetches. */
   description?: string;
   vendor: string;
+  brand?: string | null;
   product_type: string;
   /** Omitted in list/search queries to cut Neon egress; callers should default to [] for card/list rendering. */
   tags?: string[];
@@ -51,6 +53,7 @@ export async function searchProducts(
   hasNextPage: boolean;
 }> {
   try {
+    await ensureProductsBrandColumns();
     // Build WHERE clause dynamically
     const conditions: string[] = [];
     const params: any[] = [];
@@ -65,10 +68,9 @@ export async function searchProducts(
     
     // Brand filter
     if (filters.brands && filters.brands.length > 0) {
-      // Check both vendor field and tags (some brands use tags)
-      const brandConditions = filters.brands.map(brand => {
+      const brandConditions = filters.brands.map((brand) => {
         const lowerBrand = brand.toLowerCase();
-        return `(LOWER(vendor) = '${lowerBrand}' OR '${lowerBrand}' = ANY(tags))`;
+        return `(LOWER(TRIM(COALESCE(brand, ''))) = '${lowerBrand}' OR LOWER(vendor) = '${lowerBrand}' OR '${lowerBrand}' = ANY(tags))`;
       }).join(' OR ');
       conditions.push(`(${brandConditions})`);
     }
@@ -107,7 +109,7 @@ export async function searchProducts(
     let countResult: any[];
     // List columns: exclude `description` (large HTML) — saves most Neon egress on category/search traffic.
     const listSelect = `
-        id, handle, title, vendor, product_type,
+        id, handle, title, vendor, brand, product_type,
         image_url, image_alt, available_for_sale, shopify_created_at`;
 
     if (conditions.length === 0) {
@@ -159,6 +161,7 @@ export async function calculateFacets(
   filters: ProductFilters = {}
 ): Promise<FacetResult> {
   try {
+    await ensureProductsBrandColumns();
     // Build WHERE clause (same as searchProducts)
     const conditions: string[] = [];
     const params: any[] = [];
@@ -171,9 +174,9 @@ export async function calculateFacets(
     }
     
     if (filters.brands && filters.brands.length > 0) {
-      const brandConditions = filters.brands.map(brand => {
+      const brandConditions = filters.brands.map((brand) => {
         const lowerBrand = brand.toLowerCase();
-        return `(LOWER(vendor) = '${lowerBrand}' OR '${lowerBrand}' = ANY(tags))`;
+        return `(LOWER(TRIM(COALESCE(brand, ''))) = '${lowerBrand}' OR LOWER(vendor) = '${lowerBrand}' OR '${lowerBrand}' = ANY(tags))`;
       }).join(' OR ');
       conditions.push(`(${brandConditions})`);
     }
@@ -194,13 +197,14 @@ export async function calculateFacets(
     
     // Get brand facets
     const brandQuery = `
-      SELECT 
-        LOWER(vendor) as value,
-        COUNT(DISTINCT id) as count
+      SELECT
+        LOWER(TRIM(COALESCE(NULLIF(TRIM(brand), ''), vendor, ''))) AS value,
+        COUNT(DISTINCT id) AS count
       FROM products
       ${whereClause}
-      GROUP BY LOWER(vendor)
-      HAVING LOWER(vendor) IS NOT NULL AND LOWER(vendor) != ''
+      GROUP BY LOWER(TRIM(COALESCE(NULLIF(TRIM(brand), ''), vendor, '')))
+      HAVING LOWER(TRIM(COALESCE(NULLIF(TRIM(brand), ''), vendor, ''))) IS NOT NULL
+        AND LOWER(TRIM(COALESCE(NULLIF(TRIM(brand), ''), vendor, ''))) != ''
       ORDER BY count DESC
     `;
     const brandResult = await sql.unsafe(brandQuery) as unknown as any[];

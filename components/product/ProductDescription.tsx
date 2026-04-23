@@ -6,9 +6,17 @@ interface ProductDescriptionProps {
   html: string;
   productTitle: string;
   collapsedHeight?: number;
+  className?: string;
+  accentBorder?: boolean;
 }
 
-export function ProductDescription({ html, productTitle, collapsedHeight = 220 }: ProductDescriptionProps) {
+export function ProductDescription({
+  html,
+  productTitle,
+  collapsedHeight = 220,
+  className = '',
+  accentBorder = false,
+}: ProductDescriptionProps) {
   const [expanded, setExpanded] = useState(false);
   const [overflowing, setOverflowing] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -20,7 +28,7 @@ export function ProductDescription({ html, productTitle, collapsedHeight = 220 }
   }, [html, collapsedHeight]);
 
   return (
-    <div className="bg-surface rounded-2xl p-8 shadow-sm border border-gray-100 space-y-4">
+    <div className={`bg-surface rounded-2xl p-8 shadow-sm ${accentBorder ? 'border border-black' : 'border border-gray-100'} space-y-4 ${className}`.trim()}>
       <h2 className="text-2xl font-bold text-gray-900 mb-6">{productTitle} Description</h2>
 
       <div className="relative">

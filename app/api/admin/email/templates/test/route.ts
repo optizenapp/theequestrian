@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
         ? (body.metadata as Record<string, unknown>)
         : {}
     );
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au';
     const handle = typeof body?.handle === 'string' ? body.handle.trim() : '';
 
     let productTitle = 'Synthetic Combo Horse Rug - Eureka Mini';

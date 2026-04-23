@@ -12,7 +12,7 @@ import { generateAutoWeeklyHeading } from './heading-generator';
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const APPROVAL_EMAIL = 'jono@theequestrian.com.au';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au';
 const ADMIN_CAMPAIGNS_URL = `${SITE_URL}/admin/email/campaigns`;
 
 /** Send slots in AEST: day of week -> hour (0-23) */

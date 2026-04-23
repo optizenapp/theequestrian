@@ -9,6 +9,7 @@ import { cookies } from 'next/headers';
 export const metadata: Metadata = {
   title: 'Shopping Cart | The Equestrian',
   description: 'Review your shopping cart',
+  robots: { index: false, follow: true },
 };
 
 // Make this page dynamic so it always fetches fresh cart data

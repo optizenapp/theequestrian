@@ -90,11 +90,17 @@ export async function getProductOverridesByHandles(handles: string[]) {
   if (unique.length === 0) return new Map<string, ProductContentOverride>();
 
   const sorted = [...unique].sort(); // stable cache key regardless of call order
-  const rows = await unstable_cache(
-    () => fetchOverridesByHandles(sorted),
-    ['product-overrides-batch', ...sorted],
-    { tags: [PRODUCT_OVERRIDES_CACHE_TAG], revalidate: CACHE_TTL_SECONDS }
-  )();
+  let rows: ProductContentOverride[];
+  try {
+    rows = await unstable_cache(
+      () => fetchOverridesByHandles(sorted),
+      ['product-overrides-batch', ...sorted],
+      { tags: [PRODUCT_OVERRIDES_CACHE_TAG], revalidate: CACHE_TTL_SECONDS }
+    )();
+  } catch {
+    // Fallback for script contexts where Next incremental cache is unavailable.
+    rows = await fetchOverridesByHandles(sorted);
+  }
 
   const map = new Map<string, ProductContentOverride>();
   for (const row of rows) {

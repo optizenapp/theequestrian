@@ -8,7 +8,11 @@ export type VendorShopConnectionRow = {
   inventory_strategy: string;
   primary_location_id: string | null;
   allowed_location_ids: unknown;
+  sync_inventory: boolean;
   sync_price: boolean;
+  reconcile_enabled: boolean;
+  reconcile_cooldown_seconds: number;
+  last_reconcile_at: string | null;
   is_active: boolean;
 };
 
@@ -27,6 +31,14 @@ export type VendorInventoryMapRow = {
   status: string;
 };
 
+export type VendorInventoryReconcileTarget = {
+  connection: VendorShopConnectionRow;
+  vendor_inventory_item_id: string;
+  vendor_location_id: string | null;
+  marketplace_inventory_item_id: string;
+  marketplace_location_id: string;
+};
+
 let priceSyncVendorCache: { names: string[]; at: number } | null = null;
 const PRICE_SYNC_CACHE_MS = 60_000;
 
@@ -37,7 +49,9 @@ export async function getVendorConnectionByDomain(
     const normalized = shopDomain.toLowerCase().trim();
     const rows = await sql`
       SELECT id, shop_domain, marketplace_vendor_name, access_token,
-        inventory_strategy, primary_location_id, allowed_location_ids, sync_price, is_active
+        inventory_strategy, primary_location_id, allowed_location_ids,
+        sync_inventory, sync_price, reconcile_enabled, reconcile_cooldown_seconds,
+        last_reconcile_at, is_active
       FROM vendor_shop_connections
       WHERE LOWER(TRIM(shop_domain)) = ${normalized}
         AND is_active = true
@@ -75,8 +89,43 @@ export async function getMarketplaceVendorsWithPriceSyncEnabled(): Promise<strin
   }
 }
 
+export async function getReconcilePriceConnectionsByMarketplaceVendor(
+  marketplaceVendorName: string
+): Promise<VendorShopConnectionRow[]> {
+  const normalized = marketplaceVendorName.toLowerCase().trim();
+  const rows = await sql`
+    SELECT id, shop_domain, marketplace_vendor_name, access_token,
+      inventory_strategy, primary_location_id, allowed_location_ids,
+      sync_inventory, sync_price, reconcile_enabled, reconcile_cooldown_seconds,
+      last_reconcile_at, is_active
+    FROM vendor_shop_connections
+    WHERE LOWER(TRIM(marketplace_vendor_name)) = ${normalized}
+      AND is_active = true
+      AND sync_price = true
+      AND reconcile_enabled = true
+  `;
+  return (Array.isArray(rows) ? rows : []) as VendorShopConnectionRow[];
+}
+
 export function invalidateVendorSyncPriceCache(): void {
   priceSyncVendorCache = null;
+}
+
+export function canRunReconcile(connection: VendorShopConnectionRow): boolean {
+  if (!connection.reconcile_enabled) return false;
+  if (!connection.last_reconcile_at) return true;
+  const last = new Date(connection.last_reconcile_at).getTime();
+  if (Number.isNaN(last)) return true;
+  const cooldownMs = Math.max(1, connection.reconcile_cooldown_seconds) * 1000;
+  return Date.now() - last >= cooldownMs;
+}
+
+export async function markReconcileRun(connectionId: number): Promise<void> {
+  await sql`
+    UPDATE vendor_shop_connections
+    SET last_reconcile_at = NOW(), updated_at = NOW()
+    WHERE id = ${connectionId}
+  `;
 }
 
 /** After Dev Dashboard OAuth: create or refresh vendor_shop_connections row. */
@@ -88,12 +137,14 @@ export async function upsertVendorOAuthConnection(
   await sql`
     INSERT INTO vendor_shop_connections (
       shop_domain, marketplace_vendor_name, access_token,
-      inventory_strategy, sync_price, is_active
+      inventory_strategy, sync_inventory, sync_price, reconcile_enabled, is_active
     ) VALUES (
       ${shopDomain.toLowerCase().trim()},
       ${marketplaceVendorName.trim()},
       ${accessToken},
       'single_location',
+      true,
+      false,
       false,
       true
     )
@@ -104,6 +155,56 @@ export async function upsertVendorOAuthConnection(
   `;
   invalidateVendorSyncPriceCache();
 }
+
+export async function getReconcileTargetsForMarketplaceInventory(
+  marketplaceInventoryItemId: string,
+  marketplaceLocationId: string
+): Promise<VendorInventoryReconcileTarget[]> {
+  const rows = await sql`
+    SELECT
+      c.id, c.shop_domain, c.marketplace_vendor_name, c.access_token,
+      c.inventory_strategy, c.primary_location_id, c.allowed_location_ids,
+      c.sync_inventory, c.sync_price, c.reconcile_enabled, c.reconcile_cooldown_seconds,
+      c.last_reconcile_at, c.is_active,
+      m.vendor_inventory_item_id, m.vendor_location_id,
+      m.marketplace_inventory_item_id, m.marketplace_location_id
+    FROM vendor_inventory_map m
+    JOIN vendor_shop_connections c ON c.id = m.vendor_connection_id
+    WHERE m.marketplace_inventory_item_id = ${marketplaceInventoryItemId}
+      AND m.marketplace_location_id = ${marketplaceLocationId}
+      AND m.status = 'active'
+      AND c.is_active = true
+      AND c.sync_inventory = true
+      AND c.reconcile_enabled = true
+  `;
+
+  const list = Array.isArray(rows) ? rows : [];
+  return list.map((row) => {
+    const r = row as Record<string, unknown>;
+    return {
+      connection: {
+        id: Number(r.id),
+        shop_domain: String(r.shop_domain),
+        marketplace_vendor_name: String(r.marketplace_vendor_name),
+        access_token: String(r.access_token),
+        inventory_strategy: String(r.inventory_strategy),
+        primary_location_id: r.primary_location_id ? String(r.primary_location_id) : null,
+        allowed_location_ids: r.allowed_location_ids ?? [],
+        sync_inventory: Boolean(r.sync_inventory),
+        sync_price: Boolean(r.sync_price),
+        reconcile_enabled: Boolean(r.reconcile_enabled),
+        reconcile_cooldown_seconds: Number(r.reconcile_cooldown_seconds || 20),
+        last_reconcile_at: r.last_reconcile_at ? String(r.last_reconcile_at) : null,
+        is_active: Boolean(r.is_active),
+      },
+      vendor_inventory_item_id: String(r.vendor_inventory_item_id),
+      vendor_location_id: r.vendor_location_id ? String(r.vendor_location_id) : null,
+      marketplace_inventory_item_id: String(r.marketplace_inventory_item_id),
+      marketplace_location_id: String(r.marketplace_location_id),
+    };
+  });
+}
+
 export async function getActiveMapsForVendorInventoryItem(
   connectionId: number,
   vendorInventoryItemId: string
@@ -133,6 +234,23 @@ export async function getActiveMapsForVendorProduct(
     FROM vendor_inventory_map
     WHERE vendor_connection_id = ${connectionId}
       AND vendor_shopify_product_id = ${vendorProductId}
+      AND status = 'active'
+  `;
+  return (Array.isArray(rows) ? rows : []) as VendorInventoryMapRow[];
+}
+
+export async function getActiveMapsForMarketplaceProduct(
+  connectionId: number,
+  marketplaceProductId: string
+): Promise<VendorInventoryMapRow[]> {
+  const rows = await sql`
+    SELECT id, vendor_connection_id, vendor_shopify_product_id, vendor_shopify_variant_id,
+      vendor_inventory_item_id, vendor_location_id, marketplace_product_id,
+      marketplace_variant_id, marketplace_inventory_item_id, marketplace_location_id,
+      sku, status
+    FROM vendor_inventory_map
+    WHERE vendor_connection_id = ${connectionId}
+      AND marketplace_product_id = ${marketplaceProductId}
       AND status = 'active'
   `;
   return (Array.isArray(rows) ? rows : []) as VendorInventoryMapRow[];

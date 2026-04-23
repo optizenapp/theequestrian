@@ -1,15 +1,16 @@
-
 import { notFound } from 'next/navigation';
-import { getCollectionWithPagination, getCollectionProductCount } from '@/lib/shopify/collections';
-import { getProductCanonicalUrls } from '@/lib/shopify/products';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
-import { getBrandContentByHandle } from '@/lib/content/brand-content';
+import { getBrandContentByHandle, getBrandIndexDisplayName } from '@/lib/content/brand-content';
 import { RichContent } from '@/components/collection/RichContent';
 import { FAQSection } from '@/components/collection/FAQSection';
 import { CollectionDescription } from '@/components/CollectionDescription';
-import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
+import { generateBrandPageSchema } from '@/lib/utils/brand-page-schema';
 import { FAQItem } from '@/lib/content/collections';
+import { getBrandProductsFromDb } from '@/lib/brands/get-brand-products';
+import { getBrandCategories } from '@/lib/brands/get-brand-categories';
+import { BrandQuickAnswer } from '@/components/brand/BrandQuickAnswer';
+import { BrandProductLines } from '@/components/brand/BrandProductLines';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
@@ -34,7 +35,7 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
 
   const title = brand.meta_title || `${brand.title} | The Equestrian`;
   const description = brand.meta_description || `Shop the full range of ${brand.title} equestrian products. Saddles, tack, clothing and more from ${brand.title}.`;
-  const canonicalUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au'}/brands/${handle}`;
+  const canonicalUrl = `${(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '')}/brands/${handle}`;
 
   return {
     title,
@@ -54,8 +55,11 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
 
 export default async function BrandPage({ params, searchParams }: BrandPageProps) {
   const { handle } = await params;
-  const { cursor } = await searchParams;
+  const { cursor, brand: brandParam, size, color } = await searchParams;
   const afterCursor = typeof cursor === 'string' ? cursor : null;
+  const filterBrands = brandParam ? (Array.isArray(brandParam) ? brandParam : brandParam.split(',')) : undefined;
+  const filterSizes = size ? (Array.isArray(size) ? size : size.split(',')) : undefined;
+  const filterColors = color ? (Array.isArray(color) ? color : color.split(',')) : undefined;
 
   // 1. Verify Brand Exists in Mapping
   const brand = await getBrandContentByHandle(handle);
@@ -63,19 +67,25 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
     notFound();
   }
 
-  // 2. Fetch Products from Shopify Collection with pagination and sorting
-  const { products, pageInfo } = await getCollectionWithPagination(
-    brand.handle,
-    36,
-    afterCursor
-  );
-  
-  // Get total product count
-  const totalProductCount = await getCollectionProductCount(brand.handle);
-  
-  // Generate canonical URLs for all products (fast with Neon DB)
-  // Product cards will link directly to category-based URLs
-  const productUrlsMap = await getProductCanonicalUrls(products);
+  // Brand PLPs always use Postgres + brand rules so new brands work without a matching Shopify collection.
+  // Variants for cart CTAs are merged from Storefront inside getBrandProductsFromDb.
+  const [
+    {
+      products,
+      pageInfo,
+      totalCount: totalProductCount,
+      productUrls: productUrlsMap,
+      facets,
+    },
+    brandCategories,
+  ] = await Promise.all([
+    getBrandProductsFromDb(brand, 36, afterCursor, {
+      brands: filterBrands,
+      sizes: filterSizes,
+      colors: filterColors,
+    }),
+    getBrandCategories(brand, 12),
+  ]);
 
   // Fetch review stats for all products in one batch (server-side)
   const productHandles = products.map(p => p.handle);
@@ -99,39 +109,21 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
     console.warn(`Failed to parse FAQ JSON for brand ${brand.handle}`, e);
   }
 
-  // Generate structured data
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
-  
-  // Build breadcrumbs array for schema
-  const breadcrumbs = [
-    { label: 'Brands', href: '/brands' },
-    { label: brand.breadcrumb_label || brand.title, href: `/brands/${handle}` }
-  ];
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
 
-  const collectionSchema = generateCollectionSchemaFast({
-    collectionName: pageTitle,
-    collectionUrl: `${siteUrl}/brands/${handle}`,
-    collectionDescription: brand.meta_description || `Shop premium ${brand.title} equestrian products. Official retailer with fast shipping across Australia.`,
-    breadcrumbs,
+  const enhancedSchema = generateBrandPageSchema({
+    brand: {
+      handle,
+      name: brand.title,
+      description: brand.meta_description || shortDescription,
+      breadcrumbLabel: brand.breadcrumb_label,
+    },
     products,
-    canonicalProductUrls: productUrlsMap,
+    totalProductCount: totalProductCount || brand.products_count || products.length,
+    productUrls: productUrlsMap,
     siteUrl,
-    maxProducts: 12, // Limit schema to 12 products for performance
+    maxProductsInSchema: 12,
   });
-  const brandEntity = {
-    '@type': 'Brand',
-    '@id': `${siteUrl}/brands/${handle}#brand`,
-    name: brand.title,
-    url: `${siteUrl}/brands/${handle}`,
-    description: brand.meta_description || shortDescription,
-  };
-  const enhancedSchema = {
-    ...collectionSchema,
-    '@graph': [
-      ...(Array.isArray((collectionSchema as any)['@graph']) ? (collectionSchema as any)['@graph'] : []),
-      brandEntity,
-    ],
-  };
 
   return (
     <>
@@ -169,7 +161,8 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               {pageTitle}
             </h1>
-            <div className="max-w-3xl">
+            {brand.quick_answer && <BrandQuickAnswer text={brand.quick_answer} />}
+            <div className="mt-6">
               <CollectionDescription description={shortDescription} />
               {totalProductCount > 0 && (
                 <p className="mt-4 text-sm text-gray-500">
@@ -191,25 +184,24 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
               endCursor: pageInfo.endCursor
             }}
             totalCount={totalProductCount}
+            serverFacets={facets}
             productUrls={productUrls}
             reviewStatsMap={reviewStats}
           />
 
-          {/* Long Description (Rich Content) */}
-          {longDescription ? (
-            <RichContent html={longDescription} />
-          ) : (
-             /* Fallback content if no custom long description */
-             <div className="mt-16 bg-white rounded-lg p-8 shadow-sm">
-                <h2>About {brand.title}</h2>
-                <p>Discover the premium range of <strong>{brand.title}</strong> products at The Equestrian. 
-                Known for their quality and innovation, {brand.title} is a trusted name in the equestrian world.</p>
-             </div>
-          )}
+          {/* Long Description (editorial: Brand Explained, What Sets Apart, etc.) */}
+          {longDescription && <RichContent html={longDescription} />}
 
-          {/* FAQ Section */}
+          {/* Auto-generated Product Lines from product → category joins */}
+          <BrandProductLines
+            brandName={getBrandIndexDisplayName(brand)}
+            brandFilterValue={brandCategories.brandFilterValue}
+            categories={brandCategories.categories}
+          />
+
+          {/* FAQ Section (emits FAQPage JSON-LD) */}
           {faqItems.length > 0 && (
-            <FAQSection 
+            <FAQSection
               faqs={faqItems}
               categoryTitle={brand.title}
             />

@@ -34,6 +34,9 @@ export async function processVendorInventoryLevelsWebhook(
     console.warn('[vendor-sync] No active vendor_shop_connections for', shopDomain);
     return { ok: true, detail: 'unknown_shop' };
   }
+  if (!connection.sync_inventory) {
+    return { ok: true, detail: 'sync_inventory_disabled' };
+  }
 
   const levels = await fetchVendorInventoryLevels(
     connection.shop_domain,

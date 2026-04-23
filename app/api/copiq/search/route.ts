@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
 
     const searchTerm = `%${query.trim()}%`;
     const results: Array<Record<string, unknown>> = [];
-    const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au').replace(
+    const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(
       /\/+$/,
       ''
     );

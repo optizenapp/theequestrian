@@ -2,9 +2,14 @@ import { Metadata } from 'next';
 import { PolicyLayout } from '@/components/policy/PolicyLayout';
 import { generatePolicyPageSchema } from '@/lib/utils/site-schema';
 
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
+
 export const metadata: Metadata = {
   title: 'Postage & Delivery | The Equestrian',
   description: 'Postage, delivery times, tracking, click & collect, and multi-vendor shipping details.',
+  alternates: {
+    canonical: `${siteUrl}/shipping-delivery`,
+  },
 };
 
 export default function ShippingDeliveryPage() {

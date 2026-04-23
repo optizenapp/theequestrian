@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   decodeOAuthState,
   exchangeAuthorizationCodeForToken,
+  getAppCredentialsForShop,
   isValidShopHostname,
   verifyShopifyOAuthQueryHmac,
 } from '@/lib/shopify/vendor-oauth';
@@ -19,38 +20,37 @@ function htmlPage(title: string, body: string, ok: boolean): NextResponse {
 
 /**
  * OAuth redirect target. Must be listed under Allowed redirection URL(s) in Dev Dashboard.
+ * Credentials are resolved per shop domain so multiple vendor apps are supported.
  */
 export async function GET(request: NextRequest) {
-  const clientId = process.env.VENDOR_SYNC_APP_CLIENT_ID;
-  const clientSecret = process.env.VENDOR_SYNC_APP_CLIENT_SECRET;
-
-  if (!clientId || !clientSecret) {
-    return htmlPage(
-      'Configuration error',
-      'Server missing VENDOR_SYNC_APP_CLIENT_ID or VENDOR_SYNC_APP_CLIENT_SECRET.',
-      false
-    );
-  }
-
   const searchParams = request.nextUrl.searchParams;
-
-  if (!verifyShopifyOAuthQueryHmac(searchParams, clientSecret)) {
-    return htmlPage('Invalid request', 'HMAC verification failed.', false);
-  }
-
-  const code = searchParams.get('code');
   const shop = searchParams.get('shop')?.trim() || '';
-  const stateRaw = searchParams.get('state') || '';
-
-  if (!code || !shop || !stateRaw) {
-    return htmlPage('Invalid request', 'Missing code, shop, or state.', false);
-  }
 
   if (!isValidShopHostname(shop)) {
     return htmlPage('Invalid shop', 'Shop hostname is not allowed.', false);
   }
 
-  const statePayload = decodeOAuthState(stateRaw, clientSecret);
+  const creds = getAppCredentialsForShop(shop);
+  if (!creds) {
+    return htmlPage(
+      'Configuration error',
+      `No app credentials found for ${shop}. Set VENDOR_SYNC_APP_CLIENT_ID_<SLUG> or the default VENDOR_SYNC_APP_CLIENT_ID.`,
+      false
+    );
+  }
+
+  if (!verifyShopifyOAuthQueryHmac(searchParams, creds.clientSecret)) {
+    return htmlPage('Invalid request', 'HMAC verification failed.', false);
+  }
+
+  const code = searchParams.get('code');
+  const stateRaw = searchParams.get('state') || '';
+
+  if (!code || !stateRaw) {
+    return htmlPage('Invalid request', 'Missing code or state.', false);
+  }
+
+  const statePayload = decodeOAuthState(stateRaw, creds.clientSecret);
   if (!statePayload) {
     return htmlPage('Invalid state', 'State expired or tampered.', false);
   }
@@ -58,8 +58,8 @@ export async function GET(request: NextRequest) {
   try {
     const { access_token } = await exchangeAuthorizationCodeForToken({
       shop,
-      clientId,
-      clientSecret,
+      clientId: creds.clientId,
+      clientSecret: creds.clientSecret,
       code,
     });
 

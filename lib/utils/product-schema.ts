@@ -18,6 +18,7 @@
  */
 
 import type { ShopifyProduct } from '@/types/shopify';
+import { getProductIdentifiers } from '@/lib/products/product-identifiers';
 
 /**
  * Review statistics for AggregateRating
@@ -153,22 +154,24 @@ function extractSize(product: ShopifyProduct): string | undefined {
   return sizeOption?.value;
 }
 
+export interface ProductSchemaOptions {
+  /** Canonical brand hub handle from products.brand_hub_handle (preferred over slugify(vendor)). */
+  brandHubHandle?: string | null;
+  /** Display brand label (products.brand). Falls back to product.vendor. */
+  brandName?: string | null;
+}
+
 /**
  * Generate best-in-class Product schema with Entity Resolution
- * 
- * @param product - Shopify product data
- * @param productUrl - Product URL path (e.g., /horse/boots/paddock-boots/product-handle)
- * @param siteUrl - Full site URL (e.g., https://theequestrian.com.au)
- * @param reviewStats - Optional review statistics for AggregateRating
- * @returns Complete Product schema with all available data
  */
 export function generateProductSchema(
   product: ShopifyProduct,
   productUrl: string,
   siteUrl: string = '',
-  reviewStats?: ReviewStats | null
+  reviewStats?: ReviewStats | null,
+  options: ProductSchemaOptions = {}
 ) {
-  const baseSiteUrl = (siteUrl || 'https://theequestrian.com.au').replace(/\/+$/, '');
+  const baseSiteUrl = (siteUrl || 'https://www.theequestrian.com.au').replace(/\/+$/, '');
   const normalizedProductPath = productUrl.startsWith('/') ? productUrl : `/${productUrl}`;
   const productAbsoluteUrl = `${baseSiteUrl}${normalizedProductPath}`;
   const price = product.priceRange.minVariantPrice;
@@ -181,14 +184,15 @@ export function generateProductSchema(
     : 'https://schema.org/OutOfStock';
   
   // Extract Shopify product ID as SKU
-  const sku = product.id.split('/').pop() || '';
+  const identifiers = getProductIdentifiers(product);
+  const sku = identifiers.sku || product.id.split('/').pop() || '';
   
   // Get all product images (not just first one)
   const images = product.images.edges.map(({ node }) => node.url);
   
   // Extract optional identifiers and attributes
-  const gtin = extractGTIN(product);
-  const mpn = extractMPN(product);
+  const gtin = identifiers.upc || extractGTIN(product);
+  const mpn = identifiers.model || extractMPN(product);
   const additionalProperties = extractAdditionalProperties(product);
   const firstMaterial = additionalProperties.find((property) => property.name === 'Material')?.value as string | undefined;
   const color = extractColor(product);
@@ -224,17 +228,20 @@ export function generateProductSchema(
     schema.image = images;
   }
   
-  // OPTIONAL: Brand entity (NOT the seller)
-  // This distinguishes manufacturer from retailer
-  // Only include if vendor is a real brand (not the store name)
-  if (product.vendor && 
-      product.vendor.toLowerCase() !== 'the equestrian' && 
-      product.vendor.toLowerCase() !== 'ascot saddlery' &&
-      product.vendor.trim() !== '') {
+  // Brand entity: prefer canonical brand_hub_handle from DB; fall back to slugified vendor.
+  // Stable @id enables cross-page entity resolution with the brand hub page.
+  const brandLabel = (options.brandName || product.vendor || '').trim();
+  const isStoreVendor =
+    brandLabel.toLowerCase() === 'the equestrian' ||
+    brandLabel.toLowerCase() === 'ascot saddlery';
+  if (brandLabel && !isStoreVendor) {
+    const hub = options.brandHubHandle?.trim() || slugify(brandLabel);
+    const brandUrl = `${baseSiteUrl}/brands/${hub}`;
     schema.brand = {
       "@type": "Brand",
-      "name": product.vendor,
-      "url": `${baseSiteUrl}/brands/${slugify(product.vendor)}`,
+      "@id": `${brandUrl}#brand`,
+      "name": brandLabel,
+      "url": brandUrl,
     };
   }
   
@@ -282,32 +289,39 @@ export function generateProductSchema(
     };
   }
   
-  // Build offers with merchant trust signals
+  // Build offers with merchant trust signals.
+  //
+  // `seller` and `hasMerchantReturnPolicy` are inlined (not @id refs) because the
+  // referenced Organization/MerchantReturnPolicy entities aren't defined in the
+  // same @graph on PDPs — Google would otherwise treat them as dangling and drop
+  // the trust signals from the rich result.
+  //
+  // `shippingDetails` intentionally omits a hard-coded $0 shippingRate. Showing
+  // free shipping on every product violates merchant guidelines whenever real
+  // shipping cost is non-zero. Shipping handling/transit time still convey the
+  // trust signal without a misleading price claim.
   const offerBase = {
     "url": productAbsoluteUrl,
     "priceCurrency": price.currencyCode,
     "availability": availability,
-    "priceValidUntil": new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 90 days
+    "priceValidUntil": new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     "itemCondition": "https://schema.org/NewCondition",
-    
-    // Seller entity (the retailer)
     "seller": {
-      "@id": `${baseSiteUrl}#organization`,
+      "@type": "OnlineStore",
+      "name": "The Equestrian",
+      "url": baseSiteUrl,
     },
-    
-    // Merchant return policy (trust signal)
     "hasMerchantReturnPolicy": {
-      "@id": `${baseSiteUrl}#return-policy`,
+      "@type": "MerchantReturnPolicy",
+      "applicableCountry": "AU",
+      "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+      "merchantReturnDays": 30,
+      "returnMethod": "https://schema.org/ReturnByMail",
+      "returnFees": "https://schema.org/FreeReturn",
+      "refundType": "https://schema.org/FullRefund",
     },
-    
-    // Shipping details (trust signal)
     "shippingDetails": {
       "@type": "OfferShippingDetails",
-      "shippingRate": {
-        "@type": "MonetaryAmount",
-        "value": "0",
-        "currency": price.currencyCode
-      },
       "shippingDestination": {
         "@type": "DefinedRegion",
         "addressCountry": "AU"
@@ -413,11 +427,12 @@ export function generateProductSchemaGraph(
   productUrl: string,
   breadcrumbSchema: any,
   siteUrl: string = '',
-  reviewStats?: ReviewStats | null
+  reviewStats?: ReviewStats | null,
+  options: ProductSchemaOptions = {}
 ) {
-  const productSchema = generateProductSchema(product, productUrl, siteUrl, reviewStats);
+  const productSchema = generateProductSchema(product, productUrl, siteUrl, reviewStats, options);
   const breadcrumbs = Array.isArray(breadcrumbSchema) ? breadcrumbSchema : [breadcrumbSchema];
-  
+
   return {
     "@context": "https://schema.org",
     "@graph": [

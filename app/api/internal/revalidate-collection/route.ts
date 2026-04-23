@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { invalidateCache } from '@/lib/content/collections';
+import { invalidateBrandContentCache } from '@/lib/content/brand-content';
 
 function isAuthorized(request: NextRequest): boolean {
   const configuredSecret = process.env.INTERNAL_REVALIDATE_SECRET || process.env.REVALIDATE_SECRET;
@@ -25,6 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     invalidateCache();
+    invalidateBrandContentCache();
     revalidatePath(raw);
 
     return NextResponse.json({ ok: true, revalidated: raw });

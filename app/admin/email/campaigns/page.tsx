@@ -86,6 +86,7 @@ export default function AdminEmailCampaignsPage() {
   const [isDuplicatingCampaign, setIsDuplicatingCampaign] = useState(false);
   const [deletingCampaignId, setDeletingCampaignId] = useState<string | null>(null);
   const [cancellingCampaignId, setCancellingCampaignId] = useState<string | null>(null);
+  const [resendingCampaignId, setResendingCampaignId] = useState<string | null>(null);
   const [preparedCampaign, setPreparedCampaign] = useState<PreparedCampaign | null>(null);
   const [duplicatedCampaignId, setDuplicatedCampaignId] = useState<string | null>(null);
   const [editingCampaignId, setEditingCampaignId] = useState<string | null>(null);
@@ -433,6 +434,8 @@ export default function AdminEmailCampaignsPage() {
 
   const updateCampaign = async () => {
     if (!editingCampaignId) return;
+    const currentlyEditing = campaigns.find((c) => c.id === editingCampaignId) || null;
+    const wasCancelled = String(currentlyEditing?.status || '').toLowerCase() === 'cancelled';
     if (!name.trim() || !templateVersionId) {
       setError('Campaign name and template are required');
       return;
@@ -498,8 +501,13 @@ export default function AdminEmailCampaignsPage() {
       if (!updateRes.ok) {
         throw new Error(updatePayload?.error || 'Failed to update campaign');
       }
-      setStatusMessage(`Campaign "${name.trim()}" updated. Use "Send queued" to send it.`);
+      const successMessage = wasCancelled
+        ? `Campaign "${name.trim()}" reactivated. ${
+            Number(updatePayload?.reactivatedRecipients || 0)
+          } unsent recipients re-queued. Use "Send queued" to continue.`
+        : `Campaign "${name.trim()}" updated. Use "Send queued" to send it.`;
       clearEditor();
+      setStatusMessage(successMessage);
       await loadAll();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update campaign');
@@ -581,8 +589,6 @@ export default function AdminEmailCampaignsPage() {
     try {
       const response = await fetch(`/api/admin/email/campaigns/${preparedCampaign.id}/send`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ frequencyCapCount: 3, frequencyCapDays: 7 }),
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload?.error || 'Failed to send campaign');
@@ -1443,6 +1449,7 @@ export default function AdminEmailCampaignsPage() {
               <div className="flex flex-wrap items-center gap-2">
                 {(() => {
                   const normalizedStatus = String(campaign.status || '').toLowerCase();
+                  const isCancelledStatus = normalizedStatus === 'cancelled';
                   const isCompletedStatus =
                     normalizedStatus === 'completed' ||
                     normalizedStatus === 'complete' ||
@@ -1456,6 +1463,62 @@ export default function AdminEmailCampaignsPage() {
                       className="rounded-full border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 cursor-default"
                     >
                       Complete
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isDuplicatingCampaign}
+                      className="rounded-full border border-action px-3 py-1.5 text-xs font-semibold text-action hover:bg-action hover:text-white disabled:opacity-60"
+                      onClick={() => duplicateCampaign(campaign)}
+                    >
+                      {isDuplicatingCampaign ? 'Duplicating…' : 'Duplicate'}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={resendingCampaignId === campaign.id}
+                      className="rounded-full border border-violet-300 px-3 py-1.5 text-xs font-semibold text-violet-800 hover:border-violet-500 disabled:opacity-60"
+                      onClick={async () => {
+                        const confirmed = window.confirm(
+                          `Resend this campaign only to contacts who did not receive it (skipped/failed/cancelled)? Already-sent recipients will not be emailed again.`
+                        );
+                        if (!confirmed) return;
+                        setResendingCampaignId(campaign.id);
+                        setError('');
+                        setStatusMessage('');
+                        try {
+                          const response = await fetch(
+                            `/api/admin/email/campaigns/${campaign.id}/resend-unsent`,
+                            { method: 'POST' }
+                          );
+                          const data = await response.json();
+                          if (!response.ok) {
+                            setError(data?.error || 'Failed to resend unsent recipients');
+                            return;
+                          }
+                          setStatusMessage(
+                            `Resent unsent: re-queued ${data.requeuedRecipients ?? 0}, sent ${data.sent ?? 0}, failed ${data.failed ?? 0}, skipped ${data.skipped ?? 0}.`
+                          );
+                          await loadAll();
+                        } catch (err) {
+                          setError(err instanceof Error ? err.message : 'Failed to resend unsent recipients');
+                        } finally {
+                          setResendingCampaignId(null);
+                        }
+                      }}
+                    >
+                      {resendingCampaignId === campaign.id ? 'Resending…' : 'Resend unsent'}
+                    </button>
+                  </>
+                    );
+                  }
+                  if (isCancelledStatus) {
+                    return (
+                  <>
+                    <button
+                      type="button"
+                      className="rounded-full border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 cursor-default"
+                      disabled
+                    >
+                      Cancelled
                     </button>
                     <button
                       type="button"
@@ -1537,8 +1600,6 @@ export default function AdminEmailCampaignsPage() {
                     onClick={async () => {
                       const response = await fetch(`/api/admin/email/campaigns/${campaign.id}/send`, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ frequencyCapCount: 3, frequencyCapDays: 7 }),
                       });
                       const data = await response.json();
                       if (!response.ok) {
@@ -1614,13 +1675,17 @@ export default function AdminEmailCampaignsPage() {
                     Mark completed
                   </button>
                 ) : null}
-                {campaign.status === 'draft' ? (
+                {campaign.status === 'draft' || campaign.status === 'cancelled' ? (
                   <button
                     type="button"
                     className="rounded-full border border-blue-200 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:border-blue-400"
                     onClick={() => applyCampaignToEditor(campaign)}
                   >
-                    {duplicatedCampaignId === campaign.id ? 'Edit duplicate' : 'Edit'}
+                    {campaign.status === 'cancelled'
+                      ? 'Edit to resend'
+                      : duplicatedCampaignId === campaign.id
+                        ? 'Edit duplicate'
+                        : 'Edit'}
                   </button>
                 ) : null}
                 <button

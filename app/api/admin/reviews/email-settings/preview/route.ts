@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const handle = typeof body?.handle === 'string' ? body.handle.trim() : '';
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au';
 
     let productImageUrl = `${siteUrl}/window.svg`;
     let productUrl = `${siteUrl}/products/sample-product#reviews`;

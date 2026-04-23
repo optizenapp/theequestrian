@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
+import { slugFromBrandName } from '@/lib/brands/brand-slug';
 import { getProductByHandle } from '@/lib/shopify/products';
 import type { ShopifyProduct } from '@/types/shopify';
 
@@ -45,9 +46,15 @@ const ensureProductContentTable = async () => {
   await sql`ALTER TABLE product_content_overrides ADD COLUMN IF NOT EXISTS is_published_headless BOOLEAN NOT NULL DEFAULT true`;
 };
 
+const ensureProductsBrandColumn = async () => {
+  await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS brand TEXT`;
+  await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS brand_hub_handle TEXT`;
+};
+
 const getProductFromDb = async (handle: string): Promise<Partial<ShopifyProduct> | null> => {
+  await ensureProductsBrandColumn();
   const result = await sql`
-    SELECT id, handle, title, description
+    SELECT id, handle, title, description, brand, vendor
     FROM products
     WHERE handle = ${handle}
     LIMIT 1
@@ -59,6 +66,8 @@ const getProductFromDb = async (handle: string): Promise<Partial<ShopifyProduct>
     handle: row.handle,
     title: row.title,
     descriptionHtml: row.description || '',
+    brand: row.brand?.trim() || null,
+    vendor: row.vendor || '',
   };
 };
 
@@ -84,12 +93,31 @@ export async function GET(
       LIMIT 1
     `;
 
+    let dbBrand: string | null =
+      typeof (product as { brand?: string | null }).brand === 'string'
+        ? (product as { brand: string }).brand.trim() || null
+        : null;
+    if (dbBrand == null) {
+      try {
+        await ensureProductsBrandColumn();
+        const brandRow = await sql`
+          SELECT brand FROM products WHERE handle = ${handle} LIMIT 1
+        `;
+        const r = brandRow.rows[0] as { brand: string | null } | undefined;
+        dbBrand = r?.brand?.trim() || null;
+      } catch {
+        dbBrand = null;
+      }
+    }
+
     return NextResponse.json({
       product: {
         id: product.id,
         handle: product.handle,
         title: product.title,
         descriptionHtml: product.descriptionHtml || '',
+        vendor: (product as { vendor?: string }).vendor ?? null,
+        brand: dbBrand,
         images: product.images?.edges?.map((edge) => edge.node) || [],
       },
       override: overrideResult.rows[0] || null,
@@ -106,6 +134,7 @@ export async function PATCH(
 ) {
   try {
     await ensureProductContentTable();
+    await ensureProductsBrandColumn();
     const { handle } = await params;
     const body = await request.json();
 
@@ -170,7 +199,25 @@ export async function PATCH(
       RETURNING *
     `;
 
-    return NextResponse.json({ override: result.rows[0] });
+    if (Object.prototype.hasOwnProperty.call(body ?? {}, 'brand')) {
+      const raw = body?.brand;
+      const trimmed = typeof raw === 'string' ? raw.trim() : '';
+      const hub = trimmed ? slugFromBrandName(trimmed) : null;
+      await sql`
+        UPDATE products
+        SET brand = ${trimmed || null},
+            brand_hub_handle = ${hub},
+            updated_at = NOW()
+        WHERE handle = ${handle}
+      `;
+    }
+
+    const brandRow = await sql`
+      SELECT brand FROM products WHERE handle = ${handle} LIMIT 1
+    `;
+    const brandOut = (brandRow.rows[0] as { brand: string | null } | undefined)?.brand?.trim() || null;
+
+    return NextResponse.json({ override: result.rows[0], brand: brandOut });
   } catch (error) {
     console.error('Error updating product content:', error);
     return NextResponse.json({ error: 'Failed to update product content' }, { status: 500 });

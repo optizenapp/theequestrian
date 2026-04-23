@@ -224,12 +224,12 @@ async function runStep(
       htmlTemplate: templateVersion.htmlTemplate,
       variables: {
         customerName: (contact.rows[0]?.first_name as string | null) || '',
-        siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au',
+        siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au',
         email,
         unsubscribeUrl: await buildUnsubscribeUrl(enrollment.contact_id),
       },
     });
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au';
     const renderedHtml = proxyEmailImages(
       addUtmParamsToEmailHtml(
         renderedRaw.html,

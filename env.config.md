@@ -10,8 +10,22 @@ SHOPIFY_ADMIN_ACCESS_TOKEN=your_admin_access_token_here
 SHOPIFY_WEBHOOK_SECRET=your_webhook_secret_here
 
 # Vendor store → marketplace sync (Dev Dashboard app — 2026+)
-VENDOR_SYNC_APP_CLIENT_ID=
-VENDOR_SYNC_APP_CLIENT_SECRET=
+#
+# Credential resolution order (per webhook/OAuth request):
+#   1. VENDOR_SYNC_APP_CLIENT_ID_<SLUG>  (vendor-specific)
+#   2. VENDOR_SYNC_APP_CLIENT_ID          (default fallback)
+#
+# Slug = shop domain minus ".myshopify.com", uppercased, dashes → underscores.
+#   trailrace.myshopify.com          → TRAILRACE
+#   ascot-saddlery-vic.myshopify.com → ASCOT_SADDLERY_VIC
+#
+# Current setup: default = Ascot app; Trailrace uses its own pair.
+VENDOR_SYNC_APP_CLIENT_ID=          # Ascot Saddlery app (default)
+VENDOR_SYNC_APP_CLIENT_SECRET=      # Ascot Saddlery app (default)
+
+VENDOR_SYNC_APP_CLIENT_ID_TRAILRACE=
+VENDOR_SYNC_APP_CLIENT_SECRET_TRAILRACE=
+
 # Optional: require ?secret= on /api/shopify/vendor-oauth/install in production
 VENDOR_OAUTH_START_SECRET=
 

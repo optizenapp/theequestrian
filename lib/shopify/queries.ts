@@ -85,6 +85,24 @@ export const PRODUCT_FRAGMENT = `
     metafield(namespace: "custom", key: "primary_collection") {
       value
     }
+    metafields(
+      identifiers: [
+        { namespace: "custom", key: "model" },
+        { namespace: "custom", key: "model_number" },
+        { namespace: "custom", key: "mpn" },
+        { namespace: "custom", key: "upc" },
+        { namespace: "custom", key: "gtin" },
+        { namespace: "custom", key: "barcode" },
+        { namespace: "global", key: "model" },
+        { namespace: "global", key: "mpn" },
+        { namespace: "global", key: "upc" },
+        { namespace: "global", key: "gtin" }
+      ]
+    ) {
+      namespace
+      key
+      value
+    }
   }
 `;
 
@@ -503,6 +521,10 @@ export const CREATE_CART = `
                     amount
                     currencyCode
                   }
+                  compareAtPrice {
+                    amount
+                    currencyCode
+                  }
                   product {
                     handle
                     title
@@ -552,6 +574,10 @@ export const ADD_TO_CART = `
                   id
                   title
                   price {
+                    amount
+                    currencyCode
+                  }
+                  compareAtPrice {
                     amount
                     currencyCode
                   }
@@ -607,6 +633,10 @@ export const UPDATE_CART = `
                     amount
                     currencyCode
                   }
+                  compareAtPrice {
+                    amount
+                    currencyCode
+                  }
                   product {
                     handle
                     title
@@ -659,6 +689,10 @@ export const REMOVE_FROM_CART = `
                     amount
                     currencyCode
                   }
+                  compareAtPrice {
+                    amount
+                    currencyCode
+                  }
                   product {
                     handle
                     title
@@ -707,6 +741,10 @@ export const GET_CART = `
                 id
                 title
                 price {
+                  amount
+                  currencyCode
+                }
+                compareAtPrice {
                   amount
                   currencyCode
                 }

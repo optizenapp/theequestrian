@@ -3,6 +3,8 @@ import { after } from 'next/server';
 import { verifyVendorSyncWebhook } from '@/lib/inventory/vendor-sync/verify-webhook';
 import { processVendorInventoryLevelsWebhook } from '@/lib/inventory/vendor-sync/process-inventory';
 import { processVendorProductUpdateWebhook } from '@/lib/inventory/vendor-sync/process-product';
+import { processVendorProductCreateWebhook } from '@/lib/inventory/vendor-sync/process-product-map';
+import { getAppCredentialsForShop, getAllAppSecrets } from '@/lib/shopify/vendor-oauth';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -16,36 +18,49 @@ function runAsync(work: () => Promise<void>) {
 }
 
 /**
- * Vendor Shopify → marketplace sync. Register on each vendor store (same custom app):
+ * Verify webhook HMAC, trying the per-shop secret first then all configured secrets.
+ * This allows multiple vendor apps (one per vendor store) to share one endpoint.
+ */
+function verifyWebhookForShop(rawBody: string, hmac: string | null, shop: string): boolean {
+  const creds = getAppCredentialsForShop(shop);
+  if (creds && verifyVendorSyncWebhook(rawBody, hmac, creds.clientSecret)) {
+    return true;
+  }
+  for (const secret of getAllAppSecrets()) {
+    if (creds && secret === creds.clientSecret) continue;
+    if (verifyVendorSyncWebhook(rawBody, hmac, secret)) return true;
+  }
+  return false;
+}
+
+/**
+ * Vendor Shopify → marketplace sync. Register on each vendor store:
  * - inventory_levels/update
  * - products/update (when sync_price enabled for that connection)
  *
- * Secret: VENDOR_SYNC_APP_CLIENT_SECRET (Shopify app client secret).
+ * Supports multiple vendor apps: secret is resolved per shop domain using
+ * VENDOR_SYNC_APP_CLIENT_SECRET_<SLUG> env vars (fallback to default).
  */
 export async function POST(request: NextRequest) {
-  const secret = process.env.VENDOR_SYNC_APP_CLIENT_SECRET;
-  if (!secret) {
-    return NextResponse.json(
-      { ok: false, error: 'VENDOR_SYNC_APP_CLIENT_SECRET not configured' },
-      { status: 503 }
-    );
-  }
-
   const rawBody = await request.text();
   const hmac = request.headers.get('x-shopify-hmac-sha256');
-  if (!verifyVendorSyncWebhook(rawBody, hmac, secret)) {
-    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
-  }
-
   const topic = request.headers.get('x-shopify-topic') || '';
   const shop = request.headers.get('x-shopify-shop-domain') || '';
+
+  if (!verifyWebhookForShop(rawBody, hmac, shop)) {
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+  }
 
   runAsync(async () => {
     try {
       if (topic === 'inventory_levels/update') {
         await processVendorInventoryLevelsWebhook(shop, rawBody);
       } else if (topic === 'products/update') {
+        // Auto-map any new variants added to existing products, then sync price
+        await processVendorProductCreateWebhook(shop, rawBody);
         await processVendorProductUpdateWebhook(shop, rawBody);
+      } else if (topic === 'products/create') {
+        await processVendorProductCreateWebhook(shop, rawBody);
       } else {
         console.log('[vendor-sync] ignored topic', topic, shop);
       }
@@ -58,7 +73,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-  const configured = Boolean(process.env.VENDOR_SYNC_APP_CLIENT_SECRET);
+  const configured = getAllAppSecrets().length > 0;
   return NextResponse.json({
     ok: true,
     service: 'shopify-vendor-sync-webhook',

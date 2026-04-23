@@ -1,17 +1,21 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useCart } from './cart-context';
 import Image from 'next/image';
 import Link from 'next/link';
 import { normalizeCheckoutUrl } from '@/lib/shopify/cart-utils';
 import { trackGaEvent } from '@/lib/analytics/ga4';
+import {
+  bindDecoratedCheckoutLink,
+} from '@/lib/analytics/ga4-linker';
 import { FaCcVisa, FaCcMastercard, FaCcPaypal } from 'react-icons/fa';
 import { SiAfterpay, SiShopify } from 'react-icons/si';
 
 export function CartDrawer() {
   const { cart, isOpen, closeCart, updateCartItem, removeCartItem } = useCart();
   const [productHrefByHandle, setProductHrefByHandle] = useState<Record<string, string>>({});
+  const checkoutLinkRef = useRef<HTMLAnchorElement | null>(null);
 
   const handlesKey = useMemo(() => {
     const handles =
@@ -48,13 +52,34 @@ export function CartDrawer() {
     return () => controller.abort();
   }, [handlesKey]);
 
-  const hrefFor = (handle: string) => productHrefByHandle[handle] ?? `/products/${handle}`;
-
-  if (!isOpen) return null;
-
   const itemCount = cart?.totalQuantity || 0;
   const subtotal = cart?.cost.subtotalAmount.amount || '0';
   const currencyCode = cart?.cost.subtotalAmount.currencyCode || 'AUD';
+  const checkoutHref =
+    cart && cart.lines.edges.length > 0
+      ? normalizeCheckoutUrl(cart.checkoutUrl)
+      : '';
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const link = checkoutLinkRef.current;
+    if (!link || !checkoutHref) return;
+
+    return bindDecoratedCheckoutLink(link, {
+      source: 'cart_drawer',
+      onPlainLeftClick: () =>
+        trackGaEvent('begin_checkout', {
+          currency: currencyCode,
+          value: parseFloat(subtotal),
+          item_count: itemCount,
+          source: 'cart_drawer',
+        }),
+    });
+  }, [isOpen, checkoutHref, currencyCode, itemCount, subtotal]);
+
+  const hrefFor = (handle: string) => productHrefByHandle[handle] ?? `/products/${handle}`;
+
+  if (!isOpen) return null;
 
   return (
     <>
@@ -179,15 +204,8 @@ export function CartDrawer() {
               Shipping and taxes calculated at checkout
             </p>
             <a
-              href={normalizeCheckoutUrl(cart.checkoutUrl)}
-              onClick={() =>
-                trackGaEvent('begin_checkout', {
-                  currency: currencyCode,
-                  value: parseFloat(subtotal),
-                  item_count: itemCount,
-                  source: 'cart_drawer',
-                })
-              }
+              ref={checkoutLinkRef}
+              href={checkoutHref}
               className="block w-full bg-action text-white text-center py-3 rounded-full font-semibold hover:bg-action-hover hover:-translate-y-0.5 hover:shadow-md transition-all"
             >
               Checkout

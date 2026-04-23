@@ -148,6 +148,87 @@ function extractPerformanceBucket(tags: string[]): string {
   return 'unknown';
 }
 
+type CommissionGroup = '13' | '9';
+
+const COMMISSION_13_KEYWORDS = [
+  'fly veil',
+  'flyveils',
+  'fly bonnet',
+  'fly hood',
+  'fly mask',
+  'stable',
+  'arena',
+  'horse accessories',
+  'accessories',
+  'halter',
+  'grooming',
+  'bridle',
+  'strapping',
+];
+
+const COMMISSION_9_KEYWORDS = [
+  'bit',
+  'boots',
+  'footwear',
+  'helmet',
+  'rug',
+  'clipper',
+  'pet',
+  'saddle pad',
+  'saddlecloth',
+  'toy',
+  'jewellery',
+  'jewelry',
+  'health',
+  'nutrition',
+  'feed',
+  'body protector',
+  'safety vest',
+  'riding',
+  'clothing',
+  'jodhpur',
+  'breeches',
+];
+
+function hasKeywordMatch(haystacks: string[], keywords: string[]) {
+  return keywords.some((keyword) => haystacks.some((value) => value.includes(keyword)));
+}
+
+function resolveCommissionGroup(productType: string | null | undefined, canonicalPath: string, tags: string[]): CommissionGroup {
+  const searchSpace = [
+    normalizeTag(productType || ''),
+    normalizeTag(canonicalPath.replace(/\//g, ' ')),
+    ...tags.map(normalizeTag),
+  ];
+
+  if (hasKeywordMatch(searchSpace, COMMISSION_13_KEYWORDS)) {
+    return '13';
+  }
+
+  // Non-13 groups (including legacy 11/10/7/6.5/5) are treated with 9% logic.
+  if (hasKeywordMatch(searchSpace, COMMISSION_9_KEYWORDS)) {
+    return '9';
+  }
+
+  return '9';
+}
+
+function resolveCommissionTier(group: CommissionGroup, amount: string): string {
+  const price = Number(amount);
+  if (!Number.isFinite(price)) {
+    return 'do_not_advertise';
+  }
+
+  if (group === '13') {
+    if (price >= 100) return 'tier_1';
+    if (price >= 40) return 'tier_2';
+    return 'do_not_advertise';
+  }
+
+  if (price >= 300) return 'tier_3';
+  return 'do_not_advertise';
+}
+
 function getPriceTier(amount: string): string {
   const price = Number(amount);
   if (!Number.isFinite(price)) return 'unknown';
@@ -223,13 +304,14 @@ function buildVariantItem({
   const title = buildTitle([brand, product.title, color, size, material]);
   const priceTier = getPriceTier(variant.price.amount);
   const marginTier = extractMarginTier(product.tags);
-  const seasonality = extractSeasonality(product.tags);
+  const commissionGroup = resolveCommissionGroup(product.productType, canonicalPath, product.tags);
+  const commissionTier = resolveCommissionTier(commissionGroup, variant.price.amount);
   const stockPressure = isAvailable ? 'high_stock' : 'low_stock';
   const performanceBucket = extractPerformanceBucket(product.tags);
   const gtin = extractGtin(variant.barcode);
   const mpn = extractMpn(variant.sku);
   const identifierExists = Boolean(gtin || mpn);
-  const variantLink = `${productUrl}?variant=${variantId}`;
+  const variantLink = productUrl;
 
   if (!imageUrl) {
     return '';
@@ -259,7 +341,7 @@ function buildVariantItem({
     pattern ? `<g:pattern>${escapeXml(pattern)}</g:pattern>` : '',
     `<g:custom_label_0>${escapeXml(priceTier)}</g:custom_label_0>`,
     `<g:custom_label_1>${escapeXml(marginTier)}</g:custom_label_1>`,
-    `<g:custom_label_2>${escapeXml(seasonality)}</g:custom_label_2>`,
+    `<g:custom_label_2>${escapeXml(commissionTier)}</g:custom_label_2>`,
     `<g:custom_label_3>${escapeXml(stockPressure)}</g:custom_label_3>`,
     `<g:custom_label_4>${escapeXml(performanceBucket)}</g:custom_label_4>`,
   ].filter(Boolean);

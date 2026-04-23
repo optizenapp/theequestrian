@@ -4,11 +4,15 @@ import { generateAboutPageSchema } from '@/lib/utils/site-schema';
 
 export async function generateMetadata() {
   const page = await getStaticPageContent('about');
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
   return {
     title: page?.meta_title || 'About Us | The Equestrian',
     description:
       page?.meta_description ||
       'Learn about The Equestrian team and our mission to serve the Australian equestrian community.',
+    alternates: {
+      canonical: `${siteUrl}/about`,
+    },
   };
 }
 

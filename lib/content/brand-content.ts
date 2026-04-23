@@ -1,4 +1,5 @@
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/client';
+import { ensureBrandContentColumns } from '@/lib/db/ensure-brand-content-columns';
 
 export interface BrandContentRow {
   handle: string;
@@ -12,6 +13,7 @@ export interface BrandContentRow {
   long_description: string | null;
   breadcrumb_label: string | null;
   faq_json: string | null;
+  quick_answer: string | null;
   status: string | null;
   updated_at?: string | null;
 }
@@ -43,6 +45,7 @@ async function ensureBrandContentTable() {
   await sql`CREATE INDEX IF NOT EXISTS idx_brand_content_status ON brand_content(status)`;
   await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS products_count INTEGER DEFAULT 0`;
   await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS rules TEXT`;
+  await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS quick_answer TEXT`;
 }
 
 async function loadBrandContent(): Promise<Map<string, BrandContentRow>> {
@@ -52,7 +55,8 @@ async function loadBrandContent(): Promise<Map<string, BrandContentRow>> {
   }
 
   try {
-    const result = await sql.query(`
+    await ensureBrandContentColumns();
+    const result = await sql`
       SELECT
         handle,
         title,
@@ -65,15 +69,17 @@ async function loadBrandContent(): Promise<Map<string, BrandContentRow>> {
         long_description,
         breadcrumb_label,
         faq_json,
+        quick_answer,
         status,
         updated_at
       FROM brand_content
       WHERE status = 'published'
       ORDER BY handle
-    `);
+    `;
+    const rows = (Array.isArray(result) ? result : []) as BrandContentRow[];
     const map = new Map<string, BrandContentRow>();
-    for (const row of result.rows) {
-      map.set(row.handle, row as BrandContentRow);
+    for (const row of rows) {
+      map.set(row.handle, row);
     }
     brandContentCache = map;
     cacheTimestamp = now;
@@ -123,29 +129,35 @@ export function getBrandIndexDisplayName(brand: BrandContentRow): string {
 /**
  * Get allowed vendor names and tag values from published brands in the DB.
  * Used for the brand filter on category pages so only curated brands appear.
- * Parses the rules column (Shopify collection rule JSON) to extract VENDOR and TAG conditions.
+ * Parses the rules column (Shopify collection rule JSON) to extract VENDOR, BRAND, and TAG conditions.
  */
 export async function getAllowedBrandVendorsFromDb(): Promise<{
   vendors: string[];
   tags: string[];
 }> {
-  const result = await sql.query(`
+  const result = await sql`
     SELECT handle, rules FROM brand_content WHERE status = 'published' AND rules IS NOT NULL AND rules != ''
-  `);
+  `;
   const vendors: string[] = [];
   const tags: string[] = [];
   const seenV = new Set<string>();
   const seenT = new Set<string>();
 
-  for (const row of result.rows) {
+  const rows = (Array.isArray(result) ? result : []) as Array<{ handle: string; rules: string | null }>;
+  for (const row of rows) {
     const rulesStr = row.rules;
     if (!rulesStr || rulesStr === 'Manual Collection') continue;
     try {
       const rules = JSON.parse(rulesStr) as Array<{ column?: string; condition?: string }>;
       if (!Array.isArray(rules)) continue;
       for (const rule of rules) {
-        if (rule.column === 'VENDOR' && rule.condition && !seenV.has(rule.condition)) {
-          seenV.add(rule.condition);
+        const col = rule.column?.toUpperCase();
+        if (
+          (col === 'VENDOR' || col === 'BRAND') &&
+          rule.condition &&
+          !seenV.has(rule.condition.toLowerCase())
+        ) {
+          seenV.add(rule.condition.toLowerCase());
           vendors.push(rule.condition);
         } else if (rule.column === 'TAG' && rule.condition) {
           const lower = rule.condition.toLowerCase();
@@ -164,7 +176,7 @@ export async function getAllowedBrandVendorsFromDb(): Promise<{
 }
 
 export async function listBrandsWithOverrides() {
-  const result = await sql.query(`
+  const result = await sql`
     SELECT
       handle,
       title,
@@ -172,13 +184,14 @@ export async function listBrandsWithOverrides() {
       updated_at
     FROM brand_content
     ORDER BY handle
-  `);
-  return result.rows as Array<{
+  `;
+  const rows = (Array.isArray(result) ? result : []) as Array<{
     handle: string;
     title: string;
     status: string;
     updated_at: string | null;
   }>;
+  return rows;
 }
 
 export function invalidateBrandContentCache() {

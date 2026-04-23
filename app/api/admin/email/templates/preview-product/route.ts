@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     }
 
     const canonical = await getProductCanonicalUrl(product);
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theequestrian.com.au';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au';
     const priceValue = Number(product.priceRange?.minVariantPrice?.amount || 0);
     const compareValue = Number(product.compareAtPriceRange?.minVariantPrice?.amount || 0);
     const hasDiscount = compareValue > priceValue && priceValue > 0;

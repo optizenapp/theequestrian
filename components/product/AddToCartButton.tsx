@@ -13,6 +13,9 @@ interface AddToCartButtonProps {
   currencyCode?: string;
   /** Smaller padding and type — e.g. mobile sticky bar */
   compact?: boolean;
+  quantity?: number;
+  /** Called after a successful add (e.g. close quick-add panel) */
+  onSuccess?: () => void;
 }
 
 export function AddToCartButton({
@@ -21,6 +24,8 @@ export function AddToCartButton({
   analyticsItem,
   currencyCode,
   compact = false,
+  quantity = 1,
+  onSuccess,
 }: AddToCartButtonProps) {
   const { addCartItem, openCart } = useCart();
   const [isAdding, setIsAdding] = useState(false);
@@ -31,17 +36,19 @@ export function AddToCartButton({
 
     setIsAdding(true);
     try {
-      await addCartItem(variantId, 1);
+      const qty = Math.max(1, Math.floor(quantity));
+      await addCartItem(variantId, qty);
       const items = analyticsItem
-        ? [{ ...analyticsItem, quantity: 1 }]
-        : [{ item_id: variantId, quantity: 1 }];
+        ? [{ ...analyticsItem, quantity: qty }]
+        : [{ item_id: variantId, quantity: qty }];
       trackGaEvent('add_to_cart', {
         ...(currencyCode ? { currency: currencyCode } : {}),
         items,
       });
       setShowSuccess(true);
+      onSuccess?.();
       openCart();
-      
+
       // Reset success state after 2 seconds
       setTimeout(() => {
         setShowSuccess(false);

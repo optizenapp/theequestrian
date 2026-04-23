@@ -57,11 +57,15 @@ function extractFaqsFromHtml(htmlBlocks: Array<string | null | undefined>): FaqI
 
 export async function generateMetadata() {
   const page = await getStaticPageContent('faq');
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
   return {
     title: page?.meta_title || 'FAQs | The Equestrian',
     description:
       page?.meta_description ||
       'Frequently asked questions about shipping, returns, sizing, and ordering.',
+    alternates: {
+      canonical: `${siteUrl}/faq`,
+    },
   };
 }
 
