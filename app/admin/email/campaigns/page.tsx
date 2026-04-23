@@ -1319,7 +1319,7 @@ export default function AdminEmailCampaignsPage() {
               <li>Audience overlap (in both): {preparedCampaign.audienceBreakdown.overlapContacts}</li>
               <li>Deduped final audience: {preparedCampaign.audienceBreakdown.totalUniqueContacts}</li>
               <li>Queued recipients: {preparedCampaign.queuedRecipients}</li>
-              <li>Tracking: enabled via Resend tags + webhook event ingestion.</li>
+              <li>Tracking: SES configuration set + SNS webhook to `/api/webhooks/aws/ses-sns`.</li>
             </ul>
             <button
               type="button"

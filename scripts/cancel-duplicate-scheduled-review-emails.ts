@@ -10,7 +10,7 @@
  * Notes:
  * - Default mode is dry-run (no cancellation writes).
  * - Keeps the oldest scheduled row per normalized customer email.
- * - Cancels all additional scheduled rows through Resend API when resend_email_id exists.
+ * - Cancels duplicate rows in DB (SES does not support provider-side scheduled cancellation).
  */
 
 import { config } from 'dotenv';
@@ -39,42 +39,6 @@ function getArgValue(flag: string): string | undefined {
   const match = process.argv.find((arg) => arg.startsWith(`${flag}=`));
   if (!match) return undefined;
   return match.slice(flag.length + 1);
-}
-
-function getResendApiKey(): string {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    throw new Error('Missing RESEND_API_KEY');
-  }
-  return apiKey;
-}
-
-async function cancelInResend(resendEmailId: string): Promise<{ ok: boolean; message: string }> {
-  try {
-    const response = await fetch(`https://api.resend.com/emails/${resendEmailId}/cancel`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${getResendApiKey()}`,
-        'Content-Type': 'application/json',
-      },
-      cache: 'no-store',
-    });
-
-    if (response.ok) {
-      return { ok: true, message: 'Cancelled in Resend' };
-    }
-
-    const body = await response.text();
-    return {
-      ok: false,
-      message: `Resend cancel failed (${response.status}): ${body || response.statusText}`,
-    };
-  } catch (error) {
-    return {
-      ok: false,
-      message: `Resend cancel failed: ${error instanceof Error ? error.message : String(error)}`,
-    };
-  }
 }
 
 async function loadScheduledRowsForEmail(email?: string): Promise<ScheduledDuplicateRow[]> {
@@ -180,40 +144,24 @@ async function main() {
   }
 
   let cancelled = 0;
-  let failed = 0;
   let dbOnlyCancelled = 0;
 
   for (const row of duplicates) {
-    if (!row.resend_email_id) {
-      await markCancelled(
-        row.id,
-        'Auto-cancelled duplicate scheduled review email (keep one per customer)',
-        'Missing resend_email_id. Marked cancelled in DB only.'
-      );
-      dbOnlyCancelled += 1;
-      cancelled += 1;
-      continue;
-    }
-
-    const providerResult = await cancelInResend(row.resend_email_id);
-    if (!providerResult.ok) {
-      failed += 1;
-      await markCancelFailure(row.id, providerResult.message);
-      continue;
-    }
-
     await markCancelled(
       row.id,
       'Auto-cancelled duplicate scheduled review email (keep one per customer)',
-      null
+      row.resend_email_id ? 'Cancelled in DB only (SES has no scheduled-send cancel API).' : 'Missing resend_email_id. Marked cancelled in DB only.'
     );
+    if (!row.resend_email_id) {
+      await markCancelFailure(row.id, 'Missing resend_email_id. Marked cancelled in DB only.');
+    }
+    dbOnlyCancelled += 1;
     cancelled += 1;
   }
 
   console.log('\n✅ Cancellation run complete');
   console.log(`   Cancelled: ${cancelled}`);
-  console.log(`   Failed provider cancels: ${failed}`);
-  console.log(`   DB-only cancelled (no resend id): ${dbOnlyCancelled}`);
+  console.log(`   DB-only cancelled: ${dbOnlyCancelled}`);
 }
 
 main().catch((error) => {

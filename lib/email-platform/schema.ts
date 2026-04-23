@@ -322,7 +322,7 @@ export async function ensureEmailPlatformSchema(): Promise<void> {
       sequence_execution_id UUID REFERENCES email_sequence_step_executions(id) ON DELETE SET NULL,
       template_version_id UUID REFERENCES email_template_versions(id) ON DELETE SET NULL,
       status TEXT NOT NULL DEFAULT 'queued' CHECK (status IN ('draft', 'queued', 'scheduled', 'sent', 'delivered', 'failed', 'cancelled')),
-      provider TEXT NOT NULL DEFAULT 'resend',
+      provider TEXT NOT NULL DEFAULT 'ses',
       provider_message_id TEXT,
       subject TEXT,
       scheduled_at TIMESTAMPTZ,
@@ -344,12 +344,13 @@ export async function ensureEmailPlatformSchema(): Promise<void> {
   await sql`ALTER TABLE email_sends ADD COLUMN IF NOT EXISTS clicked_at TIMESTAMPTZ`;
   await sql`ALTER TABLE email_sends ADD COLUMN IF NOT EXISTS open_count INTEGER NOT NULL DEFAULT 0`;
   await sql`ALTER TABLE email_sends ADD COLUMN IF NOT EXISTS click_count INTEGER NOT NULL DEFAULT 0`;
+  await sql`ALTER TABLE email_sends ALTER COLUMN provider SET DEFAULT 'ses'`;
 
   await sql`
     CREATE TABLE IF NOT EXISTS email_events (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       send_id UUID REFERENCES email_sends(id) ON DELETE SET NULL,
-      provider TEXT NOT NULL DEFAULT 'resend',
+      provider TEXT NOT NULL DEFAULT 'ses',
       provider_message_id TEXT,
       event_type TEXT NOT NULL,
       payload JSONB NOT NULL DEFAULT '{}'::jsonb,
@@ -357,6 +358,7 @@ export async function ensureEmailPlatformSchema(): Promise<void> {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `;
+  await sql`ALTER TABLE email_events ALTER COLUMN provider SET DEFAULT 'ses'`;
 
   await sql`
     CREATE TABLE IF NOT EXISTS email_link_clicks (
