@@ -1,9 +1,7 @@
 import { sql } from '@vercel/postgres';
 import { getTemplateVersion, renderTemplateContent, addUtmParamsToEmailHtml, proxyEmailImages } from '@/lib/email-platform/templates';
-import { Resend } from 'resend';
 import { buildUnsubscribeUrl } from '@/lib/email-platform/unsubscribe';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { sendSesEmail } from '@/lib/email-platform/ses-mailer';
 
 type SequenceStepRecord = {
   id: string;
@@ -19,23 +17,6 @@ type EnrollmentRecord = {
   sequence_version_id: string;
   current_step_order: number;
 };
-
-function extractResendId(sendResult: unknown): string | null {
-  if (!sendResult || typeof sendResult !== 'object') {
-    return null;
-  }
-  const root = sendResult as Record<string, unknown>;
-  if (typeof root.id === 'string' && root.id) {
-    return root.id;
-  }
-  if (root.data && typeof root.data === 'object') {
-    const nested = root.data as Record<string, unknown>;
-    if (typeof nested.id === 'string' && nested.id) {
-      return nested.id;
-    }
-  }
-  return null;
-}
 
 export async function listSequences(limit = 100): Promise<
   Array<{
@@ -245,13 +226,12 @@ async function runStep(
     const rendered = { ...renderedRaw, html: renderedHtml };
 
     try {
-      const provider = await resend.emails.send({
+      const providerMessageId = await sendSesEmail({
         from: `${templateVersion.fromName || 'The Equestrian'} <${templateVersion.fromEmail || 'support@theequestrian.com.au'}>`,
-        to: email,
+        to: [email],
         subject: rendered.subject,
         html: rendered.html,
       });
-      const providerMessageId = extractResendId(provider);
 
       await sql`
         INSERT INTO email_sends (
@@ -271,7 +251,7 @@ async function runStep(
           ${email},
           ${templateVersion.id},
           'sent',
-          'resend',
+          'ses',
           ${providerMessageId},
           ${rendered.subject},
           NOW(),

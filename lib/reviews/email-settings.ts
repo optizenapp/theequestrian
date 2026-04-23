@@ -243,7 +243,7 @@ export async function getReviewEmailSettings(): Promise<ReviewEmailSettings> {
     if (!rows[0]) {
       return {
         ...defaultReviewEmailSettings,
-        fromEmail: process.env.RESEND_FROM_EMAIL || defaultReviewEmailSettings.fromEmail,
+        fromEmail: process.env.SES_AWS_FROM_EMAIL || process.env.RESEND_FROM_EMAIL || defaultReviewEmailSettings.fromEmail,
       };
     }
     const row = rows[0];
@@ -281,13 +281,14 @@ export async function getReviewEmailSettings(): Promise<ReviewEmailSettings> {
       linkColor: row.link_color || defaultReviewEmailSettings.linkColor,
       logoUrl: row.logo_url || null,
     };
-  } catch (error: any) {
-    if (error?.code !== '42P01') {
+  } catch (error: unknown) {
+    const code = error && typeof error === 'object' && 'code' in error ? (error as { code?: string }).code : undefined;
+    if (code !== '42P01') {
       console.error('Failed to load review email settings:', error);
     }
     return {
       ...defaultReviewEmailSettings,
-      fromEmail: process.env.RESEND_FROM_EMAIL || defaultReviewEmailSettings.fromEmail,
+      fromEmail: process.env.SES_AWS_FROM_EMAIL || process.env.RESEND_FROM_EMAIL || defaultReviewEmailSettings.fromEmail,
     };
   }
 }

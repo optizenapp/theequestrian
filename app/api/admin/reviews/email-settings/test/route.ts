@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Resend } from 'resend';
 import { applyTemplate, getReviewEmailSettings } from '@/lib/reviews/email-settings';
 import { getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
 import { renderReviewEmailHtml, type ReviewEmailRenderData } from '@/lib/reviews/email-template';
 import { sql } from '@vercel/postgres';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { sendSesEmail } from '@/lib/email-platform/ses-mailer';
 
 export async function POST(request: NextRequest) {
   try {
@@ -96,9 +94,9 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      await resend.emails.send({
+      await sendSesEmail({
         from: `${settings.fromName} <${settings.fromEmail}>`,
-        to,
+        to: [to],
         subject: `[TEST] ${subject}`,
         html,
       });

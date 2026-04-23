@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Resend } from 'resend';
 import {
   normalizeEmailBlocks,
   normalizeTemplateMetadata,
@@ -9,8 +8,7 @@ import {
   proxyEmailImages,
 } from '@/lib/email-platform/templates';
 import { getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { sendSesEmail } from '@/lib/email-platform/ses-mailer';
 
 function toMoney(value: string | number | undefined): string {
   const parsed = typeof value === 'number' ? value : Number(value || 0);
@@ -109,9 +107,9 @@ export async function POST(request: NextRequest) {
       siteUrl
     );
 
-    await resend.emails.send({
+    await sendSesEmail({
       from: `${fromName} <${fromEmail}>`,
-      to,
+      to: [to],
       subject: `[TEST] ${rendered.subject}`,
       html: htmlWithUtm,
     });

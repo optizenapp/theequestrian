@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { sendSesEmail } from '@/lib/email-platform/ses-mailer';
 
 export async function POST(request: NextRequest) {
   try {
@@ -58,7 +56,7 @@ export async function POST(request: NextRequest) {
     console.log('✅ Review submitted successfully:', rows[0]);
     
     // Send notification email to admin
-    await sendAdminNotification(rows[0]);
+    await sendAdminNotification(rows[0] as ReviewRecord);
     
     return NextResponse.json({ 
       review: rows[0],
@@ -73,7 +71,19 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function sendAdminNotification(review: any) {
+type ReviewRecord = {
+  id: string;
+  product_title: string;
+  rating: number;
+  author_name: string;
+  verified_purchase: boolean;
+  author_email: string | null;
+  order_id: string | null;
+  title: string | null;
+  content: string;
+};
+
+async function sendAdminNotification(review: ReviewRecord) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au';
   const adminEmail = process.env.CONTACT_EMAIL || 'support@theequestrian.com.au';
   
@@ -81,9 +91,9 @@ async function sendAdminNotification(review: any) {
   const stars = '⭐'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
   
   try {
-    await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || 'reviews@theequestrian.com.au',
-      to: adminEmail,
+    await sendSesEmail({
+      from: process.env.SES_AWS_FROM_EMAIL || process.env.RESEND_FROM_EMAIL || 'reviews@theequestrian.com.au',
+      to: [adminEmail],
       subject: `🔔 New Review: ${review.product_title} (${review.rating}★)`,
       html: `
         <!DOCTYPE html>
