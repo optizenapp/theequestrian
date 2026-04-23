@@ -27,6 +27,8 @@ interface ProductPdpCroTrialMainProps {
   children: ReactNode;
   canonicalBrand?: string | null;
   brandHubHandle?: string | null;
+  /** Optional full-width video section rendered above the review block. */
+  videoSection?: ReactNode;
 }
 
 export default function ProductPdpCroTrialMain({
@@ -38,6 +40,7 @@ export default function ProductPdpCroTrialMain({
   children,
   canonicalBrand = null,
   brandHubHandle = null,
+  videoSection = null,
 }: ProductPdpCroTrialMainProps) {
   const croSummaryLine = buildPdpSummaryLine(descriptionHtml, displayTitle);
   const croCarePlain = extractCareSectionPlainText(descriptionHtml);
@@ -122,7 +125,13 @@ export default function ProductPdpCroTrialMain({
           <ProductDescription html={descriptionHtml} productTitle={displayTitle} />
         </div>
 
-        <div className="order-6 lg:order-none lg:col-span-12 lg:row-start-5 min-w-0">
+        {videoSection ? (
+          <div className="order-6 lg:order-none lg:col-span-12 lg:row-start-5 min-w-0">
+            {videoSection}
+          </div>
+        ) : null}
+
+        <div className="order-7 lg:order-none lg:col-span-12 lg:row-start-6 min-w-0">
           {children}
         </div>
       </div>

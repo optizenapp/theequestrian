@@ -10,7 +10,9 @@ import { ProductImageGallery } from '@/components/ProductImageGallery';
 import { ProductBreadcrumbs } from '@/components/ProductBreadcrumbs';
 import { ProductBuyBox } from '@/components/product/ProductBuyBox';
 import { ProductDescription } from '@/components/product/ProductDescription';
+import { ProductVideoSection } from '@/components/product/ProductVideoSection';
 import { RelatedProducts } from '@/components/product/RelatedProducts';
+import { extractVideosFromHtml } from '@/lib/products/extract-videos';
 import { generateBreadcrumbSchema } from '@/lib/utils/breadcrumb-schema';
 import { generateProductSchemaGraph } from '@/lib/utils/product-schema';
 import { getReviewStatsWithCache } from '@/lib/reviews/get-review-stats';
@@ -81,9 +83,11 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
     notFound();
   }
   const displayTitle = override?.use_headless_title ? (override?.title_override || product.title) : product.title;
-  const descriptionHtml = override?.use_headless_description
+  const rawDescriptionHtml = override?.use_headless_description
     ? (override?.description_html || product.descriptionHtml)
     : product.descriptionHtml;
+  const { html: descriptionHtml, videos: descriptionVideos } =
+    extractVideosFromHtml(rawDescriptionHtml);
 
   // Get the canonical URL
   const canonicalUrl = await getProductCanonicalUrl(product);
@@ -216,6 +220,12 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
           reviewBadgeStats={reviewBadgeStats}
           canonicalBrand={canonicalBrand}
           brandHubHandle={brandHubHandle}
+          videoSection={
+            <ProductVideoSection
+              videos={descriptionVideos}
+              productTitle={displayTitle}
+            />
+          }
         >
           <ProductReviewSection
             productId={product.id}
@@ -233,6 +243,12 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
           styleMode={isCroThreePdp ? 'cro3' : 'cro2'}
           canonicalBrand={canonicalBrand}
           brandHubHandle={brandHubHandle}
+          afterDescription={
+            <ProductVideoSection
+              videos={descriptionVideos}
+              productTitle={displayTitle}
+            />
+          }
         />
       ) : (
       <article aria-labelledby="pdp-product-title">
@@ -286,7 +302,14 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
         </div>
       </article>
       )}
-        
+
+        {!isCroTrialPdp ? (
+          <ProductVideoSection
+            videos={descriptionVideos}
+            productTitle={displayTitle}
+          />
+        ) : null}
+
         {!isCroTrialPdp ? (
           <ProductReviewSection
             productId={product.id}

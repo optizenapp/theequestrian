@@ -30,8 +30,10 @@ import { ProductImageGallery } from '@/components/ProductImageGallery';
 import { ProductBreadcrumbs } from '@/components/ProductBreadcrumbs';
 import { ProductBuyBox } from '@/components/product/ProductBuyBox';
 import { ProductDescription } from '@/components/product/ProductDescription';
+import { ProductVideoSection } from '@/components/product/ProductVideoSection';
 import { RelatedProducts } from '@/components/product/RelatedProducts';
 import { SizingGuideLink } from '@/components/product/SizingGuideLink';
+import { extractVideosFromHtml } from '@/lib/products/extract-videos';
 import { generateBreadcrumbSchema } from '@/lib/utils/breadcrumb-schema';
 import { generateProductSchemaGraph } from '@/lib/utils/product-schema';
 import { getReviewStatsWithCache } from '@/lib/reviews/get-review-stats';
@@ -201,9 +203,11 @@ async function renderProductPage(
     notFound();
   }
   const displayTitle = override?.use_headless_title ? (override?.title_override || product.title) : product.title;
-  const descriptionHtml = override?.use_headless_description
+  const rawDescriptionHtml = override?.use_headless_description
     ? (override?.description_html || product.descriptionHtml)
     : product.descriptionHtml;
+  const { html: descriptionHtml, videos: descriptionVideos } =
+    extractVideosFromHtml(rawDescriptionHtml);
   // Build breadcrumb paths from allocation table (priority) or product type (fallback)
   const breadcrumbPaths = await getBreadcrumbsForProduct(
     product.productType || '',
@@ -321,6 +325,12 @@ async function renderProductPage(
             reviewBadgeStats={reviewBadgeStats}
             canonicalBrand={canonicalBrand}
             brandHubHandle={brandHubHandle}
+            videoSection={
+              <ProductVideoSection
+                videos={descriptionVideos}
+                productTitle={displayTitle}
+              />
+            }
           >
             <LazySection
               fallback={<div className="h-96 bg-gray-50 animate-pulse rounded-lg" />}
@@ -346,12 +356,18 @@ async function renderProductPage(
             canonicalBrand={canonicalBrand}
             brandHubHandle={brandHubHandle}
             afterDescription={
-              <SizingGuideLink
-                vendor={product.vendor}
-                productType={product.productType}
-                productTitle={product.title}
-                productHandle={product.handle}
-              />
+              <>
+                <ProductVideoSection
+                  videos={descriptionVideos}
+                  productTitle={displayTitle}
+                />
+                <SizingGuideLink
+                  vendor={product.vendor}
+                  productType={product.productType}
+                  productTitle={product.title}
+                  productHandle={product.handle}
+                />
+              </>
             }
           />
         ) : (
@@ -418,7 +434,13 @@ async function renderProductPage(
           </section>
         </div>
         </article>
-        
+
+        {/* Videos extracted from description (e.g. YouTube embed) */}
+        <ProductVideoSection
+          videos={descriptionVideos}
+          productTitle={displayTitle}
+        />
+
         {/* Sizing Guide Link - Between Description and Reviews */}
         <SizingGuideLink
           vendor={product.vendor}
