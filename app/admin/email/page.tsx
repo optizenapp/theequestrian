@@ -157,7 +157,7 @@ export default function AdminEmailPage() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Contacts" value={summary ? summary.contacts.toLocaleString() : '0'} helper="Total in DB" />
         <StatCard label="Subscribed" value={summary ? summary.subscribed.toLocaleString() : '0'} helper="Eligible audience" />
-        <StatCard label="Sent (30d)" value={summary ? summary.sent30d.toLocaleString() : '0'} helper="Resend sends" />
+        <StatCard label="Sent (30d)" value={summary ? summary.sent30d.toLocaleString() : '0'} helper="SES sends" />
         <StatCard label="Failed (30d)" value={summary ? summary.failed30d.toLocaleString() : '0'} helper="Delivery failures" />
       </div>
 
