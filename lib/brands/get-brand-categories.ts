@@ -82,6 +82,54 @@ function buildBrandWhereClause(brand: BrandContentRow): string | null {
   return clauses.map((c) => `(${c})`).join(' OR ');
 }
 
+function getBrandRules(brand: BrandContentRow): BrandRule[] {
+  if (!brand.rules) return [];
+  try {
+    const parsed = JSON.parse(brand.rules) as BrandRule[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function normalizeLabel(value: string): string {
+  return value.toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+function resolveBrandFilterValue(
+  brand: BrandContentRow,
+  brandCounts: Map<string, number>,
+  mostCommon: string | null
+): string | null {
+  const rules = getBrandRules(brand);
+  const brandEqualsRule = rules.find((rule) =>
+    rule.column?.trim().toUpperCase() === 'BRAND' &&
+    (rule.relation?.trim().toUpperCase() || 'EQUALS') === 'EQUALS' &&
+    rule.condition?.trim()
+  );
+  if (brandEqualsRule?.condition) {
+    return normalizeLabel(brandEqualsRule.condition);
+  }
+
+  if (mostCommon && !mostCommon.includes(',')) {
+    return mostCommon;
+  }
+
+  const handleCandidate = normalizeLabel(brand.handle.replace(/-/g, ' '));
+  if (brandCounts.has(handleCandidate)) {
+    return handleCandidate;
+  }
+
+  const titleCandidate = normalizeLabel(
+    (brand.breadcrumb_label?.trim() || brand.title || '').replace(/^Shop\s+/i, '')
+  );
+  if (titleCandidate && brandCounts.has(titleCandidate)) {
+    return titleCandidate;
+  }
+
+  return mostCommon;
+}
+
 /**
  * Strips the trailing product slug from a canonical_path so we get the parent
  * category path (e.g. /horse/tack/bridles/academy-bridle → /horse/tack/bridles).
@@ -129,14 +177,15 @@ export async function getBrandCategories(
   }
 
   // Pick the most common non-empty brand value as the canonical filter value.
-  let brandFilterValue: string | null = null;
+  let mostCommonBrandValue: string | null = null;
   let topCount = 0;
   for (const [value, count] of brandCounts) {
     if (count > topCount) {
       topCount = count;
-      brandFilterValue = value;
+      mostCommonBrandValue = value;
     }
   }
+  const brandFilterValue = resolveBrandFilterValue(brand, brandCounts, mostCommonBrandValue);
 
   if (counts.size === 0) return { categories: [], brandFilterValue };
 

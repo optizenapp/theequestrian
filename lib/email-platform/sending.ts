@@ -1,7 +1,7 @@
 import { sql } from '@vercel/postgres';
 import { getTemplateVersion, renderTemplateContent, addUtmParamsToEmailHtml, proxyEmailImages } from '@/lib/email-platform/templates';
 import { buildUnsubscribeUrl } from '@/lib/email-platform/unsubscribe';
-import { sendSesEmail } from '@/lib/email-platform/ses-mailer';
+import { sendSesHtmlEmail } from '@/lib/email-platform/ses-mailer';
 
 export async function shouldSuppressContact(contactId: string): Promise<{ suppress: boolean; reason?: string }> {
   const subscription = await sql`
@@ -237,6 +237,7 @@ export async function sendQueuedCampaignRecipients(input: {
         campaign_recipient_id,
         template_version_id,
         status,
+        provider,
         subject,
         metadata,
         updated_at
@@ -247,6 +248,7 @@ export async function sendQueuedCampaignRecipients(input: {
         ${recipientId},
         ${templateVersion.id},
         'queued',
+        'ses',
         ${subject},
         ${JSON.stringify({ campaignId: input.campaignId })},
         NOW()
@@ -256,11 +258,12 @@ export async function sendQueuedCampaignRecipients(input: {
     const sendId = sendRecord.rows[0]?.id as string;
 
     try {
-      const providerMessageId = await sendSesEmail({
-        from: `${templateVersion.fromName || 'The Equestrian'} <${templateVersion.fromEmail || 'support@theequestrian.com.au'}>`,
-        to: [email],
+      const fromEmailAddress = `${templateVersion.fromName || 'The Equestrian'} <${templateVersion.fromEmail || 'support@theequestrian.com.au'}>`;
+      const providerMessageId = await sendSesHtmlEmail({
+        fromEmailAddress,
+        toAddresses: [email],
         subject,
-        html: rendered.html,
+        htmlBody: rendered.html,
         headers: [
           { name: 'List-Unsubscribe', value: `<${variables.unsubscribeUrl}>` },
           { name: 'List-Unsubscribe-Post', value: 'List-Unsubscribe=One-Click' },

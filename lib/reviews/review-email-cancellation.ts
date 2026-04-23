@@ -25,21 +25,6 @@ function toOrderGid(orderId: string): string {
   return orderId.startsWith('gid://shopify/Order/') ? orderId : `gid://shopify/Order/${orderId}`;
 }
 
-export function extractResendEmailId(sendResult: unknown): string | null {
-  if (typeof sendResult === 'string' && sendResult.length > 0) {
-    return sendResult;
-  }
-  return null;
-}
-
-async function cancelResendScheduledEmail(resendEmailId: string): Promise<{ ok: boolean; message: string }> {
-  void resendEmailId;
-  return {
-    ok: true,
-    message: 'Cancelled in DB only (SES has no scheduled-send cancel API)',
-  };
-}
-
 async function loadScheduledEmailById(emailSendId: string): Promise<ScheduledEmailRow | null> {
   const result = await sql`
     SELECT id, order_id, resend_email_id
@@ -80,47 +65,16 @@ async function markEmailCancelled(
   return (result.rowCount ?? 0) > 0;
 }
 
-async function markEmailCancelFailure(emailSendId: string, errorMessage: string): Promise<void> {
-  await sql`
-    UPDATE review_email_sends
-    SET error_message = ${errorMessage}
-    WHERE id = ${emailSendId}
-      AND status = 'scheduled'
-  `;
-}
-
 async function cancelScheduledRow(
   row: ScheduledEmailRow,
   reason: string
 ): Promise<ReviewEmailCancellationResult> {
-  if (!row.resend_email_id) {
-    const message = 'Missing resend_email_id. Marked cancelled in DB only.';
-    const cancelled = await markEmailCancelled(row.id, reason, message);
-    return {
-      id: row.id,
-      orderId: row.order_id,
-      cancelled,
-      message,
-    };
-  }
-
-  const providerResult = await cancelResendScheduledEmail(row.resend_email_id);
-  if (!providerResult.ok) {
-    await markEmailCancelFailure(row.id, providerResult.message);
-    return {
-      id: row.id,
-      orderId: row.order_id,
-      cancelled: false,
-      message: providerResult.message,
-    };
-  }
-
   const cancelled = await markEmailCancelled(row.id, reason, null);
   return {
     id: row.id,
     orderId: row.order_id,
     cancelled,
-    message: providerResult.message,
+    message: cancelled ? 'Cancelled in database (SES scheduled sends are not cancelled at provider)' : 'Not cancelled',
   };
 }
 

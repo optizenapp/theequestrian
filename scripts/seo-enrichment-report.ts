@@ -3,7 +3,7 @@
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import { sql } from '@vercel/postgres';
-import { sendSesEmail } from '@/lib/email-platform/ses-mailer';
+import { sendSesHtmlEmail } from '@/lib/email-platform/ses-mailer';
 
 config({ path: resolve(process.cwd(), '.env.local') });
 config({ path: resolve(process.cwd(), '.env') });
@@ -108,13 +108,13 @@ async function sendEmail(input: {
   html: string;
   recipients: string[];
 }) {
-  const fromEmail = process.env.SES_AWS_FROM_EMAIL || process.env.RESEND_FROM_EMAIL || 'noreply@theequestrian.com.au';
-  await sendSesEmail({
-    from: `The Equestrian <${fromEmail}>`,
-    to: input.recipients,
+  const fromEmail = process.env.AWS_SES_FROM_EMAIL || 'noreply@theequestrian.com.au';
+  await sendSesHtmlEmail({
+    fromEmailAddress: `The Equestrian <${fromEmail}>`,
+    toAddresses: input.recipients,
     subject: input.subject,
-    html: input.html,
-    text: input.text,
+    htmlBody: input.html,
+    textBody: input.text,
   });
 }
 

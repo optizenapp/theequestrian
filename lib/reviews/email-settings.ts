@@ -243,7 +243,10 @@ export async function getReviewEmailSettings(): Promise<ReviewEmailSettings> {
     if (!rows[0]) {
       return {
         ...defaultReviewEmailSettings,
-        fromEmail: process.env.SES_AWS_FROM_EMAIL || process.env.RESEND_FROM_EMAIL || defaultReviewEmailSettings.fromEmail,
+        fromEmail:
+          process.env.AWS_SES_FROM_EMAIL ||
+          process.env.RESEND_FROM_EMAIL ||
+          defaultReviewEmailSettings.fromEmail,
       };
     }
     const row = rows[0];
@@ -288,7 +291,10 @@ export async function getReviewEmailSettings(): Promise<ReviewEmailSettings> {
     }
     return {
       ...defaultReviewEmailSettings,
-      fromEmail: process.env.SES_AWS_FROM_EMAIL || process.env.RESEND_FROM_EMAIL || defaultReviewEmailSettings.fromEmail,
+      fromEmail:
+        process.env.AWS_SES_FROM_EMAIL ||
+        process.env.RESEND_FROM_EMAIL ||
+        defaultReviewEmailSettings.fromEmail,
     };
   }
 }

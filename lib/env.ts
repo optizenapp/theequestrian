@@ -26,6 +26,7 @@ const envSchema = z.object({
   SENTRY_DSN: z.string().optional(),
   NEXT_PUBLIC_GOOGLE_ANALYTICS_ID: z.string().optional(),
   NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
+  STRIPE_SECRET_KEY: z.string().optional(),
 
   // Google Merchant Center
   GOOGLE_OAUTH_CLIENT_ID: z.string().optional(),

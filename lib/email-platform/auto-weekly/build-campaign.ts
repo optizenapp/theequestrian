@@ -1,4 +1,5 @@
 import { sql } from '@vercel/postgres';
+import { sendSesHtmlEmail } from '@/lib/email-platform/ses-mailer';
 import { getProductsByHandles } from '@/lib/shopify/products-by-handles';
 import type { EmailBlock } from '@/lib/email-platform/types';
 import { getTemplateVersion } from '@/lib/email-platform/templates';
@@ -8,7 +9,7 @@ import { selectProductsForAutoWeekly } from './product-selection';
 import { generateAutoWeeklyIntro } from './intro-generator';
 import { generateAutoWeeklySubjectLine } from './subject-line-generator';
 import { generateAutoWeeklyHeading } from './heading-generator';
-import { sendSesEmail } from '@/lib/email-platform/ses-mailer';
+
 const APPROVAL_EMAIL = 'jono@theequestrian.com.au';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au';
 const ADMIN_CAMPAIGNS_URL = `${SITE_URL}/admin/email/campaigns`;
@@ -215,11 +216,11 @@ export async function buildAutoWeeklyCampaign(): Promise<BuildResult> {
 
   let approvalEmailSent = false;
   try {
-    await sendSesEmail({
-      from: process.env.SES_AWS_FROM_EMAIL || 'support@theequestrian.com.au',
-      to: [APPROVAL_EMAIL],
+    await sendSesHtmlEmail({
+      fromEmailAddress: 'The Equestrian <support@theequestrian.com.au>',
+      toAddresses: [APPROVAL_EMAIL],
       subject: `Email campaign ready for approval: ${name}`,
-      html: `
+      htmlBody: `
         <p>A new auto weekly email campaign is ready for your approval.</p>
         <p><strong>${name}</strong></p>
         <p>Please review and approve (or edit then approve) at:</p>

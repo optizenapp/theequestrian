@@ -21,31 +21,39 @@ const content: PageSEOContent = {
   h1_title: 'Horse Tack for Training, Competition & Everyday Riding',
   breadcrumb_label: 'Tack',
 
-  short_description: `<p>Browse <strong>horse tack</strong> for training, competition and everyday riding, including the key leatherwork and hardware used to ride, manage and present your horse properly.</p>
+  short_description: `<p>Browse <strong>horse tack</strong> for training, competition and everyday riding, including bridles, reins, breastplates, stirrups and key competition accessories used across Australian disciplines.</p>
 <!--read-more-trigger-->
-<p>This collection brings together essential tack categories such as bridles, breastplates, martingales, stirrups and competition accessories, making it easier to compare the gear that supports fit, control and rider stability.</p>
+<p>This category helps you compare core setups in one place, from <a href="/horse/tack/bridles">horse bridles</a> and <a href="/horse/tack/reins">horse reins</a> through to rider-control hardware and turnout details.</p>
 
-<p>Whether you are updating a single piece of tack or building out a complete setup for flatwork, jumping or general riding, you can shop the core categories below in one place.</p>`,
+<p>Whether you are replacing one worn item or rebuilding a full kit, you can shop practical tack for flatwork, jumping and everyday riding with fast shipping Australia-wide.</p>`,
 
-  long_description: `<h2>Horse Tack Explained</h2>
+  long_description: `<h2>Horse Tack Types & Uses</h2>
 <p>
-Horse tack covers the equipment used on and around the horse for riding, control and presentation. A well-planned tack setup should match your discipline, fit your horse correctly and support safe, comfortable riding whether you are schooling at home, heading to pony club or preparing for competition.
+Horse tack covers the equipment used on and around the horse for riding, control and presentation. A practical tack setup should suit your discipline, fit your horse correctly and support safe, comfortable riding whether you are schooling at home, heading to pony club or preparing for competition.
 </p>
 
-<h3>Breastplates, Martingales & Front-End Stability</h3>
+<h3>Bridles, Reins & Everyday Control</h3>
 <p>
-<strong>Horse breastplates</strong>, pony breastplates and martingales are useful for riders who want extra stability through the front end and a more secure saddle setup. These pieces are especially popular for jumping, eventing and horses working over varied terrain where keeping the saddle in place matters.
+Most riders start with the essentials: a well-fitted <a href="/horse/tack/bridles">bridle</a>, reliable <a href="/horse/tack/reins">reins</a> and hardware matched to how the horse works. From schooling to competition prep, correct fit and quality materials make day-to-day riding more consistent.
 </p>
 
-<h3>Stirrups, Irons & Rider Position</h3>
+<h3>Front-End Support & Discipline Setup</h3>
 <p>
-The right stirrup setup can improve grip, comfort and balance, whether you are flat riding, jumping or building a more competition-focused kit. If you are refining your overall riding setup, you can also browse our <a href="/horse/saddles">horse saddles</a> and <a href="/horse/pads">horse pads and saddle cloths</a> collections.
+Breastplates and martingales are common additions for riders who want more front-end stability over fences or on varied terrain. Pair those choices with the right <a href="/horse/tack/stirrup-irons">stirrup irons</a> and leg-position setup to improve rider balance and confidence in the saddle.
 </p>
 
-<h3>Competition Tack & Everyday Essentials</h3>
+<h3>Competition Details & Complete Kits</h3>
 <p>
-Alongside everyday riding essentials, many tack setups also include competition accessories such as bridle numbers and horse number holders for show days and events. For horses in regular work, many riders also shop supportive gear such as <a href="/horse/boots">horse boots</a> alongside their tack setup.
+For show days and events, riders often add practical finishing pieces such as <a href="/horse/tack/number-holders">number holders</a> and matching accessories. If you are building a complete setup, also browse <a href="/horse/saddles">horse saddles</a>, <a href="/horse/pads">horse pads</a> and <a href="/horse/boots">horse boots</a> to round out your riding kit.
 </p>
+
+<h3>At a glance</h3>
+<ul>
+<li>Shop core tack categories in one place: bridles, reins, stirrups and accessories.</li>
+<li>Choose tack by discipline and horse fit, not just price point.</li>
+<li>Add competition-ready details like number holders when needed.</li>
+<li>Complete your setup with saddles, pads and horse boots for regular work.</li>
+</ul>
 `,
 
   faq_items: [

@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #f5efe6; font-family: "Inter", sans-serif; color: #1f3a2e; }
+      #root { position: relative; width: 1920px; height: 1080px; background: radial-gradient(ellipse at 30% 20%, #fbf7ef 0%, #ece2cf 60%, #d8c9ad 100%); }
+      .clip { position: absolute; }
+      .scene { inset: 0; width: 1920px; height: 1080px; }
+      .serif { font-family: "Cormorant Garamond", serif; font-weight: 700; letter-spacing: -0.01em; }
+
+      /* Scene 1 - brand intro */
+      #s1-logo { top: 320px; left: 760px; width: 400px; height: 400px; }
+      #s1-logo img { width: 100%; height: 100%; object-fit: contain; }
+      #s1-tag { top: 760px; left: 0; width: 1920px; text-align: center; font-size: 38px; letter-spacing: 0.5em; color: #5a6a55; text-transform: uppercase; }
+
+      /* Scene 2 - product reveal */
+      #s2-bg { inset: 0; background: linear-gradient(135deg, #1f3a2e 0%, #2a4d3a 100%); }
+      #s2-product { top: 90px; left: 1080px; width: 760px; height: 760px; border-radius: 24px; overflow: hidden; box-shadow: 0 40px 90px rgba(0,0,0,0.45); background: #fff; }
+      #s2-product img { width: 100%; height: 100%; object-fit: cover; }
+      #s2-brand { top: 140px; left: 120px; font-size: 32px; color: #c9a567; letter-spacing: 0.4em; text-transform: uppercase; }
+      #s2-title { top: 200px; left: 120px; width: 880px; font-size: 110px; line-height: 1.05; color: #f5efe6; }
+      #s2-sub { top: 540px; left: 120px; width: 880px; font-size: 30px; line-height: 1.5; color: #d8c9ad; }
+      #s2-rating { top: 760px; left: 120px; font-size: 32px; color: #c9a567; letter-spacing: 0.15em; }
+
+      /* Scene 3 - features */
+      #s3-bg { inset: 0; background: #f5efe6; }
+      #s3-heading { top: 110px; left: 0; width: 1920px; text-align: center; font-size: 84px; color: #1f3a2e; }
+      .feature { top: 320px; width: 380px; height: 480px; padding: 48px 36px; background: #fff; border-radius: 20px; box-shadow: 0 24px 60px rgba(31,58,46,0.12); border-top: 6px solid #1f3a2e; text-align: center; }
+      .feature .ico { font-size: 90px; margin-bottom: 28px; line-height: 1; }
+      .feature .ttl { font-size: 30px; font-weight: 700; color: #1f3a2e; margin-bottom: 18px; letter-spacing: 0.04em; text-transform: uppercase; }
+      .feature .desc { font-size: 22px; color: #5a6a55; line-height: 1.5; }
+      #f1 { left: 140px; }
+      #f2 { left: 560px; border-top-color: #c9a567; }
+      #f3 { left: 980px; }
+      #f4 { left: 1400px; border-top-color: #c9a567; }
+
+      /* Scene 4 - CTA */
+      #s4-bg { inset: 0; background: linear-gradient(160deg, #1f3a2e 0%, #15281f 100%); }
+      #s4-product { top: 200px; left: 180px; width: 600px; height: 600px; border-radius: 20px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.5); background: #fff; }
+      #s4-product img { width: 100%; height: 100%; object-fit: cover; }
+      #s4-name { top: 220px; left: 880px; width: 900px; font-size: 84px; line-height: 1.05; color: #f5efe6; }
+      #s4-price { top: 460px; left: 880px; font-size: 150px; font-weight: 700; color: #c9a567; line-height: 1; font-family: "Cormorant Garamond", serif; }
+      #s4-ship { top: 640px; left: 880px; font-size: 30px; color: #d8c9ad; letter-spacing: 0.25em; text-transform: uppercase; }
+      #s4-url { top: 760px; left: 880px; width: 900px; font-size: 36px; color: #f5efe6; padding: 26px 40px; border: 2px solid #c9a567; border-radius: 60px; text-align: center; letter-spacing: 0.08em; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="16" data-width="1920" data-height="1080">
+      <div id="s1" class="clip scene" data-start="0" data-duration="3" data-track-index="0">
+        <div id="s1-logo" class="clip" data-start="0" data-duration="3" data-track-index="1"><img src="assets/equestrian-logo.png" alt="The Equestrian" /></div>
+        <div id="s1-tag" class="clip" data-start="0" data-duration="3" data-track-index="2">The Equestrian &middot; Australia</div>
+      </div>
+
+      <div id="s2" class="clip scene" data-start="3" data-duration="4" data-track-index="0">
+        <div id="s2-bg" class="clip" data-start="3" data-duration="4" data-track-index="1"></div>
+        <div id="s2-product" class="clip" data-start="3" data-duration="4" data-track-index="2"><img src="assets/shanga-towel-rug.jpg" alt="Shanga Towel Rug" /></div>
+        <div id="s2-brand" class="clip" data-start="3" data-duration="4" data-track-index="3">Shanga</div>
+        <div id="s2-title" class="clip serif" data-start="3" data-duration="4" data-track-index="4">Shanga Towel Rug</div>
+        <div id="s2-sub" class="clip" data-start="3" data-duration="4" data-track-index="5">Optimal post-wash drying and all-year comfort for your horse.</div>
+        <div id="s2-rating" class="clip" data-start="3" data-duration="4" data-track-index="6">&#9733;&#9733;&#9733;&#9733;&#9733; &nbsp; 4.0 &nbsp;|&nbsp; 4 reviews</div>
+      </div>
+
+      <div id="s3" class="clip scene" data-start="7" data-duration="5" data-track-index="0">
+        <div id="s3-bg" class="clip" data-start="7" data-duration="5" data-track-index="1"></div>
+        <div id="s3-heading" class="clip serif" data-start="7" data-duration="5" data-track-index="2">Crafted for the Stable</div>
+        <div id="f1" class="clip feature" data-start="7" data-duration="5" data-track-index="3"><div class="ico">&#9928;</div><div class="ttl">Fast Drying</div><div class="desc">Absorbent towel fabric wicks moisture after every wash.</div></div>
+        <div id="f2" class="clip feature" data-start="7" data-duration="5" data-track-index="4"><div class="ico">&#10052;</div><div class="ttl">All Seasons</div><div class="desc">Light warmth in winter, gentle breathability in summer.</div></div>
+        <div id="f3" class="clip feature" data-start="7" data-duration="5" data-track-index="5"><div class="ico">&#9876;</div><div class="ttl">Secure Fit</div><div class="desc">Reinforced shoulders and front &amp; leg fastenings.</div></div>
+        <div id="f4" class="clip feature" data-start="7" data-duration="5" data-track-index="6"><div class="ico">&#9851;</div><div class="ttl">Easy Care</div><div class="desc">Machine washable. Sized 4&#39;0&#34; through 6&#39;6&#34;.</div></div>
+      </div>
+
+      <div id="s4" class="clip scene" data-start="12" data-duration="4" data-track-index="0">
+        <div id="s4-bg" class="clip" data-start="12" data-duration="4" data-track-index="1"></div>
+        <div id="s4-product" class="clip" data-start="12" data-duration="4" data-track-index="2"><img src="assets/shanga-towel-rug.jpg" alt="Shanga Towel Rug" /></div>
+        <div id="s4-name" class="clip serif" data-start="12" data-duration="4" data-track-index="3">Shanga Towel Rug</div>
+        <div id="s4-price" class="clip" data-start="12" data-duration="4" data-track-index="4">$39.95</div>
+        <div id="s4-ship" class="clip" data-start="12" data-duration="4" data-track-index="5">Free shipping &middot; Australia wide</div>
+        <div id="s4-url" class="clip" data-start="12" data-duration="4" data-track-index="6">theequestrian.com.au</div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      tl.from("#s1-logo", { opacity: 0, scale: 0.7, duration: 0.9, ease: "power3.out" }, 0)
+        .from("#s1-tag", { opacity: 0, y: 30, duration: 0.8, ease: "power2.out" }, 0.4)
+        .to(["#s1-logo", "#s1-tag"], { opacity: 0, duration: 0.5, ease: "power2.in" }, 2.5);
+
+      tl.from("#s2-bg", { opacity: 0, duration: 0.6, ease: "power2.out" }, 3)
+        .from("#s2-product", { opacity: 0, x: 200, duration: 1.0, ease: "power3.out" }, 3.1)
+        .from("#s2-brand", { opacity: 0, y: -20, duration: 0.6, ease: "power2.out" }, 3.4)
+        .from("#s2-title", { opacity: 0, y: 40, duration: 0.9, ease: "power3.out" }, 3.5)
+        .from("#s2-sub", { opacity: 0, y: 30, duration: 0.7, ease: "power2.out" }, 3.9)
+        .from("#s2-rating", { opacity: 0, y: 20, duration: 0.6, ease: "power2.out" }, 4.2);
+
+      tl.from("#s3-bg", { opacity: 0, duration: 0.4, ease: "power2.out" }, 7)
+        .from("#s3-heading", { opacity: 0, y: 30, duration: 0.8, ease: "power3.out" }, 7.05)
+        .from(["#f1", "#f2", "#f3", "#f4"], { opacity: 0, y: 80, duration: 0.8, ease: "power3.out", stagger: 0.18 }, 7.4);
+
+      tl.from("#s4-bg", { opacity: 0, duration: 0.5, ease: "power2.out" }, 12)
+        .from("#s4-product", { opacity: 0, scale: 0.85, duration: 0.9, ease: "power3.out" }, 12.05)
+        .from("#s4-name", { opacity: 0, x: 60, duration: 0.7, ease: "power3.out" }, 12.3)
+        .from("#s4-price", { opacity: 0, scale: 0.6, duration: 0.9, ease: "back.out(2)" }, 12.6)
+        .from("#s4-ship", { opacity: 0, y: 20, duration: 0.6, ease: "power2.out" }, 13.0)
+        .from("#s4-url", { opacity: 0, y: 30, duration: 0.6, ease: "power2.out" }, 13.3);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

@@ -15,7 +15,7 @@ import {
   type ReviewEmailRenderData,
   type ReviewEmailProduct,
 } from '@/lib/reviews/email-template';
-import { sendSesEmail } from '@/lib/email-platform/ses-mailer';
+import { sendSesHtmlEmail } from '@/lib/email-platform/ses-mailer';
 const SUPPORTED_TOPICS = new Set(['orders/create', 'orders/fulfilled', 'orders/cancelled', 'refunds/create']);
 
 /**
@@ -338,6 +338,8 @@ async function sendReviewRequestEmail({
       ? new Date(Date.now() + settings.delayDays * 24 * 60 * 60 * 1000).toISOString()
       : undefined;
 
+  const fromAddress = `${settings.fromName} <${settings.fromEmail}>`;
+
   // Log email send attempt to database
   let emailSendId: string | null = null;
   try {
@@ -352,6 +354,9 @@ async function sendReviewRequestEmail({
         product_title,
         product_handle,
         scheduled_at,
+        email_subject,
+        email_html,
+        email_from,
         status
       ) VALUES (
         ${orderId},
@@ -361,6 +366,9 @@ async function sendReviewRequestEmail({
         ${productTitle},
         ${products[0]?.handle || null},
         ${scheduledAtDate},
+        ${subject},
+        ${html},
+        ${fromAddress},
         'scheduled'
       )
       ON CONFLICT DO NOTHING
@@ -381,42 +389,34 @@ async function sendReviewRequestEmail({
   }
 
   try {
-    if (scheduledAt) {
-      console.log('ℹ️ SES does not support provider-side scheduled send; scheduled_at tracked in DB only');
-    }
-    const resendEmailId = await sendSesEmail({
-      from: `${settings.fromName} <${settings.fromEmail}>`,
-      to: [customerEmail],
-      subject,
-      html,
-    });
+    if (!scheduledAt) {
+      const messageId = await sendSesHtmlEmail({
+        fromEmailAddress: fromAddress,
+        toAddresses: [customerEmail],
+        subject,
+        htmlBody: html,
+      });
 
-    if (emailSendId) {
-      try {
-        const { sql } = await import('@vercel/postgres');
-        if (scheduledAt) {
-          await sql`
-            UPDATE review_email_sends
-            SET resend_email_id = ${resendEmailId}
-            WHERE id = ${emailSendId};
-          `;
-        } else {
+      if (emailSendId) {
+        try {
+          const { sql } = await import('@vercel/postgres');
           await sql`
             UPDATE review_email_sends
             SET status = 'sent',
                 sent_at = ${new Date().toISOString()},
-                resend_email_id = ${resendEmailId}
+                resend_email_id = ${messageId}
             WHERE id = ${emailSendId};
           `;
+        } catch (updateError) {
+          console.error('❌ Failed to update email send status:', updateError);
         }
-      } catch (updateError) {
-        console.error('❌ Failed to update email send status:', updateError);
       }
     }
 
-    console.log('✅ Review request email sent:', {
+    console.log('✅ Review request email scheduled/sent:', {
       to: customerEmail,
       product: productTitle,
+      delayed: Boolean(scheduledAt),
     });
   } catch (error) {
     // Update email send record to 'failed' status

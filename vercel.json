@@ -25,6 +25,10 @@
       "schedule": "*/5 * * * *"
     },
     {
+      "path": "/api/cron/review-emails",
+      "schedule": "*/15 * * * *"
+    },
+    {
       "path": "/api/cron/auto-weekly-build",
       "schedule": "0 8 * * *"
     },

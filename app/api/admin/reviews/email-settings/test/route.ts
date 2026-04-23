@@ -3,7 +3,7 @@ import { applyTemplate, getReviewEmailSettings } from '@/lib/reviews/email-setti
 import { getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
 import { renderReviewEmailHtml, type ReviewEmailRenderData } from '@/lib/reviews/email-template';
 import { sql } from '@vercel/postgres';
-import { sendSesEmail } from '@/lib/email-platform/ses-mailer';
+import { sendSesHtmlEmail } from '@/lib/email-platform/ses-mailer';
 
 export async function POST(request: NextRequest) {
   try {
@@ -94,11 +94,11 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      await sendSesEmail({
-        from: `${settings.fromName} <${settings.fromEmail}>`,
-        to: [to],
+      await sendSesHtmlEmail({
+        fromEmailAddress: `${settings.fromName} <${settings.fromEmail}>`,
+        toAddresses: [to],
         subject: `[TEST] ${subject}`,
-        html,
+        htmlBody: html,
       });
 
       // Update test email send record to 'sent' status

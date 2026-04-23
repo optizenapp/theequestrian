@@ -74,12 +74,11 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3001
 # ============================================
 POSTGRES_URL=postgresql://user:pass@dev-branch.neon.tech/neondb?sslmode=require
 
-# Email Service (Development)
-SES_AWS_ACCESS_KEY_ID=your_ses_aws_access_key_id
-SES_AWS_SECRET_ACCESS_KEY=your_ses_aws_secret_access_key
-SES_AWS_REGION=ap-southeast-2
-SES_AWS_FROM_EMAIL=dev@yourdomain.com
-SES_AWS_CONFIGURATION_SET=theequestrian-email
+# Amazon SES (Development)
+AWS_ACCESS_KEY_ID=your_aws_access_key_id
+AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key
+AWS_REGION=ap-southeast-2
+AWS_SES_FROM_EMAIL=dev@yourdomain.com
 
 # Admin Authentication
 ADMIN_USERNAME=admin
@@ -254,8 +253,7 @@ npm run db:sync
 - `ADMIN_PASSWORD`
 
 ### Optional Services
-- `SES_AWS_ACCESS_KEY_ID` / `SES_AWS_SECRET_ACCESS_KEY` - SES credentials
-- `SES_AWS_REGION` / `SES_AWS_FROM_EMAIL` - SES region + sender
+- `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` / `AWS_SES_FROM_EMAIL` — Amazon SES
 - `MOOSEND_API_KEY` - Newsletter integration
 
 ## Troubleshooting

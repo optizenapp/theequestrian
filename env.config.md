@@ -44,6 +44,7 @@ KV_REST_API_TOKEN=your_kv_rest_api_token_here
 # Optional: Error Tracking & Analytics
 SENTRY_DSN=your_sentry_dsn_here
 NEXT_PUBLIC_GOOGLE_ANALYTICS_ID=your_ga_id_here
+STRIPE_SECRET_KEY=sk_live_or_test_key_here
 
 # Site Configuration
 NEXT_PUBLIC_SITE_URL=https://thequestrian.com

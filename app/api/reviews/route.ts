@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
-import { sendSesEmail } from '@/lib/email-platform/ses-mailer';
+import { sendSesHtmlEmail } from '@/lib/email-platform/ses-mailer';
+
+type ReviewRow = {
+  id: string;
+  product_title: string;
+  rating: number;
+  title: string | null;
+  content: string;
+  author_name: string;
+  author_email: string | null;
+  verified_purchase: boolean;
+  order_id: string | null;
+};
 
 export async function POST(request: NextRequest) {
   try {
@@ -56,7 +68,7 @@ export async function POST(request: NextRequest) {
     console.log('✅ Review submitted successfully:', rows[0]);
     
     // Send notification email to admin
-    await sendAdminNotification(rows[0] as ReviewRecord);
+    await sendAdminNotification(rows[0] as ReviewRow);
     
     return NextResponse.json({ 
       review: rows[0],
@@ -71,31 +83,19 @@ export async function POST(request: NextRequest) {
   }
 }
 
-type ReviewRecord = {
-  id: string;
-  product_title: string;
-  rating: number;
-  author_name: string;
-  verified_purchase: boolean;
-  author_email: string | null;
-  order_id: string | null;
-  title: string | null;
-  content: string;
-};
-
-async function sendAdminNotification(review: ReviewRecord) {
+async function sendAdminNotification(review: ReviewRow) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au';
   const adminEmail = process.env.CONTACT_EMAIL || 'support@theequestrian.com.au';
-  
-  // Generate star rating display
+  const fromEmail = process.env.AWS_SES_FROM_EMAIL || 'reviews@theequestrian.com.au';
+
   const stars = '⭐'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
-  
+
   try {
-    await sendSesEmail({
-      from: process.env.SES_AWS_FROM_EMAIL || process.env.RESEND_FROM_EMAIL || 'reviews@theequestrian.com.au',
-      to: [adminEmail],
+    await sendSesHtmlEmail({
+      fromEmailAddress: `The Equestrian <${fromEmail}>`,
+      toAddresses: [adminEmail],
       subject: `🔔 New Review: ${review.product_title} (${review.rating}★)`,
-      html: `
+      htmlBody: `
         <!DOCTYPE html>
         <html>
           <head>

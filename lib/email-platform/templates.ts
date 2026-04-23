@@ -47,7 +47,7 @@ function slugify(value: string): string {
  * Rewrites Shopify CDN image src attributes to route through the site's
  * own /api/image-proxy endpoint, so all images in the email are served
  * from theequestrian.com.au rather than cdn.shopify.com.
- * This follows mailbox-provider guidance to host images on the sending domain.
+ * This satisfies mailbox-provider guidance to host images on the sending domain.
  */
 export function proxyEmailImages(html: string, siteUrl: string): string {
   const base = siteUrl.replace(/\/$/, '');

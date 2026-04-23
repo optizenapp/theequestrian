@@ -10,7 +10,7 @@
  * Notes:
  * - Default mode is dry-run (no cancellation writes).
  * - Keeps the oldest scheduled row per normalized customer email.
- * - Cancels duplicate rows in DB (SES does not support provider-side scheduled cancellation).
+ * - With SES, scheduled sends are stored in DB until due; cancellation is DB-only.
  */
 
 import { config } from 'dotenv';
@@ -96,15 +96,6 @@ async function markCancelled(id: string, reason: string, errorMessage: string | 
   `;
 }
 
-async function markCancelFailure(id: string, errorMessage: string): Promise<void> {
-  await sql`
-    UPDATE review_email_sends
-    SET error_message = ${errorMessage}
-    WHERE id = ${id}
-      AND status = 'scheduled'
-  `;
-}
-
 async function main() {
   const apply = hasFlag('--apply');
   const email = getArgValue('--email')?.trim();
@@ -136,7 +127,7 @@ async function main() {
     console.log('\n🔎 Dry-run sample (first 20 duplicates):');
     for (const row of duplicates.slice(0, 20)) {
       console.log(
-        `   - ${row.customer_email} | order=${row.order_id} | sendId=${row.id} | resendId=${row.resend_email_id || 'none'}`
+        `   - ${row.customer_email} | order=${row.order_id} | sendId=${row.id} | providerId=${row.resend_email_id || 'none'}`
       );
     }
     console.log('\nRun again with --apply to cancel these duplicates.');
@@ -144,28 +135,21 @@ async function main() {
   }
 
   let cancelled = 0;
-  let dbOnlyCancelled = 0;
 
   for (const row of duplicates) {
     await markCancelled(
       row.id,
       'Auto-cancelled duplicate scheduled review email (keep one per customer)',
-      row.resend_email_id ? 'Cancelled in DB only (SES has no scheduled-send cancel API).' : 'Missing resend_email_id. Marked cancelled in DB only.'
+      null
     );
-    if (!row.resend_email_id) {
-      await markCancelFailure(row.id, 'Missing resend_email_id. Marked cancelled in DB only.');
-    }
-    dbOnlyCancelled += 1;
     cancelled += 1;
   }
 
   console.log('\n✅ Cancellation run complete');
-  console.log(`   Cancelled: ${cancelled}`);
-  console.log(`   DB-only cancelled: ${dbOnlyCancelled}`);
+  console.log(`   Cancelled in DB: ${cancelled}`);
 }
 
 main().catch((error) => {
   console.error('\n❌ Script failed:', error);
   process.exit(1);
 });
-

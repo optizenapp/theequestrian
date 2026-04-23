@@ -344,7 +344,6 @@ export async function ensureEmailPlatformSchema(): Promise<void> {
   await sql`ALTER TABLE email_sends ADD COLUMN IF NOT EXISTS clicked_at TIMESTAMPTZ`;
   await sql`ALTER TABLE email_sends ADD COLUMN IF NOT EXISTS open_count INTEGER NOT NULL DEFAULT 0`;
   await sql`ALTER TABLE email_sends ADD COLUMN IF NOT EXISTS click_count INTEGER NOT NULL DEFAULT 0`;
-  await sql`ALTER TABLE email_sends ALTER COLUMN provider SET DEFAULT 'ses'`;
 
   await sql`
     CREATE TABLE IF NOT EXISTS email_events (
@@ -358,7 +357,6 @@ export async function ensureEmailPlatformSchema(): Promise<void> {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `;
-  await sql`ALTER TABLE email_events ALTER COLUMN provider SET DEFAULT 'ses'`;
 
   await sql`
     CREATE TABLE IF NOT EXISTS email_link_clicks (
@@ -415,4 +413,7 @@ export async function ensureEmailPlatformSchema(): Promise<void> {
     VALUES ('auto_weekly_enabled', '{"enabled": false}'::jsonb, NOW())
     ON CONFLICT (key) DO NOTHING
   `;
+
+  await sql`ALTER TABLE email_sends ALTER COLUMN provider SET DEFAULT 'ses'`;
+  await sql`ALTER TABLE email_events ALTER COLUMN provider SET DEFAULT 'ses'`;
 }

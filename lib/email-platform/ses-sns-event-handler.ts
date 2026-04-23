@@ -1,116 +1,134 @@
 import { sql } from '@vercel/postgres';
 import { markSuppressedByEmail } from '@/lib/email-platform/sending';
 
-type SesSnsEvent = {
-  eventType?: string;
-  mail?: { messageId?: string; destination?: string[] };
-  bounce?: { bouncedRecipients?: Array<{ emailAddress?: string }> };
-  complaint?: { complainedRecipients?: Array<{ emailAddress?: string }> };
-  click?: { link?: string };
+type SesMailObject = {
+  messageId?: string;
+  destination?: string[];
 };
 
-function asObject(value: unknown): Record<string, unknown> | null {
-  return typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : null;
+type SesEventPayload = {
+  eventType?: string;
+  mail?: SesMailObject;
+  open?: { timestamp?: string; ipAddress?: string; userAgent?: string };
+  click?: { timestamp?: string; ipAddress?: string; userAgent?: string; link?: string };
+  bounce?: { bouncedRecipients?: Array<{ emailAddress?: string }> };
+  complaint?: { complainedRecipients?: Array<{ emailAddress?: string }> };
+};
+
+function normalizeSesMessageId(raw: string | undefined | null): string | null {
+  if (!raw || typeof raw !== 'string') return null;
+  const t = raw.trim();
+  if (!t) return null;
+  return t.replace(/^<|>$/g, '');
 }
 
-function getMessageId(event: SesSnsEvent): string | null {
-  const raw = event.mail?.messageId;
-  if (typeof raw !== 'string') return null;
-  const trimmed = raw.trim();
-  return trimmed.length > 0 ? trimmed : null;
-}
+export async function processSesEventFromSnsMessage(messageJson: string): Promise<void> {
+  let payload: SesEventPayload;
+  try {
+    payload = JSON.parse(messageJson) as SesEventPayload;
+  } catch {
+    return;
+  }
 
-function getLowerEventType(event: SesSnsEvent): string {
-  return typeof event.eventType === 'string' ? event.eventType.trim().toLowerCase() : 'unknown';
-}
+  const eventType = String(payload.eventType || '').toLowerCase();
+  const messageId = normalizeSesMessageId(payload.mail?.messageId || null);
+  if (!messageId) {
+    return;
+  }
 
-function getSuppressedEmails(event: SesSnsEvent): string[] {
-  const bounceRecipients = event.bounce?.bouncedRecipients ?? [];
-  const complaintRecipients = event.complaint?.complainedRecipients ?? [];
-  const recipients = [...bounceRecipients, ...complaintRecipients];
-  return recipients
-    .map((item) => (typeof item.emailAddress === 'string' ? item.emailAddress.toLowerCase() : ''))
-    .filter((email) => email.length > 0);
-}
-
-export async function processSesEventFromSnsMessage(input: unknown): Promise<{ accepted: boolean }> {
-  const payload = asObject(input);
-  if (!payload) return { accepted: false };
-
-  const event = payload as SesSnsEvent;
-  const eventType = getLowerEventType(event);
-  const providerMessageId = getMessageId(event);
-
-  const sendLookup = providerMessageId
-    ? await sql`
-        SELECT id
-        FROM email_sends
-        WHERE provider = 'ses'
-          AND provider_message_id = ${providerMessageId}
-        ORDER BY created_at DESC
-        LIMIT 1
-      `
-    : { rows: [] as Array<{ id: string }> };
-  const sendId = (sendLookup.rows[0]?.id as string | undefined) ?? null;
+  let sendId: string | null = null;
+  const sendResult = await sql`
+    SELECT id
+    FROM email_sends
+    WHERE provider_message_id = ${messageId}
+    LIMIT 1
+  `;
+  sendId = (sendResult.rows[0]?.id as string | undefined) ?? null;
 
   await sql`
     INSERT INTO email_events (send_id, provider, provider_message_id, event_type, payload, occurred_at)
     VALUES (
       ${sendId},
       'ses',
-      ${providerMessageId},
-      ${eventType},
+      ${messageId},
+      ${eventType || 'unknown'},
       ${JSON.stringify(payload)},
       NOW()
     )
   `;
 
-  if (sendId) {
-    if (eventType === 'delivery') {
+  if (!sendId) {
+    return;
+  }
+
+  const mapFailed =
+    eventType === 'bounce' ||
+    eventType === 'complaint' ||
+    eventType === 'reject' ||
+    eventType === 'renderingfailure';
+  const mapDelivered = eventType === 'delivery';
+
+  if (mapFailed) {
+    await sql`
+      UPDATE email_sends
+      SET status = 'failed',
+          updated_at = NOW()
+      WHERE id = ${sendId}
+    `;
+  } else if (mapDelivered) {
+    await sql`
+      UPDATE email_sends
+      SET status = 'delivered',
+          delivered_at = COALESCE(delivered_at, NOW()),
+          updated_at = NOW()
+      WHERE id = ${sendId}
+    `;
+  }
+
+  if (eventType === 'open' && payload.open) {
+    const openedAt = payload.open.timestamp || new Date().toISOString();
+    await sql`
+      UPDATE email_sends
+      SET opened_at = COALESCE(opened_at, ${openedAt}::timestamptz),
+          open_count = COALESCE(open_count, 0) + 1,
+          updated_at = NOW()
+      WHERE id = ${sendId}
+    `;
+  }
+
+  if (eventType === 'click' && payload.click) {
+    const clickedAt = payload.click.timestamp || new Date().toISOString();
+    const clickedUrl = payload.click.link || '';
+    await sql`
+      UPDATE email_sends
+      SET clicked_at = COALESCE(clicked_at, ${clickedAt}::timestamptz),
+          click_count = COALESCE(click_count, 0) + 1,
+          updated_at = NOW()
+      WHERE id = ${sendId}
+    `;
+    if (clickedUrl) {
       await sql`
-        UPDATE email_sends
-        SET status = 'delivered',
-            delivered_at = COALESCE(delivered_at, NOW()),
-            updated_at = NOW()
-        WHERE id = ${sendId}
-      `;
-    } else if (eventType === 'open') {
-      await sql`
-        UPDATE email_sends
-        SET opened_at = COALESCE(opened_at, NOW()),
-            open_count = open_count + 1,
-            updated_at = NOW()
-        WHERE id = ${sendId}
-      `;
-    } else if (eventType === 'click') {
-      await sql`
-        UPDATE email_sends
-        SET clicked_at = COALESCE(clicked_at, NOW()),
-            click_count = click_count + 1,
-            updated_at = NOW()
-        WHERE id = ${sendId}
-      `;
-      if (typeof event.click?.link === 'string' && event.click.link.length > 0) {
-        await sql`
-          INSERT INTO email_link_clicks (send_id, clicked_url)
-          VALUES (${sendId}, ${event.click.link})
-        `;
-      }
-    } else if (['bounce', 'complaint', 'reject', 'renderingfailure'].includes(eventType)) {
-      await sql`
-        UPDATE email_sends
-        SET status = 'failed',
-            error_message = ${`SES ${eventType}`},
-            updated_at = NOW()
-        WHERE id = ${sendId}
+        INSERT INTO email_link_clicks (send_id, clicked_url, ip_address, user_agent, clicked_at)
+        VALUES (
+          ${sendId},
+          ${clickedUrl},
+          ${payload.click.ipAddress || null},
+          ${payload.click.userAgent || null},
+          ${clickedAt}::timestamptz
+        )
       `;
     }
   }
 
-  const suppressed = getSuppressedEmails(event);
-  if (suppressed.length > 0) {
-    await Promise.all(suppressed.map((email) => markSuppressedByEmail(email, `ses_${eventType}`)));
-  }
+  const bounceEmail = payload.bounce?.bouncedRecipients?.[0]?.emailAddress;
+  const complaintEmail = payload.complaint?.complainedRecipients?.[0]?.emailAddress;
+  const recipient =
+    bounceEmail ||
+    complaintEmail ||
+    payload.mail?.destination?.[0] ||
+    null;
 
-  return { accepted: true };
+  if (recipient && (eventType === 'bounce' || eventType === 'complaint')) {
+    await markSuppressedByEmail(recipient, eventType);
+  }
 }

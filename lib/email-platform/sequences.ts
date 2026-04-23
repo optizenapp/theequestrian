@@ -1,7 +1,7 @@
 import { sql } from '@vercel/postgres';
 import { getTemplateVersion, renderTemplateContent, addUtmParamsToEmailHtml, proxyEmailImages } from '@/lib/email-platform/templates';
 import { buildUnsubscribeUrl } from '@/lib/email-platform/unsubscribe';
-import { sendSesEmail } from '@/lib/email-platform/ses-mailer';
+import { sendSesHtmlEmail } from '@/lib/email-platform/ses-mailer';
 
 type SequenceStepRecord = {
   id: string;
@@ -226,11 +226,12 @@ async function runStep(
     const rendered = { ...renderedRaw, html: renderedHtml };
 
     try {
-      const providerMessageId = await sendSesEmail({
-        from: `${templateVersion.fromName || 'The Equestrian'} <${templateVersion.fromEmail || 'support@theequestrian.com.au'}>`,
-        to: [email],
+      const fromEmailAddress = `${templateVersion.fromName || 'The Equestrian'} <${templateVersion.fromEmail || 'support@theequestrian.com.au'}>`;
+      const providerMessageId = await sendSesHtmlEmail({
+        fromEmailAddress,
+        toAddresses: [email],
         subject: rendered.subject,
-        html: rendered.html,
+        htmlBody: rendered.html,
       });
 
       await sql`

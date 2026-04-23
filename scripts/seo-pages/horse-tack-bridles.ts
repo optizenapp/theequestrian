@@ -23,13 +23,13 @@ const content: PageSEOContent = {
   h1_title: 'Horse Bridles for Training, Competition & Everyday Riding',
   breadcrumb_label: 'Bridles',
 
-  short_description: `<p>Browse <strong>horse bridles</strong> for schooling, competition and everyday riding, with options suited to different disciplines, head shapes and levels of rider preference.</p>
+  short_description: `<p>Browse <strong>horse bridles</strong> for schooling, competition and everyday riding, with options suited to different disciplines, head shapes and rider preferences.</p>
 <!--read-more-trigger-->
 <p>This collection includes dressage bridles, jumping bridles, pony bridles and everyday leather bridles, helping riders compare fit, style and intended use in one place.</p>
 
-<p>Whether you are replacing a well-used bridle or refining a turnout for the show ring, these bridles are selected for practical use, neat presentation and reliable comfort.</p>`,
+<p>Whether you are replacing a well-used bridle or refining a turnout for the ring, shop practical options with fast shipping Australia-wide and expert support.</p>`,
 
-  long_description: `<h2>Horse Bridles Explained</h2>
+  long_description: `<h2>Horse Bridle Types & Uses</h2>
 <p>
 The right horse bridle should suit both the horse and the discipline, balancing comfort, control and presentation. Riders often compare everyday bridles with more specialised styles for show jumping, dressage and ponies, so fit, finish and noseband style all play an important part in choosing the right option.
 </p>
@@ -52,7 +52,15 @@ Many riders refresh the full setup at the same time, including bridle accessorie
 <h2>Shop Horse Bridles by Brand</h2>
 <p>
 Shop horse bridles from premium brands including <a href="/brands/equipe">Equipe</a>, known for refined leatherwork and competition-ready bridle styles.
-</p>`,
+</p>
+
+<h3>At a glance</h3>
+<ul>
+<li>Compare dressage, show jumping and everyday leather bridles by fit and finish.</li>
+<li>Use pony, cob and warmblood sizing options to match your horse's head shape.</li>
+<li>Pair new bridles with matching reins and competition accessories for complete setup.</li>
+<li>Shop trusted brands including Equipe for training and competition riding.</li>
+</ul>`,
 
   faq_items: [
     {

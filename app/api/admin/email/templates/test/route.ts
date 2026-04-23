@@ -8,7 +8,7 @@ import {
   proxyEmailImages,
 } from '@/lib/email-platform/templates';
 import { getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
-import { sendSesEmail } from '@/lib/email-platform/ses-mailer';
+import { sendSesHtmlEmail } from '@/lib/email-platform/ses-mailer';
 
 function toMoney(value: string | number | undefined): string {
   const parsed = typeof value === 'number' ? value : Number(value || 0);
@@ -107,11 +107,11 @@ export async function POST(request: NextRequest) {
       siteUrl
     );
 
-    await sendSesEmail({
-      from: `${fromName} <${fromEmail}>`,
-      to: [to],
+    await sendSesHtmlEmail({
+      fromEmailAddress: `${fromName} <${fromEmail}>`,
+      toAddresses: [to],
       subject: `[TEST] ${rendered.subject}`,
-      html: htmlWithUtm,
+      htmlBody: htmlWithUtm,
     });
 
     return NextResponse.json({ ok: true });

@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { isSesConfigured, sendSesEmail } from '@/lib/email-platform/ses-mailer';
+import { isSesConfigured, sendSesHtmlEmail } from '@/lib/email-platform/ses-mailer';
 
 export async function POST(request: Request) {
   try {
     if (!isSesConfigured()) {
-      console.error('SES credentials are missing');
+      console.error('SES is not configured (AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY)');
       return NextResponse.json(
         { error: 'Email service is not configured. Please contact support directly.' },
         { status: 500 }
@@ -14,7 +14,6 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { name, email, phone, subject, message } = body;
 
-    // Validation
     if (!name || !email || !message) {
       return NextResponse.json(
         { error: 'Name, email, and message are required' },
@@ -22,7 +21,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return NextResponse.json(
@@ -31,16 +29,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // Get email configuration from environment variables
-    const fromEmail = process.env.SES_AWS_FROM_EMAIL || process.env.RESEND_FROM_EMAIL || 'support@theequestrian.com.au';
+    const fromEmail = process.env.AWS_SES_FROM_EMAIL || 'support@theequestrian.com.au';
     const toEmail = process.env.CONTACT_EMAIL || 'support@theequestrian.com.au';
 
-    const messageId = await sendSesEmail({
-      from: fromEmail,
-      to: [toEmail],
-      replyTo: [email],
-      subject: subject || `New Contact Form Submission from ${name}`,
-      html: `
+    const html = `
         <!DOCTYPE html>
         <html>
           <head>
@@ -151,21 +143,26 @@ export async function POST(request: Request) {
             </div>
           </body>
         </html>
-      `,
+      `;
+
+    const messageId = await sendSesHtmlEmail({
+      fromEmailAddress: `The Equestrian <${fromEmail}>`,
+      toAddresses: [toEmail],
+      replyToAddresses: [email],
+      subject: subject || `New Contact Form Submission from ${name}`,
+      htmlBody: html,
     });
 
-    return NextResponse.json(
-      { success: true, messageId },
-      { status: 200 }
-    );
+    return NextResponse.json({ success: true, messageId }, { status: 200 });
   } catch (error) {
     console.error('Contact form error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'Internal server error' },
+      {
+        error: 'Failed to send email',
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
+      },
       { status: 500 }
     );
   }
 }
-
-
-
