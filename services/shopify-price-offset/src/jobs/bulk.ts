@@ -1,5 +1,6 @@
 import { initDb, upsertAudit, getAuditByVariant } from '../db/index.js';
 import { loadVendorRates, loadTagRates } from '../db/rates.js';
+import { loadLockedVariantIds } from '../db/locks.js';
 import { getAllProducts, updateVariantPrice } from '../shopify/client.js';
 import { resolveShippingOffset, normalizeTags } from '../price/offset.js';
 import { config } from '../config.js';
@@ -22,9 +23,11 @@ async function run() {
   
   const vendorRates = await loadVendorRates();
   const tagRates = await loadTagRates();
-  
+  const lockedVariantIds = await loadLockedVariantIds();
+
   console.log(`[Bulk] Loaded ${vendorRates.size} vendor rates from Postgres`);
   console.log(`[Bulk] Loaded ${tagRates.size} tag rates from Postgres`);
+  console.log(`[Bulk] Loaded ${lockedVariantIds.size} price-locked variants`);
   
   if (SAMPLE_SIZE) {
     console.log(`[Bulk] SAMPLE MODE: Will process ${SAMPLE_SIZE} products only`);
@@ -73,6 +76,11 @@ async function run() {
       let variantsUpdated = 0;
 
       for (const variant of product.variants || []) {
+        if (lockedVariantIds.has(String(variant.id))) {
+          console.log(`  🔒 Variant ${variant.id} is price-locked, skipping`);
+          continue;
+        }
+
         const currentPrice = Number(variant.price);
         const currentCompareAt = variant.compare_at_price ? Number(variant.compare_at_price) : null;
 

@@ -8,6 +8,7 @@ import { sql } from '@/lib/db/client';
 import {
   getActiveMapsForVendorProduct,
   getVendorConnectionByDomain,
+  isMarketplaceVariantPriceLocked,
 } from './repository';
 
 type ProductWebhookBody = { id?: number };
@@ -57,6 +58,14 @@ export async function processVendorProductUpdateWebhook(
     );
     if (!vv) {
       console.warn('[vendor-sync] Vendor variant missing', row.vendor_shopify_variant_id);
+      continue;
+    }
+
+    if (await isMarketplaceVariantPriceLocked(row.marketplace_variant_id)) {
+      console.log(
+        '[vendor-sync] price locked, skipping variant',
+        row.marketplace_variant_id
+      );
       continue;
     }
 

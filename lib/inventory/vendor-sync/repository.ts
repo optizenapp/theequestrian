@@ -39,6 +39,26 @@ export type VendorInventoryReconcileTarget = {
   marketplace_location_id: string;
 };
 
+export async function isMarketplaceVariantPriceLocked(
+  marketplaceVariantId: string
+): Promise<boolean> {
+  try {
+    const rows = await sql`
+      SELECT 1
+      FROM marketplace_price_locks
+      WHERE variant_id = ${marketplaceVariantId}
+      LIMIT 1
+    `;
+    return Array.isArray(rows) && rows.length > 0;
+  } catch (e) {
+    // If the table is missing (migration not yet applied) treat as not locked
+    // so we don't break vendor sync. The migration is documented in
+    // lib/db/schema/marketplace-price-locks.sql.
+    console.warn('[vendor-sync] isMarketplaceVariantPriceLocked failed', e);
+    return false;
+  }
+}
+
 let priceSyncVendorCache: { names: string[]; at: number } | null = null;
 const PRICE_SYNC_CACHE_MS = 60_000;
 
