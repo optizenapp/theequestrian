@@ -43,15 +43,17 @@ export async function processSesEventFromSnsMessage(input: unknown): Promise<{ a
 
   const sendLookup = providerMessageId
     ? await sql`
-        SELECT id
+        SELECT id, campaign_recipient_id
         FROM email_sends
         WHERE provider = 'ses'
           AND provider_message_id = ${providerMessageId}
         ORDER BY created_at DESC
         LIMIT 1
       `
-    : { rows: [] as Array<{ id: string }> };
+    : { rows: [] as Array<{ id: string; campaign_recipient_id: string | null }> };
   const sendId = (sendLookup.rows[0]?.id as string | undefined) ?? null;
+  const campaignRecipientId =
+    (sendLookup.rows[0]?.campaign_recipient_id as string | undefined | null) ?? null;
 
   await sql`
     INSERT INTO email_events (send_id, provider, provider_message_id, event_type, payload, occurred_at)
@@ -74,6 +76,15 @@ export async function processSesEventFromSnsMessage(input: unknown): Promise<{ a
             updated_at = NOW()
         WHERE id = ${sendId}
       `;
+      if (campaignRecipientId) {
+        await sql`
+          UPDATE email_campaign_recipients
+          SET status = 'delivered',
+              delivered_at = COALESCE(delivered_at, NOW()),
+              updated_at = NOW()
+          WHERE id = ${campaignRecipientId}
+        `;
+      }
     } else if (eventType === 'open') {
       await sql`
         UPDATE email_sends
@@ -104,6 +115,15 @@ export async function processSesEventFromSnsMessage(input: unknown): Promise<{ a
             updated_at = NOW()
         WHERE id = ${sendId}
       `;
+      if (campaignRecipientId) {
+        await sql`
+          UPDATE email_campaign_recipients
+          SET status = 'failed',
+              skip_reason = ${`SES ${eventType}`},
+              updated_at = NOW()
+          WHERE id = ${campaignRecipientId}
+        `;
+      }
     }
   }
 

@@ -12,8 +12,13 @@ type SnsEnvelope = {
 function hasValidWebhookSecret(request: NextRequest): boolean {
   const expected = process.env.AWS_SNS_WEBHOOK_SECRET;
   if (!expected) return true;
-  const provided = request.headers.get('x-sns-webhook-secret') || '';
-  return provided === expected;
+  const providedHeader = request.headers.get('x-sns-webhook-secret') || '';
+  if (providedHeader === expected) return true;
+  const providedQuery =
+    request.nextUrl.searchParams.get('x-sns-webhook-secret') ||
+    request.nextUrl.searchParams.get('secret') ||
+    '';
+  return providedQuery === expected;
 }
 
 async function confirmSubscription(url: string): Promise<void> {
