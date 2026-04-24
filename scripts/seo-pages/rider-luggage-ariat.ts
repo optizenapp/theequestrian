@@ -17,7 +17,7 @@ const content: PageSEOContent = {
 <!--read-more-trigger-->
 <p>Pair Ariat carry options with the wider <a href="/rider/luggage">equestrian luggage</a> range, or browse <a href="/rider/luggage/bags">bags</a> and <a href="/rider/luggage/wallets">wallets & handbags</a> when you want mixed-brand picks.</p>`,
 
-  long_description: `<h2>Ariat Bags Explained</h2>
+  long_description: `<h2>About Ariat Bags & Equestrian Luggage</h2>
 <p>
 Ariat gear bags and rider luggage are built around practical storage: roomy compartments for layers and accessories, hard-wearing fabrics for daily stable use, and shapes that suit everything from compact training kits to large competition load-outs. Shoppers comparing Ariat bags in Australia often weigh capacity against how often they travel with boots, helmets and cleaned tack.
 </p>
