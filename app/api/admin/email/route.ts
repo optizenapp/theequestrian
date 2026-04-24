@@ -14,11 +14,9 @@ export async function GET() {
       `,
       sql`
         SELECT
-          COUNT(*) FILTER (WHERE status IN ('sent', 'delivered')) AS sent_count,
-          COUNT(*) FILTER (WHERE status = 'failed') AS failed_count,
-          COUNT(*) FILTER (WHERE status = 'scheduled') AS scheduled_count
-        FROM email_sends
-        WHERE created_at >= NOW() - INTERVAL '30 days'
+          (SELECT COUNT(*) FROM email_sends WHERE created_at >= NOW() - INTERVAL '30 days' AND status IN ('sent', 'delivered')) AS sent_count,
+          (SELECT COUNT(*) FROM email_sends WHERE created_at >= NOW() - INTERVAL '30 days' AND status = 'failed') AS failed_count,
+          (SELECT COUNT(*) FROM email_sends WHERE created_at >= NOW() - INTERVAL '30 days' AND status = 'scheduled') AS scheduled_count
       `,
       sql`
         SELECT id, name, status, scheduled_at, updated_at
