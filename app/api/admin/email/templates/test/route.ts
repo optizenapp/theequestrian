@@ -9,6 +9,7 @@ import {
 } from '@/lib/email-platform/templates';
 import { getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
 import { sendSesEmail } from '@/lib/email-platform/ses-mailer';
+import { sql } from '@vercel/postgres';
 
 function toMoney(value: string | number | undefined): string {
   const parsed = typeof value === 'number' ? value : Number(value || 0);
@@ -107,12 +108,45 @@ export async function POST(request: NextRequest) {
       siteUrl
     );
 
-    await sendSesEmail({
-      from: `${fromName} <${fromEmail}>`,
-      to: [to],
-      subject: `[TEST] ${rendered.subject}`,
-      html: htmlWithUtm,
-    });
+    const testSubject = `[TEST] ${rendered.subject}`;
+    let platformSendId: string | null = null;
+
+    try {
+      const sendRow = await sql`
+        INSERT INTO email_sends (recipient_email, status, provider, subject, metadata, updated_at)
+        VALUES (${to}, 'queued', 'ses', ${testSubject}, ${JSON.stringify({ source: 'admin_template_test' })}, NOW())
+        RETURNING id
+      `;
+      platformSendId = (sendRow.rows[0]?.id as string | undefined) || null;
+    } catch (dbError) {
+      console.error('Email template test send DB insert failed:', dbError);
+    }
+
+    try {
+      const providerMessageId = await sendSesEmail({
+        from: `${fromName} <${fromEmail}>`,
+        to: [to],
+        subject: testSubject,
+        html: htmlWithUtm,
+      });
+
+      if (platformSendId) {
+        await sql`
+          UPDATE email_sends
+          SET status = 'sent', provider_message_id = ${providerMessageId}, sent_at = NOW(), updated_at = NOW()
+          WHERE id = ${platformSendId}
+        `;
+      }
+    } catch (sendError) {
+      if (platformSendId) {
+        await sql`
+          UPDATE email_sends
+          SET status = 'failed', error_message = ${sendError instanceof Error ? sendError.message : String(sendError)}, updated_at = NOW()
+          WHERE id = ${platformSendId}
+        `;
+      }
+      throw sendError;
+    }
 
     return NextResponse.json({ ok: true });
   } catch (error) {

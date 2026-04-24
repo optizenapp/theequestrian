@@ -64,6 +64,7 @@ export async function POST(request: NextRequest) {
     const testOrderId = `TEST-${Date.now()}`;
     const testOrderNumber = 'TEST';
     let emailSendId: string | null = null;
+    let platformSendId: string | null = null;
     
     try {
       const result = await sql`
@@ -94,7 +95,18 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      await sendSesEmail({
+      const sendRow = await sql`
+        INSERT INTO email_sends (recipient_email, status, provider, subject, metadata, updated_at)
+        VALUES (${to}, 'queued', 'ses', ${`[TEST] ${subject}`}, ${JSON.stringify({ source: 'admin_review_test', reviewEmailSendId: emailSendId })}, NOW())
+        RETURNING id
+      `;
+      platformSendId = (sendRow.rows[0]?.id as string | undefined) || null;
+    } catch (dbError) {
+      console.error('❌ Failed to create email_sends test row:', dbError);
+    }
+
+    try {
+      const providerMessageId = await sendSesEmail({
         from: `${settings.fromName} <${settings.fromEmail}>`,
         to: [to],
         subject: `[TEST] ${subject}`,
@@ -112,6 +124,18 @@ export async function POST(request: NextRequest) {
           `;
         } catch (updateError) {
           console.error('❌ Failed to update test email send status:', updateError);
+        }
+      }
+
+      if (platformSendId) {
+        try {
+          await sql`
+            UPDATE email_sends
+            SET status = 'sent', provider_message_id = ${providerMessageId}, sent_at = NOW(), updated_at = NOW()
+            WHERE id = ${platformSendId}
+          `;
+        } catch (updateError) {
+          console.error('❌ Failed to update email_sends test status:', updateError);
         }
       }
 
@@ -134,6 +158,17 @@ export async function POST(request: NextRequest) {
           `;
         } catch (updateError) {
           console.error('❌ Failed to update test email send status:', updateError);
+        }
+      }
+      if (platformSendId) {
+        try {
+          await sql`
+            UPDATE email_sends
+            SET status = 'failed', error_message = ${error instanceof Error ? error.message : String(error)}, updated_at = NOW()
+            WHERE id = ${platformSendId}
+          `;
+        } catch (updateError) {
+          console.error('❌ Failed to update email_sends test status:', updateError);
         }
       }
       console.error('❌ Failed to send test email:', error);
