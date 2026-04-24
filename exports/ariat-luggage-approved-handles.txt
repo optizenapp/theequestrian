@@ -1,0 +1,21 @@
+# Approved from exports/ariat-luggage-candidates.csv (report 2026-04-23)
+ariat-gear-bag
+ariat-mini-carry-all-navy
+ariat-team-tall-boot-bag
+ariat-team-tall-boot-bag-navy
+ariat-uni-vanity-bag-sunflower
+ariat-work-cooler-bag
+bi-fold-wallet-basket-weave-overlay
+junior-gear-bag
+luggage-ariat-gear-bag-pvc-black
+luggage-backpack-ariat-ring-black
+luggage-boot-bag-ariat-team-navy
+luggage-gear-bag-ariat-junior-black
+luggage-gear-bag-ariat-junior-pink-charcoal
+luggage-gear-bag-ariat-large-black
+luggage-gear-bag-ariat-large-cobalt-black
+luggage-gear-bag-ariat-large-green-black
+luggage-gear-bag-ariat-large-pink-charcoal
+luggage-gear-bag-ariat-large-purple-black
+luggage-gear-bag-ariat-large-red-navy
+luggage-gear-bag-ariat-large-turquoise-brown
