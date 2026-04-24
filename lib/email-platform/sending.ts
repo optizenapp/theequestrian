@@ -237,6 +237,7 @@ export async function sendQueuedCampaignRecipients(input: {
         campaign_recipient_id,
         template_version_id,
         status,
+        provider,
         subject,
         metadata,
         updated_at
@@ -247,6 +248,7 @@ export async function sendQueuedCampaignRecipients(input: {
         ${recipientId},
         ${templateVersion.id},
         'queued',
+        'ses',
         ${subject},
         ${JSON.stringify({ campaignId: input.campaignId })},
         NOW()

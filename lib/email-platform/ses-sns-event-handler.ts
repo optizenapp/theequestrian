@@ -45,8 +45,7 @@ export async function processSesEventFromSnsMessage(input: unknown): Promise<{ a
     ? await sql`
         SELECT id, campaign_recipient_id
         FROM email_sends
-        WHERE provider = 'ses'
-          AND provider_message_id = ${providerMessageId}
+        WHERE provider_message_id = ${providerMessageId}
         ORDER BY created_at DESC
         LIMIT 1
       `
