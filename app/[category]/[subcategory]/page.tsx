@@ -134,8 +134,22 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
   const reviewStats = Object.fromEntries(reviewStatsMap);
 
   // Get sub-subcategories from our mapping (third level)
-  const subSubcategories = await getMappingSubcategories(category, subcategory);
-  
+  let subSubcategories = await getMappingSubcategories(category, subcategory);
+  if (category === 'rider' && subcategory === 'luggage') {
+    const hasAriat = subSubcategories.some((s) => s.handle === 'ariat');
+    if (!hasAriat) {
+      const ariatContent = await getCategoryContent(category, subcategory, 'ariat');
+      subSubcategories = [
+        ...subSubcategories,
+        {
+          handle: 'ariat',
+          label: ariatContent?.breadcrumb_label || ariatContent?.h1_title || 'Ariat',
+          count: 1,
+        },
+      ];
+    }
+  }
+
   // Get collection data
   const mappingTitle = getCollectionTitle(category, subcategory);
   const breadcrumbs = getCollectionHierarchy(category, subcategory);
