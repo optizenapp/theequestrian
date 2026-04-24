@@ -15,7 +15,7 @@ const content: PageSEOContent = {
 
   short_description: `<p>Shop <strong>Ariat bags</strong> for riders who need dependable gear bags, boot organisers and larger luggage for shows, clinics and everyday barn runs.</p>
 <!--read-more-trigger-->
-<p>Pair Ariat carry options with the wider <a href="/rider/luggage">equestrian luggage</a> edit, or narrow further into <a href="/rider/luggage/bags">bags</a> and <a href="/rider/luggage/wallets">wallets & handbags</a> when you want mixed-brand picks.</p>`,
+<p>Pair Ariat carry options with the wider <a href="/rider/luggage">equestrian luggage</a> range, or browse <a href="/rider/luggage/bags">bags</a> and <a href="/rider/luggage/wallets">wallets & handbags</a> when you want mixed-brand picks.</p>`,
 
   long_description: `<h2>Ariat Bags Explained</h2>
 <p>
