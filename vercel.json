@@ -1,13 +1,4 @@
 {
-  "redirects": [
-    {
-      "source": "/:path*",
-      "has": [{ "type": "host", "value": "theequestrian.com.au" }],
-      "missing": [{ "type": "header", "key": "x-amz-sns-message-type" }],
-      "destination": "https://www.theequestrian.com.au/:path*",
-      "permanent": true
-    }
-  ],
   "crons": [
     {
       "path": "/api/cron/404-rollup",
