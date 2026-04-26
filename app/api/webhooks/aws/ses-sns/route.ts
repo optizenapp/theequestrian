@@ -72,6 +72,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true, type });
     }
 
+    if (!type && isLikelySnsRequest(request)) {
+      await processSesEventFromSnsMessage(envelope);
+      return NextResponse.json({ ok: true, type: 'RawNotification' });
+    }
+
     return NextResponse.json({ ok: true, ignoredType: type || 'unknown' });
   } catch (error) {
     console.error('SES SNS webhook failed:', error);
