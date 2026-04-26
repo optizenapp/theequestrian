@@ -3,6 +3,7 @@
     {
       "source": "/:path*",
       "has": [{ "type": "host", "value": "theequestrian.com.au" }],
+      "missing": [{ "type": "header", "key": "x-amz-sns-message-type" }],
       "destination": "https://www.theequestrian.com.au/:path*",
       "permanent": true
     }
@@ -31,6 +32,10 @@
     {
       "path": "/api/cron/auto-weekly-release",
       "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/cron/auto-campaign-resend",
+      "schedule": "*/15 * * * *"
     },
     {
       "path": "/api/cron/sitemaps",
