@@ -16,6 +16,11 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const decodedPath = decodeURIComponent(pathname);
 
+  // Keep SES SNS webhook requests untouched so AWS delivery is never redirected.
+  if (pathname === '/api/webhooks/aws/ses-sns') {
+    return NextResponse.next();
+  }
+
   // Force www — redirect apex domain to www before any other logic.
   if (request.nextUrl.hostname === 'theequestrian.com.au') {
     const wwwUrl = request.nextUrl.clone();
