@@ -9,6 +9,12 @@ type SnsEnvelope = {
   SubscribeURL?: string;
 };
 
+function isLikelySnsRequest(request: NextRequest): boolean {
+  const messageType = request.headers.get('x-amz-sns-message-type') || '';
+  const topicArn = request.headers.get('x-amz-sns-topic-arn') || '';
+  return messageType.length > 0 && topicArn.length > 0;
+}
+
 function hasValidWebhookSecret(request: NextRequest): boolean {
   const expected = process.env.AWS_SNS_WEBHOOK_SECRET;
   if (!expected) return true;
@@ -18,7 +24,8 @@ function hasValidWebhookSecret(request: NextRequest): boolean {
     request.nextUrl.searchParams.get('x-sns-webhook-secret') ||
     request.nextUrl.searchParams.get('secret') ||
     '';
-  return providedQuery === expected;
+  if (providedQuery === expected) return true;
+  return isLikelySnsRequest(request);
 }
 
 async function confirmSubscription(url: string): Promise<void> {

@@ -3,6 +3,7 @@ import { markSuppressedByEmail } from '@/lib/email-platform/sending';
 
 type SesSnsEvent = {
   eventType?: string;
+  notificationType?: string;
   mail?: { messageId?: string; destination?: string[] };
   bounce?: { bouncedRecipients?: Array<{ emailAddress?: string }> };
   complaint?: { complainedRecipients?: Array<{ emailAddress?: string }> };
@@ -20,8 +21,29 @@ function getMessageId(event: SesSnsEvent): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+function normalizeEventType(rawEventType: string): string {
+  const normalized = rawEventType.trim().toLowerCase();
+  if (!normalized) return 'unknown';
+  if (normalized.startsWith('email.')) {
+    const shortType = normalized.slice('email.'.length);
+    return shortType || normalized;
+  }
+  if (normalized === 'delivered') return 'delivery';
+  if (normalized === 'opened') return 'open';
+  if (normalized === 'clicked') return 'click';
+  if (normalized === 'bounced') return 'bounce';
+  if (normalized === 'complained') return 'complaint';
+  return normalized;
+}
+
 function getLowerEventType(event: SesSnsEvent): string {
-  return typeof event.eventType === 'string' ? event.eventType.trim().toLowerCase() : 'unknown';
+  const raw =
+    typeof event.eventType === 'string'
+      ? event.eventType
+      : typeof event.notificationType === 'string'
+        ? event.notificationType
+        : '';
+  return raw ? normalizeEventType(raw) : 'unknown';
 }
 
 function getSuppressedEmails(event: SesSnsEvent): string[] {
