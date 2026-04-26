@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import type { EmailBlock, CuratedProductCard } from '@/lib/email-platform/types';
+import { applyAlternatingProductLayout } from '@/lib/email-platform/auto-weekly/product-layout';
 
 type ProductUsageItem = { campaignName: string; scheduledAt: string };
 
@@ -70,6 +71,42 @@ function generateId() {
   return `block-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 }
 
+function parseHandleLines(text: string): string[] {
+  return text.split(/[\n,]+/).map((s) => s.trim()).filter(Boolean);
+}
+
+function getStringMeta(meta: Record<string, unknown>, key: string): string {
+  const value = meta[key];
+  return typeof value === 'string' ? value : '';
+}
+
+function getAutoProductHandles(meta: Record<string, unknown>): string[] {
+  const raw = meta.productHandles;
+  if (Array.isArray(raw)) return raw.filter((x): x is string => typeof x === 'string').map((h) => h.trim()).filter(Boolean);
+  if (typeof raw === 'string') return parseHandleLines(raw);
+  return [];
+}
+
+function firstTextBlock(blocks: EmailBlock[], preferred: EmailBlock['type'], fallback: EmailBlock['type']) {
+  return blocks.find((block) => block.type === preferred) ?? blocks.find((block) => block.type === fallback);
+}
+
+function extractMarkdownCta(blocks: EmailBlock[]): { ctaLabel?: string; ctaUrl?: string } {
+  const block = blocks.find((b) => b.type === 'text' && /view all/i.test(b.text));
+  if (!block || block.type !== 'text') return {};
+  const match = block.text.match(/\[([^\]]+)\]\(([^)]+)\)/);
+  if (!match) return {};
+  return { ctaLabel: match[1].trim(), ctaUrl: match[2].trim() };
+}
+
+function isPendingAutoCampaign(c: CampaignRow | null | undefined): boolean {
+  if (!c) return false;
+  return (
+    c.status === 'pending_approval' &&
+    (c.createdBy === 'auto-weekly' || c.createdBy === 'auto-campaign')
+  );
+}
+
 export default function AdminEmailCampaignsPage() {
   const [campaigns, setCampaigns] = useState<CampaignRow[]>([]);
   const [lists, setLists] = useState<ListRow[]>([]);
@@ -87,6 +124,7 @@ export default function AdminEmailCampaignsPage() {
   const [deletingCampaignId, setDeletingCampaignId] = useState<string | null>(null);
   const [cancellingCampaignId, setCancellingCampaignId] = useState<string | null>(null);
   const [resendingCampaignId, setResendingCampaignId] = useState<string | null>(null);
+  const [resendingNonOpenersId, setResendingNonOpenersId] = useState<string | null>(null);
   const [preparedCampaign, setPreparedCampaign] = useState<PreparedCampaign | null>(null);
   const [duplicatedCampaignId, setDuplicatedCampaignId] = useState<string | null>(null);
   const [editingCampaignId, setEditingCampaignId] = useState<string | null>(null);
@@ -122,9 +160,12 @@ export default function AdminEmailCampaignsPage() {
   const [testEmailAddress, setTestEmailAddress] = useState('');
   const [isSendingTest, setIsSendingTest] = useState(false);
   const [testEmailStatus, setTestEmailStatus] = useState('');
+  const [sendingCampaignTestId, setSendingCampaignTestId] = useState<string | null>(null);
 
   const [autoWeeklyEnabled, setAutoWeeklyEnabled] = useState<boolean | null>(null);
   const [autoWeeklyUpdating, setAutoWeeklyUpdating] = useState(false);
+  /** Editable send-time overrides for auto campaigns awaiting approval */
+  const [pendingAutoMeta, setPendingAutoMeta] = useState<Record<string, unknown> | null>(null);
 
   const editorCardRef = useRef<HTMLDivElement | null>(null);
   const nameInputRef = useRef<HTMLInputElement | null>(null);
@@ -185,6 +226,98 @@ export default function AdminEmailCampaignsPage() {
   const updateCuratedProducts = (blockId: string, products: CuratedProductCard[]) => {
     updateBlock(blockId, { products } as Partial<EmailBlock>);
   };
+
+  async function loadCuratedCardsForHandles(handles: string[]): Promise<CuratedProductCard[]> {
+    const cards = await Promise.all(
+      handles.map(async (handle) => {
+        const res = await fetch('/api/admin/email/templates/preview-product', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ handle }),
+        });
+        if (!res.ok) return { id: generateId(), handle, title: handle, imageUrl: '', url: '' };
+        const data = await res.json();
+        const p = data.product || {};
+        return {
+          id: generateId(),
+          handle,
+          title: p.title || handle,
+          imageUrl: p.imageUrl || '',
+          url: p.url || '',
+          price: p.price || '',
+          compareAtPrice: p.compareAtPrice || '',
+          savePercent: p.savePercent || '',
+          freeShippingBadge: p.freeShippingBadge !== false,
+        };
+      })
+    );
+    return cards;
+  }
+
+  async function materializeAutoCampaignBlocks(blocks: EmailBlock[], meta: Record<string, unknown>): Promise<EmailBlock[]> {
+    const productCards = await loadCuratedCardsForHandles(getAutoProductHandles(meta));
+    const introText = getStringMeta(meta, 'introText');
+    const generatedHeading = (getStringMeta(meta, 'generatedHeading') || getStringMeta(meta, 'subjectLine'))
+      .trim()
+      .replace(/^["'“”🎁\s]+/, '')
+      .replace(/["'“”]+$/, '')
+      .trim();
+    const ctaLabel = getStringMeta(meta, 'ctaLabel').trim();
+    const ctaUrl = getStringMeta(meta, 'ctaUrl').trim();
+    const logoUrl = getStringMeta(meta, 'logoUrl').trim();
+    const hasLlmIntroBlock = blocks.some((block) => block.type === 'llmIntro');
+    const hasLlmHeadingBlock = blocks.some((block) => block.type === 'llmHeading');
+    let firstTextReplaced = false;
+    let firstHeadingReplaced = false;
+    let firstImageReplaced = false;
+    let firstTextCtaReplaced = false;
+    const materialized = blocks.map((block) => {
+      if (generatedHeading && block.type === 'llmHeading') return { ...block, text: generatedHeading };
+      if (generatedHeading && !hasLlmHeadingBlock && block.type === 'heading' && !firstHeadingReplaced) {
+        firstHeadingReplaced = true;
+        return { ...block, text: generatedHeading };
+      }
+      if (introText && block.type === 'llmIntro') return { ...block, text: introText };
+      if (introText && !hasLlmIntroBlock && block.type === 'text' && !firstTextReplaced) {
+        firstTextReplaced = true;
+        return { ...block, text: introText };
+      }
+      if (block.type === 'cta' && (ctaLabel || ctaUrl)) {
+        return { ...block, ...(ctaLabel ? { label: ctaLabel } : {}), ...(ctaUrl ? { url: ctaUrl } : {}) };
+      }
+      if (ctaLabel && ctaUrl && block.type === 'text' && !firstTextCtaReplaced && /view all/i.test(block.text)) {
+        firstTextCtaReplaced = true;
+        return { ...block, text: `[${ctaLabel}](${ctaUrl})` };
+      }
+      if (logoUrl && block.type === 'image' && !firstImageReplaced) {
+        firstImageReplaced = true;
+        return { ...block, url: logoUrl };
+      }
+      if (block.type === 'curatedProducts' && productCards.length > 0) return { ...block, products: productCards };
+      return block;
+    });
+    return applyAlternatingProductLayout(materialized, productCards, introText);
+  }
+
+  function deriveAutoMetadataFromEditor(base: Record<string, unknown>) {
+    const introBlock = firstTextBlock(contentBlocks, 'llmIntro', 'text');
+    const headingBlock = firstTextBlock(contentBlocks, 'llmHeading', 'heading');
+    const ctaBlock = contentBlocks.find((block) => block.type === 'cta');
+    const curatedBlock = contentBlocks.find((block) => block.type === 'curatedProducts');
+    const textCta = extractMarkdownCta(contentBlocks);
+    return {
+      ...base,
+      subjectLine: contentSubject,
+      introText: introBlock && 'text' in introBlock ? introBlock.text : getStringMeta(base, 'introText'),
+      generatedHeading: headingBlock && 'text' in headingBlock ? headingBlock.text : getStringMeta(base, 'generatedHeading'),
+      productHandles:
+        curatedBlock && curatedBlock.type === 'curatedProducts'
+          ? curatedBlock.products.map((product) => product.handle).filter(Boolean)
+          : getAutoProductHandles(base),
+      ...(ctaBlock && ctaBlock.type === 'cta' ? { ctaLabel: ctaBlock.label, ctaUrl: ctaBlock.url } : textCta),
+      ...(contentLogoUrl ? { logoUrl: contentLogoUrl } : {}),
+    };
+  }
 
   // Live preview
   const fetchPreviewHtml = useCallback(async () => {
@@ -258,6 +391,37 @@ export default function AdminEmailCampaignsPage() {
     }
   };
 
+  const sendCampaignTestEmail = async (campaignId: string) => {
+    if (!testEmailAddress.trim()) {
+      setTestEmailStatus('Enter an email address first.');
+      return;
+    }
+    setSendingCampaignTestId(campaignId);
+    setTestEmailStatus('');
+    try {
+      const res = await fetch(`/api/admin/email/campaigns/${campaignId}/send-test`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: testEmailAddress.trim() }),
+      });
+      let data: { error?: string } = {};
+      try {
+        data = (await res.json()) as { error?: string };
+      } catch {
+        /* ignore */
+      }
+      if (!res.ok) {
+        throw new Error(typeof data?.error === 'string' ? data.error : 'Failed to send campaign test email');
+      }
+      setTestEmailStatus(`Campaign test sent to ${testEmailAddress.trim()}`);
+    } catch (err) {
+      setTestEmailStatus(err instanceof Error ? err.message : 'Failed to send campaign test email');
+    } finally {
+      setSendingCampaignTestId(null);
+      setTimeout(() => setTestEmailStatus(''), 5000);
+    }
+  };
+
   // Load template content when templateVersionId changes (only in edit mode)
   useEffect(() => {
     if (!templateVersionId || !editingCampaignId) {
@@ -269,34 +433,60 @@ export default function AdminEmailCampaignsPage() {
       setContentEditorOpen(false);
       return;
     }
+    let cancelled = false;
     setIsLoadingContent(true);
-    fetch(`/api/admin/email/templates/versions/${templateVersionId}`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.version) {
-          setContentBlocks(Array.isArray(data.version.blocks) ? data.version.blocks : []);
-          setContentSubject(data.version.subjectTemplate || '');
-          setContentFromName(data.version.fromName || 'The Equestrian');
-          setContentFromEmail(data.version.fromEmail || 'support@theequestrian.com.au');
+    void (async () => {
+      try {
+        const r = await fetch(`/api/admin/email/templates/versions/${templateVersionId}`);
+        const data: { version?: Record<string, unknown>; error?: string } = await r.json();
+        if (cancelled) return;
+        if (!r.ok) {
+          setContentTemplateId(null);
+          return;
+        }
+        const v = data.version;
+        if (v) {
+          const campaign = campaigns.find((c) => c.id === editingCampaignId) || null;
+          const autoMeta = isPendingAutoCampaign(campaign) && campaign?.metadata ? campaign.metadata : null;
+          const blocks = Array.isArray(v.blocks) ? (v.blocks as EmailBlock[]) : [];
+          setContentBlocks(autoMeta ? await materializeAutoCampaignBlocks(blocks, autoMeta) : blocks);
+          setContentSubject(
+            autoMeta && typeof autoMeta.subjectLine === 'string'
+              ? autoMeta.subjectLine
+              : typeof v.subjectTemplate === 'string'
+                ? v.subjectTemplate
+                : ''
+          );
+          setContentFromName(typeof v.fromName === 'string' ? v.fromName : 'The Equestrian');
+          setContentFromEmail(typeof v.fromEmail === 'string' ? v.fromEmail : 'support@theequestrian.com.au');
           const meta =
-            data.version.metadata && typeof data.version.metadata === 'object'
-              ? (data.version.metadata as Record<string, unknown>)
+            v.metadata && typeof v.metadata === 'object' && !Array.isArray(v.metadata)
+              ? (v.metadata as Record<string, unknown>)
               : {};
+          const logoUrl = autoMeta && typeof autoMeta.logoUrl === 'string' ? autoMeta.logoUrl : meta.logoUrl;
           setContentMetadata(meta);
-          setContentLogoUrl(typeof meta.logoUrl === 'string' ? meta.logoUrl : 'https://www.theequestrian.com.au/email-logo.png');
+          setContentLogoUrl(typeof logoUrl === 'string' ? logoUrl : 'https://www.theequestrian.com.au/email-logo.png');
           setContentLinkColor(typeof meta.linkColor === 'string' ? meta.linkColor : '#de8e94');
           setContentBrandPrimary(typeof meta.brandPrimary === 'string' ? meta.brandPrimary : '#000000');
           setContentHeaderBg(typeof meta.headerBackground === 'string' ? meta.headerBackground : '#ffffff');
           setPreviewLoaded(false);
           setContentEditorOpen(true);
+          const fromVersion = typeof v.templateId === 'string' && v.templateId ? v.templateId : null;
+          const fromActive = templates.find((t) => t.activeVersionId === templateVersionId)?.id ?? null;
+          setContentTemplateId(fromVersion || fromActive);
+        } else {
+          setContentTemplateId(null);
         }
-        const tpl = templates.find((t) => t.activeVersionId === templateVersionId);
-        setContentTemplateId(tpl?.id || null);
-      })
-      .catch(() => {})
-      .finally(() => setIsLoadingContent(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [templateVersionId, editingCampaignId]);
+      } catch {
+        if (!cancelled) setContentTemplateId(null);
+      } finally {
+        if (!cancelled) setIsLoadingContent(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [templateVersionId, editingCampaignId, templates]);
 
   async function loadAll() {
     const [campaignRes, listRes, segmentRes, templateRes] = await Promise.all([
@@ -326,12 +516,17 @@ export default function AdminEmailCampaignsPage() {
   }, []);
 
   useEffect(() => {
-    fetch('/api/admin/email/auto-weekly/settings')
-      .then((res) => res.json())
-      .then((data) => {
-        setAutoWeeklyEnabled(data?.enabled === true);
-      })
-      .catch(() => setAutoWeeklyEnabled(false));
+    async function loadAutoFlow() {
+      try {
+        const res = await fetch('/api/admin/email/auto-campaigns/settings');
+        const data = await res.json();
+        if (!res.ok) throw new Error(typeof data?.error === 'string' ? data.error : 'Failed to load auto settings');
+        setAutoWeeklyEnabled(data.enabled === true);
+      } catch {
+        setAutoWeeklyEnabled(false);
+      }
+    }
+    void loadAutoFlow();
   }, []);
 
   useEffect(() => {
@@ -416,6 +611,7 @@ export default function AdminEmailCampaignsPage() {
     setTestEmailStatus('');
     setError('');
     setStatusMessage('');
+    setPendingAutoMeta(null);
   }
 
   function applyCampaignToEditor(campaign: CampaignRow) {
@@ -428,6 +624,14 @@ export default function AdminEmailCampaignsPage() {
     setPreparedCampaign(null);
     setEditingCampaignId(campaign.id);
     setStatusMessage('');
+    if (isPendingAutoCampaign(campaign)) {
+      const raw = campaign.metadata && typeof campaign.metadata === 'object' && !Array.isArray(campaign.metadata)
+        ? campaign.metadata
+        : {};
+      setPendingAutoMeta({ ...raw });
+    } else {
+      setPendingAutoMeta(null);
+    }
     editorCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     setTimeout(() => nameInputRef.current?.focus(), 50);
   }
@@ -440,6 +644,10 @@ export default function AdminEmailCampaignsPage() {
       setError('Campaign name and template are required');
       return;
     }
+    const autoMetadataPatch =
+      pendingAutoMeta && isPendingAutoCampaign(currentlyEditing)
+        ? deriveAutoMetadataFromEditor(pendingAutoMeta)
+        : undefined;
     setError('');
     setStatusMessage('');
     setIsPreparing(true);
@@ -472,15 +680,25 @@ export default function AdminEmailCampaignsPage() {
         // Update templateVersionId to the newly created version
         const newVersionId = versionPayload.versionId || versionPayload.id || templateVersionId;
         if (newVersionId && newVersionId !== templateVersionId) {
-          await fetch(`/api/admin/email/campaigns/${editingCampaignId}`, {
+          const campaignPatchBody: Record<string, unknown> = {
+            name: name.trim(),
+            templateVersionId: newVersionId,
+            audience: { listIds: selectedListIds, segmentIds: selectedSegmentIds },
+          };
+          if (autoMetadataPatch) campaignPatchBody.metadata = autoMetadataPatch;
+          const campaignPatchRes = await fetch(`/api/admin/email/campaigns/${editingCampaignId}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              name: name.trim(),
-              templateVersionId: newVersionId,
-              audience: { listIds: selectedListIds, segmentIds: selectedSegmentIds },
-            }),
+            body: JSON.stringify(campaignPatchBody),
           });
+          const campaignPatchPayload = await campaignPatchRes.json();
+          if (!campaignPatchRes.ok) {
+            throw new Error(
+              typeof campaignPatchPayload?.error === 'string'
+                ? campaignPatchPayload.error
+                : 'Failed to update campaign'
+            );
+          }
           setStatusMessage(`Campaign "${name.trim()}" and email content saved.`);
           clearEditor();
           await loadAll();
@@ -488,14 +706,16 @@ export default function AdminEmailCampaignsPage() {
         }
       }
 
+      const updateBody: Record<string, unknown> = {
+        name: name.trim(),
+        templateVersionId,
+        audience: { listIds: selectedListIds, segmentIds: selectedSegmentIds },
+      };
+      if (autoMetadataPatch) updateBody.metadata = autoMetadataPatch;
       const updateRes = await fetch(`/api/admin/email/campaigns/${editingCampaignId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: name.trim(),
-          templateVersionId,
-          audience: { listIds: selectedListIds, segmentIds: selectedSegmentIds },
-        }),
+        body: JSON.stringify(updateBody),
       });
       const updatePayload = await updateRes.json();
       if (!updateRes.ok) {
@@ -654,9 +874,12 @@ export default function AdminEmailCampaignsPage() {
 
   return (
     <AdminLayout title="Email Campaigns" subtitle="One-off bulk sends with list/segment audiences">
-      <div className="mb-4">
+      <div className="mb-4 flex flex-wrap gap-3">
         <Link href="/admin/email" className="text-sm font-semibold text-action hover:underline">
           ← Back to Email Platform
+        </Link>
+        <Link href="/admin/email/auto-campaigns" className="text-sm font-semibold text-sky-800 hover:underline">
+          Auto campaigns
         </Link>
       </div>
       {error ? (
@@ -755,6 +978,13 @@ export default function AdminEmailCampaignsPage() {
             </select>
           </label>
         </div>
+
+        {editingCampaignId && pendingAutoMeta !== null ? (
+          <div className="mt-4 rounded-xl border border-sky-200 bg-sky-50/60 p-3 text-xs text-sky-900">
+            Auto campaign content has been loaded into the email content editor below. Edit the subject,
+            text, images, CTA, and curated products there; saving will update the campaign send content.
+          </div>
+        ) : null}
 
         {/* ── Inline email content editor (edit mode only) ── */}
         {editingCampaignId ? (
@@ -1349,6 +1579,24 @@ export default function AdminEmailCampaignsPage() {
       ) : null}
 
       {/* ── Campaign list ── */}
+      <div className="mb-3 rounded-xl border border-gray-200 bg-white p-3">
+        <p className="mb-2 text-xs font-semibold text-gray-700">Pre-approval test inbox</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            type="email"
+            placeholder="you@example.com"
+            value={testEmailAddress}
+            onChange={(e) => setTestEmailAddress(e.target.value)}
+            className="w-72 rounded border border-gray-300 px-3 py-1.5 text-sm"
+          />
+          <span className="text-xs text-gray-500">Use "Send test" on pending campaigns below.</span>
+        </div>
+        {testEmailStatus ? (
+          <p className={`mt-1.5 text-xs ${testEmailStatus.toLowerCase().includes('sent') ? 'text-emerald-600' : 'text-red-600'}`}>
+            {testEmailStatus}
+          </p>
+        ) : null}
+      </div>
       <div className="space-y-3">
         {campaigns.map((campaign) => (
           <div key={campaign.id} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
@@ -1374,7 +1622,10 @@ export default function AdminEmailCampaignsPage() {
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <h4 className="text-sm font-semibold text-gray-900">{campaign.name}</h4>
-                  {campaign.createdBy === 'auto-weekly' ? (
+                  {campaign.createdBy === 'auto-resend' ? (
+                    <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs font-semibold text-violet-900">Auto resend</span>
+                  ) : null}
+                  {campaign.createdBy === 'auto-weekly' || campaign.createdBy === 'auto-campaign' ? (
                     <>
                       <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-semibold text-sky-800">
                         Auto campaign
@@ -1392,15 +1643,15 @@ export default function AdminEmailCampaignsPage() {
                             setAutoWeeklyUpdating(true);
                             setError('');
                             try {
-                              const res = await fetch('/api/admin/email/auto-weekly/settings', {
+                              const res = await fetch('/api/admin/email/auto-campaigns/settings', {
                                 method: 'PATCH',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ enabled: !autoWeeklyEnabled }),
                               });
                               const data = await res.json();
-                              if (!res.ok) throw new Error(data?.error || 'Failed to update');
+                              if (!res.ok) throw new Error(typeof data?.error === 'string' ? data.error : 'Failed to update');
                               setAutoWeeklyEnabled(data.enabled === true);
-                              setStatusMessage(data.enabled ? 'Auto weekly flow enabled.' : 'Auto weekly flow disabled.');
+                              setStatusMessage(data.enabled ? 'Auto campaigns flow enabled.' : 'Auto campaigns flow disabled.');
                             } catch (e) {
                               setError(e instanceof Error ? e.message : 'Failed to update');
                             } finally {
@@ -1423,7 +1674,7 @@ export default function AdminEmailCampaignsPage() {
                   {(campaign.audience.segmentIds || []).length}
                 </p>
                 {campaign.status === 'pending_approval' &&
-                  campaign.createdBy === 'auto-weekly' &&
+                  (campaign.createdBy === 'auto-weekly' || campaign.createdBy === 'auto-campaign') &&
                   campaign.productUsage &&
                   Object.keys(campaign.productUsage).length > 0 ? (
                   <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50/80 p-2 text-xs text-amber-900">
@@ -1507,6 +1758,41 @@ export default function AdminEmailCampaignsPage() {
                     >
                       {resendingCampaignId === campaign.id ? 'Resending…' : 'Resend unsent'}
                     </button>
+                    <button
+                      type="button"
+                      disabled={resendingNonOpenersId === campaign.id}
+                      className="rounded-full border border-fuchsia-300 px-3 py-1.5 text-xs font-semibold text-fuchsia-800 hover:border-fuchsia-500 disabled:opacity-60"
+                      onClick={async () => {
+                        const confirmed = window.confirm(
+                          `Resend this campaign only to recipients who did NOT open the original email? A new "Resend (non-openers)" campaign will be created with a fresh subject line and sent immediately.`
+                        );
+                        if (!confirmed) return;
+                        setResendingNonOpenersId(campaign.id);
+                        setError('');
+                        setStatusMessage('');
+                        try {
+                          const response = await fetch(
+                            `/api/admin/email/campaigns/${campaign.id}/resend-non-openers`,
+                            { method: 'POST' }
+                          );
+                          const data = await response.json();
+                          if (!response.ok) {
+                            setError(data?.error || 'Failed to resend to non-openers');
+                            return;
+                          }
+                          setStatusMessage(
+                            `Resent to non-openers: ${data.recipientCount ?? 0} queued, sent ${data.sent ?? 0}, failed ${data.failed ?? 0}, skipped ${data.skipped ?? 0}.`
+                          );
+                          await loadAll();
+                        } catch (err) {
+                          setError(err instanceof Error ? err.message : 'Failed to resend to non-openers');
+                        } finally {
+                          setResendingNonOpenersId(null);
+                        }
+                      }}
+                    >
+                      {resendingNonOpenersId === campaign.id ? 'Resending…' : 'Resend non-openers'}
+                    </button>
                   </>
                     );
                   }
@@ -1534,6 +1820,14 @@ export default function AdminEmailCampaignsPage() {
                   if (campaign.status === 'pending_approval') {
                     return (
                   <>
+                    <button
+                      type="button"
+                      className="rounded-full border border-blue-300 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:border-blue-500 disabled:opacity-60"
+                      disabled={sendingCampaignTestId === campaign.id}
+                      onClick={() => void sendCampaignTestEmail(campaign.id)}
+                    >
+                      {sendingCampaignTestId === campaign.id ? 'Sending test…' : 'Send test'}
+                    </button>
                     <button
                       type="button"
                       className="rounded-full border border-green-300 px-3 py-1.5 text-xs font-semibold text-green-700 hover:border-green-500"
