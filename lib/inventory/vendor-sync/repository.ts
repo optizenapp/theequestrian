@@ -59,6 +59,38 @@ export async function isMarketplaceVariantPriceLocked(
   }
 }
 
+export type MarketplaceVariantLock = {
+  lockedPrice: number;
+  lockedCompareAt: number | null;
+};
+
+export async function getMarketplaceVariantLock(
+  marketplaceVariantId: string
+): Promise<MarketplaceVariantLock | null> {
+  try {
+    const rows = await sql`
+      SELECT locked_price, locked_compare_at
+      FROM marketplace_price_locks
+      WHERE variant_id = ${marketplaceVariantId}
+      LIMIT 1
+    `;
+    if (!Array.isArray(rows) || rows.length === 0) return null;
+    const row = rows[0] as { locked_price: string | number; locked_compare_at: string | number | null };
+    const lockedPrice = Number(row.locked_price);
+    if (Number.isNaN(lockedPrice)) return null;
+    const lockedCompareAtRaw =
+      row.locked_compare_at == null ? null : Number(row.locked_compare_at);
+    const lockedCompareAt =
+      lockedCompareAtRaw != null && !Number.isNaN(lockedCompareAtRaw)
+        ? lockedCompareAtRaw
+        : null;
+    return { lockedPrice, lockedCompareAt };
+  } catch (e) {
+    console.warn('[vendor-sync] getMarketplaceVariantLock failed', e);
+    return null;
+  }
+}
+
 let priceSyncVendorCache: { names: string[]; at: number } | null = null;
 const PRICE_SYNC_CACHE_MS = 60_000;
 

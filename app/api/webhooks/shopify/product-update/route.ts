@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
       options: Array.isArray(product.options) ? product.options : [],
     });
 
-    revalidateShopifyProductCaches(product.handle || null);
+    await revalidateShopifyProductCaches(product.handle || null);
     
     console.log('[Webhook] ✅ Product synced:', productId);
     

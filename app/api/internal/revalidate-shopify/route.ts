@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     const paths = Array.isArray(body?.paths) ? body.paths : [];
     const tags = Array.isArray(body?.tags) ? body.tags : [];
 
-    revalidateShopifyProductCaches(productHandle, {
+    await revalidateShopifyProductCaches(productHandle, {
       extraPaths: paths,
       extraTags: tags,
     });

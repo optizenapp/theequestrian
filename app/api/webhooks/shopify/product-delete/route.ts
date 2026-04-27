@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     await deleteProductVariantsByProductId(productId);
     await sql`DELETE FROM products WHERE id = ${productId}`;
 
-    revalidateShopifyProductCaches(product.handle || null);
+    await revalidateShopifyProductCaches(product.handle || null);
     
     console.log('[Webhook] ✅ Product deleted:', productId);
     

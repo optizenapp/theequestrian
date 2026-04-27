@@ -6,8 +6,10 @@ import { fetchVendorProduct } from '@/lib/shopify/vendor-shopify-rest';
 import {
   canRunReconcile,
   getActiveMapsForMarketplaceProduct,
+  getMarketplaceVariantLock,
   getMarketplaceVendorsWithPriceSyncEnabled,
   getReconcilePriceConnectionsByMarketplaceVendor,
+  isMarketplaceVariantPriceLocked,
   markReconcileRun,
 } from '@/lib/inventory/vendor-sync/repository';
 
@@ -75,6 +77,55 @@ type MarketplaceWebhookProduct = {
   variants?: MarketplaceWebhookVariant[];
 };
 
+/**
+ * Auto-revert any locked variant whose Shopify price has drifted from the
+ * recorded lock. Returns the set of variant ids that are price-locked so the
+ * caller can skip subsequent offset/reconcile logic for them.
+ */
+async function enforcePriceLocks(
+  product: MarketplaceWebhookProduct
+): Promise<{ locked: Set<string>; reverted: number }> {
+  const locked = new Set<string>();
+  let reverted = 0;
+
+  for (const variant of product.variants || []) {
+    const variantId = String(variant.id);
+    const lock = await getMarketplaceVariantLock(variantId);
+    if (!lock) continue;
+    locked.add(variantId);
+
+    const currentPrice = parseFloat(variant.price);
+    if (Number.isNaN(currentPrice)) continue;
+
+    const priceDiff = Math.abs(currentPrice - lock.lockedPrice);
+    const currentCompareAt =
+      variant.compare_at_price != null ? parseFloat(String(variant.compare_at_price)) : null;
+    const targetCompareAt = lock.lockedCompareAt;
+    const compareDiff =
+      targetCompareAt == null
+        ? currentCompareAt == null
+          ? 0
+          : Math.abs(currentCompareAt)
+        : currentCompareAt == null
+          ? Math.abs(targetCompareAt)
+          : Math.abs(currentCompareAt - targetCompareAt);
+
+    if (priceDiff < 0.01 && compareDiff < 0.01) continue;
+
+    console.log(
+      `[Shopify Webhook] Locked variant ${variantId} drifted ($${currentPrice} → $${lock.lockedPrice.toFixed(2)}); reverting`
+    );
+    await updateVariantPrice(
+      variantId,
+      lock.lockedPrice.toFixed(2),
+      targetCompareAt != null ? targetCompareAt.toFixed(2) : null
+    );
+    reverted += 1;
+  }
+
+  return { locked, reverted };
+}
+
 async function reconcileDirectVendorPriceDrift(
   product: MarketplaceWebhookProduct,
   shippingOffset: number,
@@ -111,6 +162,13 @@ async function reconcileDirectVendorPriceDrift(
 
     let touched = false;
     for (const mapRow of maps) {
+      if (await isMarketplaceVariantPriceLocked(mapRow.marketplace_variant_id)) {
+        console.log(
+          `[Shopify Webhook] Variant ${mapRow.marketplace_variant_id} is price-locked, skipping reconcile`
+        );
+        continue;
+      }
+
       const vendorVariant = vendorVariantMap.get(mapRow.vendor_shopify_variant_id);
       const marketplaceVariant = marketplaceVariantMap.get(mapRow.marketplace_variant_id);
       if (!vendorVariant || !marketplaceVariant) continue;
@@ -177,6 +235,18 @@ export async function POST(req: NextRequest) {
     console.log(`[Shopify Webhook] Product update: ${product.title} (ID: ${productId})`);
     console.log(`[Shopify Webhook] Vendor: ${vendor}, Tags: ${tags.join(', ')}`);
 
+    // Enforce manual price locks before any offset/reconcile work. Locked
+    // variants are reverted to their stored price and excluded from the rest
+    // of the pipeline so external syncs (Webkul, vendor-sync, etc.) cannot
+    // override the manual override.
+    const { locked: lockedVariantIds, reverted: lockedVariantsReverted } =
+      await enforcePriceLocks(product);
+    if (lockedVariantsReverted > 0) {
+      console.log(
+        `[Shopify Webhook] Reverted ${lockedVariantsReverted} locked variant(s) to manual price`
+      );
+    }
+
     const directPriceVendors = await getMarketplaceVendorsWithPriceSyncEnabled();
     const vendorNorm = (vendor || '').toLowerCase().trim();
     if (directPriceVendors.some((x) => x.toLowerCase().trim() === vendorNorm)) {
@@ -192,6 +262,7 @@ export async function POST(req: NextRequest) {
         skipped: true,
         reason: 'vendor_direct_price_sync_reconcile',
         reconciled,
+        lockedVariantsReverted,
         processingTime: Date.now() - startTime,
       });
     }
@@ -221,6 +292,18 @@ export async function POST(req: NextRequest) {
       const currentPrice = parseFloat(variant.price);
       const currentCompareAt = variant.compare_at_price ? parseFloat(variant.compare_at_price) : null;
       const variantId = variant.id.toString();
+
+      // Already revert-handled above by enforcePriceLocks.
+      if (lockedVariantIds.has(variantId)) {
+        console.log(`[Shopify Webhook] Variant ${variantId} is price-locked, skipping offset logic`);
+        skipped++;
+        continue;
+      }
+      if (await isMarketplaceVariantPriceLocked(variantId)) {
+        console.log(`[Shopify Webhook] Variant ${variantId} is price-locked, skipping`);
+        skipped++;
+        continue;
+      }
 
       // Check audit database to see if we've already processed this variant
       const auditCheck = await sql`
@@ -324,6 +407,7 @@ export async function POST(req: NextRequest) {
       ok: true,
       productId,
       variantsUpdated,
+      lockedVariantsReverted,
       shippingOffset,
       processingTime: duration,
     });
