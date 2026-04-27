@@ -38,6 +38,63 @@ export async function PATCH(
     const createdBy = String(campaign.created_by || '');
     const isLegacyAutoDraft =
       status === 'draft' && (createdBy === 'auto-weekly' || createdBy === 'auto-campaign');
+
+    const scheduledAtProvided = Object.prototype.hasOwnProperty.call(body || {}, 'scheduledAt');
+    const scheduledAtRaw: unknown = body?.scheduledAt;
+    let parsedScheduledAt: string | null | undefined;
+    if (scheduledAtProvided) {
+      if (scheduledAtRaw === null || scheduledAtRaw === '') {
+        parsedScheduledAt = null;
+      } else if (typeof scheduledAtRaw === 'string') {
+        const dt = new Date(scheduledAtRaw);
+        if (Number.isNaN(dt.getTime())) {
+          return NextResponse.json({ error: 'Invalid scheduledAt' }, { status: 400 });
+        }
+        parsedScheduledAt = dt.toISOString();
+      } else {
+        return NextResponse.json({ error: 'Invalid scheduledAt' }, { status: 400 });
+      }
+    }
+
+    // Schedule-only update path: change scheduled_at on draft / pending_approval /
+    // scheduled campaigns without touching audience or recipients.
+    const isScheduleOnlyUpdate =
+      scheduledAtProvided &&
+      body?.name === undefined &&
+      body?.audience === undefined &&
+      body?.metadata === undefined &&
+      body?.templateVersionId === undefined;
+    if (isScheduleOnlyUpdate) {
+      if (
+        status !== 'draft' &&
+        status !== 'pending_approval' &&
+        status !== 'scheduled'
+      ) {
+        return NextResponse.json(
+          { error: 'Only pending_approval or scheduled campaigns can have their schedule updated' },
+          { status: 409 }
+        );
+      }
+      await sql`
+        UPDATE email_campaigns
+        SET scheduled_at = ${parsedScheduledAt}::timestamptz,
+            updated_at = NOW()
+        WHERE id = ${id}
+      `;
+      await logEmailAudit({
+        actor: 'admin',
+        action: 'campaign_schedule_updated',
+        entityType: 'email_campaign',
+        entityId: id,
+        payload: {
+          name: String(campaign.name || ''),
+          scheduledAt: parsedScheduledAt,
+          previousStatus: status,
+        },
+      });
+      return NextResponse.json({ ok: true, id, scheduledAt: parsedScheduledAt });
+    }
+
     if (status !== 'draft' && status !== 'pending_approval' && status !== 'cancelled') {
       return NextResponse.json(
         { error: 'Only draft, pending_approval, or cancelled campaigns can be edited' },

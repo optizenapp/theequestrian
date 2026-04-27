@@ -18,6 +18,7 @@ export async function releaseDueScheduledCampaigns(input?: { windowHours?: numbe
       AND scheduled_at IS NOT NULL
       AND scheduled_at <= NOW()
       AND scheduled_at > NOW() - (${windowLabel})::interval
+      AND COALESCE((metadata->>'paused')::boolean, false) = false
   `;
 
   const released: ReleasedCampaign[] = [];

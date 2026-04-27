@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import type { EmailBlock, CuratedProductCard } from '@/lib/email-platform/types';
 import { applyAlternatingProductLayout } from '@/lib/email-platform/auto-weekly/product-layout';
+import { CampaignScheduleControls } from './CampaignScheduleControls';
 
 type ProductUsageItem = { campaignName: string; scheduledAt: string };
 
@@ -1662,6 +1663,11 @@ export default function AdminEmailCampaignsPage() {
                       For approval
                     </span>
                   ) : null}
+                  {campaign.metadata?.paused === true ? (
+                    <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-semibold text-gray-800">
+                      Paused
+                    </span>
+                  ) : null}
                 </div>
                 <p className="text-xs text-gray-500">
                   Status: {campaign.status} | Lists: {(campaign.audience.listIds || []).length} | Segments:{' '}
@@ -1690,6 +1696,15 @@ export default function AdminEmailCampaignsPage() {
                     </ul>
                   </div>
                 ) : null}
+                <CampaignScheduleControls
+                  campaignId={campaign.id}
+                  status={campaign.status}
+                  scheduledAt={campaign.scheduledAt}
+                  paused={campaign.metadata?.paused === true}
+                  onUpdated={loadAll}
+                  onError={setError}
+                  onSuccess={setStatusMessage}
+                />
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 {(() => {
