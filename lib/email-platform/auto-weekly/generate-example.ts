@@ -57,7 +57,7 @@ export async function generateExampleEmail(input: GenerateExampleInput): Promise
   const blocks = normalizeEmailBlocks(rawBlocks);
   const templateMetadata = normalizeTemplateMetadata(rawMetadata ?? {});
 
-  const slot = getNextSendSlotInUTC();
+  const slot = await getNextSendSlotInUTC();
   const sendDateLabel = slot?.label ?? 'Mon 17 Mar 2025 at 9:00 AEST';
 
   const llmIntroBlock = blocks.find((b): b is Extract<EmailBlock, { type: 'llmIntro' }> => b.type === 'llmIntro');

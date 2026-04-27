@@ -3,12 +3,19 @@ import type { ShopifyProductCard } from '@/types/shopify';
 import { renderTemplateBlocksHtml } from '@/lib/email-platform/templates';
 import { getProductsByHandles } from '@/lib/shopify/products-by-handles';
 import { getProductCanonicalUrls } from '@/lib/shopify/products';
+import { applyAlternatingProductLayout } from './product-layout';
 
 export type CampaignMetadataOverrides = {
   introText?: string | null;
   generatedHeading?: string | null;
   productHandles?: string[] | null;
+  ctaLabel?: string | null;
+  ctaUrl?: string | null;
 };
+
+function stripOuterQuotes(value: string): string {
+  return value.trim().replace(/^["'“”]+/, '').replace(/["'“”]+$/, '').trim();
+}
 
 function shopifyProductToCuratedCard(
   p: ShopifyProductCard,
@@ -51,11 +58,30 @@ export async function buildCampaignHtmlWithOverrides(input: {
   const { blocks, templateMetadata, overrides, siteUrl } = input;
   const hasIntroOverride = overrides.introText != null && overrides.introText !== '';
   const hasLlmIntroBlock = blocks.some((b) => b.type === 'llmIntro');
-  const hasHeadingOverride = overrides.generatedHeading != null && overrides.generatedHeading !== '';
+  const normalizedHeading =
+    typeof overrides.generatedHeading === 'string' && overrides.generatedHeading.trim().length > 0
+      ? stripOuterQuotes(overrides.generatedHeading)
+      : null;
+  const hasHeadingOverride = normalizedHeading != null && normalizedHeading.length > 0;
+  const hasLlmHeadingBlock = blocks.some((b) => b.type === 'llmHeading');
+  const hasCtaLabelOverride = typeof overrides.ctaLabel === 'string' && overrides.ctaLabel.trim().length > 0;
+  const hasCtaUrlOverride = typeof overrides.ctaUrl === 'string' && overrides.ctaUrl.trim().length > 0;
+  const hasCtaBlock = blocks.some((b) => b.type === 'cta');
+  const logoUrl =
+    typeof templateMetadata.logoUrl === 'string' && templateMetadata.logoUrl.trim().length > 0
+      ? templateMetadata.logoUrl.trim()
+      : null;
   let firstTextReplaced = false;
+  let firstHeadingReplaced = false;
+  let firstImageReplaced = false;
+  let firstTextCtaReplaced = false;
   const mergedBlocks: EmailBlock[] = blocks.map((block) => {
     if (hasHeadingOverride && block.type === 'llmHeading') {
-      return { ...block, text: overrides.generatedHeading! };
+      return { ...block, text: normalizedHeading! };
+    }
+    if (hasHeadingOverride && !hasLlmHeadingBlock && block.type === 'heading' && !firstHeadingReplaced) {
+      firstHeadingReplaced = true;
+      return { ...block, text: normalizedHeading! };
     }
     if (hasIntroOverride) {
       if (block.type === 'llmIntro') {
@@ -65,6 +91,28 @@ export async function buildCampaignHtmlWithOverrides(input: {
         firstTextReplaced = true;
         return { ...block, text: overrides.introText! };
       }
+    }
+    if (block.type === 'cta' && (hasCtaLabelOverride || hasCtaUrlOverride)) {
+      return {
+        ...block,
+        ...(hasCtaLabelOverride ? { label: overrides.ctaLabel!.trim() } : {}),
+        ...(hasCtaUrlOverride ? { url: overrides.ctaUrl!.trim() } : {}),
+      };
+    }
+    if (
+      !hasCtaBlock &&
+      hasCtaLabelOverride &&
+      hasCtaUrlOverride &&
+      block.type === 'text' &&
+      !firstTextCtaReplaced &&
+      /view all/i.test(block.text)
+    ) {
+      firstTextCtaReplaced = true;
+      return { ...block, text: `[${overrides.ctaLabel!.trim()}](${overrides.ctaUrl!.trim()})` };
+    }
+    if (logoUrl && block.type === 'image' && !firstImageReplaced) {
+      firstImageReplaced = true;
+      return { ...block, url: logoUrl };
     }
     if (
       block.type === 'curatedProducts' &&
@@ -85,13 +133,8 @@ export async function buildCampaignHtmlWithOverrides(input: {
     const cards: CuratedProductCard[] = products.map((p) =>
       shopifyProductToCuratedCard(p, siteUrl, urlById.get(p.id) ?? `/products/${p.handle}`)
     );
-    const idx = mergedBlocks.findIndex((b) => b.type === 'curatedProducts');
-    if (idx !== -1) {
-      const block = mergedBlocks[idx];
-      if (block.type === 'curatedProducts') {
-        mergedBlocks[idx] = { ...block, products: cards };
-      }
-    }
+    const introText = typeof overrides.introText === 'string' ? overrides.introText : '';
+    mergedBlocks.splice(0, mergedBlocks.length, ...applyAlternatingProductLayout(mergedBlocks, cards, introText));
   }
 
   return renderTemplateBlocksHtml({ blocks: mergedBlocks, metadata: templateMetadata });

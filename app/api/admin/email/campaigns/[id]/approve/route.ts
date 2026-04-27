@@ -4,6 +4,7 @@ import { logEmailAudit } from '@/lib/email-platform/audit';
 
 /**
  * Approve a pending_approval campaign: set status to scheduled.
+ * Also supports legacy auto-campaign drafts when DB status constraint has not been migrated.
  * Recipients are not queued here; the release cron does that at scheduled_at.
  */
 export async function POST(
@@ -13,17 +14,33 @@ export async function POST(
   try {
     const { id } = await params;
 
-    const campaignResult = await sql`
-      SELECT id, name, status, scheduled_at
-      FROM email_campaigns
-      WHERE id = ${id}
-      LIMIT 1
-    `;
+    let campaignResult;
+    try {
+      campaignResult = await sql`
+        SELECT id, name, status, scheduled_at, created_by
+        FROM email_campaigns
+        WHERE id = ${id}
+        LIMIT 1
+      `;
+    } catch (error) {
+      const message = error instanceof Error ? error.message.toLowerCase() : '';
+      if (!message.includes('created_by')) throw error;
+      campaignResult = await sql`
+        SELECT id, name, status, scheduled_at
+        FROM email_campaigns
+        WHERE id = ${id}
+        LIMIT 1
+      `;
+    }
     const campaign = campaignResult.rows[0];
     if (!campaign) {
       return NextResponse.json({ error: 'Campaign not found' }, { status: 404 });
     }
-    if (String(campaign.status) !== 'pending_approval') {
+    const status = String(campaign.status || '');
+    const createdBy = String(campaign.created_by || '');
+    const isLegacyAutoDraft =
+      status === 'draft' && (createdBy === 'auto-weekly' || createdBy === 'auto-campaign');
+    if (status !== 'pending_approval' && !isLegacyAutoDraft) {
       return NextResponse.json(
         { error: 'Only pending_approval campaigns can be approved' },
         { status: 409 }

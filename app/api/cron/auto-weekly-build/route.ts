@@ -34,12 +34,12 @@ async function handleCron(request: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      campaignId: result.campaignId,
-      scheduledAt: result.scheduledAt?.toISOString() ?? null,
-      label: result.label,
       approvalEmailSent: result.approvalEmailSent,
-      ...(result.skipped && { skipped: true, skipReason: result.skipReason }),
-      ...(result.error && { error: result.error }),
+      results: result.results.map((r) => ({
+        ...r,
+        scheduledAt: r.scheduledAt?.toISOString() ?? null,
+      })),
+      campaignIds: result.results.map((r) => r.campaignId).filter(Boolean),
     });
   } catch (error) {
     console.error('[auto-weekly-build] Failed:', error);

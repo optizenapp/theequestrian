@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
       result = await sql`
         SELECT id, name, status, template_version_id, audience, scheduled_at, started_at, completed_at, metadata, updated_at, created_by
         FROM email_campaigns
-        ORDER BY (created_by = 'auto-weekly') DESC, updated_at DESC
+        ORDER BY (created_by IN ('auto-weekly', 'auto-campaign')) DESC, updated_at DESC
         LIMIT ${limit}
       `;
     } catch (error) {
@@ -29,27 +29,36 @@ export async function GET(request: NextRequest) {
       `;
     }
 
-    const campaigns = result.rows.map((row) => ({
-      id: row.id as string,
-      name: row.name as string,
-      status: row.status as string,
-      templateVersionId: (row.template_version_id as string | null) ?? null,
-      audience: (row.audience as Record<string, unknown>) || {},
-      scheduledAt: row.scheduled_at ? new Date(row.scheduled_at as string).toISOString() : null,
-      startedAt: row.started_at ? new Date(row.started_at as string).toISOString() : null,
-      completedAt: row.completed_at ? new Date(row.completed_at as string).toISOString() : null,
-      metadata: (row.metadata as Record<string, unknown>) || {},
-      updatedAt: new Date(row.updated_at as string).toISOString(),
-      createdBy:
+    const campaigns = result.rows.map((row) => {
+      const metadata = (row.metadata as Record<string, unknown>) || {};
+      const createdBy =
         (row.created_by as string | null) ??
-        (typeof (row.metadata as Record<string, unknown> | undefined)?.createdBy === 'string'
-          ? ((row.metadata as Record<string, unknown>).createdBy as string)
-          : null),
-    }));
+        (typeof metadata?.createdBy === 'string' ? (metadata.createdBy as string) : null);
+      const rawStatus = String(row.status || '');
+      const normalizedStatus =
+        rawStatus === 'draft' && (createdBy === 'auto-weekly' || createdBy === 'auto-campaign')
+          ? 'pending_approval'
+          : rawStatus;
+      return {
+        id: row.id as string,
+        name: row.name as string,
+        status: normalizedStatus,
+        templateVersionId: (row.template_version_id as string | null) ?? null,
+        audience: (row.audience as Record<string, unknown>) || {},
+        scheduledAt: row.scheduled_at ? new Date(row.scheduled_at as string).toISOString() : null,
+        startedAt: row.started_at ? new Date(row.started_at as string).toISOString() : null,
+        completedAt: row.completed_at ? new Date(row.completed_at as string).toISOString() : null,
+        metadata,
+        updatedAt: new Date(row.updated_at as string).toISOString(),
+        createdBy,
+      };
+    });
 
     // For pending_approval auto campaigns, attach product usage (previous campaigns that used each product)
     const pendingAuto = campaigns.filter(
-      (c) => c.status === 'pending_approval' && c.createdBy === 'auto-weekly'
+      (c) =>
+        c.status === 'pending_approval' &&
+        (c.createdBy === 'auto-weekly' || c.createdBy === 'auto-campaign')
     );
     const productHandlesByCampaign = pendingAuto.map((c) => {
       const handles = c.metadata?.productHandles;

@@ -12,17 +12,32 @@ export async function PATCH(
     const { id } = await params;
     const body = await request.json();
 
-    const campaignResult = await sql`
-      SELECT id, name, status
-      FROM email_campaigns
-      WHERE id = ${id}
-      LIMIT 1
-    `;
+    let campaignResult;
+    try {
+      campaignResult = await sql`
+        SELECT id, name, status, metadata, created_by
+        FROM email_campaigns
+        WHERE id = ${id}
+        LIMIT 1
+      `;
+    } catch (error) {
+      const message = error instanceof Error ? error.message.toLowerCase() : '';
+      if (!message.includes('created_by')) throw error;
+      campaignResult = await sql`
+        SELECT id, name, status, metadata
+        FROM email_campaigns
+        WHERE id = ${id}
+        LIMIT 1
+      `;
+    }
     const campaign = campaignResult.rows[0];
     if (!campaign) {
       return NextResponse.json({ error: 'Campaign not found' }, { status: 404 });
     }
     const status = String(campaign.status || '');
+    const createdBy = String(campaign.created_by || '');
+    const isLegacyAutoDraft =
+      status === 'draft' && (createdBy === 'auto-weekly' || createdBy === 'auto-campaign');
     if (status !== 'draft' && status !== 'pending_approval' && status !== 'cancelled') {
       return NextResponse.json(
         { error: 'Only draft, pending_approval, or cancelled campaigns can be edited' },
@@ -35,14 +50,19 @@ export async function PATCH(
     const listIds = Array.isArray(body?.audience?.listIds) ? body.audience.listIds.filter((v: unknown) => typeof v === 'string') : [];
     const segmentIds = Array.isArray(body?.audience?.segmentIds) ? body.audience.segmentIds.filter((v: unknown) => typeof v === 'string') : [];
     const audience = JSON.stringify({ listIds, segmentIds });
-    const metadata =
-      body?.metadata && typeof body.metadata === 'object'
-        ? JSON.stringify(body.metadata)
-        : undefined;
+    const existingMetadata =
+      campaign.metadata && typeof campaign.metadata === 'object' && !Array.isArray(campaign.metadata)
+        ? (campaign.metadata as Record<string, unknown>)
+        : {};
+    let mergedMetadataJson: string | undefined;
+    if (body?.metadata && typeof body.metadata === 'object' && !Array.isArray(body.metadata)) {
+      const incoming = body.metadata as Record<string, unknown>;
+      mergedMetadataJson = JSON.stringify({ ...existingMetadata, ...incoming });
+    }
 
     const nextStatus = status === 'cancelled' ? 'draft' : status;
 
-    if (metadata !== undefined) {
+    if (mergedMetadataJson !== undefined) {
       await sql`
         UPDATE email_campaigns
         SET
@@ -52,7 +72,7 @@ export async function PATCH(
           status = ${nextStatus},
           failure_reason = CASE WHEN ${status} = 'cancelled' THEN NULL ELSE failure_reason END,
           completed_at = CASE WHEN ${status} = 'cancelled' THEN NULL ELSE completed_at END,
-          metadata = ${metadata}::jsonb,
+          metadata = ${mergedMetadataJson}::jsonb,
           updated_at = NOW()
         WHERE id = ${id}
       `;
@@ -72,7 +92,7 @@ export async function PATCH(
     }
 
     // Rebuild queued recipients whenever audience changes on a draft campaign.
-    if (status === 'draft') {
+    if (status === 'draft' && !isLegacyAutoDraft) {
       await sql`
         DELETE FROM email_campaign_recipients
         WHERE campaign_id = ${id}

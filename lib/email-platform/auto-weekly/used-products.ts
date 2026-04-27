@@ -11,7 +11,7 @@ export async function getProductHandlesUsedInMonth(forDate: Date): Promise<strin
   const result = await sql`
     SELECT metadata->'productHandles' AS handles
     FROM email_campaigns
-    WHERE created_by = 'auto-weekly'
+    WHERE created_by IN ('auto-weekly', 'auto-campaign')
       AND scheduled_at IS NOT NULL
       AND scheduled_at >= ${monthStart.toISOString()}
       AND scheduled_at <= ${monthEnd.toISOString()}
@@ -48,7 +48,7 @@ export async function getProductUsageForCampaign(
   const result = await sql`
     SELECT id, name, scheduled_at, metadata->'productHandles' AS handles
     FROM email_campaigns
-    WHERE created_by = 'auto-weekly'
+    WHERE created_by IN ('auto-weekly', 'auto-campaign')
       AND id != ${excludeCampaignId}
       AND (
         status IN ('completed', 'scheduled', 'processing')

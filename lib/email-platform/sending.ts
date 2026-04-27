@@ -2,6 +2,7 @@ import { sql } from '@vercel/postgres';
 import { getTemplateVersion, renderTemplateContent, addUtmParamsToEmailHtml, proxyEmailImages } from '@/lib/email-platform/templates';
 import { buildUnsubscribeUrl } from '@/lib/email-platform/unsubscribe';
 import { sendSesEmail } from '@/lib/email-platform/ses-mailer';
+import { ON_SALE_CTA_LABEL, onSalePageUrlFromMapping } from '@/lib/email-platform/auto-campaigns/build-one';
 
 export async function shouldSuppressContact(contactId: string): Promise<{ suppress: boolean; reason?: string }> {
   const subscription = await sql`
@@ -62,6 +63,21 @@ function isPositiveInt(n: number | undefined): n is number {
   return typeof n === 'number' && Number.isFinite(n) && Number.isInteger(n) && n > 0;
 }
 
+const AUTO_BRAND_LOGO_PLACEHOLDER = 'https://www.theequestrian.com.au/email-logo.png';
+
+function stripOuterQuotes(value: string): string {
+  return value.trim().replace(/^["'“”]+/, '').replace(/["'“”]+$/, '').trim();
+}
+
+function brandLabelFromHandle(handle: string): string {
+  return handle
+    .split('-')
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .join(' ')
+    .toUpperCase();
+}
+
 export async function sendQueuedCampaignRecipients(input: {
   campaignId: string;
   defaultSiteUrl?: string;
@@ -98,6 +114,10 @@ export async function sendQueuedCampaignRecipients(input: {
   if (!templateVersionId) {
     throw new Error('Campaign has no template version');
   }
+  const campaignSiteUrl =
+    typeof campaignMetadata.siteUrl === 'string' && campaignMetadata.siteUrl.trim().length > 0
+      ? campaignMetadata.siteUrl.trim()
+      : defaultSiteUrl;
   const templateVersion = await getTemplateVersion(templateVersionId);
   if (!templateVersion) {
     throw new Error('Template version not found');
@@ -105,25 +125,71 @@ export async function sendQueuedCampaignRecipients(input: {
 
   let htmlTemplateToUse = templateVersion.htmlTemplate;
   const introText = campaignMetadata.introText;
-  const generatedHeading = campaignMetadata.generatedHeading;
+  const generatedHeadingRaw =
+    typeof campaignMetadata.generatedHeading === 'string' ? campaignMetadata.generatedHeading : null;
+  const generatedHeading = generatedHeadingRaw ? stripOuterQuotes(generatedHeadingRaw) : null;
   const productHandles = campaignMetadata.productHandles;
+  const brandHandle =
+    typeof campaignMetadata.brandHandle === 'string' && campaignMetadata.brandHandle.trim().length > 0
+      ? campaignMetadata.brandHandle.trim()
+      : null;
+  const categoryCollectionHandle =
+    typeof campaignMetadata.categoryCollectionHandle === 'string' &&
+    campaignMetadata.categoryCollectionHandle.trim().length > 0
+      ? campaignMetadata.categoryCollectionHandle.trim()
+      : null;
+  const isBrandAuto = campaignMetadata.autoType === 'brand';
+  const isCategoryAuto = campaignMetadata.autoType === 'category';
+  const isOnSaleAuto = campaignMetadata.autoType === 'on_sale';
+  const ctaLabel =
+    typeof campaignMetadata.ctaLabel === 'string' && campaignMetadata.ctaLabel.trim().length > 0
+      ? campaignMetadata.ctaLabel.trim()
+      : isBrandAuto && brandHandle
+        ? `VIEW ALL ${brandLabelFromHandle(brandHandle)} PRODUCTS HERE`
+        : isCategoryAuto && categoryCollectionHandle
+          ? `VIEW ALL ${brandLabelFromHandle(categoryCollectionHandle)} HERE`
+          : isOnSaleAuto
+            ? ON_SALE_CTA_LABEL
+            : undefined;
+  const ctaUrl =
+    typeof campaignMetadata.ctaUrl === 'string' && campaignMetadata.ctaUrl.trim().length > 0
+      ? campaignMetadata.ctaUrl.trim()
+      : isBrandAuto && brandHandle
+        ? `${campaignSiteUrl}/brands/${brandHandle}`
+        : isCategoryAuto && categoryCollectionHandle
+          ? `${campaignSiteUrl}/${categoryCollectionHandle}`
+          : isOnSaleAuto
+            ? onSalePageUrlFromMapping(campaignSiteUrl)
+            : undefined;
+  const logoUrl =
+    typeof campaignMetadata.logoUrl === 'string' && campaignMetadata.logoUrl.trim().length > 0
+      ? campaignMetadata.logoUrl.trim()
+      : isBrandAuto
+        ? AUTO_BRAND_LOGO_PLACEHOLDER
+        : null;
   const hasIntro = typeof introText === 'string' && introText.length > 0;
   const hasHeading = typeof generatedHeading === 'string' && generatedHeading.length > 0;
+  const hasCta = typeof ctaLabel === 'string' || typeof ctaUrl === 'string';
   const validHandles =
     Array.isArray(productHandles) && productHandles.every((x: unknown): x is string => typeof x === 'string')
       ? productHandles
       : undefined;
-  if (hasIntro || hasHeading || (validHandles && validHandles.length > 0)) {
+  if (hasIntro || hasHeading || (validHandles && validHandles.length > 0) || hasCta || logoUrl) {
     const { buildCampaignHtmlWithOverrides } = await import('@/lib/email-platform/auto-weekly/render');
     htmlTemplateToUse = await buildCampaignHtmlWithOverrides({
       blocks: templateVersion.blocks,
-      templateMetadata: templateVersion.metadata,
+      templateMetadata: {
+        ...(templateVersion.metadata || {}),
+        ...(logoUrl ? { logoUrl } : {}),
+      },
       overrides: {
         introText: hasIntro ? introText : undefined,
         generatedHeading: hasHeading ? generatedHeading : undefined,
         productHandles: validHandles?.length ? validHandles : undefined,
+        ctaLabel,
+        ctaUrl,
       },
-      siteUrl: defaultSiteUrl,
+      siteUrl: campaignSiteUrl,
     });
   }
 
@@ -206,7 +272,7 @@ export async function sendQueuedCampaignRecipients(input: {
 
     const variables = {
       customerName: '',
-      siteUrl: defaultSiteUrl,
+      siteUrl: campaignSiteUrl,
       email,
       unsubscribeUrl: await buildUnsubscribeUrl(contactId),
     };
@@ -224,9 +290,9 @@ export async function sendQueuedCampaignRecipients(input: {
           medium: 'newsletter',
           campaign: campaignName,
         },
-        defaultSiteUrl
+        campaignSiteUrl
       ),
-      defaultSiteUrl
+      campaignSiteUrl
     );
     const rendered = { ...renderedRaw, subject, html: renderedHtml };
 

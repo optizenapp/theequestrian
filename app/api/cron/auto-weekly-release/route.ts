@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
-import { getResolvedAudienceContactIds } from '@/lib/email-platform/segments';
-import { queueCampaignRecipients } from '@/lib/email-platform/sending';
+import { releaseDueScheduledCampaigns } from '@/lib/email-platform/scheduled-release';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,36 +29,9 @@ async function handleCron(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const due = await sql`
-      SELECT id, name, audience, scheduled_at
-      FROM email_campaigns
-      WHERE status = 'scheduled'
-        AND scheduled_at IS NOT NULL
-        AND scheduled_at <= NOW()
-        AND scheduled_at > NOW() - INTERVAL '1 hour'
-    `;
-
-    const released: Array<{ id: string; name: string; queued: number }> = [];
-
-    for (const row of due.rows) {
-      const campaignId = row.id as string;
-      const name = row.name as string;
-      const audience = (row.audience as { listIds?: string[]; segmentIds?: string[] }) || {};
-      const listIds = audience.listIds || [];
-      const segmentIds = audience.segmentIds || [];
-
-      const contactIds = await getResolvedAudienceContactIds({ listIds, segmentIds });
-      const queued = await queueCampaignRecipients(campaignId, contactIds);
-
-      await sql`
-        UPDATE email_campaigns
-        SET status = 'processing',
-            updated_at = NOW()
-        WHERE id = ${campaignId}
-      `;
-
-      released.push({ id: campaignId, name, queued });
-      console.log('[auto-weekly-release] Released campaign', campaignId, name, 'queued', queued);
+    const released = await releaseDueScheduledCampaigns({ windowHours: 1 });
+    for (const r of released) {
+      console.log('[auto-weekly-release] Released campaign', r.id, r.name, 'queued', r.queued);
     }
 
     return NextResponse.json({
