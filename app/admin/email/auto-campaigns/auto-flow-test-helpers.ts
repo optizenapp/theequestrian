@@ -39,7 +39,7 @@ export function buildPatchBodyFromSnapshot(parsed: Record<string, unknown>): Rec
   return body;
 }
 
-export function singleSlotForTomorrow(type: AutoCampaignType, hour: number): Array<{ type: AutoCampaignType; weekday: number; hour: number }> {
+export function singleSlotForTomorrow(type: AutoCampaignType, hour: number): Array<{ type: AutoCampaignType; weekday: number; hour: number; minute: 0 | 30 }> {
   const h = Math.min(23, Math.max(0, Math.floor(hour)));
-  return [{ type, weekday: getTomorrowWeekdaySydney(), hour: h }];
+  return [{ type, weekday: getTomorrowWeekdaySydney(), hour: h, minute: 0 }];
 }

@@ -36,7 +36,7 @@ export default function AutoCampaignsPageClient() {
       const { settings, lists: loadedLists } = await fetchAutoCampaignAdminSnapshot();
       const audience = (settings.audience as { listIds?: unknown } | undefined) ?? {};
       const configuredTypes = (settings.enabledTypes as Record<string, unknown> | undefined) ?? {};
-      const slots = Array.isArray(settings.slots) ? (settings.slots as Array<{ type: AutoCampaignType; weekday: number; hour: number }>) : [];
+      const slots = Array.isArray(settings.slots) ? (settings.slots as Array<{ type: AutoCampaignType; weekday: number; hour: number; minute?: number }>) : [];
       const completed = (settings.completedStatsByType as Record<string, unknown> | undefined) ?? {};
       const nextSlots: SlotByType = { ...DEFAULT_SLOTS };
       for (const type of AUTO_TYPES) {
@@ -45,6 +45,7 @@ export default function AutoCampaignsPageClient() {
         nextSlots[type] = {
           weekday: Math.min(6, Math.max(0, Number(slot.weekday) || 0)),
           hour: Math.min(23, Math.max(0, Number(slot.hour) || 0)),
+          minute: slot.minute === 30 ? 30 : 0,
         };
       }
       setEnabled(settings.enabled === true);
@@ -88,6 +89,7 @@ export default function AutoCampaignsPageClient() {
             type,
             weekday: slotsByType[type].weekday,
             hour: slotsByType[type].hour,
+            minute: slotsByType[type].minute,
           })),
         }),
       });

@@ -388,19 +388,21 @@ function getTomorrowInSydney(): Date {
   return tomorrow;
 }
 
-function slotTimeUTC(tomorrow: Date, hour: number): Date {
+function slotTimeUTC(tomorrow: Date, hour: number, minute: number): Date {
   const y = tomorrow.getFullYear();
   const m = String(tomorrow.getMonth() + 1).padStart(2, '0');
   const d = String(tomorrow.getDate()).padStart(2, '0');
   const h = String(hour).padStart(2, '0');
-  return new Date(`${y}-${m}-${d}T${h}:00:00+10:00`);
+  const mm = String(minute).padStart(2, '0');
+  return new Date(`${y}-${m}-${d}T${h}:${mm}:00+10:00`);
 }
 
-function formatLabel(tomorrow: Date, hour: number): string {
+function formatLabel(tomorrow: Date, hour: number, minute = 0): string {
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const day = tomorrow.getDay();
   const year = tomorrow.getFullYear();
-  return `${dayNames[day]} ${tomorrow.getDate()} ${tomorrow.toLocaleString('en-AU', { month: 'short' })} ${year} at ${hour}:00 AEST`;
+  const mm = String(minute).padStart(2, '0');
+  return `${dayNames[day]} ${tomorrow.getDate()} ${tomorrow.toLocaleString('en-AU', { month: 'short' })} ${year} at ${hour}:${mm} AEST`;
 }
 
 async function getAllListIds(): Promise<string[]> {
@@ -473,7 +475,7 @@ export async function buildAutoCampaignForNextSlot(options: BuildNextSlotOptions
     type = typeOverride;
     scheduledAt = scheduledAtOverride;
     const sydney = new Date(scheduledAt.toLocaleString('en-US', { timeZone: 'Australia/Sydney' }));
-    label = formatLabel(sydney, sydney.getHours());
+    label = formatLabel(sydney, sydney.getHours(), sydney.getMinutes());
   } else {
     const tomorrowSlots = slots.filter((s) => s.weekday === tomorrow.getDay());
     const slotDef = typeOverride
@@ -485,8 +487,9 @@ export async function buildAutoCampaignForNextSlot(options: BuildNextSlotOptions
         : 'No send slot tomorrow';
       return { campaignId: null, scheduledAt: null, label: null, approvalEmailSent: false, skipped: true, skipReason: reason };
     }
-    scheduledAt = slotTimeUTC(tomorrow, slotDef.hour);
-    label = formatLabel(tomorrow, slotDef.hour);
+    const minute = slotDef.minute === 30 ? 30 : 0;
+    scheduledAt = slotTimeUTC(tomorrow, slotDef.hour, minute);
+    label = formatLabel(tomorrow, slotDef.hour, minute);
     type = slotDef.type;
   }
   const enabledTypes = await getAutoCampaignEnabledTypes();

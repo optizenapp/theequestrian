@@ -42,8 +42,10 @@ function parseSlots(raw: unknown): AutoCampaignSlot[] {
     const type = o.type;
     const weekday = Number(o.weekday);
     const hour = Number(o.hour);
+    const minuteRaw = o.minute;
+    const minute = minuteRaw === 30 ? 30 : 0;
     if ((type === 'brand' || type === 'on_sale' || type === 'category') && weekday >= 0 && weekday <= 6 && hour >= 0 && hour <= 23) {
-      out.push({ type, weekday, hour });
+      out.push({ type, weekday, hour, minute });
     }
   }
   return out.length > 0 ? out : [...DEFAULT_AUTO_CAMPAIGN_SLOTS];

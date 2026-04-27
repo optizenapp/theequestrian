@@ -116,14 +116,22 @@ export async function PATCH(request: NextRequest) {
       });
     }
     if (Array.isArray(body?.slots)) {
-      const slots = body.slots.filter((s: unknown): s is AutoCampaignSlot => {
-        if (!s || typeof s !== 'object') return false;
+      const slots: AutoCampaignSlot[] = body.slots.flatMap((s: unknown) => {
+        if (!s || typeof s !== 'object') return [];
         const o = s as Record<string, unknown>;
-        return (
-          (o.type === 'brand' || o.type === 'on_sale' || o.type === 'category') &&
-          typeof o.weekday === 'number' &&
-          typeof o.hour === 'number'
-        );
+        if (
+          (o.type !== 'brand' && o.type !== 'on_sale' && o.type !== 'category') ||
+          typeof o.weekday !== 'number' ||
+          typeof o.hour !== 'number'
+        ) {
+          return [];
+        }
+        return [{
+          type: o.type,
+          weekday: o.weekday,
+          hour: o.hour,
+          minute: o.minute === 30 ? 30 : 0,
+        }];
       });
       if (slots.length > 0) await setAutoCampaignSlots(slots);
     }

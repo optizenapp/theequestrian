@@ -5,6 +5,8 @@ export type AutoCampaignSlot = {
   /** 0=Sun .. 6=Sat, Sydney calendar day for send */
   weekday: number;
   hour: number;
+  /** Minute in hour; currently supports :00 and :30. */
+  minute: 0 | 30;
 };
 
 export type AutoCampaignRotation = {

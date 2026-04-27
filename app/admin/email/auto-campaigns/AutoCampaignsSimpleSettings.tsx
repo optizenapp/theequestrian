@@ -5,8 +5,8 @@ import type { AutoCampaignType } from '@/lib/email-platform/auto-campaigns/types
 type Props = {
   enabledTypes: Record<AutoCampaignType, boolean>;
   setEnabledTypes: (next: Record<AutoCampaignType, boolean>) => void;
-  slotsByType: Record<AutoCampaignType, { weekday: number; hour: number }>;
-  setSlotsByType: (next: Record<AutoCampaignType, { weekday: number; hour: number }>) => void;
+  slotsByType: Record<AutoCampaignType, { weekday: number; hour: number; minute: 0 | 30 }>;
+  setSlotsByType: (next: Record<AutoCampaignType, { weekday: number; hour: number; minute: 0 | 30 }>) => void;
   lists: Array<{ id: string; name: string }>;
   listIds: string[];
   setListIds: (next: string[]) => void;
@@ -74,7 +74,19 @@ export default function AutoCampaignsSimpleSettings({
                   }
                   className="w-16 rounded border border-gray-300 bg-white px-2 py-1 text-xs"
                 />
-                <span className="text-xs text-gray-500">:00</span>
+                <select
+                  value={slotsByType[type].minute}
+                  onChange={(e) =>
+                    setSlotsByType({
+                      ...slotsByType,
+                      [type]: { ...slotsByType[type], minute: Number(e.target.value) === 30 ? 30 : 0 },
+                    })
+                  }
+                  className="rounded border border-gray-300 bg-white px-2 py-1 text-xs"
+                >
+                  <option value={0}>:00</option>
+                  <option value={30}>:30</option>
+                </select>
               </div>
             </label>
           ))}

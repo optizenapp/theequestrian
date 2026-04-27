@@ -26,9 +26,11 @@ export async function getNextSendSlotInUTC(): Promise<{ scheduledAt: Date; label
   const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
   const date = String(tomorrow.getDate()).padStart(2, '0');
   const hourStr = String(slotDef.hour).padStart(2, '0');
+  const minute = slotDef.minute === 30 ? 30 : 0;
+  const minuteStr = String(minute).padStart(2, '0');
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const label = `${dayNames[tomorrow.getDay()]} ${tomorrow.getDate()} ${tomorrow.toLocaleString('en-AU', { month: 'short' })} ${year} at ${slotDef.hour}:00 AEST`;
-  const isoAEST = `${year}-${month}-${date}T${hourStr}:00:00+10:00`;
+  const label = `${dayNames[tomorrow.getDay()]} ${tomorrow.getDate()} ${tomorrow.toLocaleString('en-AU', { month: 'short' })} ${year} at ${slotDef.hour}:${minuteStr} AEST`;
+  const isoAEST = `${year}-${month}-${date}T${hourStr}:${minuteStr}:00+10:00`;
   return { scheduledAt: new Date(isoAEST), label };
 }
 
