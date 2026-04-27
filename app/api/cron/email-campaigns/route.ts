@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { processCampaignQueues } from '@/lib/email-platform/campaign-worker';
+import { releaseDueScheduledCampaigns } from '@/lib/email-platform/scheduled-release';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,6 +34,10 @@ async function handleCron(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Release due scheduled campaigns first so sending does not depend on a
+    // separate release cron succeeding.
+    const released = await releaseDueScheduledCampaigns({ windowHours: 24 });
+
     // Process campaign queues
     const result = await processCampaignQueues({ maxCampaigns: 5 });
 
@@ -40,6 +45,12 @@ async function handleCron(request: NextRequest) {
 
     return NextResponse.json({
       ok: true,
+      released: released.length,
+      releasedCampaigns: released.map((c) => ({
+        id: c.id,
+        name: c.name,
+        queued: c.queued,
+      })),
       processed: result.processed,
       campaigns: result.campaigns.map((c) => ({
         id: c.id,
