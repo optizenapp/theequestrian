@@ -19,19 +19,17 @@ export async function POST(request: NextRequest) {
 
 async function handleCron(request: NextRequest) {
   try {
-    // Verify this is a legitimate Vercel cron request
-    // Vercel sends: Authorization: Bearer <CRON_SECRET>
+    // Verify cron secret when configured. In environments where CRON_SECRET is
+    // unset, still allow the request so jobs do not silently stop.
     const authHeader = request.headers.get('authorization');
+    const headerSecret = request.headers.get('x-cron-secret');
     const envSecret = process.env.CRON_SECRET;
 
-    if (!envSecret) {
-      console.error('CRON_SECRET not configured');
-      return NextResponse.json({ error: 'Cron not configured' }, { status: 500 });
-    }
-
-    const token = authHeader?.replace('Bearer ', '');
-    if (token !== envSecret) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (envSecret) {
+      const token = authHeader?.replace('Bearer ', '').trim();
+      if (token !== envSecret && headerSecret?.trim() !== envSecret) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
     }
 
     // Release due scheduled campaigns first so sending does not depend on a
