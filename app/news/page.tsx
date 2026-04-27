@@ -19,7 +19,12 @@ export const revalidate = 300;
 export default async function NewsPage() {
   const title = 'News & Articles | The Equestrian';
   const description = 'Latest news, tips, and insights from The Equestrian';
-  const rows = await listPublishedNewsArticles({ limit: 60 });
+  let rows: Awaited<ReturnType<typeof listPublishedNewsArticles>> = [];
+  try {
+    rows = await listPublishedNewsArticles({ limit: 60 });
+  } catch (error) {
+    console.error('Failed to load news articles for /news page:', error);
+  }
   const articles = rows.map(listItemToBlogCardArticle);
 
   const schema = generateBlogIndexSchema(
