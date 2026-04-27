@@ -67,13 +67,8 @@ export async function buildCampaignHtmlWithOverrides(input: {
   const hasCtaLabelOverride = typeof overrides.ctaLabel === 'string' && overrides.ctaLabel.trim().length > 0;
   const hasCtaUrlOverride = typeof overrides.ctaUrl === 'string' && overrides.ctaUrl.trim().length > 0;
   const hasCtaBlock = blocks.some((b) => b.type === 'cta');
-  const logoUrl =
-    typeof templateMetadata.logoUrl === 'string' && templateMetadata.logoUrl.trim().length > 0
-      ? templateMetadata.logoUrl.trim()
-      : null;
   let firstTextReplaced = false;
   let firstHeadingReplaced = false;
-  let firstImageReplaced = false;
   let firstTextCtaReplaced = false;
   const mergedBlocks: EmailBlock[] = blocks.map((block) => {
     if (hasHeadingOverride && block.type === 'llmHeading') {
@@ -109,10 +104,6 @@ export async function buildCampaignHtmlWithOverrides(input: {
     ) {
       firstTextCtaReplaced = true;
       return { ...block, text: `[${overrides.ctaLabel!.trim()}](${overrides.ctaUrl!.trim()})` };
-    }
-    if (logoUrl && block.type === 'image' && !firstImageReplaced) {
-      firstImageReplaced = true;
-      return { ...block, url: logoUrl };
     }
     if (
       block.type === 'curatedProducts' &&

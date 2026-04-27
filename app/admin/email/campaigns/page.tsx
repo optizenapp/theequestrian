@@ -264,12 +264,10 @@ export default function AdminEmailCampaignsPage() {
       .trim();
     const ctaLabel = getStringMeta(meta, 'ctaLabel').trim();
     const ctaUrl = getStringMeta(meta, 'ctaUrl').trim();
-    const logoUrl = getStringMeta(meta, 'logoUrl').trim();
     const hasLlmIntroBlock = blocks.some((block) => block.type === 'llmIntro');
     const hasLlmHeadingBlock = blocks.some((block) => block.type === 'llmHeading');
     let firstTextReplaced = false;
     let firstHeadingReplaced = false;
-    let firstImageReplaced = false;
     let firstTextCtaReplaced = false;
     const materialized = blocks.map((block) => {
       if (generatedHeading && block.type === 'llmHeading') return { ...block, text: generatedHeading };
@@ -288,10 +286,6 @@ export default function AdminEmailCampaignsPage() {
       if (ctaLabel && ctaUrl && block.type === 'text' && !firstTextCtaReplaced && /view all/i.test(block.text)) {
         firstTextCtaReplaced = true;
         return { ...block, text: `[${ctaLabel}](${ctaUrl})` };
-      }
-      if (logoUrl && block.type === 'image' && !firstImageReplaced) {
-        firstImageReplaced = true;
-        return { ...block, url: logoUrl };
       }
       if (block.type === 'curatedProducts' && productCards.length > 0) return { ...block, products: productCards };
       return block;
