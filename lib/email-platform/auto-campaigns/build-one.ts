@@ -26,6 +26,7 @@ import {
 import { listSeoReadyBrandHandles, pickRotated } from './eligible-brands';
 import { selectProductHandlesForAutoType } from './select-handles';
 import type { AutoCampaignType } from './types';
+import type { AutoCampaignSlot } from './types';
 import type { BrandContentRow } from '@/lib/content/brand-content';
 import { getSalePageByPath } from '@/lib/mapping/sale-mapping';
 
@@ -405,6 +406,19 @@ function formatLabel(tomorrow: Date, hour: number, minute = 0): string {
   return `${dayNames[day]} ${tomorrow.getDate()} ${tomorrow.toLocaleString('en-AU', { month: 'short' })} ${year} at ${hour}:${mm} AEST`;
 }
 
+function nextSlotTimeUTC(slot: AutoCampaignSlot): { scheduledAt: Date; label: string } {
+  const now = new Date();
+  const sydneyNow = new Date(now.toLocaleString('en-US', { timeZone: 'Australia/Sydney' }));
+  const target = new Date(sydneyNow);
+  const daysAhead = (slot.weekday - sydneyNow.getDay() + 7) % 7;
+  target.setDate(target.getDate() + daysAhead);
+  target.setHours(slot.hour, slot.minute === 30 ? 30 : 0, 0, 0);
+  if (target <= sydneyNow) target.setDate(target.getDate() + 7);
+  const scheduledAt = slotTimeUTC(target, slot.hour, slot.minute === 30 ? 30 : 0);
+  const label = formatLabel(target, slot.hour, slot.minute === 30 ? 30 : 0);
+  return { scheduledAt, label };
+}
+
 async function getAllListIds(): Promise<string[]> {
   const result = await sql`SELECT id FROM email_lists ORDER BY created_at ASC`;
   return result.rows.map((r) => r.id as string);
@@ -476,6 +490,23 @@ export async function buildAutoCampaignForNextSlot(options: BuildNextSlotOptions
     scheduledAt = scheduledAtOverride;
     const sydney = new Date(scheduledAt.toLocaleString('en-US', { timeZone: 'Australia/Sydney' }));
     label = formatLabel(sydney, sydney.getHours(), sydney.getMinutes());
+  } else if (typeOverride) {
+    const slotDef = slots.find((s) => s.type === typeOverride);
+    if (!slotDef) {
+      return {
+        campaignId: null,
+        scheduledAt: null,
+        label: null,
+        approvalEmailSent: false,
+        skipped: true,
+        skipReason: `No ${typeOverride} slot configured`,
+        autoType: typeOverride,
+      };
+    }
+    const next = nextSlotTimeUTC(slotDef);
+    type = slotDef.type;
+    scheduledAt = next.scheduledAt;
+    label = next.label;
   } else {
     const tomorrowSlots = slots.filter((s) => s.weekday === tomorrow.getDay());
     const slotDef = typeOverride

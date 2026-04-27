@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { buildAutoWeeklyCampaign } from '@/lib/email-platform/auto-weekly/build-campaign';
+import { buildAutoCampaignForNextSlot } from '@/lib/email-platform/auto-campaigns/build-one';
+import type { AutoCampaignType } from '@/lib/email-platform/auto-campaigns/types';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
+    const type = typeof body?.type === 'string' ? (body.type as AutoCampaignType) : null;
+    if (type && type !== 'brand' && type !== 'on_sale' && type !== 'category') {
+      return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
+    }
     const scheduledAtRaw = typeof body?.scheduledAt === 'string' ? body.scheduledAt.trim() : '';
     const scheduledAt =
       scheduledAtRaw.length > 0
@@ -11,6 +17,14 @@ export async function POST(request: NextRequest) {
         : undefined;
     if (scheduledAt && Number.isNaN(scheduledAt.getTime())) {
       return NextResponse.json({ error: 'Invalid scheduledAt datetime' }, { status: 400 });
+    }
+    if (type) {
+      const single = await buildAutoCampaignForNextSlot({
+        typeOverride: type,
+        scheduledAtOverride: scheduledAt,
+        sendApprovalEmail: true,
+      });
+      return NextResponse.json({ ok: true, ...single });
     }
     const result = await buildAutoWeeklyCampaign({ scheduledAtOverride: scheduledAt });
     return NextResponse.json({

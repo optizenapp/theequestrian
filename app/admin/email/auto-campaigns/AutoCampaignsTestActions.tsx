@@ -13,7 +13,6 @@ export default function AutoCampaignsTestActions({ onError }: Props) {
   const [testEmail, setTestEmail] = useState('');
   const [testType, setTestType] = useState<AutoCampaignType>('brand');
   const [sendingTest, setSendingTest] = useState(false);
-  const [buildAtLocal, setBuildAtLocal] = useState('');
 
   const run = async (path: string, label: string) => {
     setActionLog(`${label}…`);
@@ -56,11 +55,10 @@ export default function AutoCampaignsTestActions({ onError }: Props) {
     setActionLog('Build all…');
     onError('');
     try {
-      const scheduledAt = buildAtLocal ? new Date(buildAtLocal).toISOString() : undefined;
       const res = await fetch('/api/admin/email/auto-campaigns/run-build', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(scheduledAt ? { scheduledAt } : {}),
+        body: '{}',
       });
       const data = await parseAdminJson(res);
       setActionLog(`Build all: ${JSON.stringify(data)}`);
@@ -70,26 +68,43 @@ export default function AutoCampaignsTestActions({ onError }: Props) {
     }
   };
 
+  const runBuildType = async (type: AutoCampaignType) => {
+    setActionLog(`Build ${type}…`);
+    onError('');
+    try {
+      const res = await fetch('/api/admin/email/auto-campaigns/run-build', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type }),
+      });
+      const data = await parseAdminJson(res);
+      setActionLog(`Build ${type}: ${JSON.stringify(data)}`);
+    } catch (e) {
+      setActionLog('');
+      onError(e instanceof Error ? e.message : 'Build failed');
+    }
+  };
+
   return (
     <section className="rounded-2xl border border-amber-200 bg-amber-50/40 p-4">
       <h3 className="text-sm font-semibold text-amber-900">Test actions</h3>
-      <p className="mt-1 text-xs text-amber-900/80">Build can use slot calendar or your chosen schedule; release uses a 48h lookback for due scheduled rows.</p>
+      <p className="mt-1 text-xs text-amber-900/80">Build uses the schedules configured above; release uses a 48h lookback for due scheduled rows.</p>
       <div className="mt-3 flex flex-wrap items-end gap-2 rounded border border-amber-200 bg-white p-3">
-        <label className="text-xs text-gray-700">
-          Schedule all 3 builds at (optional)
-          <input
-            type="datetime-local"
-            value={buildAtLocal}
-            onChange={(e) => setBuildAtLocal(e.target.value)}
-            className="mt-1 block rounded border border-gray-300 px-2 py-1 text-xs"
-          />
-        </label>
         <button
           type="button"
           onClick={() => void runBuildAll()}
           className="rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-800 hover:border-action"
         >
           Build all 3 now
+        </button>
+        <button type="button" onClick={() => void runBuildType('brand')} className="rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-800 hover:border-action">
+          Build brand
+        </button>
+        <button type="button" onClick={() => void runBuildType('on_sale')} className="rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-800 hover:border-action">
+          Build on sale
+        </button>
+        <button type="button" onClick={() => void runBuildType('category')} className="rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-800 hover:border-action">
+          Build category
         </button>
       </div>
       <div className="mt-3 flex flex-wrap gap-2">
