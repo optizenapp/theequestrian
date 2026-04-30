@@ -60,3 +60,6 @@ exports/parent-brand-rollup.title-match-patch.csv
 exports/parent-brand-rollup.title-match-no-audit.json
 exports/parent-brand-rollup.patch.csv
 exports/parent-brand-rollup.mapped.xlsx
+
+# Local campaign video render scratch (project assets, hyperframes, mp4s)
+/tmp/

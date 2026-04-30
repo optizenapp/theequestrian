@@ -6,8 +6,24 @@ import { AdminLayout } from '@/components/admin/AdminLayout';
 import type { EmailBlock, CuratedProductCard } from '@/lib/email-platform/types';
 import { applyAlternatingProductLayout } from '@/lib/email-platform/auto-weekly/product-layout';
 import { CampaignScheduleControls } from './CampaignScheduleControls';
+import { SocialPostsPanel } from './SocialPostsPanel';
+import { SlideCopyEditor } from './SlideCopyEditor';
+import { ThumbnailsPanel } from './ThumbnailsPanel';
 
 type ProductUsageItem = { campaignName: string; scheduledAt: string };
+export type CampaignVideoVariantThumbnails = { frame: string | null; custom: string | null };
+type CampaignVideo = {
+  status: string;
+  videoUrl: string | null;
+  thumbnailUrl: string | null;
+  errorMessage: string | null;
+  variantUrls?: Record<string, string> | null;
+  variantThumbnails?: Record<string, CampaignVideoVariantThumbnails> | null;
+  videoTemplate?: string | null;
+  subjectLine?: string | null;
+  musicModel?: string | null;
+  updatedAt: string | null;
+};
 
 type CampaignRow = {
   id: string;
@@ -21,6 +37,7 @@ type CampaignRow = {
   createdBy?: string | null;
   metadata?: Record<string, unknown>;
   productUsage?: Record<string, ProductUsageItem[]>;
+  video?: CampaignVideo | null;
 };
 
 type ListRow = { id: string; name: string };
@@ -162,6 +179,7 @@ export default function AdminEmailCampaignsPage() {
   const [isSendingTest, setIsSendingTest] = useState(false);
   const [testEmailStatus, setTestEmailStatus] = useState('');
   const [sendingCampaignTestId, setSendingCampaignTestId] = useState<string | null>(null);
+  const [videoActionCampaignId, setVideoActionCampaignId] = useState<string | null>(null);
 
   const [autoWeeklyEnabled, setAutoWeeklyEnabled] = useState<boolean | null>(null);
   const [autoWeeklyUpdating, setAutoWeeklyUpdating] = useState(false);
@@ -485,10 +503,10 @@ export default function AdminEmailCampaignsPage() {
 
   async function loadAll() {
     const [campaignRes, listRes, segmentRes, templateRes] = await Promise.all([
-      fetch('/api/admin/email/campaigns'),
-      fetch('/api/admin/email/lists'),
-      fetch('/api/admin/email/segments'),
-      fetch('/api/admin/email/templates'),
+      fetch('/api/admin/email/campaigns', { cache: 'no-store' }),
+      fetch('/api/admin/email/lists', { cache: 'no-store' }),
+      fetch('/api/admin/email/segments', { cache: 'no-store' }),
+      fetch('/api/admin/email/templates', { cache: 'no-store' }),
     ]);
     const [campaignData, listData, segmentData, templateData] = await Promise.all([
       campaignRes.json(),
@@ -504,6 +522,138 @@ export default function AdminEmailCampaignsPage() {
     setLists(Array.isArray(listData.lists) ? listData.lists : []);
     setSegments(Array.isArray(segmentData.segments) ? segmentData.segments : []);
     setTemplates(Array.isArray(templateData.templates) ? templateData.templates : []);
+  }
+
+  async function pollVideoStatusUntilDone(campaignId: string): Promise<string> {
+    const maxAttempts = 120;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      try {
+        const res = await fetch(
+          `/api/admin/email/campaigns/${campaignId}/video/status`,
+          { cache: 'no-store' }
+        );
+        const data = await res.json();
+        const status = String(data?.video?.status || '');
+        if (status && status !== 'rendering' && status !== 'queued') {
+          return status;
+        }
+      } catch {
+        // Network blip; keep polling.
+      }
+    }
+    return 'rendering';
+  }
+
+  async function runVideoAction(
+    campaignId: string,
+    action: 'create' | 'regenerate' | 'regenerate-music' | 'approve' | 'reject'
+  ) {
+    setVideoActionCampaignId(campaignId);
+    setError('');
+    setStatusMessage('');
+    const isRenderAction = action === 'create' || action === 'regenerate' || action === 'regenerate-music';
+    try {
+      const response = await fetch(`/api/admin/email/campaigns/${campaignId}/video/${action}`, {
+        method: 'POST',
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setError(typeof data?.error === 'string' ? data.error : 'Video action failed');
+        return;
+      }
+      if (isRenderAction) {
+        setStatusMessage('Rendering started. This usually takes 2–5 minutes…');
+        await loadAll();
+        const finalStatus = await pollVideoStatusUntilDone(campaignId);
+        if (finalStatus === 'ready_for_review') {
+          setStatusMessage(
+            action === 'regenerate-music'
+              ? 'Video re-rendered with new music. Previous track blacklisted.'
+              : 'Video ready for review.'
+          );
+        } else if (finalStatus === 'render_failed') {
+          setError('Video render failed. Check terminal for details.');
+        }
+        await loadAll();
+        return;
+      }
+      const messageMap: Record<string, string> = {
+        approve: 'Video approved.',
+        reject: 'Video rejected.',
+      };
+      setStatusMessage(messageMap[action] || 'Video action complete.');
+      await loadAll();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Video action failed');
+    } finally {
+      setVideoActionCampaignId(null);
+    }
+  }
+
+  function renderVideoActionSection(campaign: CampaignRow) {
+    const isAutoCampaign = campaign.createdBy === 'auto-weekly' || campaign.createdBy === 'auto-campaign';
+    const supportsVideoActions = campaign.status === 'pending_approval' || campaign.status === 'scheduled';
+    if (!isAutoCampaign || !supportsVideoActions) return null;
+    const autoTypeRaw = typeof campaign.metadata?.autoType === 'string' ? campaign.metadata.autoType.toLowerCase() : '';
+    const editorVariant: 'brand' | 'on_sale' | 'category' =
+      autoTypeRaw === 'on_sale' ? 'on_sale' : autoTypeRaw === 'category' ? 'category' : 'brand';
+    return (
+      <details className="mt-2 rounded-lg border border-indigo-100 bg-indigo-50/40 p-2">
+        <summary className="cursor-pointer text-xs font-semibold text-indigo-900">Video Creation</summary>
+        <p className="mt-1 text-xs text-indigo-700">Video must be approved before creating social posts.</p>
+        <SlideCopyEditor campaignId={campaign.id} variant={editorVariant} />
+        <ThumbnailsPanel
+          campaignId={campaign.id}
+          variantThumbnails={campaign.video?.variantThumbnails ?? null}
+          onRegenerated={() => void loadAll()}
+        />
+        <div className="mt-2 flex flex-wrap gap-2">
+          <button
+            type="button"
+            className="rounded-full border border-indigo-300 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:border-indigo-500 disabled:opacity-60"
+            disabled={videoActionCampaignId === campaign.id}
+            onClick={() =>
+              void runVideoAction(
+                campaign.id,
+                campaign.video?.videoUrl ? 'regenerate' : 'create'
+              )
+            }
+          >
+            {videoActionCampaignId === campaign.id
+              ? 'Working...'
+              : campaign.video?.videoUrl
+                ? 'Regenerate Video'
+                : 'Create Video'}
+          </button>
+          <button
+            type="button"
+            className="rounded-full border border-purple-300 px-3 py-1.5 text-xs font-semibold text-purple-700 hover:border-purple-500 disabled:opacity-60"
+            disabled={videoActionCampaignId === campaign.id || !campaign.video?.videoUrl}
+            title="Blacklist current track and regenerate with new music"
+            onClick={() => void runVideoAction(campaign.id, 'regenerate-music')}
+          >
+            Try New Music
+          </button>
+          <button
+            type="button"
+            className="rounded-full border border-emerald-300 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:border-emerald-500 disabled:opacity-60"
+            disabled={videoActionCampaignId === campaign.id || campaign.video?.status !== 'ready_for_review'}
+            onClick={() => void runVideoAction(campaign.id, 'approve')}
+          >
+            Approve Video
+          </button>
+          <button
+            type="button"
+            className="rounded-full border border-rose-300 px-3 py-1.5 text-xs font-semibold text-rose-700 hover:border-rose-500 disabled:opacity-60"
+            disabled={videoActionCampaignId === campaign.id || !campaign.video}
+            onClick={() => void runVideoAction(campaign.id, 'reject')}
+          >
+            Reject Video
+          </button>
+        </div>
+      </details>
+    );
   }
 
   useEffect(() => {
@@ -1673,10 +1823,47 @@ export default function AdminEmailCampaignsPage() {
                   Status: {campaign.status} | Lists: {(campaign.audience.listIds || []).length} | Segments:{' '}
                   {(campaign.audience.segmentIds || []).length}
                 </p>
+                {campaign.video ? (
+                  <p className="mt-1 text-xs text-gray-600">
+                    Video: {campaign.video.status}
+                    {campaign.video.videoUrl ? (
+                      <>
+                        {' '}
+                        |{' '}
+                        <a href={campaign.video.videoUrl} target="_blank" rel="noreferrer" className="text-blue-700 underline">
+                          Preview
+                        </a>
+                      </>
+                    ) : null}
+                    {campaign.video.subjectLine ? ` | Subject: ${campaign.video.subjectLine}` : ''}
+                    {campaign.video.musicModel ? ` | Music: ${campaign.video.musicModel}` : ''}
+                    {campaign.video.videoTemplate ? ` | Template: ${campaign.video.videoTemplate}` : ''}
+                    {campaign.video.variantUrls ? (
+                      <>
+                        {' '}
+                        | Variants:{' '}
+                        {Object.entries(campaign.video.variantUrls).map(([key, url], index) => (
+                          <span key={key}>
+                            {index > 0 ? ', ' : ''}
+                            <a href={url} target="_blank" rel="noreferrer" className="text-blue-700 underline">
+                              {key.replaceAll('_', ' ')}
+                            </a>
+                          </span>
+                        ))}
+                      </>
+                    ) : null}
+                    {campaign.video.errorMessage ? ` | Error: ${campaign.video.errorMessage}` : ''}
+                  </p>
+                ) : null}
+                {renderVideoActionSection(campaign)}
+                <SocialPostsPanel campaignId={campaign.id} videoStatus={campaign.video?.status ?? null} />
+              </div>
+              <details className="w-full rounded-lg border border-gray-200 bg-gray-50/60 p-2">
+                <summary className="cursor-pointer text-xs font-semibold text-gray-900">Email Actions</summary>
                 {campaign.status === 'pending_approval' &&
                   (campaign.createdBy === 'auto-weekly' || campaign.createdBy === 'auto-campaign') &&
                   campaign.productUsage &&
-                  Object.keys(campaign.productUsage).length > 0 ? (
+                  Object.values(campaign.productUsage).some((items) => items.length > 0) ? (
                   <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50/80 p-2 text-xs text-amber-900">
                     <p className="font-medium text-amber-800">Product reuse in other auto campaigns:</p>
                     <ul className="mt-1 list-inside list-disc space-y-0.5">
@@ -1696,17 +1883,18 @@ export default function AdminEmailCampaignsPage() {
                     </ul>
                   </div>
                 ) : null}
-                <CampaignScheduleControls
-                  campaignId={campaign.id}
-                  status={campaign.status}
-                  scheduledAt={campaign.scheduledAt}
-                  paused={campaign.metadata?.paused === true}
-                  onUpdated={loadAll}
-                  onError={setError}
-                  onSuccess={setStatusMessage}
-                />
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
+                <div className="mt-2">
+                  <CampaignScheduleControls
+                    campaignId={campaign.id}
+                    status={campaign.status}
+                    scheduledAt={campaign.scheduledAt}
+                    paused={campaign.metadata?.paused === true}
+                    onUpdated={loadAll}
+                    onError={setError}
+                    onSuccess={setStatusMessage}
+                  />
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
                 {(() => {
                   const normalizedStatus = String(campaign.status || '').toLowerCase();
                   const isCancelledStatus = normalizedStatus === 'cancelled';
@@ -1886,14 +2074,16 @@ export default function AdminEmailCampaignsPage() {
                   }
                   if (campaign.status === 'scheduled') {
                     return (
-                  <button
-                    type="button"
-                    disabled
-                    className="rounded-full border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 cursor-default"
-                    title={campaign.scheduledAt ? new Date(campaign.scheduledAt).toLocaleString() : ''}
-                  >
-                    Scheduled for {campaign.scheduledAt ? new Date(campaign.scheduledAt).toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : '…'}
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      disabled
+                      className="rounded-full border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 cursor-default"
+                      title={campaign.scheduledAt ? new Date(campaign.scheduledAt).toLocaleString() : ''}
+                    >
+                      Scheduled for {campaign.scheduledAt ? new Date(campaign.scheduledAt).toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : '…'}
+                    </button>
+                  </>
                     );
                   }
                   return (
@@ -2025,8 +2215,9 @@ export default function AdminEmailCampaignsPage() {
                 >
                   {deletingCampaignId === campaign.id ? 'Deleting…' : 'Delete'}
                 </button>
+                </div>
+              </details>
               </div>
-            </div>
           </div>
         ))}
       </div>

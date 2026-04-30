@@ -46,15 +46,22 @@ function getBucketName(): string {
 
 /**
  * Server-side upload from buffer (e.g. Copiq image ingestion).
+ * Default key strategy is content-addressed (md5) so identical bytes
+ * dedupe to a single object. Pass `forceUnique: true` for assets that
+ * must be cache-busted on every upload (e.g. regenerated videos/music).
  */
 export async function uploadBufferToS3(
   buffer: Buffer,
   folder: string = 'articles/copiq',
-  contentType: string = 'image/jpeg'
+  contentType: string = 'image/jpeg',
+  options: { forceUnique?: boolean; slug?: string } = {}
 ): Promise<string> {
-  const hash = crypto.createHash('md5').update(buffer).digest('hex');
   const ext = contentType.split('/')[1] || 'jpg';
-  const uniqueKey = `${folder}/${hash}.${ext}`;
+  const cleanSlug = options.slug ? options.slug.replace(/[^a-z0-9-]/gi, '').toLowerCase().slice(0, 80) : '';
+  const slugPrefix = cleanSlug ? `${cleanSlug}-` : '';
+  const uniqueKey = options.forceUnique
+    ? `${folder}/${slugPrefix}${Date.now()}-${crypto.randomUUID()}.${ext}`
+    : `${folder}/${slugPrefix}${crypto.createHash('md5').update(buffer).digest('hex')}.${ext}`;
   const bucket = getBucketName();
   const client = getS3Client();
 
@@ -63,7 +70,7 @@ export async function uploadBufferToS3(
     Key: uniqueKey,
     Body: buffer,
     ContentType: contentType,
-    CacheControl: 'max-age=31536000',
+    CacheControl: options.forceUnique ? 'no-cache, max-age=0' : 'max-age=31536000',
   });
 
   await client.send(command);
