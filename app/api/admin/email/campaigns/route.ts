@@ -4,6 +4,7 @@ import { getAudienceBreakdown, getResolvedAudienceContactIds } from '@/lib/email
 import { queueCampaignRecipients } from '@/lib/email-platform/sending';
 import { logEmailAudit } from '@/lib/email-platform/audit';
 import { getProductUsageForCampaign } from '@/lib/email-platform/auto-weekly/used-products';
+import { ensureEmailPlatformSchema } from '@/lib/email-platform/schema';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -14,6 +15,11 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const limit = Math.min(Math.max(Number(searchParams.get('limit') || 100), 1), 1000);
+    try {
+      await ensureEmailPlatformSchema();
+    } catch (schemaError) {
+      console.warn('[campaigns][GET] ensureEmailPlatformSchema failed', schemaError);
+    }
     let result;
     try {
       result = await sql`
@@ -30,10 +36,10 @@ export async function GET(request: NextRequest) {
       // Backward-compatible fallback for environments where created_by is not migrated yet.
       if (message.includes('email_campaign_videos')) {
         result = await sql`
-          SELECT id, name, status, template_version_id, audience, scheduled_at, started_at, completed_at, metadata, updated_at,
+          SELECT id, name, status, template_version_id, audience, scheduled_at, started_at, completed_at, metadata, updated_at, created_by,
                  NULL::text AS video_status, NULL::text AS s3_video_url, NULL::text AS s3_thumbnail_url, NULL::text AS video_error_message, NULL::jsonb AS video_prompt_json, NULL::jsonb AS video_render_config_json, NULL::timestamptz AS video_updated_at
           FROM email_campaigns
-          ORDER BY updated_at DESC
+          ORDER BY (created_by IN ('auto-weekly', 'auto-campaign')) DESC, updated_at DESC
           LIMIT ${limit}
         `;
       } else {

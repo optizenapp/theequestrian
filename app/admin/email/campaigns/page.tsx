@@ -119,10 +119,9 @@ function extractMarkdownCta(blocks: EmailBlock[]): { ctaLabel?: string; ctaUrl?:
 
 function isPendingAutoCampaign(c: CampaignRow | null | undefined): boolean {
   if (!c) return false;
-  return (
-    c.status === 'pending_approval' &&
-    (c.createdBy === 'auto-weekly' || c.createdBy === 'auto-campaign')
-  );
+  const isAuto = c.createdBy === 'auto-weekly' || c.createdBy === 'auto-campaign';
+  if (!isAuto) return false;
+  return c.status === 'pending_approval' || c.status === 'draft';
 }
 
 export default function AdminEmailCampaignsPage() {
@@ -593,7 +592,10 @@ export default function AdminEmailCampaignsPage() {
 
   function renderVideoActionSection(campaign: CampaignRow) {
     const isAutoCampaign = campaign.createdBy === 'auto-weekly' || campaign.createdBy === 'auto-campaign';
-    const supportsVideoActions = campaign.status === 'pending_approval' || campaign.status === 'scheduled';
+    const supportsVideoActions =
+      campaign.status === 'pending_approval' ||
+      campaign.status === 'scheduled' ||
+      campaign.status === 'draft';
     if (!isAutoCampaign || !supportsVideoActions) return null;
     const autoTypeRaw = typeof campaign.metadata?.autoType === 'string' ? campaign.metadata.autoType.toLowerCase() : '';
     const editorVariant: 'brand' | 'on_sale' | 'category' =
