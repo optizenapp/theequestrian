@@ -10,6 +10,7 @@ export type VendorShopConnectionRow = {
   allowed_location_ids: unknown;
   sync_inventory: boolean;
   sync_price: boolean;
+  sync_status: boolean;
   reconcile_enabled: boolean;
   reconcile_cooldown_seconds: number;
   last_reconcile_at: string | null;
@@ -102,7 +103,7 @@ export async function getVendorConnectionByDomain(
     const rows = await sql`
       SELECT id, shop_domain, marketplace_vendor_name, access_token,
         inventory_strategy, primary_location_id, allowed_location_ids,
-        sync_inventory, sync_price, reconcile_enabled, reconcile_cooldown_seconds,
+        sync_inventory, sync_price, sync_status, reconcile_enabled, reconcile_cooldown_seconds,
         last_reconcile_at, is_active
       FROM vendor_shop_connections
       WHERE LOWER(TRIM(shop_domain)) = ${normalized}
@@ -148,7 +149,7 @@ export async function getReconcilePriceConnectionsByMarketplaceVendor(
   const rows = await sql`
     SELECT id, shop_domain, marketplace_vendor_name, access_token,
       inventory_strategy, primary_location_id, allowed_location_ids,
-      sync_inventory, sync_price, reconcile_enabled, reconcile_cooldown_seconds,
+      sync_inventory, sync_price, sync_status, reconcile_enabled, reconcile_cooldown_seconds,
       last_reconcile_at, is_active
     FROM vendor_shop_connections
     WHERE LOWER(TRIM(marketplace_vendor_name)) = ${normalized}
@@ -216,7 +217,7 @@ export async function getReconcileTargetsForMarketplaceInventory(
     SELECT
       c.id, c.shop_domain, c.marketplace_vendor_name, c.access_token,
       c.inventory_strategy, c.primary_location_id, c.allowed_location_ids,
-      c.sync_inventory, c.sync_price, c.reconcile_enabled, c.reconcile_cooldown_seconds,
+      c.sync_inventory, c.sync_price, c.sync_status, c.reconcile_enabled, c.reconcile_cooldown_seconds,
       c.last_reconcile_at, c.is_active,
       m.vendor_inventory_item_id, m.vendor_location_id,
       m.marketplace_inventory_item_id, m.marketplace_location_id
@@ -244,6 +245,7 @@ export async function getReconcileTargetsForMarketplaceInventory(
         allowed_location_ids: r.allowed_location_ids ?? [],
         sync_inventory: Boolean(r.sync_inventory),
         sync_price: Boolean(r.sync_price),
+        sync_status: Boolean(r.sync_status),
         reconcile_enabled: Boolean(r.reconcile_enabled),
         reconcile_cooldown_seconds: Number(r.reconcile_cooldown_seconds || 20),
         last_reconcile_at: r.last_reconcile_at ? String(r.last_reconcile_at) : null,

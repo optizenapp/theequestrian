@@ -28,6 +28,8 @@ ALTER TABLE vendor_shop_connections
   ADD COLUMN IF NOT EXISTS reconcile_cooldown_seconds INTEGER NOT NULL DEFAULT 20;
 ALTER TABLE vendor_shop_connections
   ADD COLUMN IF NOT EXISTS last_reconcile_at TIMESTAMPTZ;
+ALTER TABLE vendor_shop_connections
+  ADD COLUMN IF NOT EXISTS sync_status BOOLEAN NOT NULL DEFAULT false;
 
 CREATE INDEX IF NOT EXISTS idx_vendor_shop_connections_active
   ON vendor_shop_connections (is_active) WHERE is_active = true;
@@ -77,3 +79,27 @@ CREATE TABLE IF NOT EXISTS vendor_inventory_state (
 
 CREATE INDEX IF NOT EXISTS idx_vendor_inventory_state_connection
   ON vendor_inventory_state (vendor_connection_id);
+
+-- Per-vendor product status snapshot. Source of truth for whether a vendor
+-- product is currently active/draft/archived/deleted. Used by:
+--   1. The vendor → marketplace push (sets marketplace status when vendor flips)
+--   2. The marketplace reconcile webhook (reverts Webkul if it tries to
+--      re-activate a marketplace product whose vendor source is non-active)
+CREATE TABLE IF NOT EXISTS vendor_product_status (
+  id SERIAL PRIMARY KEY,
+  vendor_connection_id INTEGER NOT NULL REFERENCES vendor_shop_connections (id) ON DELETE CASCADE,
+  vendor_shopify_product_id TEXT NOT NULL,
+  marketplace_product_id TEXT,
+  vendor_status TEXT NOT NULL CHECK (vendor_status IN ('active', 'draft', 'archived', 'deleted')),
+  last_webhook_topic TEXT,
+  last_webhook_at TIMESTAMPTZ DEFAULT NOW(),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (vendor_connection_id, vendor_shopify_product_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_vendor_product_status_marketplace
+  ON vendor_product_status (marketplace_product_id);
+CREATE INDEX IF NOT EXISTS idx_vendor_product_status_non_active
+  ON vendor_product_status (vendor_connection_id, vendor_status)
+  WHERE vendor_status <> 'active';

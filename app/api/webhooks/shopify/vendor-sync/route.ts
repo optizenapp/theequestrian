@@ -4,6 +4,7 @@ import { verifyVendorSyncWebhook } from '@/lib/inventory/vendor-sync/verify-webh
 import { processVendorInventoryLevelsWebhook } from '@/lib/inventory/vendor-sync/process-inventory';
 import { processVendorProductUpdateWebhook } from '@/lib/inventory/vendor-sync/process-product';
 import { processVendorProductCreateWebhook } from '@/lib/inventory/vendor-sync/process-product-map';
+import { processVendorProductStatusWebhook } from '@/lib/inventory/vendor-sync/process-product-status';
 import { getAppCredentialsForShop, getAllAppSecrets } from '@/lib/shopify/vendor-oauth';
 
 export const runtime = 'nodejs';
@@ -36,7 +37,9 @@ function verifyWebhookForShop(rawBody: string, hmac: string | null, shop: string
 /**
  * Vendor Shopify → marketplace sync. Register on each vendor store:
  * - inventory_levels/update
- * - products/update (when sync_price enabled for that connection)
+ * - products/update (price sync when sync_price; status mirror when sync_status)
+ * - products/create (auto-map by SKU)
+ * - products/delete (status mirror when sync_status)
  *
  * Supports multiple vendor apps: secret is resolved per shop domain using
  * VENDOR_SYNC_APP_CLIENT_SECRET_<SLUG> env vars (fallback to default).
@@ -56,11 +59,14 @@ export async function POST(request: NextRequest) {
       if (topic === 'inventory_levels/update') {
         await processVendorInventoryLevelsWebhook(shop, rawBody);
       } else if (topic === 'products/update') {
-        // Auto-map any new variants added to existing products, then sync price
         await processVendorProductCreateWebhook(shop, rawBody);
         await processVendorProductUpdateWebhook(shop, rawBody);
+        await processVendorProductStatusWebhook(shop, rawBody, topic);
       } else if (topic === 'products/create') {
         await processVendorProductCreateWebhook(shop, rawBody);
+        await processVendorProductStatusWebhook(shop, rawBody, topic);
+      } else if (topic === 'products/delete') {
+        await processVendorProductStatusWebhook(shop, rawBody, topic);
       } else {
         console.log('[vendor-sync] ignored topic', topic, shop);
       }

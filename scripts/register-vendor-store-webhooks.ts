@@ -21,7 +21,11 @@ const VENDOR_TOKEN = process.env.VENDOR_SHOP_ADMIN_ACCESS_TOKEN;
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
 
 const WEBHOOK_PATH = '/api/webhooks/shopify/vendor-sync';
-const TOPICS = ['inventory_levels/update', 'products/update'] as const;
+const TOPICS = [
+  'inventory_levels/update',
+  'products/update',
+  'products/delete',
+] as const;
 
 async function register(topic: string): Promise<boolean> {
   const address = `${SITE_URL?.replace(/\/$/, '')}${WEBHOOK_PATH}`;

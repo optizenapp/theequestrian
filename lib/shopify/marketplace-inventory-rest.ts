@@ -128,6 +128,80 @@ export async function lookupMarketplaceVariantsBySku(
   }));
 }
 
+export type MarketplaceProductStatus = 'active' | 'draft' | 'archived';
+
+export async function fetchMarketplaceProductStatus(
+  productIdNumeric: string
+): Promise<MarketplaceProductStatus | null> {
+  const token = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN!;
+  const response = await fetch(
+    marketplaceRestUrl(`/products/${productIdNumeric}.json?fields=id,status`),
+    { headers: { 'X-Shopify-Access-Token': token }, cache: 'no-store' }
+  );
+  if (!response.ok) {
+    if (response.status === 404) return null;
+    const text = await response.text();
+    throw new Error(`Marketplace product status fetch ${response.status}: ${text.slice(0, 400)}`);
+  }
+  const data = (await response.json()) as { product?: { status?: string } };
+  const status = data.product?.status;
+  if (status === 'active' || status === 'draft' || status === 'archived') return status;
+  return null;
+}
+
+export async function setMarketplaceProductStatus(input: {
+  productIdNumeric: string;
+  status: MarketplaceProductStatus;
+}): Promise<void> {
+  const token = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN!;
+  const response = await fetch(
+    marketplaceRestUrl(`/products/${input.productIdNumeric}.json`),
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Shopify-Access-Token': token,
+      },
+      body: JSON.stringify({
+        product: { id: Number(input.productIdNumeric), status: input.status },
+      }),
+      cache: 'no-store',
+    }
+  );
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Marketplace product status set ${response.status}: ${text.slice(0, 400)}`);
+  }
+}
+
+export type MarketplaceVariantInventoryItem = {
+  variantId: string;
+  inventoryItemId: string;
+};
+
+export async function fetchMarketplaceProductVariants(
+  productIdNumeric: string
+): Promise<MarketplaceVariantInventoryItem[]> {
+  const token = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN!;
+  const response = await fetch(
+    marketplaceRestUrl(`/products/${productIdNumeric}.json?fields=id,variants`),
+    { headers: { 'X-Shopify-Access-Token': token }, cache: 'no-store' }
+  );
+  if (!response.ok) {
+    if (response.status === 404) return [];
+    const text = await response.text();
+    throw new Error(`Marketplace product variants fetch ${response.status}: ${text.slice(0, 400)}`);
+  }
+  const data = (await response.json()) as {
+    product?: { variants?: Array<{ id: number; inventory_item_id: number }> };
+  };
+  const variants = data.product?.variants ?? [];
+  return variants.map((v) => ({
+    variantId: String(v.id),
+    inventoryItemId: String(v.inventory_item_id),
+  }));
+}
+
 export async function updateMarketplaceVariantPriceRest(input: {
   variantIdNumeric: string;
   price: string;

@@ -4,6 +4,10 @@ import { neon } from '@neondatabase/serverless';
 import { loadShippingRates, resolveShippingOffset, normalizeTags } from '@/lib/shipping/rates';
 import { fetchVendorProduct } from '@/lib/shopify/vendor-shopify-rest';
 import {
+  setMarketplaceInventoryLevel,
+  setMarketplaceProductStatus,
+} from '@/lib/shopify/marketplace-inventory-rest';
+import {
   canRunReconcile,
   getActiveMapsForMarketplaceProduct,
   getMarketplaceVariantLock,
@@ -12,6 +16,10 @@ import {
   isMarketplaceVariantPriceLocked,
   markReconcileRun,
 } from '@/lib/inventory/vendor-sync/repository';
+import {
+  aggregateMarketplaceStatusForProduct,
+  getVendorStatusForMarketplaceProduct,
+} from '@/lib/inventory/vendor-sync/status-repository';
 
 const SHOPIFY_WEBHOOK_SECRET = process.env.SHOPIFY_WEBHOOK_SECRET || '';
 const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || '';
@@ -74,8 +82,67 @@ type MarketplaceWebhookProduct = {
   title?: string;
   vendor?: string;
   tags?: string | string[];
+  status?: string;
   variants?: MarketplaceWebhookVariant[];
 };
+
+/**
+ * Anti-Webkul status reconcile. If the vendor source has marked a product as
+ * non-active (draft/archived/deleted) but Webkul (or anything else) just set
+ * the marketplace product back to 'active', revert it to 'draft' and zero out
+ * inventory across all variants in the payload. Vendor store is the source of
+ * truth for status when sync_status = true on the connection.
+ */
+async function reconcileVendorStatusDrift(
+  product: MarketplaceWebhookProduct
+): Promise<{ reverted: boolean; zeroedVariants: number }> {
+  if ((product.status ?? '').toLowerCase() !== 'active') {
+    return { reverted: false, zeroedVariants: 0 };
+  }
+  const lookup = await getVendorStatusForMarketplaceProduct(String(product.id));
+  if (!lookup) return { reverted: false, zeroedVariants: 0 };
+  if (lookup.row.vendor_status === 'active') {
+    return { reverted: false, zeroedVariants: 0 };
+  }
+
+  // Aggregation rule: only revert to draft if EVERY vendor product mapping
+  // into this marketplace product is non-active. Otherwise an active sibling
+  // mapping should keep the listing alive.
+  const agg = await aggregateMarketplaceStatusForProduct(String(product.id));
+  if (!agg.allNonActive) {
+    console.log(
+      `[Shopify Webhook] Status drift detected on ${product.id} but ${agg.activeMappings} active sibling mapping(s) exist; leaving active`
+    );
+    return { reverted: false, zeroedVariants: 0 };
+  }
+
+  console.log(
+    `[Shopify Webhook] Vendor status drift: marketplace ${product.id} active but all ${agg.totalMappings} vendor mapping(s) non-active (latest source: ${lookup.connection.shop_domain} ${lookup.row.vendor_status}); reverting to draft`
+  );
+  await setMarketplaceProductStatus({
+    productIdNumeric: String(product.id),
+    status: 'draft',
+  });
+
+  const maps = await getActiveMapsForMarketplaceProduct(lookup.connection.id, String(product.id));
+  const dedupe = new Map<string, { inventoryItemId: number; locationId: number }>();
+  for (const m of maps) {
+    const key = `${m.marketplace_inventory_item_id}:${m.marketplace_location_id}`;
+    if (dedupe.has(key)) continue;
+    dedupe.set(key, {
+      inventoryItemId: Number(m.marketplace_inventory_item_id),
+      locationId: Number(m.marketplace_location_id),
+    });
+  }
+  for (const target of dedupe.values()) {
+    try {
+      await setMarketplaceInventoryLevel({ ...target, available: 0 });
+    } catch (e) {
+      console.error('[Shopify Webhook] Failed to zero inventory during status revert', e);
+    }
+  }
+  return { reverted: true, zeroedVariants: dedupe.size };
+}
 
 /**
  * Auto-revert any locked variant whose Shopify price has drifted from the
@@ -234,6 +301,19 @@ export async function POST(req: NextRequest) {
 
     console.log(`[Shopify Webhook] Product update: ${product.title} (ID: ${productId})`);
     console.log(`[Shopify Webhook] Vendor: ${vendor}, Tags: ${tags.join(', ')}`);
+
+    // Anti-Webkul: if vendor source says product is non-active, force marketplace
+    // back to draft and zero inventory before any price logic runs.
+    const statusRevert = await reconcileVendorStatusDrift(product);
+    if (statusRevert.reverted) {
+      return NextResponse.json({
+        ok: true,
+        skipped: true,
+        reason: 'vendor_status_revert',
+        zeroedVariants: statusRevert.zeroedVariants,
+        processingTime: Date.now() - startTime,
+      });
+    }
 
     // Enforce manual price locks before any offset/reconcile work. Locked
     // variants are reverted to their stored price and excluded from the rest

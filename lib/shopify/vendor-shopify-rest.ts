@@ -51,10 +51,13 @@ export async function fetchVendorInventoryLevels(
   return data.inventory_levels || [];
 }
 
+export type VendorProductStatus = 'active' | 'draft' | 'archived';
+
 export type VendorProductPayload = {
   product: {
     id: number;
     title?: string;
+    status?: VendorProductStatus;
     variants: Array<{
       id: number;
       price: string;
