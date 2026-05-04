@@ -16,20 +16,18 @@ import { getBrandContentByHandle } from '@/lib/content/brand-content';
 import { getCollectionByHandle } from '@/lib/shopify/collections';
 import type { CollectionWithParent } from '@/types/shopify';
 import {
-  getAutoCampaignCategoryPool,
   getAutoCampaignEnabledTypes,
-  getAutoCampaignRotation,
+  getAutoCampaignSelections,
   getAutoCampaignSlots,
   getAutoCampaignTemplatesByType,
-  setAutoCampaignRotation,
 } from './config';
-import { listSeoReadyBrandHandles, pickRotated } from './eligible-brands';
 import { selectProductHandlesForAutoType } from './select-handles';
-import type { AutoCampaignType } from './types';
+import type { AutoCampaignSelections, AutoCampaignType } from './types';
 import type { AutoCampaignSlot } from './types';
 import type { BrandContentRow } from '@/lib/content/brand-content';
 import { getSalePageByPath } from '@/lib/mapping/sale-mapping';
 
+const ON_SALE_COLLECTION_HANDLE = 'on-sale';
 const APPROVAL_EMAIL = 'jono@theequestrian.com.au';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au';
 const ADMIN_AUTO_URL = `${SITE_URL}/admin/email/auto-campaigns`;
@@ -464,6 +462,7 @@ type BuildNextSlotOptions = {
   typeOverride?: AutoCampaignType;
   sendApprovalEmail?: boolean;
   scheduledAtOverride?: Date;
+  selectionOverride?: AutoCampaignSelections;
 };
 
 export async function buildAutoCampaignForNextSlot(options: BuildNextSlotOptions = {}): Promise<BuildResult> {
@@ -555,50 +554,42 @@ export async function buildAutoCampaignForNextSlot(options: BuildNextSlotOptions
     };
   }
 
-  const rotation = await getAutoCampaignRotation();
-  const brands = await listSeoReadyBrandHandles();
-  const categoryPool = await getAutoCampaignCategoryPool();
+  const selections = options.selectionOverride ?? (await getAutoCampaignSelections());
 
   let brandHandle: string | null = null;
   let categoryCollectionHandle: string | null = null;
   let brandLogoUrl: string | null = null;
-  let categoryRotationOffset = 0;
   let handles: string[] = [];
 
   if (type === 'brand') {
-    brandHandle = pickRotated(brands, rotation.brandIndex);
+    brandHandle = selections.brandHandle;
     if (!brandHandle) {
-      return { campaignId: null, scheduledAt, label, approvalEmailSent: false, error: 'No SEO-ready brands found', autoType: type };
+      return { campaignId: null, scheduledAt, label, approvalEmailSent: false, error: 'No brand selected for brand campaign', autoType: type };
     }
     const brandCollection = await getCollectionByHandle(brandHandle, 1);
     brandLogoUrl = brandCollection?.image?.url || BRAND_LOGO_PLACEHOLDER;
   } else if (type === 'category') {
-    if (categoryPool.length === 0) {
-      return { campaignId: null, scheduledAt, label, approvalEmailSent: false, error: 'Category pool empty', autoType: type };
-    }
-    for (let offset = 0; offset < categoryPool.length; offset += 1) {
-      const candidate = pickRotated(categoryPool, rotation.categoryIndex + offset);
-      if (!candidate) continue;
-      const candidateHandles = await selectProductHandlesForAutoType(type, {
-        brandHandle: null,
-        collectionHandle: candidate,
-        scheduledAt,
-      });
-      if (candidateHandles.length === 0) continue;
-      categoryCollectionHandle = candidate;
-      categoryRotationOffset = offset;
-      handles = candidateHandles;
-      break;
-    }
+    categoryCollectionHandle = selections.categoryCollectionHandle;
     if (!categoryCollectionHandle) {
+      return { campaignId: null, scheduledAt, label, approvalEmailSent: false, error: 'No category selected for category campaign', autoType: type };
+    }
+    if (categoryCollectionHandle === ON_SALE_COLLECTION_HANDLE) {
       return {
         campaignId: null,
         scheduledAt,
         label,
         approvalEmailSent: false,
-        error: 'No products found for any category in pool',
+        error: 'On-sale cannot be selected for category campaigns',
         autoType: type,
       };
+    }
+    handles = await selectProductHandlesForAutoType(type, {
+      brandHandle: null,
+      collectionHandle: categoryCollectionHandle,
+      scheduledAt,
+    });
+    if (handles.length === 0) {
+      return { campaignId: null, scheduledAt, label, approvalEmailSent: false, error: `No products found for selected category "${categoryCollectionHandle}"`, autoType: type };
     }
   }
 
@@ -881,15 +872,6 @@ export async function buildAutoCampaignForNextSlot(options: BuildNextSlotOptions
   }
   const campaignId = inserted.rows[0]?.id as string;
 
-  if (type === 'brand') {
-    await setAutoCampaignRotation({ ...rotation, brandIndex: rotation.brandIndex + 1 });
-  } else if (type === 'category') {
-    await setAutoCampaignRotation({
-      ...rotation,
-      categoryIndex: rotation.categoryIndex + categoryRotationOffset + 1,
-    });
-  }
-
   let approvalEmailSent = false;
   if (sendApprovalEmail) {
     try {
@@ -918,8 +900,8 @@ export type BatchBuildResult = {
   approvalEmailSent: boolean;
 };
 
-export async function buildAutoCampaignsForTomorrowAllTypes(options: { scheduledAtOverride?: Date } = {}): Promise<BatchBuildResult> {
-  const { scheduledAtOverride } = options;
+export async function buildAutoCampaignsForTomorrowAllTypes(options: { scheduledAtOverride?: Date; selectionOverride?: AutoCampaignSelections } = {}): Promise<BatchBuildResult> {
+  const { scheduledAtOverride, selectionOverride } = options;
   const types: AutoCampaignType[] = ['brand', 'on_sale', 'category'];
   const results: BuildResult[] = [];
   for (const type of types) {
@@ -928,6 +910,7 @@ export async function buildAutoCampaignsForTomorrowAllTypes(options: { scheduled
         typeOverride: type,
         sendApprovalEmail: false,
         scheduledAtOverride,
+        selectionOverride,
       })
     );
   }

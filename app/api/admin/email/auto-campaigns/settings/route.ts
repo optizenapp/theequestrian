@@ -14,8 +14,10 @@ import {
   getAutoCampaignEnabledTypes,
   getAutoCampaignResendConfig,
   getAutoCampaignRotation,
+  getAutoCampaignSelections,
   getAutoCampaignSlots,
   getAutoCampaignTemplatesByType,
+  setAutoCampaignSelections,
   setAutoCampaignCategoryPool,
   setAutoCampaignEnabledTypes,
   setAutoCampaignResendConfig,
@@ -23,16 +25,52 @@ import {
   setAutoCampaignTemplatesByType,
 } from '@/lib/email-platform/auto-campaigns/config';
 import { listSeoReadyBrandHandles } from '@/lib/email-platform/auto-campaigns/eligible-brands';
+import { getAllCollections } from '@/lib/shopify/collections';
 import type { AutoCampaignSlot } from '@/lib/email-platform/auto-campaigns/types';
 
+const ON_SALE_COLLECTION_HANDLE = 'on-sale';
+
+type CategoryOption = {
+  handle: string;
+  label: string;
+};
+
+async function listCategoryOptions(): Promise<CategoryOption[]> {
+  const [categoryPool, collections] = await Promise.all([
+    getAutoCampaignCategoryPool(),
+    getAllCollections(),
+  ]);
+  const byHandle = new Map<string, CategoryOption>();
+
+  for (const handle of categoryPool) {
+    if (handle !== ON_SALE_COLLECTION_HANDLE) {
+      byHandle.set(handle, { handle, label: handle });
+    }
+  }
+
+  for (const collection of collections) {
+    if (!collection.handle || collection.handle === ON_SALE_COLLECTION_HANDLE) continue;
+    const title = collection.title?.trim() || collection.handle;
+    const parent = collection.parentCollection?.trim();
+    byHandle.set(collection.handle, {
+      handle: collection.handle,
+      label: parent ? `${title} (${parent})` : title,
+    });
+  }
+
+  return Array.from(byHandle.values()).sort((a, b) => a.label.localeCompare(b.label));
+}
+
 async function loadPayload() {
-  const [weekly, slots, categoryPool, resend, templatesByType, enabledTypes, seoBrands, completedStats] = await Promise.all([
+  const [weekly, slots, categoryPool, categoryOptions, resend, templatesByType, enabledTypes, selections, seoBrands, completedStats] = await Promise.all([
     getAutoWeeklySettings(),
     getAutoCampaignSlots(),
     getAutoCampaignCategoryPool(),
+    listCategoryOptions(),
     getAutoCampaignResendConfig(),
     getAutoCampaignTemplatesByType(),
     getAutoCampaignEnabledTypes(),
+    getAutoCampaignSelections(),
     listSeoReadyBrandHandles(),
     sql`
       SELECT
@@ -58,6 +96,9 @@ async function loadPayload() {
     resend,
     templatesByType,
     enabledTypes,
+    selections,
+    brandOptions: seoBrands.map((handle) => ({ handle, label: handle })),
+    categoryOptions,
     rotation,
     seoReadyBrandCount: seoBrands.length,
     completedStatsByType: {
@@ -137,6 +178,23 @@ export async function PATCH(request: NextRequest) {
     }
     if (Array.isArray(body?.categoryPool)) {
       await setAutoCampaignCategoryPool(body.categoryPool.filter((x: unknown): x is string => typeof x === 'string'));
+    }
+    if (body?.selections && typeof body.selections === 'object') {
+      const selections = body.selections as Record<string, unknown>;
+      const brandHandle = typeof selections.brandHandle === 'string' ? selections.brandHandle.trim() : '';
+      const categoryCollectionHandle =
+        typeof selections.categoryCollectionHandle === 'string' ? selections.categoryCollectionHandle.trim() : '';
+      const [brandOptions, categoryOptions] = await Promise.all([
+        listSeoReadyBrandHandles(),
+        listCategoryOptions(),
+      ]);
+      if (!brandHandle || !brandOptions.includes(brandHandle)) {
+        return NextResponse.json({ error: 'Select a valid brand campaign brand' }, { status: 400 });
+      }
+      if (!categoryCollectionHandle || !categoryOptions.some((option) => option.handle === categoryCollectionHandle)) {
+        return NextResponse.json({ error: 'Select a valid category campaign category' }, { status: 400 });
+      }
+      await setAutoCampaignSelections({ brandHandle, categoryCollectionHandle });
     }
     if (body?.resend && typeof body.resend === 'object') {
       const r = body.resend as Record<string, unknown>;

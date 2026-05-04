@@ -3,6 +3,7 @@ import type {
   AutoCampaignEnabledTypes,
   AutoCampaignResendConfig,
   AutoCampaignRotation,
+  AutoCampaignSelections,
   AutoCampaignSlot,
   AutoCampaignTemplatesByType,
 } from './types';
@@ -14,6 +15,8 @@ const KEY_ROTATION = 'auto_campaigns_rotation';
 const KEY_RESEND = 'auto_campaigns_resend';
 const KEY_TEMPLATES_BY_TYPE = 'auto_campaigns_templates_by_type';
 const KEY_ENABLED_TYPES = 'auto_campaigns_enabled_types';
+const KEY_SELECTIONS = 'auto_campaigns_selections';
+const ON_SALE_COLLECTION_HANDLE = 'on-sale';
 
 async function getJson(key: string): Promise<Record<string, unknown> | null> {
   const result = await sql`
@@ -64,12 +67,19 @@ export async function getAutoCampaignCategoryPool(): Promise<string[]> {
   const row = await getJson(KEY_CATEGORY_POOL);
   const paths = row?.paths;
   if (!Array.isArray(paths)) return [...DEFAULT_CATEGORY_POOL];
-  const list = paths.filter((p): p is string => typeof p === 'string' && p.trim().length > 0).map((p) => p.trim());
+  const list = sanitizeCategoryHandles(paths);
   return list.length > 0 ? list : [...DEFAULT_CATEGORY_POOL];
 }
 
 export async function setAutoCampaignCategoryPool(paths: string[]): Promise<void> {
-  await setJson(KEY_CATEGORY_POOL, { paths });
+  await setJson(KEY_CATEGORY_POOL, { paths: sanitizeCategoryHandles(paths) });
+}
+
+export function sanitizeCategoryHandles(paths: unknown[]): string[] {
+  return paths
+    .filter((p): p is string => typeof p === 'string' && p.trim().length > 0)
+    .map((p) => p.trim())
+    .filter((p) => p !== ON_SALE_COLLECTION_HANDLE);
 }
 
 export async function getAutoCampaignRotation(): Promise<AutoCampaignRotation> {
@@ -139,5 +149,27 @@ export async function setAutoCampaignEnabledTypes(input: AutoCampaignEnabledType
     brand: input.brand,
     on_sale: input.on_sale,
     category: input.category,
+  });
+}
+
+export async function getAutoCampaignSelections(): Promise<AutoCampaignSelections> {
+  const row = await getJson(KEY_SELECTIONS);
+  const brandHandle = typeof row?.brandHandle === 'string' && row.brandHandle.trim()
+    ? row.brandHandle.trim()
+    : null;
+  const categoryCollectionHandle =
+    typeof row?.categoryCollectionHandle === 'string' && row.categoryCollectionHandle.trim()
+      ? row.categoryCollectionHandle.trim()
+      : null;
+  return {
+    brandHandle,
+    categoryCollectionHandle: categoryCollectionHandle === ON_SALE_COLLECTION_HANDLE ? null : categoryCollectionHandle,
+  };
+}
+
+export async function setAutoCampaignSelections(input: AutoCampaignSelections): Promise<void> {
+  await setJson(KEY_SELECTIONS, {
+    brandHandle: input.brandHandle ?? '',
+    categoryCollectionHandle: input.categoryCollectionHandle ?? '',
   });
 }

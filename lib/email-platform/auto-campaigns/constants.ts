@@ -13,5 +13,4 @@ export const DEFAULT_CATEGORY_POOL: string[] = [
   'clothing',
   'footwear',
   'pet',
-  'on-sale',
 ];

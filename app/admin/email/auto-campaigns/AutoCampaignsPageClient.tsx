@@ -6,8 +6,11 @@ import { fetchAutoCampaignAdminSnapshot, parseAdminJson } from './load-admin-dat
 import AutoCampaignsTestActions from './AutoCampaignsTestActions';
 import AutoCampaignsFlowTest from './AutoCampaignsFlowTest';
 import AutoCampaignsSimpleSettings from './AutoCampaignsSimpleSettings';
+import AutoCampaignSelectionSettings from './AutoCampaignSelectionSettings';
 import type { AutoCampaignType } from '@/lib/email-platform/auto-campaigns/types';
 import { AUTO_TYPES, DEFAULT_SLOTS, type SlotByType } from './slot-config';
+
+type SelectionOption = { handle: string; label: string };
 
 export default function AutoCampaignsPageClient() {
   const [loading, setLoading] = useState(true);
@@ -28,6 +31,12 @@ export default function AutoCampaignsPageClient() {
     on_sale: 0,
     category: 0,
   });
+  const [brandOptions, setBrandOptions] = useState<SelectionOption[]>([]);
+  const [categoryOptions, setCategoryOptions] = useState<SelectionOption[]>([]);
+  const [selections, setSelections] = useState({
+    brandHandle: '',
+    categoryCollectionHandle: '',
+  });
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -38,6 +47,9 @@ export default function AutoCampaignsPageClient() {
       const configuredTypes = (settings.enabledTypes as Record<string, unknown> | undefined) ?? {};
       const slots = Array.isArray(settings.slots) ? (settings.slots as Array<{ type: AutoCampaignType; weekday: number; hour: number; minute?: number }>) : [];
       const completed = (settings.completedStatsByType as Record<string, unknown> | undefined) ?? {};
+      const savedSelections = (settings.selections as Record<string, unknown> | undefined) ?? {};
+      const loadedBrandOptions = Array.isArray(settings.brandOptions) ? (settings.brandOptions as SelectionOption[]) : [];
+      const loadedCategoryOptions = Array.isArray(settings.categoryOptions) ? (settings.categoryOptions as SelectionOption[]) : [];
       const nextSlots: SlotByType = { ...DEFAULT_SLOTS };
       for (const type of AUTO_TYPES) {
         const slot = slots.find((s) => s.type === type);
@@ -62,6 +74,13 @@ export default function AutoCampaignsPageClient() {
         on_sale: Number(completed.on_sale ?? 0),
         category: Number(completed.category ?? 0),
       });
+      setBrandOptions(loadedBrandOptions);
+      setCategoryOptions(loadedCategoryOptions);
+      setSelections({
+        brandHandle: typeof savedSelections.brandHandle === 'string' ? savedSelections.brandHandle : '',
+        categoryCollectionHandle:
+          typeof savedSelections.categoryCollectionHandle === 'string' ? savedSelections.categoryCollectionHandle : '',
+      });
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Failed to load');
     } finally {
@@ -85,6 +104,7 @@ export default function AutoCampaignsPageClient() {
           enabled,
           audience: { listIds, segmentIds: [] },
           enabledTypes,
+          selections,
           slots: AUTO_TYPES.map((type) => ({
             type,
             weekday: slotsByType[type].weekday,
@@ -138,6 +158,13 @@ export default function AutoCampaignsPageClient() {
         completedStatsByType={completedStatsByType}
       />
 
+      <AutoCampaignSelectionSettings
+        brandOptions={brandOptions}
+        categoryOptions={categoryOptions}
+        selections={selections}
+        setSelections={setSelections}
+      />
+
       <div className="flex flex-wrap items-center gap-2">
         <button type="button" disabled={saving} onClick={() => void save()} className="rounded-full bg-action px-4 py-2 text-sm font-semibold text-white hover:bg-pink-600 disabled:opacity-50">
           {saving ? 'Saving…' : 'Save settings'}
@@ -145,7 +172,7 @@ export default function AutoCampaignsPageClient() {
       </div>
 
       <AutoCampaignsFlowTest />
-      <AutoCampaignsTestActions onError={setErr} />
+      <AutoCampaignsTestActions onError={setErr} selections={selections} />
     </div>
   );
 }

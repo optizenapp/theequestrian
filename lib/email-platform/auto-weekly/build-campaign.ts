@@ -2,6 +2,7 @@ import { getAutoCampaignSlots } from '@/lib/email-platform/auto-campaigns/config
 import {
   buildAutoCampaignsForTomorrowAllTypes,
 } from '@/lib/email-platform/auto-campaigns/build-one';
+import type { AutoCampaignSelections } from '@/lib/email-platform/auto-campaigns/types';
 
 export type { BatchBuildResult, BuildResult } from '@/lib/email-platform/auto-campaigns/build-one';
 
@@ -34,6 +35,6 @@ export async function getNextSendSlotInUTC(): Promise<{ scheduledAt: Date; label
   return { scheduledAt: new Date(isoAEST), label };
 }
 
-export async function buildAutoWeeklyCampaign(options: { scheduledAtOverride?: Date } = {}) {
+export async function buildAutoWeeklyCampaign(options: { scheduledAtOverride?: Date; selectionOverride?: AutoCampaignSelections } = {}) {
   return buildAutoCampaignsForTomorrowAllTypes(options);
 }

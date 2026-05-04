@@ -27,3 +27,8 @@ export type AutoCampaignTemplatesByType = {
 };
 
 export type AutoCampaignEnabledTypes = Record<AutoCampaignType, boolean>;
+
+export type AutoCampaignSelections = {
+  brandHandle: string | null;
+  categoryCollectionHandle: string | null;
+};

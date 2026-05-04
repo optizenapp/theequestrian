@@ -1,12 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { buildAutoWeeklyCampaign } from '@/lib/email-platform/auto-weekly/build-campaign';
 import { buildAutoCampaignForNextSlot } from '@/lib/email-platform/auto-campaigns/build-one';
-import type { AutoCampaignType } from '@/lib/email-platform/auto-campaigns/types';
+import type { AutoCampaignSelections, AutoCampaignType } from '@/lib/email-platform/auto-campaigns/types';
+
+function parseSelectionOverride(body: Record<string, unknown>): AutoCampaignSelections | undefined {
+  if (!body.selections || typeof body.selections !== 'object') return undefined;
+  const selections = body.selections as Record<string, unknown>;
+  return {
+    brandHandle: typeof selections.brandHandle === 'string' && selections.brandHandle.trim()
+      ? selections.brandHandle.trim()
+      : null,
+    categoryCollectionHandle:
+      typeof selections.categoryCollectionHandle === 'string' && selections.categoryCollectionHandle.trim()
+        ? selections.categoryCollectionHandle.trim()
+        : null,
+  };
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json().catch(() => ({}));
+    const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
     const type = typeof body?.type === 'string' ? (body.type as AutoCampaignType) : null;
+    const selectionOverride = parseSelectionOverride(body);
     if (type && type !== 'brand' && type !== 'on_sale' && type !== 'category') {
       return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
     }
@@ -23,10 +38,11 @@ export async function POST(request: NextRequest) {
         typeOverride: type,
         scheduledAtOverride: scheduledAt,
         sendApprovalEmail: true,
+        selectionOverride,
       });
       return NextResponse.json({ ok: true, ...single });
     }
-    const result = await buildAutoWeeklyCampaign({ scheduledAtOverride: scheduledAt });
+    const result = await buildAutoWeeklyCampaign({ scheduledAtOverride: scheduledAt, selectionOverride });
     return NextResponse.json({
       ok: true,
       approvalEmailSent: result.approvalEmailSent,

@@ -9,8 +9,7 @@ import { generateAutoWeeklyHeading } from '@/lib/email-platform/auto-weekly/head
 import { buildCampaignHtmlWithOverrides } from '@/lib/email-platform/auto-weekly/render';
 import { getAutoWeeklyFlowVersionId } from '@/lib/email-platform/auto-weekly/template';
 import { getAutoWeeklySettings } from '@/lib/email-platform/auto-weekly/settings';
-import { getAutoCampaignCategoryPool, getAutoCampaignRotation, getAutoCampaignTemplatesByType } from '@/lib/email-platform/auto-campaigns/config';
-import { listSeoReadyBrandHandles, pickRotated } from '@/lib/email-platform/auto-campaigns/eligible-brands';
+import { getAutoCampaignSelections, getAutoCampaignTemplatesByType } from '@/lib/email-platform/auto-campaigns/config';
 import { selectProductHandlesForAutoType } from '@/lib/email-platform/auto-campaigns/select-handles';
 import {
   HARDCODED_PROMPTS,
@@ -34,7 +33,7 @@ import {
   toCategoryCtaLabel,
   toTitleCase,
 } from '@/lib/email-platform/auto-campaigns/build-one';
-import type { AutoCampaignType } from '@/lib/email-platform/auto-campaigns/types';
+import type { AutoCampaignSelections, AutoCampaignType } from '@/lib/email-platform/auto-campaigns/types';
 import { getBrandContentByHandle } from '@/lib/content/brand-content';
 import { getCollectionByHandle } from '@/lib/shopify/collections';
 import type { CollectionWithParent } from '@/types/shopify';
@@ -43,18 +42,27 @@ function isType(value: unknown): value is AutoCampaignType {
   return value === 'brand' || value === 'on_sale' || value === 'category';
 }
 
-function pickRandom<T>(items: T[]): T | null {
-  if (items.length === 0) return null;
-  const idx = Math.floor(Math.random() * items.length);
-  return items[idx] ?? null;
+function parseSelectionOverride(body: Record<string, unknown>): AutoCampaignSelections | null {
+  if (!body.selections || typeof body.selections !== 'object') return null;
+  const selections = body.selections as Record<string, unknown>;
+  return {
+    brandHandle: typeof selections.brandHandle === 'string' && selections.brandHandle.trim()
+      ? selections.brandHandle.trim()
+      : null,
+    categoryCollectionHandle:
+      typeof selections.categoryCollectionHandle === 'string' && selections.categoryCollectionHandle.trim()
+        ? selections.categoryCollectionHandle.trim()
+        : null,
+  };
 }
 
 const BRAND_LOGO_PLACEHOLDER = 'https://www.theequestrian.com.au/email-logo.png';
 const CAMPAIGN_SITE_URL = 'https://www.theequestrian.com.au';
+const ON_SALE_COLLECTION_HANDLE = 'on-sale';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json().catch(() => ({}));
+    const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
     const to = typeof body?.to === 'string' ? body.to.trim() : '';
     const type = body?.type;
     if (!to) return NextResponse.json({ error: 'Missing test email address' }, { status: 400 });
@@ -67,35 +75,23 @@ export async function POST(request: NextRequest) {
     const versionId = (typedVersion && typedVersion.trim()) || weekly.templateVersionId || (await getAutoWeeklyFlowVersionId());
     if (!versionId) return NextResponse.json({ error: 'No template version configured' }, { status: 400 });
 
-    const rotation = await getAutoCampaignRotation();
-    const brands = await listSeoReadyBrandHandles();
-    const categoryPool = await getAutoCampaignCategoryPool();
-    const brandHandle =
-      type === 'brand' ? pickRandom(brands) || pickRotated(brands, rotation.brandIndex) : null;
-    const categoryCandidates =
-      type === 'category' && categoryPool.length > 0
-        ? [...categoryPool.slice(rotation.categoryIndex), ...categoryPool.slice(0, rotation.categoryIndex)]
-        : [];
-    let collectionHandle = type === 'category' ? pickRotated(categoryPool, rotation.categoryIndex) : null;
+    const selections = parseSelectionOverride(body) ?? (await getAutoCampaignSelections());
+    const brandHandle = type === 'brand' ? selections.brandHandle : null;
+    const collectionHandle = type === 'category' ? selections.categoryCollectionHandle : null;
+    if (type === 'brand' && !brandHandle) {
+      return NextResponse.json({ error: 'No brand selected for brand campaign' }, { status: 400 });
+    }
+    if (type === 'category' && !collectionHandle) {
+      return NextResponse.json({ error: 'No category selected for category campaign' }, { status: 400 });
+    }
+    if (type === 'category' && collectionHandle === ON_SALE_COLLECTION_HANDLE) {
+      return NextResponse.json({ error: 'On-sale cannot be selected for category campaigns' }, { status: 400 });
+    }
     let handles = await selectProductHandlesForAutoType(type, {
       brandHandle,
       collectionHandle,
       scheduledAt,
     });
-    if (type === 'category' && handles.length === 0) {
-      for (const candidate of categoryCandidates) {
-        const trial = await selectProductHandlesForAutoType(type, {
-          brandHandle: null,
-          collectionHandle: candidate,
-          scheduledAt,
-        });
-        if (trial.length > 0) {
-          collectionHandle = candidate;
-          handles = trial;
-          break;
-        }
-      }
-    }
     if (handles.length === 0) return NextResponse.json({ error: 'No products found for test email' }, { status: 400 });
 
     const products = await getProductsByHandles(handles);

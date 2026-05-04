@@ -3,7 +3,6 @@ import { getBrandContentByHandle } from '@/lib/content/brand-content';
 import { getBrandProductsFromDb } from '@/lib/brands/get-brand-products';
 import { getCollectionWithPagination } from '@/lib/shopify/collections';
 import { getSalePageByPath } from '@/lib/mapping/sale-mapping';
-import { selectProductsForAutoWeekly } from '@/lib/email-platform/auto-weekly/product-selection';
 import type { AutoCampaignType } from './types';
 
 export async function selectProductHandlesForAutoType(
@@ -44,5 +43,5 @@ export async function selectProductHandlesForAutoType(
     }
   }
 
-  return (await selectProductsForAutoWeekly(options.scheduledAt, null)).slice(0, 3);
+  return [];
 }

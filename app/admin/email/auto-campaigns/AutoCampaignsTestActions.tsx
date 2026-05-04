@@ -6,9 +6,13 @@ import type { AutoCampaignType } from '@/lib/email-platform/auto-campaigns/types
 
 type Props = {
   onError: (message: string) => void;
+  selections: {
+    brandHandle: string;
+    categoryCollectionHandle: string;
+  };
 };
 
-export default function AutoCampaignsTestActions({ onError }: Props) {
+export default function AutoCampaignsTestActions({ onError, selections }: Props) {
   const [actionLog, setActionLog] = useState('');
   const [testEmail, setTestEmail] = useState('');
   const [testType, setTestType] = useState<AutoCampaignType>('brand');
@@ -39,7 +43,7 @@ export default function AutoCampaignsTestActions({ onError }: Props) {
       const res = await fetch('/api/admin/email/auto-campaigns/send-test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to: testEmail.trim(), type: testType }),
+        body: JSON.stringify({ to: testEmail.trim(), type: testType, selections }),
       });
       const data = await parseAdminJson(res);
       setActionLog(`Send test: ${JSON.stringify(data)}`);
@@ -58,7 +62,7 @@ export default function AutoCampaignsTestActions({ onError }: Props) {
       const res = await fetch('/api/admin/email/auto-campaigns/run-build', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: '{}',
+        body: JSON.stringify({ selections }),
       });
       const data = await parseAdminJson(res);
       setActionLog(`Build all: ${JSON.stringify(data)}`);
@@ -75,7 +79,7 @@ export default function AutoCampaignsTestActions({ onError }: Props) {
       const res = await fetch('/api/admin/email/auto-campaigns/run-build', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type }),
+        body: JSON.stringify({ type, selections }),
       });
       const data = await parseAdminJson(res);
       setActionLog(`Build ${type}: ${JSON.stringify(data)}`);
