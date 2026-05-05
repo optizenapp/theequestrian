@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
                v.status AS video_status, v.s3_video_url, v.s3_thumbnail_url, v.error_message AS video_error_message, v.prompt_json AS video_prompt_json, v.render_config_json AS video_render_config_json, v.updated_at AS video_updated_at
         FROM email_campaigns c
         LEFT JOIN email_campaign_videos v ON v.campaign_id = c.id
-        ORDER BY (created_by IN ('auto-weekly', 'auto-campaign')) DESC, updated_at DESC
+        ORDER BY updated_at DESC
         LIMIT ${limit}
       `;
     } catch (error) {
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
           SELECT id, name, status, template_version_id, audience, scheduled_at, started_at, completed_at, metadata, updated_at, created_by,
                  NULL::text AS video_status, NULL::text AS s3_video_url, NULL::text AS s3_thumbnail_url, NULL::text AS video_error_message, NULL::jsonb AS video_prompt_json, NULL::jsonb AS video_render_config_json, NULL::timestamptz AS video_updated_at
           FROM email_campaigns
-          ORDER BY (created_by IN ('auto-weekly', 'auto-campaign')) DESC, updated_at DESC
+          ORDER BY updated_at DESC
           LIMIT ${limit}
         `;
       } else {

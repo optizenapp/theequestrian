@@ -502,7 +502,7 @@ export default function AdminEmailCampaignsPage() {
 
   async function loadAll() {
     const [campaignRes, listRes, segmentRes, templateRes] = await Promise.all([
-      fetch('/api/admin/email/campaigns', { cache: 'no-store' }),
+      fetch('/api/admin/email/campaigns?limit=1000', { cache: 'no-store' }),
       fetch('/api/admin/email/lists', { cache: 'no-store' }),
       fetch('/api/admin/email/segments', { cache: 'no-store' }),
       fetch('/api/admin/email/templates', { cache: 'no-store' }),
@@ -950,19 +950,24 @@ export default function AdminEmailCampaignsPage() {
 
   const sendPreparedCampaign = async () => {
     if (!preparedCampaign) return;
+    const campaignId = preparedCampaign.id;
     setError('');
     setStatusMessage('');
     setIsSendingCampaign(true);
     try {
-      const response = await fetch(`/api/admin/email/campaigns/${preparedCampaign.id}/send`, {
+      const sendRequest = fetch(`/api/admin/email/campaigns/${campaignId}/send`, {
         method: 'POST',
       });
+      setPreparedCampaign(null);
+      setStatusMessage('Campaign send started. It will appear in the list below while recipients are processed.');
+      await new Promise((resolve) => setTimeout(resolve, 750));
+      await loadAll();
+      const response = await sendRequest;
       const payload = await response.json();
       if (!response.ok) throw new Error(payload?.error || 'Failed to send campaign');
       setStatusMessage(
         `Campaign sent. Sent: ${payload.sent || 0}, Failed: ${payload.failed || 0}, Skipped: ${payload.skipped || 0}.`
       );
-      setPreparedCampaign(null);
       await loadAll();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to send campaign');
@@ -2093,14 +2098,22 @@ export default function AdminEmailCampaignsPage() {
                     type="button"
                     className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:border-action hover:text-action"
                     onClick={async () => {
-                      const response = await fetch(`/api/admin/email/campaigns/${campaign.id}/send`, {
+                      setError('');
+                      setStatusMessage(`Campaign "${campaign.name}" send started.`);
+                      const sendRequest = fetch(`/api/admin/email/campaigns/${campaign.id}/send`, {
                         method: 'POST',
                       });
+                      await new Promise((resolve) => setTimeout(resolve, 750));
+                      await loadAll();
+                      const response = await sendRequest;
                       const data = await response.json();
                       if (!response.ok) {
                         setError(data?.error || 'Failed to send campaign');
                         return;
                       }
+                      setStatusMessage(
+                        `Campaign sent. Sent: ${data.sent || 0}, Failed: ${data.failed || 0}, Skipped: ${data.skipped || 0}.`
+                      );
                       await loadAll();
                     }}
                   >
