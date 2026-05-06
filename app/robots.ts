@@ -1,7 +1,8 @@
 import type { MetadataRoute } from 'next';
+import { getCanonicalSiteUrl } from '@/lib/seo/site-url';
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = 'https://www.theequestrian.com.au';
+  const baseUrl = getCanonicalSiteUrl();
 
   return {
     rules: [

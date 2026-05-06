@@ -1,8 +1,7 @@
 import { MetadataRoute } from 'next';
+import { getCanonicalSiteUrl } from '@/lib/seo/site-url';
 
-const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au'
-).replace(/\/$/, '');
+const SITE_URL = getCanonicalSiteUrl();
 
 /**
  * Sitemap Index
