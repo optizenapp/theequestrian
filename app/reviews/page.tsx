@@ -1,92 +1,38 @@
-'use client';
-
-import { useState, useEffect } from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ReviewCard } from '@/components/reviews/ReviewCard';
 import { ReviewStars } from '@/components/reviews/ReviewStars';
+import ReviewsPageClient from '@/components/reviews/ReviewsPageClient';
+import { getPublicReviews } from '@/lib/reviews/public-reviews';
 import { generateSimplePageSchema } from '@/lib/utils/site-schema';
 
-interface Review {
-  id: string;
-  product_id: string;
-  product_handle: string | null;
-  product_title: string;
-  rating: number;
-  title: string;
-  content: string;
-  author_name: string;
-  verified_purchase: boolean;
-  helpful_count: number;
-  not_helpful_count: number;
-  created_at: string;
-}
+const siteUrl = (
+  process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au'
+).replace(/\/$/, '');
 
-export default function ReviewsPage() {
+export const metadata: Metadata = {
+  title: 'Customer Reviews | The Equestrian',
+  description:
+    'Browse verified customer reviews for products available on The Equestrian.',
+  alternates: {
+    canonical: `${siteUrl}/reviews`,
+  },
+  openGraph: {
+    title: 'Customer Reviews | The Equestrian',
+    description:
+      'Browse verified customer reviews for products available on The Equestrian.',
+    url: `${siteUrl}/reviews`,
+    siteName: 'The Equestrian',
+    type: 'website',
+  },
+};
+
+export default async function ReviewsPage() {
+  const { reviews, productHrefByHandle } = await getPublicReviews();
   const schema = generateSimplePageSchema(
     '/reviews',
     'Customer Reviews | The Equestrian',
     'Browse verified customer reviews for products available on The Equestrian.'
   );
-
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [productHrefByHandle, setProductHrefByHandle] = useState<Record<string, string>>({});
-  const [filterRating, setFilterRating] = useState<number | null>(null);
-  const [sortBy, setSortBy] = useState<'recent' | 'helpful' | 'rating'>('recent');
-  const [searchQuery, setSearchQuery] = useState('');
-
-  // Fetch all reviews
-  useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetch('/api/admin/reviews');
-        if (response.ok) {
-          const data = await response.json();
-          setReviews(data.reviews || []);
-        }
-      } catch (error) {
-        console.error('Error fetching reviews:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchReviews();
-  }, []);
-
-  useEffect(() => {
-    const handles = [
-      ...new Set(
-        reviews.map((r) => r.product_handle).filter((h): h is string => Boolean(h))
-      ),
-    ];
-    if (handles.length === 0) {
-      setProductHrefByHandle({});
-      return;
-    }
-    const controller = new AbortController();
-    (async () => {
-      try {
-        const res = await fetch('/api/products/canonical-hrefs', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ handles }),
-          signal: controller.signal,
-        });
-        if (!res.ok) return;
-        const data = (await res.json()) as { hrefs?: Record<string, string> };
-        if (data.hrefs) setProductHrefByHandle(data.hrefs);
-      } catch (e) {
-        if ((e as Error).name !== 'AbortError') {
-          console.error('[reviews] canonical hrefs', e);
-        }
-      }
-    })();
-    return () => controller.abort();
-  }, [reviews]);
-
-  // Calculate overall stats
   const totalReviews = reviews.length;
   const averageRating = totalReviews > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews : 0;
   const fiveStarCount = reviews.filter(r => r.rating === 5).length;
@@ -94,31 +40,6 @@ export default function ReviewsPage() {
   const threeStarCount = reviews.filter(r => r.rating === 3).length;
   const twoStarCount = reviews.filter(r => r.rating === 2).length;
   const oneStarCount = reviews.filter(r => r.rating === 1).length;
-
-  // Filter and sort reviews
-  const filteredReviews = reviews
-    .filter(review => {
-      if (filterRating && review.rating !== filterRating) return false;
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        return (
-          review.title.toLowerCase().includes(query) ||
-          review.content.toLowerCase().includes(query) ||
-          review.product_title.toLowerCase().includes(query) ||
-          review.author_name.toLowerCase().includes(query)
-        );
-      }
-      return true;
-    })
-    .sort((a, b) => {
-      if (sortBy === 'recent') {
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      } else if (sortBy === 'helpful') {
-        return b.helpful_count - a.helpful_count;
-      } else {
-        return b.rating - a.rating;
-      }
-    });
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -167,101 +88,10 @@ export default function ReviewsPage() {
         </div>
       </div>
 
-      {/* Filters and Search */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            {/* Search */}
-            <div className="w-full sm:w-96">
-              <input
-                type="text"
-                placeholder="Search reviews..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-action focus:border-transparent"
-              />
-            </div>
-
-            <div className="flex gap-4 flex-wrap">
-              {/* Filter by Rating */}
-              <select
-                value={filterRating || ''}
-                onChange={(e) => setFilterRating(e.target.value ? Number(e.target.value) : null)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-action focus:border-transparent"
-              >
-                <option value="">All Ratings</option>
-                <option value="5">5 Stars</option>
-                <option value="4">4 Stars</option>
-                <option value="3">3 Stars</option>
-                <option value="2">2 Stars</option>
-                <option value="1">1 Star</option>
-              </select>
-
-              {/* Sort */}
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-action focus:border-transparent"
-              >
-                <option value="recent">Most Recent</option>
-                <option value="helpful">Most Helpful</option>
-                <option value="rating">Highest Rating</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Reviews Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {isLoading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-action"></div>
-            <p className="text-gray-500 text-lg mt-4">Loading reviews...</p>
-          </div>
-        ) : filteredReviews.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">
-              {reviews.length === 0 ? 'No reviews yet. Be the first to write one!' : 'No reviews found matching your criteria.'}
-            </p>
-          </div>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredReviews.map((review) => (
-              <div key={review.id} className="bg-white rounded-xl shadow-sm overflow-hidden">
-                {/* Product Info */}
-                {review.product_handle && (
-                  <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
-                    <Link
-                      href={
-                        productHrefByHandle[review.product_handle!] ??
-                        `/products/${review.product_handle}`
-                      }
-                      className="text-sm font-medium text-gray-900 hover:text-action transition-colors line-clamp-1"
-                    >
-                      {review.product_title}
-                    </Link>
-                  </div>
-                )}
-                
-                {/* Review Content */}
-                <div className="p-6">
-                  <ReviewCard review={review} />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Pagination Placeholder */}
-        {filteredReviews.length > 0 && (
-          <div className="mt-12 text-center">
-            <p className="text-gray-500">
-              Showing {filteredReviews.length} of {totalReviews} reviews
-            </p>
-          </div>
-        )}
-      </div>
+      <ReviewsPageClient
+        reviews={reviews}
+        productHrefByHandle={productHrefByHandle}
+      />
 
       {/* CTA Section */}
       <div className="bg-white border-t border-gray-200 py-12">
