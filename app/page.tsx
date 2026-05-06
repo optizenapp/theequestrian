@@ -10,8 +10,8 @@ import Link from 'next/link';
 import { LazySection } from '@/components/LazySection';
 import Image from 'next/image';
 
-/** Build: skip static prerender of `/` (Neon + Shopify exceed Vercel’s ~60s SSG budget from iad1). Runtime: `getCachedHomeSectionsWithProducts` uses unstable_cache (5m). */
-export const dynamic = 'force-dynamic';
+/** Keep the document cache aligned with the cached home-section/product data. */
+export const revalidate = 300;
 
 const _homeSiteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/+$/, '');
 
