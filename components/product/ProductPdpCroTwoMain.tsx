@@ -5,7 +5,6 @@ import { ProductDescription } from '@/components/product/ProductDescription';
 import ProductIdentifierMetaRow from '@/components/product/ProductIdentifierMetaRow';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
 import { getProductIdentifiers } from '@/lib/products/product-identifiers';
-import ProductPdpCroTwoDesktop from '@/components/product/ProductPdpCroTwoDesktop';
 import type { ShopifyProduct } from '@/types/shopify';
 
 interface ReviewBadgeStats {
@@ -28,18 +27,13 @@ interface ProductPdpCroTwoMainProps {
 
 function FeatureHighlights({
   featureHighlights,
-  columns = 1,
 }: {
   featureHighlights: string[];
-  columns?: 1 | 2;
 }) {
-  const listClassName =
-    columns === 2
-      ? 'mt-4 grid gap-x-10 gap-y-2 md:grid-cols-2'
-      : 'space-y-2 mt-4';
+  if (featureHighlights.length === 0) return null;
 
   return (
-    <div className={listClassName}>
+    <div className="space-y-2 mt-4">
       {featureHighlights.map((feature) => (
         <div key={feature} className="flex items-start gap-2 text-sm text-gray-700">
           <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -91,13 +85,10 @@ export default function ProductPdpCroTwoMain({
 
   return (
     <>
-      <article aria-labelledby="pdp-product-title-mobile" className="lg:hidden">
-        <div className="grid grid-cols-1 items-start">
-          <section
-            className="order-1 mt-4 mb-6 space-y-2"
-            aria-label="Product summary"
-          >
-            <h1 id="pdp-product-title-mobile" className="text-3xl font-bold text-gray-900">
+      <article aria-labelledby="pdp-product-title">
+        <div className="grid grid-cols-1 items-start gap-y-8 lg:grid-cols-12 lg:gap-x-12">
+          <section className="order-1 mt-4 space-y-2 lg:col-span-5 lg:col-start-8 lg:mt-0" aria-label="Product summary">
+            <h1 id="pdp-product-title" className="text-3xl font-bold text-gray-900">
               {displayTitle}
             </h1>
             <ProductPageReviewBadge
@@ -109,23 +100,17 @@ export default function ProductPdpCroTwoMain({
             <FeatureHighlights featureHighlights={topHighlights} />
           </section>
 
-          <section className="order-2" aria-label="Product images">
+          <section className="order-2 lg:order-1 lg:col-span-7 lg:row-span-2" aria-label="Product images">
             <ProductImageGallery images={product.images} productTitle={product.title} />
           </section>
 
-          <section
-            className="order-3 mt-6"
-            aria-label="Purchase options"
-          >
+          <section className="order-3 lg:order-2 lg:col-span-5 lg:col-start-8" aria-label="Purchase options">
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-black">
               <ProductBuyBox product={product} layout={styleMode === 'cro3' ? 'croTheme3' : 'croTrial'} />
             </div>
           </section>
 
-          <section
-            className="order-4 space-y-8 mt-8"
-            aria-label="Product description"
-          >
+          <section className="order-4 lg:order-3 lg:col-span-7" aria-label="Product description">
             <ProductDescription
               html={descriptionHtml}
               productTitle={displayTitle}
@@ -134,28 +119,16 @@ export default function ProductPdpCroTwoMain({
             />
           </section>
 
-          <section className="order-5" aria-label="Additional product highlights">
-            {remainingHighlights.length > 0 && (
-              <div className="bg-surface rounded-2xl p-6 shadow-sm border border-black">
+          <section className="order-5 lg:order-4 lg:col-span-5 lg:col-start-8" aria-label="Additional product highlights">
+            {remainingHighlights.length > 0 ? (
+              <div className="rounded-2xl border border-black bg-surface p-6 shadow-sm">
                 <FeatureHighlights featureHighlights={remainingHighlights} />
               </div>
-            )}
+            ) : null}
             {showArcEquineGelPromo ? <ArcEquinePromo /> : null}
           </section>
         </div>
       </article>
-
-      <ProductPdpCroTwoDesktop
-        product={product}
-        displayTitle={displayTitle}
-        descriptionHtml={descriptionHtml}
-        topHighlights={topHighlights}
-        remainingHighlights={remainingHighlights}
-        reviewBadgeStats={reviewBadgeStats}
-        showArcEquineGelPromo={showArcEquineGelPromo}
-        styleMode={styleMode}
-        identifiers={identifiers}
-      />
       {afterDescription}
     </>
   );
