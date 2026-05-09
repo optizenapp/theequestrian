@@ -30,7 +30,6 @@ async function marketplaceFetch(path: string, init: RequestInit, label: string):
     const waitMs = retryDelayMs(response, attempt);
     // Keep logs audit-friendly: silently back off on transient rate limits.
     // We only emit a log if all retries are exhausted.
-    await response.text().catch(() => '');
     await sleep(waitMs);
   }
   if (lastResponse) {
