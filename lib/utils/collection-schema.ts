@@ -81,11 +81,14 @@ export function generateCollectionSchema(params: CollectionSchemaParams) {
   // Build item list elements from products
   // Limit to 20 items for better performance (Google only needs a sample)
   // This significantly reduces schema size and generation time
-  const itemListElements = products.slice(0, 20).map((product, index) => {
+  const itemListElements = products.slice(0, 20).flatMap((product, index) => {
     // Handle both Map and Record types for productUrls
-    const productUrl = (productUrls instanceof Map 
+    const productUrl = (productUrls instanceof Map
       ? productUrls.get(product.id) 
-      : productUrls[product.id]) || `${siteUrl}/products/${product.handle}`;
+      : productUrls[product.id]);
+    if (!productUrl || productUrl.includes('/products/')) {
+      return [];
+    }
     
     // Get first image from images.edges array
     const imageUrl = product.images?.edges?.[0]?.node?.url;
@@ -112,7 +115,7 @@ export function generateCollectionSchema(params: CollectionSchemaParams) {
       listItem.item.image = imageUrl;
     }
 
-    return listItem;
+    return [listItem];
   });
 
   // Build the CollectionPage entity
@@ -168,7 +171,8 @@ export function getProductUrl(
   const url = productUrls instanceof Map 
     ? productUrls.get(productId) 
     : productUrls[productId];
-  return url || `${siteUrl}/products/${productHandle}`;
+  if (!url || url.includes('/products/')) return '';
+  return url;
 }
 
 /**

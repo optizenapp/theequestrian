@@ -2,7 +2,8 @@
  * Collection schema generator for category/brand/sale pages.
  *
  * Pass `canonicalProductUrls` (from getProductCanonicalUrls) so ItemList product URLs
- * match storefront links. When omitted, product URLs fall back to /products/{handle}.
+ * match storefront links. Products without canonical storefront paths are omitted
+ * from the ItemList instead of leaking legacy /products/{handle} URLs.
  */
 
 import type { ShopifyProduct } from '@/types/shopify';
@@ -102,8 +103,8 @@ function generateSameAsLinks(collectionName: string, collectionUrl: string): str
 /**
  * Generate collection/brand/sale page schema (@graph).
  *
- * Limits to `maxProducts` (default 12) for payload size. When `canonicalProductUrls`
- * is provided, ItemList entries use those paths; otherwise /products/{handle}.
+ * Limits to `maxProducts` (default 12) for payload size. ItemList entries only
+ * use canonical storefront paths, never legacy /products/{handle} fallbacks.
  *
  * Enhanced schema properties:
  * - additionalType for better classification
@@ -124,14 +125,14 @@ export function generateCollectionSchemaFast(params: CollectionSchemaFastParams)
     canonicalProductUrls,
   } = params;
 
-  const getCanonicalProductUrl = (handle: string): string | null => {
+  const getCanonicalProductUrl = (product: ShopifyProduct): string | null => {
     if (!canonicalProductUrls) {
       return null;
     }
     if (canonicalProductUrls instanceof Map) {
-      return canonicalProductUrls.get(handle) || null;
+      return canonicalProductUrls.get(product.id) || canonicalProductUrls.get(product.handle) || null;
     }
-    return canonicalProductUrls[handle] || null;
+    return canonicalProductUrls[product.id] || canonicalProductUrls[product.handle] || null;
   };
 
   // Build breadcrumb list elements
@@ -152,16 +153,17 @@ export function generateCollectionSchemaFast(params: CollectionSchemaFastParams)
 
   // Build item list elements from products
   // Prefer canonical frontend URLs when available.
-  const itemListElements = products.slice(0, maxProducts).map((product, index) => {
-    const canonicalPath = getCanonicalProductUrl(product.handle);
-    const productUrl = canonicalPath
-      ? `${siteUrl}${canonicalPath.startsWith('/') ? canonicalPath : `/${canonicalPath}`}`
-      : `${siteUrl}/products/${product.handle}`;
+  const itemListElements = products.slice(0, maxProducts).flatMap((product, index) => {
+    const canonicalPath = getCanonicalProductUrl(product);
+    if (!canonicalPath || canonicalPath.startsWith('/products/')) {
+      return [];
+    }
+    const productUrl = `${siteUrl}${canonicalPath.startsWith('/') ? canonicalPath : `/${canonicalPath}`}`;
     
     // Get first image if available
     const imageUrl = product.images?.edges?.[0]?.node?.url;
 
-    return {
+    return [{
       '@type': 'ListItem',
       position: index + 1,
       url: productUrl,
@@ -176,7 +178,7 @@ export function generateCollectionSchemaFast(params: CollectionSchemaFastParams)
           priceCurrency: product.priceRange.minVariantPrice.currencyCode,
         },
       },
-    };
+    }];
   });
 
   // Build the CollectionPage entity with enhanced schema properties

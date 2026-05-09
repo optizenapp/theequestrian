@@ -25,12 +25,16 @@ export interface BrandPageSchemaInput {
 }
 
 function getCanonicalProductPath(
+  id: string,
   handle: string,
   productUrls?: Map<string, string> | Record<string, string>
-): string {
-  if (!productUrls) return `/products/${handle}`;
-  if (productUrls instanceof Map) return productUrls.get(handle) || `/products/${handle}`;
-  return productUrls[handle] || `/products/${handle}`;
+): string | null {
+  if (!productUrls) return null;
+  const path = productUrls instanceof Map
+    ? productUrls.get(id) || productUrls.get(handle)
+    : productUrls[id] || productUrls[handle];
+  if (!path || path.startsWith('/products/')) return null;
+  return path;
 }
 
 export function generateBrandPageSchema(input: BrandPageSchemaInput) {
@@ -70,12 +74,13 @@ export function generateBrandPageSchema(input: BrandPageSchemaInput) {
     ],
   };
 
-  const itemListElements = input.products.slice(0, max).map((p, i) => {
-    const productPath = getCanonicalProductPath(p.handle, input.productUrls);
+  const itemListElements = input.products.slice(0, max).flatMap((p, i) => {
+    const productPath = getCanonicalProductPath(p.id, p.handle, input.productUrls);
+    if (!productPath) return [];
     const productUrl = `${baseUrl}${productPath.startsWith('/') ? productPath : `/${productPath}`}`;
     const image = p.images?.edges?.[0]?.node?.url;
     const price = p.priceRange?.minVariantPrice;
-    return {
+    return [{
       '@type': 'ListItem',
       position: i + 1,
       url: productUrl,
@@ -100,7 +105,7 @@ export function generateBrandPageSchema(input: BrandPageSchemaInput) {
             }
           : {}),
       },
-    };
+    }];
   });
 
   const itemList = {

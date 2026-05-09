@@ -381,11 +381,10 @@ export function generateProductSchema(
       "hasVariant": product.variants.edges.slice(0, 50).map(({ node }) => {
         const variantColor = node.selectedOptions.find((option) => option.name.toLowerCase() === 'color' || option.name.toLowerCase() === 'colour')?.value;
         const variantSize = node.selectedOptions.find((option) => option.name.toLowerCase() === 'size')?.value;
-        const variantUrl = `${productAbsoluteUrl}?variant=${node.id.split('/').pop() || ''}`;
         const variantOffer = {
           "@type": "Offer",
           ...offerBase,
-          "url": variantUrl,
+          "url": productAbsoluteUrl,
           "price": node.price.amount,
           "availability": node.availableForSale ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
         };
@@ -394,7 +393,7 @@ export function generateProductSchema(
           "@type": "Product",
           "name": `${product.title} - ${node.title}`,
           "sku": node.sku || undefined,
-          "url": variantUrl,
+          "url": productAbsoluteUrl,
           ...(node.barcode && /^\d{8,14}$/.test(node.barcode) ? { "gtin13": node.barcode } : {}),
           ...(variantColor ? { "color": variantColor } : {}),
           ...(variantSize ? { "size": variantSize } : {}),

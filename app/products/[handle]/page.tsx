@@ -354,7 +354,8 @@ export async function generateMetadata({ params }: ProductPageProps) {
     };
   }
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
-  const canonicalUrl = `${siteUrl}${await getProductCanonicalUrl(product)}`;
+  const canonicalPath = await getProductCanonicalUrl(product);
+  const canonicalUrl = `${siteUrl}${canonicalPath}`;
   
   const displayTitle = override?.use_headless_title ? (override?.title_override || product.title) : product.title;
   const seoMetadata = buildProductSeoMetadata({
@@ -371,6 +372,9 @@ export async function generateMetadata({ params }: ProductPageProps) {
     alternates: {
       canonical: canonicalUrl,
     },
+    ...(canonicalPath.startsWith('/products/')
+      ? { robots: { index: false, follow: true } }
+      : {}),
     openGraph: {
       title,
       description,
