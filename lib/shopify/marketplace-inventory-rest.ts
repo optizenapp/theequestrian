@@ -3,6 +3,39 @@
  */
 
 const API_VERSION = '2025-01';
+const MAX_SHOPIFY_RETRIES = 6;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function retryDelayMs(response: Response, attempt: number): number {
+  const retryAfter = Number(response.headers.get('retry-after'));
+  if (Number.isFinite(retryAfter) && retryAfter > 0) {
+    return Math.ceil(retryAfter * 1000);
+  }
+  return Math.min(10_000, 1_000 * 2 ** (attempt - 1));
+}
+
+async function marketplaceFetch(path: string, init: RequestInit, label: string): Promise<Response> {
+  let lastResponse: Response | null = null;
+  for (let attempt = 1; attempt <= MAX_SHOPIFY_RETRIES; attempt += 1) {
+    const response = await fetch(marketplaceRestUrl(path), {
+      ...init,
+      cache: 'no-store',
+    });
+    if (response.status !== 429) return response;
+
+    lastResponse = response;
+    const waitMs = retryDelayMs(response, attempt);
+    console.warn(
+      `[shopify-rest] Rate limited ${label} attempt ${attempt}/${MAX_SHOPIFY_RETRIES}; retrying in ${waitMs}ms`
+    );
+    await response.text().catch(() => '');
+    await sleep(waitMs);
+  }
+  return lastResponse!;
+}
 
 function marketplaceRestUrl(path: string): string {
   const storeDomain = process.env.SHOPIFY_STORE_DOMAIN;
@@ -20,19 +53,22 @@ export async function setMarketplaceInventoryLevel(input: {
   available: number;
 }): Promise<void> {
   const token = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN!;
-  const response = await fetch(marketplaceRestUrl('/inventory_levels/set.json'), {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Shopify-Access-Token': token,
+  const response = await marketplaceFetch(
+    '/inventory_levels/set.json',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Shopify-Access-Token': token,
+      },
+      body: JSON.stringify({
+        location_id: input.locationId,
+        inventory_item_id: input.inventoryItemId,
+        available: Math.max(0, Math.floor(input.available)),
+      }),
     },
-    body: JSON.stringify({
-      location_id: input.locationId,
-      inventory_item_id: input.inventoryItemId,
-      available: Math.max(0, Math.floor(input.available)),
-    }),
-    cache: 'no-store',
-  });
+    `inventory set ${input.inventoryItemId}`
+  );
 
   if (!response.ok) {
     const text = await response.text();
@@ -45,14 +81,12 @@ export async function fetchMarketplaceInventoryLevel(input: {
   inventoryItemId: number;
 }): Promise<number | null> {
   const token = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN!;
-  const response = await fetch(
-    marketplaceRestUrl(
-      `/inventory_levels.json?location_ids=${input.locationId}&inventory_item_ids=${input.inventoryItemId}`
-    ),
+  const response = await marketplaceFetch(
+    `/inventory_levels.json?location_ids=${input.locationId}&inventory_item_ids=${input.inventoryItemId}`,
     {
       headers: { 'X-Shopify-Access-Token': token },
-      cache: 'no-store',
-    }
+    },
+    `inventory fetch ${input.inventoryItemId}`
   );
   if (!response.ok) {
     const text = await response.text();
@@ -71,10 +105,13 @@ export async function fetchMarketplaceProductTags(productIdNumeric: string): Pro
   tags: string[];
 }> {
   const token = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN!;
-  const response = await fetch(marketplaceRestUrl(`/products/${productIdNumeric}.json`), {
-    headers: { 'X-Shopify-Access-Token': token },
-    cache: 'no-store',
-  });
+  const response = await marketplaceFetch(
+    `/products/${productIdNumeric}.json`,
+    {
+      headers: { 'X-Shopify-Access-Token': token },
+    },
+    `product fetch ${productIdNumeric}`
+  );
   if (!response.ok) {
     const text = await response.text();
     throw new Error(`Marketplace product fetch ${response.status}: ${text.slice(0, 400)}`);
@@ -107,9 +144,10 @@ export async function lookupMarketplaceVariantsBySku(
   sku: string
 ): Promise<MarketplaceVariantStub[]> {
   const token = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN!;
-  const response = await fetch(
-    marketplaceRestUrl(`/variants.json?sku=${encodeURIComponent(sku)}&limit=5`),
-    { headers: { 'X-Shopify-Access-Token': token }, cache: 'no-store' }
+  const response = await marketplaceFetch(
+    `/variants.json?sku=${encodeURIComponent(sku)}&limit=5`,
+    { headers: { 'X-Shopify-Access-Token': token } },
+    `variant sku lookup ${sku}`
   );
   if (!response.ok) return [];
   const data = (await response.json()) as {
@@ -134,9 +172,10 @@ export async function fetchMarketplaceProductStatus(
   productIdNumeric: string
 ): Promise<MarketplaceProductStatus | null> {
   const token = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN!;
-  const response = await fetch(
-    marketplaceRestUrl(`/products/${productIdNumeric}.json?fields=id,status`),
-    { headers: { 'X-Shopify-Access-Token': token }, cache: 'no-store' }
+  const response = await marketplaceFetch(
+    `/products/${productIdNumeric}.json?fields=id,status`,
+    { headers: { 'X-Shopify-Access-Token': token } },
+    `product status fetch ${productIdNumeric}`
   );
   if (!response.ok) {
     if (response.status === 404) return null;
@@ -154,8 +193,8 @@ export async function setMarketplaceProductStatus(input: {
   status: MarketplaceProductStatus;
 }): Promise<void> {
   const token = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN!;
-  const response = await fetch(
-    marketplaceRestUrl(`/products/${input.productIdNumeric}.json`),
+  const response = await marketplaceFetch(
+    `/products/${input.productIdNumeric}.json`,
     {
       method: 'PUT',
       headers: {
@@ -165,8 +204,8 @@ export async function setMarketplaceProductStatus(input: {
       body: JSON.stringify({
         product: { id: Number(input.productIdNumeric), status: input.status },
       }),
-      cache: 'no-store',
-    }
+    },
+    `product status set ${input.productIdNumeric}`
   );
   if (!response.ok) {
     const text = await response.text();
@@ -183,9 +222,10 @@ export async function fetchMarketplaceProductVariants(
   productIdNumeric: string
 ): Promise<MarketplaceVariantInventoryItem[]> {
   const token = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN!;
-  const response = await fetch(
-    marketplaceRestUrl(`/products/${productIdNumeric}.json?fields=id,variants`),
-    { headers: { 'X-Shopify-Access-Token': token }, cache: 'no-store' }
+  const response = await marketplaceFetch(
+    `/products/${productIdNumeric}.json?fields=id,variants`,
+    { headers: { 'X-Shopify-Access-Token': token } },
+    `product variants fetch ${productIdNumeric}`
   );
   if (!response.ok) {
     if (response.status === 404) return [];
@@ -216,8 +256,8 @@ export async function updateMarketplaceVariantPriceRest(input: {
     // Pass null explicitly to clear compare_at_price when vendor no longer has a sale price
     variant.compare_at_price = input.compareAtPrice ?? null;
   }
-  const response = await fetch(
-    marketplaceRestUrl(`/variants/${input.variantIdNumeric}.json`),
+  const response = await marketplaceFetch(
+    `/variants/${input.variantIdNumeric}.json`,
     {
       method: 'PUT',
       headers: {
@@ -225,8 +265,8 @@ export async function updateMarketplaceVariantPriceRest(input: {
         'X-Shopify-Access-Token': token,
       },
       body: JSON.stringify({ variant }),
-      cache: 'no-store',
-    }
+    },
+    `variant price ${input.variantIdNumeric}`
   );
   if (!response.ok) {
     const text = await response.text();

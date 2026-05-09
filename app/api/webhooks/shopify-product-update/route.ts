@@ -6,6 +6,7 @@ import { fetchVendorProduct } from '@/lib/shopify/vendor-shopify-rest';
 import {
   setMarketplaceInventoryLevel,
   setMarketplaceProductStatus,
+  updateMarketplaceVariantPriceRest,
 } from '@/lib/shopify/marketplace-inventory-rest';
 import {
   canRunReconcile,
@@ -22,8 +23,6 @@ import {
 } from '@/lib/inventory/vendor-sync/status-repository';
 
 const SHOPIFY_WEBHOOK_SECRET = process.env.SHOPIFY_WEBHOOK_SECRET || '';
-const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || '';
-const SHOPIFY_STORE_DOMAIN = process.env.SHOPIFY_STORE_DOMAIN || '';
 const DATABASE_URL = process.env.DATABASE_URL || '';
 
 const sql = neon(DATABASE_URL);
@@ -41,34 +40,11 @@ function verifyWebhook(req: NextRequest, body: string): boolean {
 }
 
 async function updateVariantPrice(variantId: string, price: string, compareAtPrice?: string | null) {
-  const url = `https://${SHOPIFY_STORE_DOMAIN}/admin/api/2024-01/variants/${variantId}.json`;
-  
-  const payload: any = {
-    variant: {
-      id: variantId,
-      price,
-    },
-  };
-
-  if (compareAtPrice !== undefined) {
-    payload.variant.compare_at_price = compareAtPrice;
-  }
-
-  const response = await fetch(url, {
-    method: 'PUT',
-    headers: {
-      'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
+  return updateMarketplaceVariantPriceRest({
+    variantIdNumeric: variantId,
+    price,
+    compareAtPrice,
   });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Shopify API ${response.status}: ${text}`);
-  }
-
-  return response.json();
 }
 
 type MarketplaceWebhookVariant = {
