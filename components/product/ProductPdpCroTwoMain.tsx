@@ -131,9 +131,9 @@ export default function ProductPdpCroTwoMain({
             />
           </section>
 
-          <section className="order-5 lg:hidden" aria-label="Additional product highlights">
+          <section className="order-5 lg:order-4 lg:col-span-5 lg:col-start-8 lg:row-start-2 lg:self-stretch" aria-label="Additional product highlights">
             {remainingHighlights.length > 0 ? (
-              <div className="rounded-2xl border border-black bg-surface p-6 shadow-sm">
+              <div className="h-full rounded-2xl border border-black bg-surface p-6 shadow-sm">
                 <FeatureHighlights featureHighlights={remainingHighlights} />
               </div>
             ) : null}
