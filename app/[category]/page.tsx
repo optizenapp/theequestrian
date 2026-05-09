@@ -21,12 +21,13 @@ import Image from 'next/image';
 import type { Metadata } from 'next';
 import { getManualRedirect } from '@/lib/redirects/manual';
 import { getReviewStatsWithCache } from '@/lib/reviews/get-review-stats';
+import { ProductGridSkeleton } from '@/components/filters/ProductGridSkeleton';
 
 // Lazy load below-the-fold components for better Speed Index
 const ProductGridWithFilters = dynamicImport(
   () => import('@/components/filters/ProductGridWithFilters').then((mod) => ({ default: mod.ProductGridWithFilters })),
   {
-    loading: () => <div className="text-center py-12 min-h-[400px] bg-gray-50 animate-pulse rounded-lg">Loading products...</div>,
+    loading: () => <ProductGridSkeleton />,
   }
 );
 
@@ -311,7 +312,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         />
 
         {/* Products Grid with Filters */}
-        <Suspense fallback={<div className="text-center py-12">Loading products...</div>}>
+        <Suspense fallback={<ProductGridSkeleton />}>
           <ProductGridWithFilters
             products={filteredProducts}
             currentCategory={category}

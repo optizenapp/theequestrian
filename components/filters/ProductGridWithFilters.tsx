@@ -510,7 +510,7 @@ export function ProductGridWithFilters({
                   <li key={product.id} className="min-h-0">
                     <ProductCard
                       product={product}
-                      priority={index < 6}
+                      priority={!currentCursor && index === 0}
                       canonicalUrl={productUrls?.[product.id]}
                       reviewStats={reviewStatsMap?.[product.handle]}
                       itemListId={listId}

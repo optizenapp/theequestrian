@@ -59,6 +59,7 @@ import { getProductOverrideByHandle, resolveProductHandleFromSlug } from '@/lib/
 import { buildProductSeoMetadata } from '@/lib/seo/product-metadata';
 import { cache } from 'react';
 import { ProductViewTracker } from '@/components/analytics/ProductViewTracker';
+import { ProductGridSkeleton } from '@/components/filters/ProductGridSkeleton';
 
 // Lazy load heavy below-the-fold components to improve LCP
 const ProductReviewSection = dynamicImport(
@@ -610,7 +611,7 @@ async function renderSubSubcategoryPage(
         )}
 
         {/* Products Grid with Filters */}
-        <Suspense fallback={<div className="text-center py-12">Loading products...</div>}>
+        <Suspense fallback={<ProductGridSkeleton />}>
           <ProductGridWithFilters
             products={filteredProducts}
             currentCategory={category}
