@@ -46,13 +46,6 @@ function FeatureHighlights({
   );
 }
 
-function splitFeatureHighlights(featureHighlights: string[]) {
-  return {
-    topHighlights: featureHighlights.slice(0, 3),
-    remainingHighlights: featureHighlights.slice(3),
-  };
-}
-
 function ArcEquinePromo() {
   return (
     <div className="mt-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
@@ -80,7 +73,6 @@ export default function ProductPdpCroTwoMain({
   canonicalBrand = null,
   brandHubHandle = null,
 }: ProductPdpCroTwoMainProps) {
-  const { topHighlights, remainingHighlights } = splitFeatureHighlights(featureHighlights);
   const identifiers = getProductIdentifiers(product, { canonicalBrand, brandHubHandle });
 
   return (
@@ -97,17 +89,10 @@ export default function ProductPdpCroTwoMain({
               initialStats={reviewBadgeStats}
             />
             <ProductIdentifierMetaRow identifiers={identifiers} />
-            <FeatureHighlights featureHighlights={topHighlights} />
             <div className="hidden lg:block space-y-6 mt-6">
               <div className="bg-surface rounded-2xl p-6 shadow-sm border border-black">
                 <ProductBuyBox product={product} layout={styleMode === 'cro3' ? 'croTheme3' : 'croTrial'} />
               </div>
-              {remainingHighlights.length > 0 ? (
-                <div className="rounded-2xl border border-black bg-surface p-6 shadow-sm">
-                  <FeatureHighlights featureHighlights={remainingHighlights} />
-                </div>
-              ) : null}
-              {showArcEquineGelPromo ? <ArcEquinePromo /> : null}
             </div>
           </section>
 
@@ -132,9 +117,9 @@ export default function ProductPdpCroTwoMain({
           </section>
 
           <section className="order-5 lg:order-4 lg:col-span-5 lg:col-start-8 lg:row-start-2 lg:self-stretch" aria-label="Additional product highlights">
-            {remainingHighlights.length > 0 ? (
+            {featureHighlights.length > 0 ? (
               <div className="h-full rounded-2xl border border-black bg-surface p-6 shadow-sm">
-                <FeatureHighlights featureHighlights={remainingHighlights} />
+                <FeatureHighlights featureHighlights={featureHighlights} />
               </div>
             ) : null}
             {showArcEquineGelPromo ? <ArcEquinePromo /> : null}
