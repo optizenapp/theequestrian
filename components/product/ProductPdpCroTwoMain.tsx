@@ -98,23 +98,26 @@ export default function ProductPdpCroTwoMain({
             />
             <ProductIdentifierMetaRow identifiers={identifiers} />
             <FeatureHighlights featureHighlights={topHighlights} />
+            <div className="hidden lg:block space-y-6 mt-6">
+              <div className="bg-surface rounded-2xl p-6 shadow-sm border border-black">
+                <ProductBuyBox product={product} layout={styleMode === 'cro3' ? 'croTheme3' : 'croTrial'} />
+              </div>
+              {remainingHighlights.length > 0 ? (
+                <div className="rounded-2xl border border-black bg-surface p-6 shadow-sm">
+                  <FeatureHighlights featureHighlights={remainingHighlights} />
+                </div>
+              ) : null}
+              {showArcEquineGelPromo ? <ArcEquinePromo /> : null}
+            </div>
           </section>
 
           <section className="order-2 lg:order-1 lg:col-span-7 lg:col-start-1 lg:row-start-1" aria-label="Product images">
             <ProductImageGallery images={product.images} productTitle={product.title} />
           </section>
 
-          <section className="order-3 lg:order-2 lg:col-span-5 lg:col-start-8 lg:row-start-2" aria-label="Purchase options">
+          <section className="order-3 lg:hidden" aria-label="Purchase options">
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-black">
               <ProductBuyBox product={product} layout={styleMode === 'cro3' ? 'croTheme3' : 'croTrial'} />
-            </div>
-            <div className="hidden lg:block">
-              {remainingHighlights.length > 0 ? (
-                <div className="mt-6 h-full rounded-2xl border border-black bg-surface p-6 shadow-sm">
-                  <FeatureHighlights featureHighlights={remainingHighlights} />
-                </div>
-              ) : null}
-              {showArcEquineGelPromo ? <ArcEquinePromo /> : null}
             </div>
           </section>
 
