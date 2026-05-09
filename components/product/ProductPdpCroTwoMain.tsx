@@ -110,18 +110,19 @@ export default function ProductPdpCroTwoMain({
             </div>
           </section>
 
-          <section className="order-4 lg:order-3 lg:col-span-7" aria-label="Product description">
+          <section className="order-4 lg:order-3 lg:col-span-7 lg:row-start-3 lg:self-stretch" aria-label="Product description">
             <ProductDescription
               html={descriptionHtml}
               productTitle={displayTitle}
-              collapsedHeight={520}
+              collapsedHeight={360}
+              className="h-full"
               accentBorder
             />
           </section>
 
-          <section className="order-5 lg:order-4 lg:col-span-5 lg:col-start-8" aria-label="Additional product highlights">
+          <section className="order-5 lg:order-4 lg:col-span-5 lg:col-start-8 lg:row-start-3 lg:self-stretch" aria-label="Additional product highlights">
             {remainingHighlights.length > 0 ? (
-              <div className="rounded-2xl border border-black bg-surface p-6 shadow-sm">
+              <div className="h-full rounded-2xl border border-black bg-surface p-6 shadow-sm">
                 <FeatureHighlights featureHighlights={remainingHighlights} />
               </div>
             ) : null}
