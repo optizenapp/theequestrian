@@ -25,15 +25,10 @@ interface ProductPdpCroTwoMainProps {
   brandHubHandle?: string | null;
 }
 
-function FeatureHighlights({
-  featureHighlights,
-}: {
-  featureHighlights: string[];
-}) {
+function FeatureHighlights({ featureHighlights }: { featureHighlights: string[] }) {
   if (featureHighlights.length === 0) return null;
-
   return (
-    <div className="space-y-2 mt-4">
+    <div className="space-y-2">
       {featureHighlights.map((feature) => (
         <div key={feature} className="flex items-start gap-2 text-sm text-gray-700">
           <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -48,7 +43,7 @@ function FeatureHighlights({
 
 function ArcEquinePromo() {
   return (
-    <div className="mt-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
+    <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3">
       <div className="flex items-start gap-2">
         <svg className="h-5 w-5 flex-shrink-0 text-green-500 mt-0.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
           <path d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3.5a2.5 2.5 0 01-2 2.45V16a1 1 0 01-1 1H6a1 1 0 01-1-1V8.95A2.5 2.5 0 013 6.5V3zm2 2v1.5a.5.5 0 00.5.5H9V5H5zm6 0v2h3.5a.5.5 0 00.5-.5V5h-4zM9 9H7v6h2V9zm2 0v6h2V9h-2z" />
@@ -75,55 +70,87 @@ export default function ProductPdpCroTwoMain({
 }: ProductPdpCroTwoMainProps) {
   const identifiers = getProductIdentifiers(product, { canonicalBrand, brandHubHandle });
 
+  /*
+   * Mobile: single flex-col, children ordered via order-N classes.
+   *         Column wrappers use display:contents so their children
+   *         become direct flex children of the outer container.
+   *
+   * Desktop (lg): outer becomes a 12-col grid with items-stretch.
+   *         Column wrappers become actual flex-col grid items, each
+   *         stretching to the same total height. Left col: image then
+   *         description (description flex-1 → fills remaining height,
+   *         Read More if overflowing). Right col: summary, buy box
+   *         (flex-1 → fills remaining height), bullets.
+   */
   return (
     <>
       <article aria-labelledby="pdp-product-title">
-        <div className="grid grid-cols-1 items-start gap-y-8 lg:grid-cols-12 lg:gap-x-12">
-          <section className="order-1 mt-4 space-y-2 lg:col-span-5 lg:col-start-8 lg:row-start-1 lg:mt-0" aria-label="Product summary">
-            <h1 id="pdp-product-title" className="text-3xl font-bold text-gray-900">
-              {displayTitle}
-            </h1>
-            <ProductPageReviewBadge
-              productId={product.id}
-              productHandle={product.handle}
-              initialStats={reviewBadgeStats}
-            />
-            <ProductIdentifierMetaRow identifiers={identifiers} />
-            <div className="hidden lg:block space-y-6 mt-6">
-              <div className="bg-surface rounded-2xl p-6 shadow-sm border border-black">
-                <ProductBuyBox product={product} layout={styleMode === 'cro3' ? 'croTheme3' : 'croTrial'} />
+        <div className="flex flex-col gap-8 lg:grid lg:grid-cols-12 lg:items-stretch lg:gap-x-12 lg:gap-y-0">
+
+          {/* Left column: image + description */}
+          <div className="contents lg:col-span-7 lg:flex lg:flex-col lg:gap-8">
+            <section className="order-2 lg:order-none" aria-label="Product images">
+              <ProductImageGallery images={product.images} productTitle={product.title} />
+            </section>
+
+            <section
+              className="order-4 lg:order-none lg:flex-1 lg:min-h-0 lg:flex lg:flex-col"
+              aria-label="Product description"
+            >
+              <ProductDescription
+                html={descriptionHtml}
+                productTitle={displayTitle}
+                collapsedHeight={360}
+                accentBorder
+                fillHeight
+              />
+            </section>
+          </div>
+
+          {/* Right column: summary + buy box (flex-1) + bullets */}
+          <div className="contents lg:col-span-5 lg:flex lg:flex-col lg:gap-6">
+            <section
+              className="order-1 mt-4 space-y-2 lg:order-none lg:mt-0"
+              aria-label="Product summary"
+            >
+              <h1 id="pdp-product-title" className="text-3xl font-bold text-gray-900">
+                {displayTitle}
+              </h1>
+              <ProductPageReviewBadge
+                productId={product.id}
+                productHandle={product.handle}
+                initialStats={reviewBadgeStats}
+              />
+              <ProductIdentifierMetaRow identifiers={identifiers} />
+            </section>
+
+            <section
+              className="order-3 lg:order-none lg:flex-1 lg:min-h-0 lg:flex lg:flex-col"
+              aria-label="Purchase options"
+            >
+              <div className="bg-surface rounded-2xl p-6 shadow-sm border border-black lg:flex-1">
+                <ProductBuyBox
+                  product={product}
+                  layout={styleMode === 'cro3' ? 'croTheme3' : 'croTrial'}
+                />
               </div>
-            </div>
-          </section>
+            </section>
 
-          <section className="order-2 lg:order-1 lg:col-span-7 lg:col-start-1 lg:row-start-1" aria-label="Product images">
-            <ProductImageGallery images={product.images} productTitle={product.title} />
-          </section>
-
-          <section className="order-3 lg:hidden" aria-label="Purchase options">
-            <div className="bg-surface rounded-2xl p-6 shadow-sm border border-black">
-              <ProductBuyBox product={product} layout={styleMode === 'cro3' ? 'croTheme3' : 'croTrial'} />
-            </div>
-          </section>
-
-          <section className="order-4 lg:order-3 lg:col-span-7 lg:row-start-2 lg:self-stretch" aria-label="Product description">
-            <ProductDescription
-              html={descriptionHtml}
-              productTitle={displayTitle}
-              collapsedHeight={360}
-              className="h-full"
-              accentBorder
-            />
-          </section>
-
-          <section className="order-5 lg:order-4 lg:col-span-5 lg:col-start-8 lg:row-start-2 lg:self-stretch" aria-label="Additional product highlights">
-            {featureHighlights.length > 0 ? (
-              <div className="h-full rounded-2xl border border-black bg-surface p-6 shadow-sm">
-                <FeatureHighlights featureHighlights={featureHighlights} />
-              </div>
+            {(featureHighlights.length > 0 || showArcEquineGelPromo) ? (
+              <section
+                className="order-5 space-y-4 lg:order-none lg:flex-shrink-0"
+                aria-label="Additional product highlights"
+              >
+                {featureHighlights.length > 0 && (
+                  <div className="rounded-2xl border border-black bg-surface p-6 shadow-sm">
+                    <FeatureHighlights featureHighlights={featureHighlights} />
+                  </div>
+                )}
+                {showArcEquineGelPromo && <ArcEquinePromo />}
+              </section>
             ) : null}
-            {showArcEquineGelPromo ? <ArcEquinePromo /> : null}
-          </section>
+          </div>
+
         </div>
       </article>
       {afterDescription}
