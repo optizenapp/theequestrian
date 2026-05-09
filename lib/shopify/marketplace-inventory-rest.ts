@@ -28,11 +28,15 @@ async function marketplaceFetch(path: string, init: RequestInit, label: string):
 
     lastResponse = response;
     const waitMs = retryDelayMs(response, attempt);
-    console.warn(
-      `[shopify-rest] Rate limited ${label} attempt ${attempt}/${MAX_SHOPIFY_RETRIES}; retrying in ${waitMs}ms`
-    );
+    // Keep logs audit-friendly: silently back off on transient rate limits.
+    // We only emit a log if all retries are exhausted.
     await response.text().catch(() => '');
     await sleep(waitMs);
+  }
+  if (lastResponse) {
+    console.error(
+      `[shopify-rest] Rate limited ${label}; exhausted ${MAX_SHOPIFY_RETRIES} retries`
+    );
   }
   return lastResponse!;
 }
