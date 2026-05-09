@@ -87,7 +87,7 @@ export default function ProductPdpCroTwoMain({
     <>
       <article aria-labelledby="pdp-product-title">
         <div className="grid grid-cols-1 items-start gap-y-8 lg:grid-cols-12 lg:gap-x-12">
-          <section className="order-1 mt-4 space-y-2 lg:col-span-5 lg:col-start-8 lg:mt-0" aria-label="Product summary">
+          <section className="order-1 mt-4 space-y-2 lg:col-span-5 lg:col-start-8 lg:row-start-1 lg:mt-0" aria-label="Product summary">
             <h1 id="pdp-product-title" className="text-3xl font-bold text-gray-900">
               {displayTitle}
             </h1>
@@ -100,7 +100,7 @@ export default function ProductPdpCroTwoMain({
             <FeatureHighlights featureHighlights={topHighlights} />
           </section>
 
-          <section className="order-2 lg:order-1 lg:col-span-7 lg:row-span-2" aria-label="Product images">
+          <section className="order-2 lg:order-1 lg:col-span-7 lg:col-start-1 lg:row-start-1 lg:row-span-2" aria-label="Product images">
             <ProductImageGallery images={product.images} productTitle={product.title} />
           </section>
 
