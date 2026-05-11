@@ -35,7 +35,6 @@ import { SizingGuideLink } from '@/components/product/SizingGuideLink';
 import { extractVideosFromHtml } from '@/lib/products/extract-videos';
 import { generateBreadcrumbSchema } from '@/lib/utils/breadcrumb-schema';
 import { generateProductSchemaGraph } from '@/lib/utils/product-schema';
-import { getReviewStatsWithCache } from '@/lib/reviews/get-review-stats';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { getAllowedBrandVendors } from '@/lib/filters/brand-filter-helper';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
@@ -221,16 +220,23 @@ async function renderProductPage(
     siteUrl
   );
 
-  // Fetch review stats for schema (server-side)
-  const reviewStats = await getReviewStatsWithCache(product.handle);
-  const reviewBadgeStats = reviewStats
-    ? {
-        total_reviews: reviewStats.reviewCount,
-        average_rating: reviewStats.averageRating,
-      }
-    : null;
+  // Use a single server source for both badge/reviews SSR and schema aggregateRating.
   const { reviews: initialReviews, stats: initialReviewStats } =
     await getProductReviewsWithStats(product.handle);
+  const reviewStats =
+    initialReviewStats.total_reviews > 0
+      ? {
+          reviewCount: initialReviewStats.total_reviews,
+          averageRating: initialReviewStats.average_rating,
+        }
+      : null;
+  const reviewBadgeStats =
+    initialReviewStats.total_reviews > 0
+      ? {
+          total_reviews: initialReviewStats.total_reviews,
+          average_rating: initialReviewStats.average_rating,
+        }
+      : null;
 
   // Resolve canonical brand + hub handle BEFORE schema so the Product schema's
   // brand entity links to /brands/[hub] and uses a stable @id.
