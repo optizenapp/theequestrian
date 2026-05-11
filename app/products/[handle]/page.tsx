@@ -393,6 +393,8 @@ export async function generateMetadata({ params }: ProductPageProps) {
       description,
       url: canonicalUrl,
       siteName: 'The Equestrian',
+      // Next's OpenGraph type union omits "product", but we still need the correct OG value.
+      type: 'product' as 'website',
       images: product.images.edges[0]?.node ? [
         {
           url: product.images.edges[0].node.url,

@@ -97,7 +97,8 @@ export function ProductImageGallery({ images, productTitle }: ProductImageGaller
                 fill
                 className="w-full h-full object-cover"
                 sizes="80px"
-                loading={index < 4 ? 'eager' : 'lazy'}
+                loading="lazy"
+                fetchPriority="low"
               />
             </button>
           ))}
