@@ -236,6 +236,38 @@ export async function ensureEmailPlatformSchema(): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_email_campaign_videos_status
     ON email_campaign_videos(status)
   `;
+  await sql`ALTER TABLE email_campaign_videos ADD COLUMN IF NOT EXISTS job_kind TEXT`;
+  await sql`
+    ALTER TABLE email_campaign_videos
+    ADD COLUMN IF NOT EXISTS job_payload JSONB NOT NULL DEFAULT '{}'::jsonb
+  `;
+  await sql`ALTER TABLE email_campaign_videos ADD COLUMN IF NOT EXISTS job_started_at TIMESTAMPTZ`;
+  await sql`ALTER TABLE email_campaign_videos ADD COLUMN IF NOT EXISTS worker_id TEXT`;
+  await sql`
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'email_campaign_videos_job_kind_check'
+          AND conrelid = 'email_campaign_videos'::regclass
+      ) THEN
+        ALTER TABLE email_campaign_videos DROP CONSTRAINT email_campaign_videos_job_kind_check;
+      END IF;
+      ALTER TABLE email_campaign_videos
+      ADD CONSTRAINT email_campaign_videos_job_kind_check
+        CHECK (
+          job_kind IS NULL OR job_kind IN ('create', 'regenerate', 'regenerate_music', 'regenerate_thumbnail')
+        );
+    EXCEPTION WHEN duplicate_object THEN
+      NULL;
+    END $$;
+  `;
+  await sql`
+    CREATE INDEX IF NOT EXISTS idx_email_campaign_videos_queue
+    ON email_campaign_videos(status, updated_at)
+    WHERE status = 'queued'
+  `;
 
   await sql`
     CREATE TABLE IF NOT EXISTS social_channel_credentials (
@@ -279,6 +311,111 @@ export async function ensureEmailPlatformSchema(): Promise<void> {
   await sql`
     CREATE INDEX IF NOT EXISTS idx_social_posts_campaign_video_id
     ON social_posts(campaign_video_id)
+  `;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS admin_social_posts (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      platform TEXT NOT NULL CHECK (platform IN ('facebook', 'instagram', 'youtube')),
+      post_kind TEXT NOT NULL DEFAULT 'text' CHECK (post_kind IN ('text', 'image', 'video')),
+      variant TEXT CHECK (variant IS NULL OR variant IN ('landscape_16_9', 'vertical_9_16')),
+      status TEXT NOT NULL DEFAULT 'draft'
+        CHECK (status IN ('draft', 'ready_for_review', 'publishing', 'published', 'publish_failed')),
+      content TEXT NOT NULL DEFAULT '',
+      title TEXT,
+      media_urls JSONB NOT NULL DEFAULT '[]'::jsonb,
+      source_url TEXT,
+      source_type TEXT NOT NULL DEFAULT 'manual',
+      external_post_id TEXT,
+      external_url TEXT,
+      error_message TEXT,
+      scheduled_for TIMESTAMPTZ,
+      published_at TIMESTAMPTZ,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
+
+  await sql`
+    CREATE INDEX IF NOT EXISTS idx_admin_social_posts_status
+    ON admin_social_posts(status, updated_at DESC)
+  `;
+
+  await sql`
+    CREATE INDEX IF NOT EXISTS idx_admin_social_posts_platform
+    ON admin_social_posts(platform, status)
+  `;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS admin_social_prompt_templates (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name TEXT NOT NULL UNIQUE,
+      description TEXT,
+      system_prompt TEXT NOT NULL,
+      user_prompt TEXT NOT NULL,
+      is_active BOOLEAN NOT NULL DEFAULT true,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
+
+  await sql`
+    INSERT INTO admin_social_prompt_templates (name, description, system_prompt, user_prompt)
+    VALUES (
+      'URL-context ecommerce social post',
+      'Generate one brand-safe social post from page context.',
+      'You are a social media specialist for The Equestrian, an Australian ecommerce retailer for horse riding gear, apparel, tack, and stable supplies. Write in Australian English. Use only supplied page facts. Do not invent prices, discounts, delivery claims, stock status, review counts, or product claims. Do not include the URL in the copy.',
+      'Create one platform-ready social post.\n\nPlatform: {{platform}}\nPage URL: {{sourceUrl}}\nPage title: {{sourceTitle}}\nPage description: {{sourceDescription}}\nPage context: {{sourceContent}}\n\nRequirements:\n- Explain what the product, collection, offer, or content page is about.\n- Keep the tone helpful, brand-safe, and conversion-aware without sounding spammy.\n- Include a natural call to action.\n- Return only the post text.'
+    )
+    ON CONFLICT (name) DO NOTHING
+  `;
+
+  await sql`
+    INSERT INTO admin_social_prompt_templates (name, description, system_prompt, user_prompt)
+    VALUES
+      (
+        'Product URL ecommerce promotion',
+        'Promote a product page using only extracted URL context.',
+        'You are a social media specialist for The Equestrian, an Australian ecommerce retailer for horse riding gear, apparel, tack, and stable supplies. Write product-promotion social copy in Australian English. Use only supplied page facts. Do not invent prices, discounts, delivery promises, stock status, review counts, materials, sizing, or performance claims. Do not include the URL in the copy.',
+        'Create one ecommerce product promotion post.\n\nPlatform: {{platform}}\nProduct URL: {{sourceUrl}}\nProduct page title: {{sourceTitle}}\nProduct page description: {{sourceDescription}}\nProduct page context: {{sourceContent}}\n\nRequirements:\n- Frame this as a specific product highlight, not a generic store ad.\n- Explain what the product appears to be and who it may suit, using only the context.\n- Mention practical buying motivation without pressure tactics.\n- Include a natural call to action.\n- If a product fact is missing, omit it.\n- Return only the post text.'
+      ),
+      (
+        'Category URL ecommerce promotion',
+        'Promote a category or collection page using extracted URL context.',
+        'You are a social media specialist for The Equestrian, an Australian ecommerce retailer for horse riding gear, apparel, tack, and stable supplies. Write category-promotion social copy in Australian English. Use only supplied page facts. Do not invent product ranges, prices, discounts, delivery promises, stock status, review counts, or claims. Do not include the URL in the copy.',
+        'Create one ecommerce category promotion post.\n\nPlatform: {{platform}}\nCategory URL: {{sourceUrl}}\nCategory page title: {{sourceTitle}}\nCategory page description: {{sourceDescription}}\nCategory page context: {{sourceContent}}\n\nRequirements:\n- Frame this as a collection/category shopping prompt.\n- Explain the category, use case, or rider need represented by the page.\n- Keep the tone useful and conversion-aware without sounding spammy.\n- Do not list products unless the context clearly names them.\n- Include a natural call to action to browse the category.\n- Return only the post text.'
+      ),
+      (
+        'Brand URL ecommerce promotion',
+        'Promote a brand page using extracted URL context.',
+        'You are a social media specialist for The Equestrian, an Australian ecommerce retailer for horse riding gear, apparel, tack, and stable supplies. Write brand-promotion social copy in Australian English. Use only supplied page facts. Do not invent brand history, endorsements, product claims, prices, discounts, stock status, or delivery promises. Do not include the URL in the copy.',
+        'Create one ecommerce brand promotion post.\n\nPlatform: {{platform}}\nBrand URL: {{sourceUrl}}\nBrand page title: {{sourceTitle}}\nBrand page description: {{sourceDescription}}\nBrand page context: {{sourceContent}}\n\nRequirements:\n- Frame this as a brand discovery or brand range post.\n- Explain what the brand page offers using only supplied context.\n- Keep the copy premium, helpful, and specific.\n- Avoid invented brand positioning or unsupported claims.\n- Include a natural call to action to explore the brand range.\n- Return only the post text.'
+      ),
+      (
+        'Facebook ecommerce promotion',
+        'Generate a Facebook-ready ecommerce promotion from URL context.',
+        'You are a Facebook ecommerce copywriter for The Equestrian, an Australian retailer for horse riding gear, apparel, tack, and stable supplies. Write clear, friendly Australian English. Use only supplied page facts. Do not invent prices, discounts, stock status, delivery promises, reviews, or product claims. Do not include the URL in the copy.',
+        'Create one Facebook post for an ecommerce promotion.\n\nPlatform: {{platform}}\nPage URL: {{sourceUrl}}\nPage title: {{sourceTitle}}\nPage description: {{sourceDescription}}\nPage context: {{sourceContent}}\n\nRequirements:\n- Start with a clear hook grounded in the page context.\n- Use 1 to 3 short paragraphs.\n- Make the post useful for riders, horse owners, or equestrian shoppers.\n- Include a natural call to action.\n- Hashtags are optional; use no more than 3 if helpful.\n- Return only the post text.'
+      ),
+      (
+        'Instagram ecommerce promotion',
+        'Generate an Instagram-ready ecommerce caption from URL context.',
+        'You are an Instagram ecommerce caption writer for The Equestrian, an Australian retailer for horse riding gear, apparel, tack, and stable supplies. Write concise, polished Australian English. Use only supplied page facts. Do not invent prices, discounts, stock status, delivery promises, reviews, or product claims. Do not include the URL in the copy.',
+        'Create one Instagram caption for an ecommerce promotion.\n\nPlatform: {{platform}}\nPage URL: {{sourceUrl}}\nPage title: {{sourceTitle}}\nPage description: {{sourceDescription}}\nPage context: {{sourceContent}}\n\nRequirements:\n- Write a caption that can pair with a product, category, or brand image.\n- Keep it concise and visually scannable.\n- Use a natural call to action, but remember Instagram caption URLs are not clickable.\n- Include 3 to 8 relevant hashtags only if they are grounded in the context.\n- Avoid hype, false urgency, or unsupported claims.\n- Return only the caption text.'
+      ),
+      (
+        'YouTube text ecommerce promotion',
+        'Generate a YouTube text/community-style ecommerce post from URL context.',
+        'You are a YouTube community post writer for The Equestrian, an Australian retailer for horse riding gear, apparel, tack, and stable supplies. Write concise, useful Australian English for riders and equestrian shoppers. Use only supplied page facts. Do not invent prices, discounts, stock status, delivery promises, reviews, or product claims. Do not include the URL in the copy.',
+        'Create one YouTube text/community-style ecommerce promotion.\n\nPlatform: {{platform}}\nPage URL: {{sourceUrl}}\nPage title: {{sourceTitle}}\nPage description: {{sourceDescription}}\nPage context: {{sourceContent}}\n\nRequirements:\n- Make the post suitable for a YouTube audience that follows equestrian content.\n- Use a strong first line, then a short explanation of why the page is useful.\n- Keep it under 900 characters.\n- Include a clear call to action.\n- Use no more than 3 hashtags.\n- Return only the post text.'
+      )
+    ON CONFLICT (name) DO UPDATE
+    SET description = EXCLUDED.description,
+        system_prompt = EXCLUDED.system_prompt,
+        user_prompt = EXCLUDED.user_prompt,
+        is_active = true,
+        updated_at = NOW()
   `;
 
   await sql`

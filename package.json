@@ -8,6 +8,8 @@
     "analyze": "ANALYZE=true npm run build -- --webpack",
     "start": "next start",
     "lint": "eslint",
+    "video-worker:start": "tsx services/video-worker/index.ts",
+    "video-worker:dev": "tsx watch services/video-worker/index.ts",
     "redirects:generate": "tsx scripts/generate-redirects.ts",
     "redirects:export:blogs": "tsx scripts/export-blog-redirects.ts",
     "redirects:validate": "tsx scripts/validate-redirects.ts",

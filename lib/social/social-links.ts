@@ -7,6 +7,10 @@ export const SOCIAL_LINKS = {
   youtube: 'https://www.youtube.com/channel/UCvcpt-fRaAY4PBavZicia1g',
 } as const;
 
+export const SOCIAL_HANDLES = {
+  instagram: '@theequestrianoz',
+} as const;
+
 export type SocialLinkKey = keyof typeof SOCIAL_LINKS;
 
 export function productUrl(handle: string): string {
@@ -26,7 +30,7 @@ export function categoryCollectionUrl(handle: string): string {
 
 export function buildFollowBlock(): string {
   return [
-    'Follow @theequestrian',
+    `Follow ${SOCIAL_HANDLES.instagram}`,
     `Instagram: ${SOCIAL_LINKS.instagram}`,
     `Facebook: ${SOCIAL_LINKS.facebook}`,
     `YouTube: ${SOCIAL_LINKS.youtube}`,

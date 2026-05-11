@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logEmailAudit } from '@/lib/email-platform/audit';
+import { enqueueCampaignVideoJob } from '@/lib/email-platform/videos/job-queue';
+import { shouldRunVideoInlineInLocal } from '@/lib/email-platform/videos/local-inline';
 import { createCampaignVideo } from '@/lib/email-platform/videos/service';
-import { startBackgroundCampaignVideoTask } from '@/lib/email-platform/videos/run-in-background';
 
 export async function POST(
   _request: NextRequest,
@@ -13,29 +14,35 @@ export async function POST(
     return NextResponse.json({ error: 'Missing campaign id' }, { status: 400 });
   }
   try {
-    await startBackgroundCampaignVideoTask({
-      campaignId: id,
-      label: 'regenerate',
-      task: async () => {
-        const result = await createCampaignVideo(id);
-        await logEmailAudit({
-          actor: 'admin',
-          action: 'campaign_video_regenerated',
-          entityType: 'email_campaign',
-          entityId: id,
-          payload: {
-            campaignName: result.campaignName,
-            status: result.status,
-            videoUrl: result.videoUrl,
-            thumbnailUrl: result.thumbnailUrl,
-          },
-        });
-      },
+    if (shouldRunVideoInlineInLocal()) {
+      const result = await createCampaignVideo(id);
+      await logEmailAudit({
+        actor: 'admin',
+        action: 'campaign_video_regenerated',
+        entityType: 'email_campaign',
+        entityId: id,
+        payload: {
+          campaignName: result.campaignName,
+          status: result.status,
+          videoUrl: result.videoUrl,
+          thumbnailUrl: result.thumbnailUrl,
+        },
+      });
+      return NextResponse.json({ ok: true, status: result.status, mode: 'inline' });
+    }
+
+    await enqueueCampaignVideoJob({ campaignId: id, jobKind: 'regenerate' });
+    await logEmailAudit({
+      actor: 'admin',
+      action: 'campaign_video_enqueued',
+      entityType: 'email_campaign',
+      entityId: id,
+      payload: { jobKind: 'regenerate' },
     });
-    return NextResponse.json({ ok: true, status: 'rendering' }, { status: 202 });
+    return NextResponse.json({ ok: true, status: 'queued' }, { status: 202 });
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to start regeneration' },
+      { error: error instanceof Error ? error.message : 'Failed to enqueue regeneration' },
       { status: 500 }
     );
   }

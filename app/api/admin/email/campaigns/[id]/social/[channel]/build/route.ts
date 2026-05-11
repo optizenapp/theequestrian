@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logEmailAudit } from '@/lib/email-platform/audit';
 import { parseSupportedChannel } from '@/lib/social/channel';
+import { buildMetaFallbackCopy } from '@/lib/social/copy/meta';
 import { buildYoutubeCopy } from '@/lib/social/copy/service';
 import type { SocialVariant } from '@/lib/social/copy/types';
 import { buildYoutubeCopyContext } from '@/lib/social/copy/youtube-context';
@@ -9,7 +10,12 @@ import { listSocialPosts, upsertSocialPost } from '@/lib/social/repository';
 
 function resolveVariants(channel: string): SocialVariant[] {
   if (channel === 'youtube') return ['landscape_16_9', 'vertical_9_16'];
+  if (channel === 'facebook' || channel === 'instagram') return ['vertical_9_16'];
   return ['landscape_16_9'];
+}
+
+function isMetaChannel(channel: string): channel is 'facebook' | 'instagram' {
+  return channel === 'facebook' || channel === 'instagram';
 }
 
 export async function POST(
@@ -40,16 +46,22 @@ export async function POST(
           status: 'ready_for_review',
           copyJson: copyResult.copy,
         });
+      } else if (isMetaChannel(channel)) {
+        const copyContext = buildYoutubeCopyContext(context, variant);
+        await upsertSocialPost({
+          campaignVideoId: context.campaignVideoId,
+          channel,
+          variant,
+          status: 'ready_for_review',
+          copyJson: buildMetaFallbackCopy(copyContext, channel),
+        });
       } else {
         await upsertSocialPost({
           campaignVideoId: context.campaignVideoId,
           channel,
           variant,
           status: 'ready_for_review',
-          copyJson: {
-            placeholder: true,
-            note: `${channel} publishing is not implemented yet.`,
-          },
+          copyJson: { variant, title: 'Coming soon', caption: `${channel} publishing is not implemented yet.` },
         });
       }
     }

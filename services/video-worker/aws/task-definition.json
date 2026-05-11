@@ -1,0 +1,58 @@
+{
+  "family": "theequestrian-video-worker",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "ephemeralStorage": { "sizeInGiB": 21 },
+  "runtimePlatform": {
+    "operatingSystemFamily": "LINUX",
+    "cpuArchitecture": "ARM64"
+  },
+  "executionRoleArn": "arn:aws:iam::ACCOUNT_ID:role/theequestrian-video-worker-execution",
+  "taskRoleArn": "arn:aws:iam::ACCOUNT_ID:role/theequestrian-video-worker-task",
+  "containerDefinitions": [
+    {
+      "name": "video-worker",
+      "image": "ACCOUNT_ID.dkr.ecr.ap-southeast-2.amazonaws.com/theequestrian-video-worker:latest",
+      "essential": true,
+      "stopTimeout": 120,
+      "environment": [
+        { "name": "NODE_ENV", "value": "production" },
+        { "name": "AWS_REGION", "value": "ap-southeast-2" },
+        { "name": "VIDEO_WORKER_POLL_MS", "value": "5000" },
+        { "name": "PUPPETEER_EXECUTABLE_PATH", "value": "/usr/bin/chromium" },
+        { "name": "HYPERFRAMES_BROWSER_PATH", "value": "/usr/bin/chromium" }
+      ],
+      "secrets": [
+        { "name": "POSTGRES_URL", "valueFrom": "arn:aws:ssm:ap-southeast-2:ACCOUNT_ID:parameter/theequestrian/video-worker/POSTGRES_URL" },
+        { "name": "DATABASE_URL", "valueFrom": "arn:aws:ssm:ap-southeast-2:ACCOUNT_ID:parameter/theequestrian/video-worker/DATABASE_URL" },
+        { "name": "OPENAI_API_KEY", "valueFrom": "arn:aws:ssm:ap-southeast-2:ACCOUNT_ID:parameter/theequestrian/video-worker/OPENAI_API_KEY" },
+        { "name": "ANTHROPIC_API_KEY", "valueFrom": "arn:aws:ssm:ap-southeast-2:ACCOUNT_ID:parameter/theequestrian/video-worker/ANTHROPIC_API_KEY" },
+        { "name": "ELEVENLABS_API_KEY", "valueFrom": "arn:aws:ssm:ap-southeast-2:ACCOUNT_ID:parameter/theequestrian/video-worker/ELEVENLABS_API_KEY" },
+        { "name": "ELEVENLABS_AU_FEMALE_VOICES", "valueFrom": "arn:aws:ssm:ap-southeast-2:ACCOUNT_ID:parameter/theequestrian/video-worker/ELEVENLABS_AU_FEMALE_VOICES" },
+        { "name": "ELEVENLABS_AU_MALE_VOICES", "valueFrom": "arn:aws:ssm:ap-southeast-2:ACCOUNT_ID:parameter/theequestrian/video-worker/ELEVENLABS_AU_MALE_VOICES" },
+        { "name": "EVOLINK_API_KEY", "valueFrom": "arn:aws:ssm:ap-southeast-2:ACCOUNT_ID:parameter/theequestrian/video-worker/EVOLINK_API_KEY" },
+        { "name": "AWS_ACCESS_KEY_ID", "valueFrom": "arn:aws:ssm:ap-southeast-2:ACCOUNT_ID:parameter/theequestrian/video-worker/AWS_ACCESS_KEY_ID" },
+        { "name": "AWS_SECRET_ACCESS_KEY", "valueFrom": "arn:aws:ssm:ap-southeast-2:ACCOUNT_ID:parameter/theequestrian/video-worker/AWS_SECRET_ACCESS_KEY" },
+        { "name": "AWS_ARTICLES_ACCESS_KEY_ID", "valueFrom": "arn:aws:ssm:ap-southeast-2:ACCOUNT_ID:parameter/theequestrian/video-worker/AWS_ARTICLES_ACCESS_KEY_ID" },
+        { "name": "AWS_ARTICLES_SECRET_ACCESS_KEY", "valueFrom": "arn:aws:ssm:ap-southeast-2:ACCOUNT_ID:parameter/theequestrian/video-worker/AWS_ARTICLES_SECRET_ACCESS_KEY" },
+        { "name": "AWS_ARTICLES_S3_BUCKET_NAME", "valueFrom": "arn:aws:ssm:ap-southeast-2:ACCOUNT_ID:parameter/theequestrian/video-worker/AWS_ARTICLES_S3_BUCKET_NAME" },
+        { "name": "SHOPIFY_ADMIN_ACCESS_TOKEN", "valueFrom": "arn:aws:ssm:ap-southeast-2:ACCOUNT_ID:parameter/theequestrian/video-worker/SHOPIFY_ADMIN_ACCESS_TOKEN" },
+        { "name": "SHOPIFY_STORE_DOMAIN", "valueFrom": "arn:aws:ssm:ap-southeast-2:ACCOUNT_ID:parameter/theequestrian/video-worker/SHOPIFY_STORE_DOMAIN" },
+        { "name": "SHOPIFY_STOREFRONT_ACCESS_TOKEN", "valueFrom": "arn:aws:ssm:ap-southeast-2:ACCOUNT_ID:parameter/theequestrian/video-worker/SHOPIFY_STOREFRONT_ACCESS_TOKEN" },
+        { "name": "NEXT_PUBLIC_SITE_URL", "valueFrom": "arn:aws:ssm:ap-southeast-2:ACCOUNT_ID:parameter/theequestrian/video-worker/NEXT_PUBLIC_SITE_URL" },
+        { "name": "SOCIAL_TOKEN_ENC_KEY", "valueFrom": "arn:aws:ssm:ap-southeast-2:ACCOUNT_ID:parameter/theequestrian/video-worker/SOCIAL_TOKEN_ENC_KEY" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/theequestrian-video-worker",
+          "awslogs-region": "ap-southeast-2",
+          "awslogs-stream-prefix": "worker",
+          "awslogs-create-group": "true"
+        }
+      }
+    }
+  ]
+}

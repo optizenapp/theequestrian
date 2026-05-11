@@ -20,6 +20,23 @@ export function resolveThumbnailUrl(
   return null;
 }
 
+export function resolveFrameThumbnailUrl(
+  renderConfig: RenderConfig,
+  variant: 'landscape_16_9' | 'vertical_9_16'
+): string | null {
+  if (!renderConfig || typeof renderConfig !== 'object') return null;
+  const variants = (renderConfig as Record<string, unknown>).variants;
+  if (!Array.isArray(variants)) return null;
+  for (const item of variants) {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) continue;
+    const entry = item as Record<string, unknown>;
+    if (String(entry.key || '') !== variant) continue;
+    const frame = typeof entry.thumbnailUrl === 'string' ? entry.thumbnailUrl.trim() : '';
+    return frame || null;
+  }
+  return null;
+}
+
 export async function uploadThumbnailToYoutube(
   accessToken: string,
   videoId: string,

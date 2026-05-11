@@ -27,6 +27,7 @@
       { href: '/admin/seo', label: 'SEO & GSC', icon: 'chart' },
       { href: '/admin/feeds', label: 'Marketing Feeds', icon: 'feed' },
       { href: '/admin/email', label: 'Email Campaigns', icon: 'email' },
+      { href: '/admin/social', label: 'Social Posting', icon: 'feed' },
       { href: '/admin/sms', label: 'SMS Campaigns', icon: 'sms' },
       { href: '/admin/ads', label: 'Ad Optimization', icon: 'ads' },
       { href: '/admin/reviews', label: 'Reviews', icon: 'reviews' },

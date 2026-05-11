@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { parseSupportedChannel } from '@/lib/social/channel';
 import { loadCampaignSocialContext } from '@/lib/social/campaign-context';
+import { publishToFacebook } from '@/lib/social/publishers/facebook';
+import { publishToInstagram } from '@/lib/social/publishers/instagram';
 import { publishToYoutube } from '@/lib/social/publishers/youtube';
 import { listSocialPosts, updateSocialPostStatus } from '@/lib/social/repository';
 
@@ -28,12 +30,15 @@ export async function POST(
       return NextResponse.json({ error: `No social post found for variant ${variant}` }, { status: 404 });
     }
 
-    if (channel !== 'youtube') {
-      return NextResponse.json({ error: `${channel} publishing not implemented yet` }, { status: 501 });
-    }
-
     await updateSocialPostStatus(target.id, 'publishing', { errorMessage: null });
-    const publishResult = await publishToYoutube(target.id);
+    const publishResult =
+      channel === 'youtube'
+        ? await publishToYoutube(target.id)
+        : channel === 'facebook'
+          ? await publishToFacebook(target.id)
+          : channel === 'instagram'
+            ? await publishToInstagram(target.id)
+            : { ok: false as const, error: `${channel} publishing not implemented yet` };
     if (!publishResult.ok) {
       return NextResponse.json({ error: publishResult.error }, { status: 500 });
     }
@@ -41,7 +46,8 @@ export async function POST(
       ok: true,
       postId: target.id,
       variant,
-      externalPostId: publishResult.videoId,
+      externalPostId:
+        'videoId' in publishResult ? publishResult.videoId : 'postId' in publishResult ? publishResult.postId : publishResult.mediaId,
       externalUrl: publishResult.url,
     });
   } catch (error) {

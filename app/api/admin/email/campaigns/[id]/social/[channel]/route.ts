@@ -78,6 +78,13 @@ function normalizePostForDisplay(
   };
 }
 
+function isVisibleForChannel(post: SocialPostRow): boolean {
+  if (post.channel === 'facebook' || post.channel === 'instagram') {
+    return post.variant === 'vertical_9_16';
+  }
+  return true;
+}
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<Record<string, string>> }
@@ -96,6 +103,7 @@ export async function GET(
     const siblings = extractPublishedSiblings(allPosts);
     const posts = allPosts
       .filter((p) => p.channel === channel)
+      .filter(isVisibleForChannel)
       .sort((a, b) => (a.variant === 'landscape_16_9' ? -1 : 1));
     return NextResponse.json({
       posts: posts.map((post) => normalizePostForDisplay(post, siblings, mode, hook)),
@@ -118,9 +126,6 @@ export async function PATCH(
     const body = (await request.json()) as { postId?: string; copy?: unknown };
     const postId = typeof body.postId === 'string' ? body.postId.trim() : '';
     if (!postId) return NextResponse.json({ error: 'postId is required' }, { status: 400 });
-    if (channel !== 'youtube') {
-      return NextResponse.json({ error: `${channel} copy editing is not implemented yet` }, { status: 501 });
-    }
     const copy = body.copy;
     const copyObject = copy && typeof copy === 'object' && !Array.isArray(copy)
       ? (copy as Record<string, unknown>)
@@ -131,6 +136,20 @@ export async function PATCH(
     const variantValue = typeof copyObject.variant === 'string' ? copyObject.variant : '';
     if (variantValue !== 'landscape_16_9' && variantValue !== 'vertical_9_16') {
       return NextResponse.json({ error: 'copy.variant must be landscape_16_9 or vertical_9_16' }, { status: 400 });
+    }
+    if (channel !== 'youtube') {
+      const title = typeof copyObject.title === 'string' ? copyObject.title.trim() : '';
+      const caption = typeof copyObject.caption === 'string' ? copyObject.caption.trim() : '';
+      if (!title || !caption) {
+        return NextResponse.json({ error: 'copy.title and copy.caption are required' }, { status: 400 });
+      }
+      const post = await updateSocialPostCopy(postId, {
+        ...copyObject,
+        title,
+        caption,
+        variant: variantValue,
+      });
+      return NextResponse.json({ ok: true, post });
     }
     const context = await loadCampaignSocialContext(campaignId);
     const mode = resolveVideoModeFromContext(context);

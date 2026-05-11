@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { parseSupportedChannel } from '@/lib/social/channel';
+import { buildMetaFallbackCopy } from '@/lib/social/copy/meta';
 import { buildYoutubeCopy } from '@/lib/social/copy/service';
 import type { SocialVariant } from '@/lib/social/copy/types';
 import { buildYoutubeCopyContext } from '@/lib/social/copy/youtube-context';
 import { loadCampaignSocialContext } from '@/lib/social/campaign-context';
 import { listSocialPosts, updateSocialPostCopy } from '@/lib/social/repository';
+
+function isMetaChannel(channel: string): channel is 'facebook' | 'instagram' {
+  return channel === 'facebook' || channel === 'instagram';
+}
 
 export async function POST(
   request: NextRequest,
@@ -17,10 +22,6 @@ export async function POST(
     if (!campaignId || !channel) {
       return NextResponse.json({ error: 'Invalid campaign id or channel' }, { status: 400 });
     }
-    if (channel !== 'youtube') {
-      return NextResponse.json({ error: `${channel} copy regeneration is not implemented yet` }, { status: 501 });
-    }
-
     const body = (await request.json()) as { variant?: string };
     const variant = typeof body.variant === 'string' ? body.variant : '';
     if (variant !== 'landscape_16_9' && variant !== 'vertical_9_16') {
@@ -35,9 +36,16 @@ export async function POST(
     }
 
     const copyContext = buildYoutubeCopyContext(context, variant as SocialVariant);
-    const copyResult = await buildYoutubeCopy(copyContext);
-    const post = await updateSocialPostCopy(target.id, copyResult.copy);
-    return NextResponse.json({ ok: true, post, source: copyResult.source, rejectionReason: copyResult.rejectionReason ?? null });
+    if (channel === 'youtube') {
+      const copyResult = await buildYoutubeCopy(copyContext);
+      const post = await updateSocialPostCopy(target.id, copyResult.copy);
+      return NextResponse.json({ ok: true, post, source: copyResult.source, rejectionReason: copyResult.rejectionReason ?? null });
+    }
+    if (!isMetaChannel(channel)) {
+      return NextResponse.json({ error: `${channel} copy regeneration is not implemented yet` }, { status: 501 });
+    }
+    const post = await updateSocialPostCopy(target.id, buildMetaFallbackCopy(copyContext, channel));
+    return NextResponse.json({ ok: true, post, source: 'fallback', rejectionReason: null });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to regenerate copy';
     return NextResponse.json({ error: message }, { status: 500 });
