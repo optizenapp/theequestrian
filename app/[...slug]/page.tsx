@@ -36,6 +36,7 @@ import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { getReviewStatsWithCache } from '@/lib/reviews/get-review-stats';
 import { cache } from 'react';
 import { ProductViewTracker } from '@/components/analytics/ProductViewTracker';
+import type { ShopifyBuyBoxProduct } from '@/types/shopify';
 
 export const revalidate = 300;
 
@@ -205,6 +206,16 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
   const firstAvailableVariant =
     resolvedProduct.variants.edges.find(({ node }) => node.availableForSale)?.node ??
     resolvedProduct.variants.edges[0]?.node;
+  const buyBoxProduct: ShopifyBuyBoxProduct = {
+    id: resolvedProduct.id,
+    title: resolvedProduct.title,
+    vendor: resolvedProduct.vendor,
+    productType: resolvedProduct.productType,
+    availableForSale: resolvedProduct.availableForSale,
+    priceRange: resolvedProduct.priceRange,
+    compareAtPriceRange: resolvedProduct.compareAtPriceRange,
+    variants: resolvedProduct.variants,
+  };
 
   return (
     <>
@@ -319,7 +330,7 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
             aria-label="Purchase options"
           >
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-gray-100">
-              <ProductBuyBox product={resolvedProduct} />
+              <ProductBuyBox product={buyBoxProduct} />
             </div>
           </section>
 

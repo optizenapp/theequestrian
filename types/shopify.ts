@@ -142,6 +142,22 @@ export interface ShopifyVariant {
   };
 }
 
+/**
+ * Minimal product shape required by buy-box/variant-selection client components.
+ * Keeping this intentionally narrow reduces RSC payload on PDP routes.
+ */
+export type ShopifyBuyBoxProduct = Pick<
+  ShopifyProduct,
+  | 'id'
+  | 'title'
+  | 'vendor'
+  | 'productType'
+  | 'availableForSale'
+  | 'priceRange'
+  | 'compareAtPriceRange'
+  | 'variants'
+>;
+
 export interface ShopifyCollection {
   id: string;
   handle: string;

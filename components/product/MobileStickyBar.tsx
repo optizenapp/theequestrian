@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ShopifyProduct } from '@/types/shopify';
 import type { ShopifyVariant } from '@/types/shopify';
 import { AddToCartButton } from './AddToCartButton';
 import { BuyNowButton } from './BuyNowButton';
@@ -9,7 +8,7 @@ import { BuyNowButton } from './BuyNowButton';
 import type { Ga4EcommerceItem } from '@/lib/analytics/ga4-ecommerce';
 
 interface MobileStickyBarProps {
-  product: ShopifyProduct;
+  productTitle: string;
   selectedVariant: ShopifyVariant | null | undefined;
   isAvailable: boolean;
   analyticsItem?: Ga4EcommerceItem | null;
@@ -28,7 +27,7 @@ interface MobileStickyBarProps {
  * Fixed at bottom of screen for easy access
  */
 export function MobileStickyBar({
-  product,
+  productTitle,
   selectedVariant,
   isAvailable,
   analyticsItem,
@@ -67,7 +66,7 @@ export function MobileStickyBar({
         isVisible ? 'translate-y-0' : 'translate-y-full'
       }`}
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-      aria-label={`${product.title} — quick add to cart`}
+      aria-label={`${productTitle} — quick add to cart`}
     >
       <div className="px-2 pt-2 pb-1 space-y-1">
         <div className="flex justify-center">

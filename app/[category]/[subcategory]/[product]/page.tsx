@@ -51,7 +51,7 @@ import ProductPdpCroTrialMain from '@/components/product/ProductPdpCroTrialMain'
 import ProductPdpCroTwoMain from '@/components/product/ProductPdpCroTwoMain';
 import ProductReviewSection from '@/components/reviews/ProductReviewSection';
 import type { Metadata } from 'next';
-import type { ShopifyProduct } from '@/types/shopify';
+import type { ShopifyBuyBoxProduct, ShopifyProduct } from '@/types/shopify';
 import { getManualRedirect } from '@/lib/redirects/manual';
 import { getProductOverrideByHandle, resolveProductHandleFromSlug } from '@/lib/content/product-overrides';
 import { buildProductSeoMetadata } from '@/lib/seo/product-metadata';
@@ -288,6 +288,16 @@ async function renderProductPage(
   const firstAvailableVariant =
     product.variants.edges.find(({ node }) => node.availableForSale)?.node ??
     product.variants.edges[0]?.node;
+  const buyBoxProduct: ShopifyBuyBoxProduct = {
+    id: product.id,
+    title: product.title,
+    vendor: product.vendor,
+    productType: product.productType,
+    availableForSale: product.availableForSale,
+    priceRange: product.priceRange,
+    compareAtPriceRange: product.compareAtPriceRange,
+    variants: product.variants,
+  };
 
   return (
     <div className="bg-background min-h-screen pb-20">
@@ -424,7 +434,7 @@ async function renderProductPage(
             aria-label="Purchase options"
           >
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-gray-100">
-              <ProductBuyBox product={product} />
+              <ProductBuyBox product={buyBoxProduct} />
             </div>
           </section>
 

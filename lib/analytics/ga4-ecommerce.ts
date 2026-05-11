@@ -20,8 +20,13 @@ export type Ga4EcommerceItem = {
   item_list_name?: string;
 };
 
+type Ga4ProductInput = Pick<
+  ShopifyProduct,
+  'id' | 'title' | 'vendor' | 'productType' | 'priceRange'
+>;
+
 export function buildGa4ItemFromProduct(
-  product: ShopifyProduct,
+  product: Ga4ProductInput,
   opts?: {
     variantId?: string;
     index?: number;

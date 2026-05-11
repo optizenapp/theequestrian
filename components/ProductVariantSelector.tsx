@@ -10,10 +10,10 @@
  * - Controlled component (receives selectedOptions and onOptionSelect)
  */
 
-import { ShopifyProduct } from '@/types/shopify';
+import type { ShopifyBuyBoxProduct } from '@/types/shopify';
 
 interface ProductVariantSelectorProps {
-  product: ShopifyProduct;
+  product: ShopifyBuyBoxProduct;
   selectedOptions: Record<string, string>;
   onOptionSelect: (optionName: string, value: string) => void;
   styleMode?: 'default' | 'croTheme3';

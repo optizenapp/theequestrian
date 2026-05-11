@@ -5,7 +5,7 @@ import { ProductDescription } from '@/components/product/ProductDescription';
 import ProductIdentifierMetaRow from '@/components/product/ProductIdentifierMetaRow';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
 import { getProductIdentifiers } from '@/lib/products/product-identifiers';
-import type { ShopifyProduct } from '@/types/shopify';
+import type { ShopifyBuyBoxProduct, ShopifyProduct } from '@/types/shopify';
 
 interface ReviewBadgeStats {
   total_reviews: number;
@@ -69,6 +69,16 @@ export default function ProductPdpCroTwoMain({
   brandHubHandle = null,
 }: ProductPdpCroTwoMainProps) {
   const identifiers = getProductIdentifiers(product, { canonicalBrand, brandHubHandle });
+  const buyBoxProduct: ShopifyBuyBoxProduct = {
+    id: product.id,
+    title: product.title,
+    vendor: product.vendor,
+    productType: product.productType,
+    availableForSale: product.availableForSale,
+    priceRange: product.priceRange,
+    compareAtPriceRange: product.compareAtPriceRange,
+    variants: product.variants,
+  };
 
   /*
    * Mobile: single flex-col, children ordered via order-N classes.
@@ -130,7 +140,7 @@ export default function ProductPdpCroTwoMain({
             >
               <div className="bg-surface rounded-2xl p-6 shadow-sm border border-black lg:flex-1">
                 <ProductBuyBox
-                  product={product}
+                  product={buyBoxProduct}
                   layout={styleMode === 'cro3' ? 'croTheme3' : 'croTrial'}
                 />
               </div>

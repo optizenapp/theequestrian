@@ -10,7 +10,7 @@ import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBa
 import { extractCareSectionPlainText } from '@/lib/products/extract-care-from-html';
 import { getProductIdentifiers } from '@/lib/products/product-identifiers';
 import { buildPdpSummaryLine } from '@/lib/products/pdp-summary-line';
-import type { ShopifyProduct } from '@/types/shopify';
+import type { ShopifyBuyBoxProduct, ShopifyProduct } from '@/types/shopify';
 
 interface ReviewBadgeStats {
   total_reviews: number;
@@ -45,6 +45,16 @@ export default function ProductPdpCroTrialMain({
   const croSummaryLine = buildPdpSummaryLine(descriptionHtml, displayTitle);
   const croCarePlain = extractCareSectionPlainText(descriptionHtml);
   const identifiers = getProductIdentifiers(product, { canonicalBrand, brandHubHandle });
+  const buyBoxProduct: ShopifyBuyBoxProduct = {
+    id: product.id,
+    title: product.title,
+    vendor: product.vendor,
+    productType: product.productType,
+    availableForSale: product.availableForSale,
+    priceRange: product.priceRange,
+    compareAtPriceRange: product.compareAtPriceRange,
+    variants: product.variants,
+  };
 
   return (
     <article aria-labelledby="pdp-product-title">
@@ -86,7 +96,7 @@ export default function ProductPdpCroTrialMain({
           aria-label="Purchase options"
         >
           <div className="bg-surface rounded-2xl p-6 shadow-sm border border-gray-100">
-            <ProductBuyBox product={product} layout="croTrial" />
+            <ProductBuyBox product={buyBoxProduct} layout="croTrial" />
           </div>
           <SizingGuideLink
             vendor={product.vendor}

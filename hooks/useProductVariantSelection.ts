@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import type { ShopifyProduct, ShopifyVariant } from '@/types/shopify';
+import type { ShopifyBuyBoxProduct, ShopifyVariant } from '@/types/shopify';
 
 function byPriceAsc(a: ShopifyVariant, b: ShopifyVariant): number {
   return parseFloat(a.price.amount) - parseFloat(b.price.amount);
@@ -14,13 +14,13 @@ function isOnSale(v: ShopifyVariant): boolean {
   );
 }
 
-function getVariantNodes(product: ShopifyProduct): ShopifyVariant[] {
+function getVariantNodes(product: ShopifyBuyBoxProduct): ShopifyVariant[] {
   const edges = product.variants?.edges;
   if (!Array.isArray(edges)) return [];
   return edges.map((edge) => edge.node);
 }
 
-function findBestDefaultVariant(product: ShopifyProduct): ShopifyVariant | undefined {
+function findBestDefaultVariant(product: ShopifyBuyBoxProduct): ShopifyVariant | undefined {
   const variants = getVariantNodes(product);
   if (variants.length === 0) return undefined;
   const inStock = variants.filter((v) => v.availableForSale);
@@ -37,7 +37,7 @@ function findBestDefaultVariant(product: ShopifyProduct): ShopifyVariant | undef
   return [...variants].sort(byPriceAsc)[0];
 }
 
-export function buildInitialSelectedOptions(product: ShopifyProduct): Record<string, string> {
+export function buildInitialSelectedOptions(product: ShopifyBuyBoxProduct): Record<string, string> {
   const variantToSelect = findBestDefaultVariant(product);
   if (!variantToSelect) return {};
   const initialOptions: Record<string, string> = {};
@@ -47,7 +47,7 @@ export function buildInitialSelectedOptions(product: ShopifyProduct): Record<str
   return initialOptions;
 }
 
-export function useProductVariantSelection(product: ShopifyProduct) {
+export function useProductVariantSelection(product: ShopifyBuyBoxProduct) {
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() =>
     buildInitialSelectedOptions(product)
   );

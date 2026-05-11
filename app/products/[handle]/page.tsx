@@ -36,6 +36,7 @@ import { buildProductSeoMetadata } from '@/lib/seo/product-metadata';
 import { cache } from 'react';
 import { ProductViewTracker } from '@/components/analytics/ProductViewTracker';
 import { getProductReviewsWithStats } from '@/lib/reviews/product-reviews';
+import type { ShopifyBuyBoxProduct } from '@/types/shopify';
 
 export const revalidate = 300;
 
@@ -191,6 +192,16 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
   const firstAvailableVariant =
     product.variants.edges.find(({ node }) => node.availableForSale)?.node ??
     product.variants.edges[0]?.node;
+  const buyBoxProduct: ShopifyBuyBoxProduct = {
+    id: product.id,
+    title: product.title,
+    vendor: product.vendor,
+    productType: product.productType,
+    availableForSale: product.availableForSale,
+    priceRange: product.priceRange,
+    compareAtPriceRange: product.compareAtPriceRange,
+    variants: product.variants,
+  };
 
   return (
     <div className="bg-background min-h-screen pb-20">
@@ -305,7 +316,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
             aria-label="Purchase options"
           >
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-gray-100">
-              <ProductBuyBox product={product} />
+              <ProductBuyBox product={buyBoxProduct} />
             </div>
           </section>
 

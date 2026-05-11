@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { ShopifyProduct } from '@/types/shopify';
+import type { ShopifyBuyBoxProduct } from '@/types/shopify';
 import { ProductVariantSelector } from '@/components/ProductVariantSelector';
 import { AddToCartButton } from './AddToCartButton';
 import { BuyNowButton } from './BuyNowButton';
@@ -12,7 +12,7 @@ import { buildGa4ItemFromProduct } from '@/lib/analytics/ga4-ecommerce';
 import { useProductVariantSelection } from '@/hooks/useProductVariantSelection';
 
 interface ProductBuyBoxProps {
-  product: ShopifyProduct;
+  product: ShopifyBuyBoxProduct;
   /** CRO PDP trial: accurate trust copy, sale %, trust under CTAs, sticky ATC-only. */
   layout?: 'default' | 'croTrial' | 'croTheme3';
 }
@@ -101,7 +101,7 @@ export function ProductBuyBox({ product, layout = 'default' }: ProductBuyBoxProp
       <ProductBuyBoxPostCta layout={layout} />
 
       <MobileStickyBar
-        product={product}
+        productTitle={product.title}
         selectedVariant={selectedVariant}
         isAvailable={isAvailable}
         analyticsItem={analyticsItem}
