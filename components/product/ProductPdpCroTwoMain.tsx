@@ -69,6 +69,7 @@ export default function ProductPdpCroTwoMain({
   brandHubHandle = null,
 }: ProductPdpCroTwoMainProps) {
   const identifiers = getProductIdentifiers(product, { canonicalBrand, brandHubHandle });
+  const galleryImages = product.images.edges.map(({ node }) => node);
   const buyBoxProduct: ShopifyBuyBoxProduct = {
     id: product.id,
     title: product.title,
@@ -100,7 +101,7 @@ export default function ProductPdpCroTwoMain({
           {/* Left column: image + description */}
           <div className="contents lg:col-span-7 lg:flex lg:flex-col lg:gap-8">
             <section className="order-2 lg:order-none" aria-label="Product images">
-              <ProductImageGallery images={product.images} productTitle={product.title} />
+              <ProductImageGallery images={galleryImages} productTitle={product.title} />
             </section>
 
             <section

@@ -24,6 +24,11 @@ export const metadata: Metadata = {
     url: `${siteUrl}/brands`,
     type: 'website',
   },
+  twitter: {
+    card: 'summary',
+    title: 'Shop Top Equestrian Brands | The Equestrian',
+    description: 'Browse our extensive collection of premium equestrian brands.',
+  },
 };
 
 export default async function BrandsIndexPage() {

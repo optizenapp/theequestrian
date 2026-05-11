@@ -322,7 +322,10 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
           </section>
 
           <section className="order-2 lg:order-none lg:col-span-7 lg:row-start-1 lg:row-span-2" aria-label="Product images">
-            <ProductImageGallery images={resolvedProduct.images} productTitle={resolvedProduct.title} />
+            <ProductImageGallery
+              images={resolvedProduct.images.edges.map(({ node }) => node)}
+              productTitle={resolvedProduct.title}
+            />
           </section>
 
           <section

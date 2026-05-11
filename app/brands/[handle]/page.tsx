@@ -50,6 +50,11 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
       type: 'website',
       siteName: 'The Equestrian',
     },
+    twitter: {
+      card: 'summary',
+      title,
+      description,
+    },
   };
 }
 

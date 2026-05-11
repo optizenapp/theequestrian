@@ -10,6 +10,10 @@ interface AuthorPageProps {
   }>;
 }
 
+function siteBaseUrl(): string {
+  return (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/+$/, '');
+}
+
 function slugToName(slug: string): string {
   return slug
     .split('-')
@@ -38,10 +42,26 @@ function generateAvatarColor(name: string): string {
 export async function generateMetadata({ params }: AuthorPageProps): Promise<Metadata> {
   const { slug } = await params;
   const authorName = slugToName(slug);
+  const canonical = `${siteBaseUrl()}/news/author/${slug}`;
+  const title = `Articles by ${authorName} | The Equestrian`;
+  const description = `Read all articles written by ${authorName}`;
 
   return {
-    title: `Articles by ${authorName} | The Equestrian`,
-    description: `Read all articles written by ${authorName}`,
+    title,
+    description,
+    alternates: { canonical },
+    openGraph: {
+      type: 'profile',
+      url: canonical,
+      title,
+      description,
+      siteName: 'The Equestrian',
+    },
+    twitter: {
+      card: 'summary',
+      title,
+      description,
+    },
   };
 }
 

@@ -13,16 +13,10 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-
-interface ImageEdge {
-  node: {
-    url: string;
-    altText: string | null;
-  };
-}
+import type { ShopifyImage } from '@/types/shopify';
 
 interface ProductImageGalleryProps {
-  images: { edges: ImageEdge[] };
+  images: ShopifyImage[];
   productTitle: string;
 }
 
@@ -51,8 +45,7 @@ function getShopifyImageUrl(url: string, size: string): string {
 
 export function ProductImageGallery({ images, productTitle }: ProductImageGalleryProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  
-  const imageList = images.edges.map(edge => edge.node);
+  const imageList = images;
   
   if (imageList.length === 0) {
     return (

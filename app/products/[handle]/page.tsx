@@ -308,7 +308,10 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
           </section>
 
           <section className="order-2 lg:order-none lg:col-span-7 lg:row-start-1 lg:row-span-2" aria-label="Product images">
-            <ProductImageGallery images={product.images} productTitle={product.title} />
+            <ProductImageGallery
+              images={product.images.edges.map(({ node }) => node)}
+              productTitle={product.title}
+            />
           </section>
 
           <section

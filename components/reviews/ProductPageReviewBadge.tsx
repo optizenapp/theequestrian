@@ -44,15 +44,15 @@ export function ProductPageReviewBadge({ productId, productHandle, initialStats 
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 text-sm animate-pulse">
-        <div className="h-4 w-24 bg-gray-200 rounded"></div>
+      <div className="flex min-h-5 items-center gap-2 text-sm animate-pulse">
+        <div className="h-4 w-28 rounded bg-gray-200"></div>
       </div>
     );
   }
 
   if (!stats || stats.total_reviews === 0) {
     return (
-      <div className="flex items-center gap-2 text-sm text-gray-500">
+      <div className="flex min-h-5 items-center gap-2 text-sm text-gray-500">
         <span>No reviews yet</span>
       </div>
     );
@@ -61,7 +61,7 @@ export function ProductPageReviewBadge({ productId, productHandle, initialStats 
   const averageRating = Number(stats.average_rating) || 0;
 
   return (
-    <div className="flex items-center gap-2 text-sm">
+    <div className="flex min-h-5 items-center gap-2 text-sm">
       <ReviewStars rating={averageRating} size="sm" />
       <span className="text-gray-500 hover:underline cursor-pointer">
         {averageRating.toFixed(1)} ({stats.total_reviews} {stats.total_reviews === 1 ? 'review' : 'reviews'})
