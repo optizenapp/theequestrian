@@ -54,26 +54,54 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
   }
 
-  runAsync(async () => {
-    try {
-      if (topic === 'inventory_levels/update') {
+  // Keep inventory async for fast acknowledgement, but run product status topics
+  // inline so failures return non-2xx and Shopify retries automatically.
+  if (topic === 'inventory_levels/update') {
+    runAsync(async () => {
+      try {
         await processVendorInventoryLevelsWebhook(shop, rawBody);
-      } else if (topic === 'products/update') {
-        await processVendorProductCreateWebhook(shop, rawBody);
-        await processVendorProductUpdateWebhook(shop, rawBody);
-        await processVendorProductStatusWebhook(shop, rawBody, topic);
-      } else if (topic === 'products/create') {
-        await processVendorProductCreateWebhook(shop, rawBody);
-        await processVendorProductStatusWebhook(shop, rawBody, topic);
-      } else if (topic === 'products/delete') {
-        await processVendorProductStatusWebhook(shop, rawBody, topic);
-      } else {
-        console.log('[vendor-sync] ignored topic', topic, shop);
+      } catch (e) {
+        console.error('[vendor-sync] async error', topic, shop, e);
       }
-    } catch (e) {
-      console.error('[vendor-sync] async error', topic, shop, e);
+    });
+    return NextResponse.json({ ok: true, accepted: true, topic, shop });
+  }
+
+  try {
+    if (topic === 'products/update') {
+      await processVendorProductCreateWebhook(shop, rawBody);
+      await processVendorProductUpdateWebhook(shop, rawBody);
+      const statusResult = await processVendorProductStatusWebhook(shop, rawBody, topic);
+      if (!statusResult.ok) {
+        return NextResponse.json(
+          { ok: false, topic, shop, error: statusResult.detail ?? 'status_sync_failed' },
+          { status: 500 }
+        );
+      }
+    } else if (topic === 'products/create') {
+      await processVendorProductCreateWebhook(shop, rawBody);
+      const statusResult = await processVendorProductStatusWebhook(shop, rawBody, topic);
+      if (!statusResult.ok) {
+        return NextResponse.json(
+          { ok: false, topic, shop, error: statusResult.detail ?? 'status_sync_failed' },
+          { status: 500 }
+        );
+      }
+    } else if (topic === 'products/delete') {
+      const statusResult = await processVendorProductStatusWebhook(shop, rawBody, topic);
+      if (!statusResult.ok) {
+        return NextResponse.json(
+          { ok: false, topic, shop, error: statusResult.detail ?? 'status_sync_failed' },
+          { status: 500 }
+        );
+      }
+    } else {
+      console.log('[vendor-sync] ignored topic', topic, shop);
     }
-  });
+  } catch (e) {
+    console.error('[vendor-sync] sync error', topic, shop, e);
+    return NextResponse.json({ ok: false, topic, shop, error: 'processing_failed' }, { status: 500 });
+  }
 
   return NextResponse.json({ ok: true, accepted: true, topic, shop });
 }

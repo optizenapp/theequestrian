@@ -105,6 +105,7 @@ export async function processVendorProductStatusWebhook(
   }
 
   let updated = 0;
+  let failed = 0;
   for (const mpId of marketplaceProductIds) {
     await upsertVendorProductStatus({
       vendorConnectionId: connection.id,
@@ -140,6 +141,7 @@ export async function processVendorProductStatusWebhook(
         }
       }
     } catch (e) {
+      failed += 1;
       console.error(
         '[vendor-sync] status apply failed',
         shopDomain,
@@ -150,5 +152,8 @@ export async function processVendorProductStatusWebhook(
     }
   }
 
+  if (failed > 0) {
+    return { ok: false, detail: 'status_apply_failed', productsUpdated: updated };
+  }
   return { ok: true, productsUpdated: updated };
 }
