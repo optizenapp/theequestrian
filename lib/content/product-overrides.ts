@@ -30,6 +30,7 @@ export const PRODUCT_OVERRIDES_CACHE_TAG = 'product-content-overrides';
 
 /** TTL for the Data Cache entries — overrides rarely change outside enrichment runs. */
 const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24h; busted on write via revalidateTag
+const OVERRIDES_BATCH_SIZE = 100;
 
 const SELECT_COLUMNS = `
   product_handle,
@@ -90,16 +91,21 @@ export async function getProductOverridesByHandles(handles: string[]) {
   if (unique.length === 0) return new Map<string, ProductContentOverride>();
 
   const sorted = [...unique].sort(); // stable cache key regardless of call order
-  let rows: ProductContentOverride[];
-  try {
-    rows = await unstable_cache(
-      () => fetchOverridesByHandles(sorted),
-      ['product-overrides-batch', ...sorted],
-      { tags: [PRODUCT_OVERRIDES_CACHE_TAG], revalidate: CACHE_TTL_SECONDS }
-    )();
-  } catch {
-    // Fallback for script contexts where Next incremental cache is unavailable.
-    rows = await fetchOverridesByHandles(sorted);
+  const rows: ProductContentOverride[] = [];
+  for (let i = 0; i < sorted.length; i += OVERRIDES_BATCH_SIZE) {
+    const batch = sorted.slice(i, i + OVERRIDES_BATCH_SIZE);
+    try {
+      const batchRows = await unstable_cache(
+        () => fetchOverridesByHandles(batch),
+        ['product-overrides-batch', ...batch],
+        { tags: [PRODUCT_OVERRIDES_CACHE_TAG], revalidate: CACHE_TTL_SECONDS }
+      )();
+      rows.push(...batchRows);
+    } catch {
+      // Fallback for script contexts where Next incremental cache is unavailable.
+      const batchRows = await fetchOverridesByHandles(batch);
+      rows.push(...batchRows);
+    }
   }
 
   const map = new Map<string, ProductContentOverride>();

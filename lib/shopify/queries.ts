@@ -464,6 +464,80 @@ export const GET_PRODUCTS_BY_QUERY = `
   }
 `;
 
+export const GET_RECOMMENDED_PRODUCTS_BY_QUERY = `
+  query GetRecommendedProductsByQuery($query: String!, $first: Int = 50, $after: String) {
+    products(first: $first, after: $after, query: $query) {
+      edges {
+        node {
+          id
+          handle
+          title
+          availableForSale
+          productType
+          vendor
+          tags
+          priceRange {
+            minVariantPrice {
+              amount
+              currencyCode
+            }
+            maxVariantPrice {
+              amount
+              currencyCode
+            }
+          }
+          compareAtPriceRange {
+            minVariantPrice {
+              amount
+              currencyCode
+            }
+            maxVariantPrice {
+              amount
+              currencyCode
+            }
+          }
+          images(first: 1) {
+            edges {
+              node {
+                url
+                altText
+                width
+                height
+              }
+            }
+          }
+          variants(first: 10) {
+            edges {
+              node {
+                id
+                title
+                availableForSale
+                price {
+                  amount
+                  currencyCode
+                }
+                compareAtPrice {
+                  amount
+                  currencyCode
+                }
+                selectedOptions {
+                  name
+                  value
+                }
+              }
+            }
+          }
+        }
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        endCursor
+      }
+    }
+  }
+`;
+
 export const GET_ALL_COLLECTIONS = `
   query GetAllCollections($first: Int = 100) {
     collections(first: $first) {

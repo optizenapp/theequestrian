@@ -1,6 +1,12 @@
 import { shopifyFetch } from './client';
 import { shopifyAdminFetch } from './admin-client';
-import { GET_PRODUCT_BY_HANDLE, GET_PRODUCT_BY_ID, GET_ALL_PRODUCTS, GET_PRODUCTS_BY_QUERY } from './queries';
+import {
+  GET_PRODUCT_BY_HANDLE,
+  GET_PRODUCT_BY_ID,
+  GET_ALL_PRODUCTS,
+  GET_PRODUCTS_BY_QUERY,
+  GET_RECOMMENDED_PRODUCTS_BY_QUERY,
+} from './queries';
 import { normalizeColor, isColorValue } from '@/lib/utils/product-options';
 import { getProductAllocationByHandle, getProductAllocationByProductId, getProductAllocationMapByProductIds } from '@/lib/db/product-allocations';
 import { CATEGORY_PRODUCTS_CACHE_MS } from '@/lib/config/collection-cache';
@@ -679,7 +685,7 @@ export async function getRecommendedProducts(limit: number = 4, productType?: st
 
       while (hasNextPage && pages < maxPages && collected.length < limit) {
         const data: ProductsResponse = await shopifyFetch<ProductsResponse>({
-          query: GET_PRODUCTS_BY_QUERY,
+          query: GET_RECOMMENDED_PRODUCTS_BY_QUERY,
           variables: {
             query: query || '',
             first: 50,
