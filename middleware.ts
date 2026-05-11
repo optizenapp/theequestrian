@@ -15,6 +15,7 @@ const goneResponse = () =>
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const decodedPath = decodeURIComponent(pathname);
+  const searchParams = request.nextUrl.searchParams;
 
   // Keep SES SNS webhook requests untouched so AWS delivery is never redirected.
   if (pathname === '/api/webhooks/aws/ses-sns') {
@@ -131,11 +132,30 @@ export function middleware(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-request-path', pathname);
 
-  return NextResponse.next({
+  const noindexParamKeys = new Set([
+    'brand',
+    'variant',
+    'size',
+    'price',
+    'color',
+    'colour',
+    'sort',
+    'sort_by',
+    'page',
+    'filter',
+  ]);
+  const shouldNoindexQueryPage = Array.from(searchParams.keys()).some((key) =>
+    noindexParamKeys.has(key.toLowerCase())
+  );
+  const response = NextResponse.next({
     request: {
       headers: requestHeaders,
     },
   });
+  if (shouldNoindexQueryPage) {
+    response.headers.set('X-Robots-Tag', 'noindex, follow');
+  }
+  return response;
 }
 
 export const config = {

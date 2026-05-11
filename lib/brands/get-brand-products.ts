@@ -272,7 +272,7 @@ async function fetchBrandProductsFast(
 
     sql.unsafe(`
       SELECT
-        p.id, p.handle, p.title, p.description,
+        p.id, p.handle, p.title,
         p.vendor, p.brand, p.product_type, p.tags,
         p.image_url, p.image_alt,
         p.available_for_sale, p.shopify_created_at,
@@ -409,7 +409,7 @@ async function fetchBrandProductsInMemory(
 ): Promise<ReturnType<typeof getBrandProductsFromDb>> {
   const rowsResult = await sql.unsafe(`
     SELECT
-      p.id, p.handle, p.title, p.description,
+      p.id, p.handle, p.title,
       p.vendor, p.brand, p.product_type, p.tags,
       p.image_url, p.image_alt,
       p.available_for_sale, p.shopify_created_at,

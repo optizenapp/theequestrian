@@ -667,10 +667,8 @@ export async function getRecommendedProducts(limit: number = 4, productType?: st
     };
     const collectWithPagination = async ({
       query,
-      fallbackAllProducts,
     }: {
       query?: string;
-      fallbackAllProducts?: boolean;
     }): Promise<ShopifyProduct[]> => {
       const collected: ShopifyProduct[] = [];
       const seenIds = new Set<string>();
@@ -680,19 +678,14 @@ export async function getRecommendedProducts(limit: number = 4, productType?: st
       const maxPages = 5;
 
       while (hasNextPage && pages < maxPages && collected.length < limit) {
-        const data: ProductsResponse = fallbackAllProducts
-          ? await shopifyFetch<ProductsResponse>({
-              query: GET_ALL_PRODUCTS,
-              variables: { first: 50, after: cursor },
-            })
-          : await shopifyFetch<ProductsResponse>({
-              query: GET_PRODUCTS_BY_QUERY,
-              variables: {
-                query: query || '',
-                first: 50,
-                after: cursor,
-              },
-            });
+        const data: ProductsResponse = await shopifyFetch<ProductsResponse>({
+          query: GET_PRODUCTS_BY_QUERY,
+          variables: {
+            query: query || '',
+            first: 50,
+            after: cursor,
+          },
+        });
 
         const pageProducts = data.products?.edges?.map(({ node }) => node) || [];
         const filteredPageProducts = await applyRelatedFilters(pageProducts);
@@ -725,7 +718,7 @@ export async function getRecommendedProducts(limit: number = 4, productType?: st
     if (products.length === 0) {
       console.log(`[getRecommendedProducts] Fallback: Fetching latest products`);
       products = await collectWithPagination({
-        fallbackAllProducts: true,
+        query: '',
       });
     }
 
@@ -1271,7 +1264,7 @@ export async function getProductsByCategory(
                     currencyCode
                   }
                 }
-                images(first: 10) {
+                images(first: 1) {
                   edges {
                     node {
                       url
