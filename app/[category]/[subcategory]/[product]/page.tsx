@@ -307,7 +307,12 @@ async function renderProductPage(
         />
 
         <ProductViewTracker
-          product={product}
+          productId={product.id}
+          productTitle={product.title}
+          productVendor={product.vendor}
+          productType={product.productType}
+          productPriceAmount={product.priceRange.minVariantPrice.amount}
+          productPriceCurrencyCode={product.priceRange.minVariantPrice.currencyCode}
           displayTitle={displayTitle}
           defaultVariantId={firstAvailableVariant?.id}
           defaultVariantPrice={

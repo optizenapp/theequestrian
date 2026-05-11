@@ -1,11 +1,15 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { buildGa4ItemFromProduct, trackViewItem } from '@/lib/analytics/ga4-ecommerce';
-import type { ShopifyProduct } from '@/types/shopify';
+import { stripShopifyGid, trackViewItem } from '@/lib/analytics/ga4-ecommerce';
 
 type ProductViewTrackerProps = {
-  product: ShopifyProduct;
+  productId: string;
+  productTitle: string;
+  productVendor: string;
+  productType: string;
+  productPriceAmount: string;
+  productPriceCurrencyCode: string;
   displayTitle: string;
   defaultVariantId?: string;
   defaultVariantPrice?: number;
@@ -13,7 +17,12 @@ type ProductViewTrackerProps = {
 
 /** Fires GA4 `view_item` once on mount (PDP). */
 export function ProductViewTracker({
-  product,
+  productId,
+  productTitle,
+  productVendor,
+  productType,
+  productPriceAmount,
+  productPriceCurrencyCode,
   displayTitle,
   defaultVariantId,
   defaultVariantPrice,
@@ -24,16 +33,20 @@ export function ProductViewTracker({
     if (fired.current) return;
     fired.current = true;
 
-    const currency = product.priceRange?.minVariantPrice?.currencyCode || 'AUD';
+    const currency = productPriceCurrencyCode || 'AUD';
     const price =
       defaultVariantPrice ??
-      parseFloat(product.priceRange?.minVariantPrice?.amount || '0');
+      parseFloat(productPriceAmount || '0');
 
-    const item = buildGa4ItemFromProduct(product, {
-      variantId: defaultVariantId,
-      priceOverride: price,
-      itemNameOverride: displayTitle,
-    });
+    const item = {
+      item_id: stripShopifyGid(productId),
+      item_name: displayTitle || productTitle,
+      item_brand: productVendor || undefined,
+      item_category: productType || undefined,
+      ...(defaultVariantId ? { item_variant: stripShopifyGid(defaultVariantId) } : {}),
+      price,
+      quantity: 1,
+    };
 
     trackViewItem({
       currency,

@@ -225,7 +225,12 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
         />
 
         <ProductViewTracker
-          product={resolvedProduct}
+          productId={resolvedProduct.id}
+          productTitle={resolvedProduct.title}
+          productVendor={resolvedProduct.vendor}
+          productType={resolvedProduct.productType}
+          productPriceAmount={resolvedProduct.priceRange.minVariantPrice.amount}
+          productPriceCurrencyCode={resolvedProduct.priceRange.minVariantPrice.currencyCode}
           displayTitle={displayTitle}
           defaultVariantId={firstAvailableVariant?.id}
           defaultVariantPrice={
