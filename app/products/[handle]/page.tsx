@@ -36,6 +36,7 @@ import { getProductOverrideByHandle, resolveProductHandleFromSlug } from '@/lib/
 import { buildProductSeoMetadata } from '@/lib/seo/product-metadata';
 import { cache } from 'react';
 import { ProductViewTracker } from '@/components/analytics/ProductViewTracker';
+import { getProductReviewsWithStats } from '@/lib/reviews/product-reviews';
 
 export const revalidate = 300;
 
@@ -132,6 +133,8 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
         average_rating: reviewStats.averageRating,
       }
     : null;
+  const { reviews: initialReviews, stats: initialReviewStats } =
+    await getProductReviewsWithStats(product.handle);
 
   // Resolve canonical brand + hub handle BEFORE schema so the Product schema's
   // brand entity links to /brands/[hub] (not a slugified vendor guess) and uses
@@ -231,6 +234,8 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
             productId={product.id}
             productHandle={product.handle}
             productTitle={product.title}
+            initialReviews={initialReviews}
+            initialStats={initialReviewStats}
           />
         </ProductPdpCroTrialMain>
       ) : isCroTwoPdp || isCroThreePdp ? (
@@ -315,6 +320,8 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
             productId={product.id}
             productHandle={product.handle}
             productTitle={product.title}
+            initialReviews={initialReviews}
+            initialStats={initialReviewStats}
           />
         ) : null}
 

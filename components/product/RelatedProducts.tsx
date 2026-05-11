@@ -78,34 +78,23 @@ export function RelatedProducts({
         </h2>
       </div>
       
-      {isVisible ? (
-        <ul className="flex flex-wrap justify-center gap-6 list-none p-0 m-0">
-          {products.map((product, index) => (
-            <li
-              key={product.id}
-              className="w-full sm:w-[calc(50%-0.75rem)] lg:w-[calc(25%-1.125rem)] min-h-0"
-            >
-              <ProductCard
-                product={product}
-                canonicalUrl={productHrefByHandle?.[product.handle]}
-                reviewStats={reviewStatsMap?.[product.handle]}
-                itemListId={analyticsListId}
-                itemListName={listName}
-                itemIndex={index}
-              />
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <div className="flex flex-wrap justify-center gap-6">
-          {products.map((product) => (
-            <div
-              key={product.id}
-              className="h-80 w-full sm:w-[calc(50%-0.75rem)] lg:w-[calc(25%-1.125rem)] bg-gray-100 animate-pulse rounded-lg"
+      <ul className="flex flex-wrap justify-center gap-6 list-none p-0 m-0">
+        {products.map((product, index) => (
+          <li
+            key={product.id}
+            className="w-full sm:w-[calc(50%-0.75rem)] lg:w-[calc(25%-1.125rem)] min-h-0"
+          >
+            <ProductCard
+              product={product}
+              canonicalUrl={productHrefByHandle?.[product.handle]}
+              reviewStats={reviewStatsMap?.[product.handle]}
+              itemListId={analyticsListId}
+              itemListName={listName}
+              itemIndex={index}
             />
-          ))}
-        </div>
-      )}
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

@@ -1,6 +1,5 @@
 import { notFound, permanentRedirect, redirect } from 'next/navigation';
 import { Suspense } from 'react';
-import dynamicImport from 'next/dynamic';
 import { getProductsByCategoryForCollectionPage } from '@/lib/shopify/category-collection-fetch';
 import {
   getProductByHandle,
@@ -51,7 +50,7 @@ import {
 } from '@/lib/products/pdp-cro-trial';
 import ProductPdpCroTrialMain from '@/components/product/ProductPdpCroTrialMain';
 import ProductPdpCroTwoMain from '@/components/product/ProductPdpCroTwoMain';
-import { LazySection } from '@/components/LazySection';
+import ProductReviewSection from '@/components/reviews/ProductReviewSection';
 import type { Metadata } from 'next';
 import type { ShopifyProduct } from '@/types/shopify';
 import { getManualRedirect } from '@/lib/redirects/manual';
@@ -60,14 +59,7 @@ import { buildProductSeoMetadata } from '@/lib/seo/product-metadata';
 import { cache } from 'react';
 import { ProductViewTracker } from '@/components/analytics/ProductViewTracker';
 import { ProductGridSkeleton } from '@/components/filters/ProductGridSkeleton';
-
-// Lazy load heavy below-the-fold components to improve LCP
-const ProductReviewSection = dynamicImport(
-  () => import('@/components/reviews/ProductReviewSection'),
-  {
-    loading: () => <div className="h-96 bg-gray-50 animate-pulse rounded-lg" />,
-  }
-);
+import { getProductReviewsWithStats } from '@/lib/reviews/product-reviews';
 
 export const revalidate = 172800;
 export const preferredRegion = 'syd1';
@@ -237,6 +229,8 @@ async function renderProductPage(
         average_rating: reviewStats.averageRating,
       }
     : null;
+  const { reviews: initialReviews, stats: initialReviewStats } =
+    await getProductReviewsWithStats(product.handle);
 
   // Resolve canonical brand + hub handle BEFORE schema so the Product schema's
   // brand entity links to /brands/[hub] and uses a stable @id.
@@ -333,17 +327,13 @@ async function renderProductPage(
               />
             }
           >
-            <LazySection
-              fallback={<div className="h-96 bg-gray-50 animate-pulse rounded-lg" />}
-              minHeight="24rem"
-              rootMargin="300px"
-            >
-              <ProductReviewSection
-                productId={product.id}
-                productHandle={product.handle}
-                productTitle={product.title}
-              />
-            </LazySection>
+            <ProductReviewSection
+              productId={product.id}
+              productHandle={product.handle}
+              productTitle={product.title}
+              initialReviews={initialReviews}
+              initialStats={initialReviewStats}
+            />
           </ProductPdpCroTrialMain>
         ) : isCroTwoPdp || isCroThreePdp ? (
           <ProductPdpCroTwoMain
@@ -453,17 +443,13 @@ async function renderProductPage(
         )}
         
         {!isCroTrialPdp ? (
-          <LazySection
-            fallback={<div className="h-96 bg-gray-50 animate-pulse rounded-lg" />}
-            minHeight="24rem"
-            rootMargin="300px"
-          >
-            <ProductReviewSection
-              productId={product.id}
-              productHandle={product.handle}
-              productTitle={product.title}
-            />
-          </LazySection>
+          <ProductReviewSection
+            productId={product.id}
+            productHandle={product.handle}
+            productTitle={product.title}
+            initialReviews={initialReviews}
+            initialStats={initialReviewStats}
+          />
         ) : null}
 
         {/* Related Products - Already has intersection observer built-in */}

@@ -39,21 +39,29 @@ interface ProductReviewSectionProps {
   productId: string;
   productHandle: string;
   productTitle: string;
+  initialReviews?: Review[];
+  initialStats?: ReviewStats | null;
 }
 
 export default function ProductReviewSection({
   productId,
   productHandle,
   productTitle,
+  initialReviews = [],
+  initialStats = null,
 }: ProductReviewSectionProps) {
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [stats, setStats] = useState<ReviewStats | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [reviews, setReviews] = useState<Review[]>(initialReviews);
+  const [stats, setStats] = useState<ReviewStats | null>(initialStats);
+  const [isLoading, setIsLoading] = useState(!initialStats);
   const [filterRating, setFilterRating] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<'recent' | 'helpful' | 'rating'>('recent');
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
+    if (initialStats) {
+      return;
+    }
+
     async function fetchReviews() {
       try {
         // Use productHandle to fetch reviews (since imported reviews use handle as key)
@@ -71,7 +79,7 @@ export default function ProductReviewSection({
     }
 
     fetchReviews();
-  }, [productHandle]);
+  }, [productHandle, initialStats]);
 
   // Filter and sort reviews
   const filteredReviews = reviews
