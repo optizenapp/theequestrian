@@ -2,6 +2,8 @@
  * Marketplace Shopify Admin REST: set inventory levels (source of truth for checkout).
  */
 
+import { throttleMarketplaceRestCall } from './shopify-rest-throttle';
+
 const API_VERSION = '2025-01';
 const MAX_SHOPIFY_RETRIES = 6;
 
@@ -20,7 +22,10 @@ function retryDelayMs(response: Response, attempt: number): number {
 async function marketplaceFetch(path: string, init: RequestInit, label: string): Promise<Response> {
   let lastResponse: Response | null = null;
   for (let attempt = 1; attempt <= MAX_SHOPIFY_RETRIES; attempt += 1) {
-    const response = await fetch(marketplaceRestUrl(path), {
+    const url = marketplaceRestUrl(path);
+    await throttleMarketplaceRestCall(`marketplace:${new URL(url).host}`, label);
+
+    const response = await fetch(url, {
       ...init,
       cache: 'no-store',
     });
