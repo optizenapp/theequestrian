@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import crypto from 'crypto';
 import { neon } from '@neondatabase/serverless';
 import { loadShippingRates, resolveShippingOffset, normalizeTags } from '@/lib/shipping/rates';
@@ -26,6 +26,17 @@ const SHOPIFY_WEBHOOK_SECRET = process.env.SHOPIFY_WEBHOOK_SECRET || '';
 const DATABASE_URL = process.env.DATABASE_URL || '';
 
 const sql = neon(DATABASE_URL);
+
+export const runtime = 'nodejs';
+export const maxDuration = 300;
+
+function runAsync(work: () => Promise<void>) {
+  try {
+    after(work);
+  } catch {
+    void work();
+  }
+}
 
 function verifyWebhook(req: NextRequest, body: string): boolean {
   const hmac = req.headers.get('x-shopify-hmac-sha256');
@@ -254,23 +265,11 @@ async function reconcileDirectVendorPriceDrift(
  * 
  * This ensures prices ALWAYS include shipping, no matter what Webkul syncs
  */
-export async function POST(req: NextRequest) {
-  const startTime = Date.now();
-
+async function processProductUpdate(
+  product: MarketplaceWebhookProduct,
+  startTime: number
+): Promise<void> {
   try {
-    if (process.env.PRICE_OFFSET_WEBHOOK_DISABLED === 'true') {
-      return NextResponse.json({ ok: true, skipped: true, reason: 'Webhook disabled' });
-    }
-
-    const rawBody = await req.text();
-    
-    // Verify webhook signature
-    if (!verifyWebhook(req, rawBody)) {
-      console.error('[Shopify Webhook] Invalid signature');
-      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
-    }
-
-    const product = JSON.parse(rawBody) as MarketplaceWebhookProduct;
     const productId = product.id;
     const vendor = product.vendor || '';
     const tags = normalizeTags(product.tags);
@@ -282,13 +281,10 @@ export async function POST(req: NextRequest) {
     // back to draft and zero inventory before any price logic runs.
     const statusRevert = await reconcileVendorStatusDrift(product);
     if (statusRevert.reverted) {
-      return NextResponse.json({
-        ok: true,
-        skipped: true,
-        reason: 'vendor_status_revert',
-        zeroedVariants: statusRevert.zeroedVariants,
-        processingTime: Date.now() - startTime,
-      });
+      console.log(
+        `[Shopify Webhook] Completed vendor status revert in ${Date.now() - startTime}ms; zeroed ${statusRevert.zeroedVariants} variant(s)`
+      );
+      return;
     }
 
     // Enforce manual price locks before any offset/reconcile work. Locked
@@ -313,14 +309,7 @@ export async function POST(req: NextRequest) {
       console.log(
         `[Shopify Webhook] Direct sync vendor (${vendor}) reconcile completed; variants corrected: ${reconciled}`
       );
-      return NextResponse.json({
-        ok: true,
-        skipped: true,
-        reason: 'vendor_direct_price_sync_reconcile',
-        reconciled,
-        lockedVariantsReverted,
-        processingTime: Date.now() - startTime,
-      });
+      return;
     }
 
     // Load shipping rates from Postgres and calculate offset
@@ -329,11 +318,7 @@ export async function POST(req: NextRequest) {
     
     if (shippingOffset === null || shippingOffset === 0) {
       console.log(`[Shopify Webhook] No shipping offset for vendor: ${vendor}, skipping`);
-      return NextResponse.json({ 
-        ok: true, 
-        message: 'No shipping offset needed',
-        processingTime: Date.now() - startTime 
-      });
+      return;
     }
 
     console.log(`[Shopify Webhook] Applying +$${shippingOffset} shipping offset`);
@@ -458,20 +443,44 @@ export async function POST(req: NextRequest) {
 
     const duration = Date.now() - startTime;
     console.log(`[Shopify Webhook] Completed in ${duration}ms: ${variantsUpdated} variants updated`);
+  } catch (error) {
+    console.error('[Shopify Webhook] Async processing error:', error);
+  }
+}
+
+export async function POST(req: NextRequest) {
+  const startTime = Date.now();
+
+  try {
+    if (process.env.PRICE_OFFSET_WEBHOOK_DISABLED === 'true') {
+      return NextResponse.json({ ok: true, skipped: true, reason: 'Webhook disabled' });
+    }
+
+    const rawBody = await req.text();
+    
+    // Verify webhook signature
+    if (!verifyWebhook(req, rawBody)) {
+      console.error('[Shopify Webhook] Invalid signature');
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+    }
+
+    const product = JSON.parse(rawBody) as MarketplaceWebhookProduct;
+    const productId = product.id;
+
+    runAsync(() => processProductUpdate(product, startTime));
 
     return NextResponse.json({
       ok: true,
+      accepted: true,
       productId,
-      variantsUpdated,
-      lockedVariantsReverted,
-      shippingOffset,
-      processingTime: duration,
+      processingTime: Date.now() - startTime,
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('[Shopify Webhook] Error:', error);
+    const message = error instanceof Error ? error.message : 'Internal error';
     return NextResponse.json(
-      { error: error.message || 'Internal error' },
+      { error: message },
       { status: 500 }
     );
   }
