@@ -8,7 +8,7 @@ import { processVendorProductStatusWebhook } from '@/lib/inventory/vendor-sync/p
 import { getAppCredentialsForShop, getAllAppSecrets } from '@/lib/shopify/vendor-oauth';
 
 export const runtime = 'nodejs';
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 function runAsync(work: () => Promise<void>) {
   try {
@@ -54,8 +54,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
   }
 
-  // Keep inventory async for fast acknowledgement, but run product status topics
-  // inline so failures return non-2xx and Shopify retries automatically.
+  // Keep high-volume topics async for fast acknowledgement. Shopify removes
+  // subscriptions after repeated non-2xx deliveries, so processing failures
+  // should be logged without failing delivery acknowledgement.
   if (topic === 'inventory_levels/update') {
     runAsync(async () => {
       try {
@@ -67,18 +68,24 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, accepted: true, topic, shop });
   }
 
-  try {
-    if (topic === 'products/update') {
-      await processVendorProductCreateWebhook(shop, rawBody);
-      await processVendorProductUpdateWebhook(shop, rawBody);
-      const statusResult = await processVendorProductStatusWebhook(shop, rawBody, topic);
-      if (!statusResult.ok) {
-        return NextResponse.json(
-          { ok: false, topic, shop, error: statusResult.detail ?? 'status_sync_failed' },
-          { status: 500 }
-        );
+  if (topic === 'products/update') {
+    runAsync(async () => {
+      try {
+        await processVendorProductCreateWebhook(shop, rawBody);
+        await processVendorProductUpdateWebhook(shop, rawBody);
+        const statusResult = await processVendorProductStatusWebhook(shop, rawBody, topic);
+        if (!statusResult.ok) {
+          console.error('[vendor-sync] async status error', topic, shop, statusResult.detail);
+        }
+      } catch (e) {
+        console.error('[vendor-sync] async error', topic, shop, e);
       }
-    } else if (topic === 'products/create') {
+    });
+    return NextResponse.json({ ok: true, accepted: true, topic, shop });
+  }
+
+  try {
+    if (topic === 'products/create') {
       await processVendorProductCreateWebhook(shop, rawBody);
       const statusResult = await processVendorProductStatusWebhook(shop, rawBody, topic);
       if (!statusResult.ok) {
