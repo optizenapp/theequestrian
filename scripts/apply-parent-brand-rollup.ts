@@ -11,7 +11,9 @@
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import * as fs from 'fs';
+import { parse } from 'csv-parse/sync';
 import { runParentBrandRollup } from '@/lib/brands/run-parent-brand-rollup';
+import { isBlockedBrandName } from '@/lib/brands/blocked-brands';
 
 config({ path: resolve(process.cwd(), '.env.local') });
 config({ path: resolve(process.cwd(), '.env') });
@@ -38,6 +40,24 @@ async function main(): Promise<void> {
   if (!auditPath || !fs.existsSync(auditPath)) {
     console.error('Missing --audit path to brand-audit-products CSV.');
     process.exit(1);
+  }
+
+  const rollupRows = parse(fs.readFileSync(rollupPath, 'utf-8'), {
+    columns: true,
+    skip_empty_lines: true,
+    trim: true,
+  }) as Array<Record<string, string>>;
+  const blockedParents = new Set<string>();
+  for (const row of rollupRows) {
+    const parent = (row.parent_brand || row.parentBrand || '').trim();
+    if (isBlockedBrandName(parent)) blockedParents.add(parent);
+  }
+  if (blockedParents.size > 0) {
+    console.warn(
+      `[rollup] Blocked parent brands present in CSV and will be skipped: ${[...blockedParents]
+        .sort((a, b) => a.localeCompare(b))
+        .join(', ')}`
+    );
   }
 
   await runParentBrandRollup({ rollupPath, auditPath, dryRun });

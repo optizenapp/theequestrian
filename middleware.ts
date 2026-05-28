@@ -42,6 +42,15 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl, 301);
   }
 
+  // Hard-stop blocked brand hubs at edge so cached/runtime content cannot revive them.
+  if (
+    pathname === '/brands/rm-williams' ||
+    pathname === '/brands/penelope' ||
+    pathname === '/brands/penelope-leprevost'
+  ) {
+    return goneResponse();
+  }
+
   if (pathname === '/accessories/collectibles') {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = '/accessories/toys';

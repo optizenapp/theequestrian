@@ -1,6 +1,7 @@
 import { sql } from '@/lib/db/client';
 import { ensureBrandRuleInRulesJson } from '@/lib/brands/merge-brand-rules';
 import type { ParentBrandResolution } from '@/lib/brands/resolve-parent-brand-hub';
+import { isBlockedBrandCandidate } from '@/lib/brands/blocked-brands';
 
 /**
  * Ensures `brand_content` has a row at the resolved hub handle with a BRAND rule
@@ -12,6 +13,9 @@ export async function upsertBrandContentForParentResolution(
   dryRun: boolean
 ): Promise<'insert' | 'update' | 'noop'> {
   const hub = res.hubHandle;
+  if (isBlockedBrandCandidate({ handle: hub, brand: parent })) {
+    return 'noop';
+  }
   const existing = (await sql`
     SELECT handle, rules FROM brand_content WHERE handle = ${hub} LIMIT 1
   `) as unknown as Array<{ handle: string; rules: string | null }>;

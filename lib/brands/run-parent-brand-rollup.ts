@@ -9,9 +9,11 @@ import {
   parseParentRollupCsvRows,
   resolveParentBrandHubHandles,
   type BrandContentHubRow,
+  type ParentBrandResolution,
 } from '@/lib/brands/resolve-parent-brand-hub';
 import { upsertAllParentBrandContent } from '@/lib/brands/upsert-parent-brand-content';
 import { applyMappedBrandRows, clearBrandRows } from '@/lib/brands/apply-parent-brand-updates';
+import { isBlockedBrandCandidate } from '@/lib/brands/blocked-brands';
 
 type CsvRow = Record<string, string>;
 
@@ -49,9 +51,24 @@ export async function runParentBrandRollup(opts: RunParentBrandRollupOptions): P
   const { parentToResolution, warnings } = resolveParentBrandHubHandles(byParent, brandRows);
   for (const w of warnings) console.warn('[rollup]', w);
 
+  const blockedParents = new Set<string>();
+  const filteredParentToResolution = new Map<string, ParentBrandResolution>();
+  for (const [parent, res] of parentToResolution) {
+    if (isBlockedBrandCandidate({ handle: res.hubHandle, brand: parent })) {
+      blockedParents.add(parent);
+      continue;
+    }
+    filteredParentToResolution.set(parent, res);
+  }
+  if (blockedParents.size > 0) {
+    console.warn(
+      `[rollup] Skipping blocked parent brands: ${[...blockedParents].sort((a, b) => a.localeCompare(b)).join(', ')}`
+    );
+  }
+
   const nhToHub = new Map<string, string>();
   for (const [nh, parent] of rollupMap) {
-    const res = parentToResolution.get(parent);
+    const res = filteredParentToResolution.get(parent);
     if (res) nhToHub.set(nh, res.hubHandle);
   }
 
@@ -59,7 +76,11 @@ export async function runParentBrandRollup(opts: RunParentBrandRollupOptions): P
   const outDir = resolve(process.cwd(), 'exports');
   if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
 
-  const mapRows = [...parentToResolution.entries()].map(([parentBrand, r]) => ({ parent_brand: parentBrand, brand_hub_handle: r.hubHandle, resolution_source: r.source }));
+  const mapRows = [...filteredParentToResolution.entries()].map(([parentBrand, r]) => ({
+    parent_brand: parentBrand,
+    brand_hub_handle: r.hubHandle,
+    resolution_source: r.source,
+  }));
   fs.writeFileSync(resolve(outDir, `parent-brand-resolve-map-${ts}.csv`), stringify(mapRows, { header: true }), 'utf-8');
 
   const exceptions: Record<string, string>[] = [];
@@ -135,7 +156,7 @@ export async function runParentBrandRollup(opts: RunParentBrandRollupOptions): P
     cleared = matchedCleared.size;
   }
 
-  const hubStats = await upsertAllParentBrandContent(parentToResolution, dryRun);
+  const hubStats = await upsertAllParentBrandContent(filteredParentToResolution, dryRun);
   if (!dryRun) invalidateBrandContentCache();
 
   fs.writeFileSync(resolve(outDir, `parent-brand-rollup-exceptions-${ts}.csv`), stringify(exceptions, { header: true }), 'utf-8');
@@ -144,6 +165,11 @@ export async function runParentBrandRollup(opts: RunParentBrandRollupOptions): P
     dryRun
       ? `[dry-run] Would update ${updated} products and clear ${cleared}; rollup keys: ${rollupMap.size}; parents: ${parentToResolution.size}`
       : `Updated ${updated} products, cleared ${cleared}; skipped/problem rows: ${skipped}; brand_content inserts/updates/noops: ${hubStats.inserts}/${hubStats.updates}/${hubStats.noops}`
+  );
+  console.log(
+    dryRun
+      ? `[dry-run] Active parent hubs after blocked filter: ${filteredParentToResolution.size}`
+      : `Active parent hubs after blocked filter: ${filteredParentToResolution.size}`
   );
   console.log(`Wrote mapping → exports/parent-brand-resolve-map-${ts}.csv`);
   console.log(`Wrote exceptions (${exceptions.length}) → exports/parent-brand-rollup-exceptions-${ts}.csv`);

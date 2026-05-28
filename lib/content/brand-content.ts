@@ -1,5 +1,6 @@
 import { sql } from '@/lib/db/client';
 import { ensureBrandContentColumns } from '@/lib/db/ensure-brand-content-columns';
+import { isBlockedBrandHandle, isBlockedBrandName } from '@/lib/brands/blocked-brands';
 
 export interface BrandContentRow {
   handle: string;
@@ -79,6 +80,7 @@ async function loadBrandContent(): Promise<Map<string, BrandContentRow>> {
     const rows = (Array.isArray(result) ? result : []) as BrandContentRow[];
     const map = new Map<string, BrandContentRow>();
     for (const row of rows) {
+      if (isBlockedBrandHandle(row.handle)) continue;
       map.set(row.handle, row);
     }
     brandContentCache = map;
@@ -92,13 +94,14 @@ async function loadBrandContent(): Promise<Map<string, BrandContentRow>> {
 }
 
 export async function getBrandContentByHandle(handle: string): Promise<BrandContentRow | null> {
+  if (isBlockedBrandHandle(handle)) return null;
   const overrides = await loadBrandContent();
   return overrides.get(handle) || null;
 }
 
 export async function getAllPublishedBrandContent(): Promise<BrandContentRow[]> {
   const contentMap = await loadBrandContent();
-  return Array.from(contentMap.values());
+  return Array.from(contentMap.values()).filter((row) => !isBlockedBrandHandle(row.handle));
 }
 
 /**
@@ -145,6 +148,7 @@ export async function getAllowedBrandVendorsFromDb(): Promise<{
 
   const rows = (Array.isArray(result) ? result : []) as Array<{ handle: string; rules: string | null }>;
   for (const row of rows) {
+    if (isBlockedBrandHandle(row.handle)) continue;
     const rulesStr = row.rules;
     if (!rulesStr || rulesStr === 'Manual Collection') continue;
     try {
@@ -155,6 +159,7 @@ export async function getAllowedBrandVendorsFromDb(): Promise<{
         if (
           (col === 'VENDOR' || col === 'BRAND') &&
           rule.condition &&
+          !isBlockedBrandName(rule.condition) &&
           !seenV.has(rule.condition.toLowerCase())
         ) {
           seenV.add(rule.condition.toLowerCase());

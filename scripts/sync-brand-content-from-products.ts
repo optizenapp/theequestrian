@@ -10,6 +10,7 @@ import { config } from 'dotenv';
 import { resolve } from 'path';
 import { sql } from '@/lib/db/client';
 import { slugFromBrandName } from '@/lib/brands/brand-slug';
+import { isBlockedBrandCandidate } from '@/lib/brands/blocked-brands';
 import { invalidateBrandContentCache } from '@/lib/content/brand-content';
 
 config({ path: resolve(process.cwd(), '.env.local') });
@@ -54,10 +55,15 @@ async function main(): Promise<void> {
     .sort((a, b) => a.name.localeCompare(b.name));
 
   let upserted = 0;
+  let skippedBlocked = 0;
   for (const row of counts) {
     const name = row.name.trim();
     const cnt = Number(row.cnt);
     const handle = row.handle;
+    if (isBlockedBrandCandidate({ handle, brand: name })) {
+      skippedBlocked++;
+      continue;
+    }
     const rules = JSON.stringify([{ column: 'BRAND', relation: 'EQUALS', condition: name }]);
     const metaTitle = `${name} | The Equestrian`;
     const metaDescription = `Shop ${name} at The Equestrian.`;
@@ -109,7 +115,9 @@ async function main(): Promise<void> {
   }
 
   invalidateBrandContentCache();
-  console.log(`Brand names from products: ${counts.length}, upsert operations: ${upserted}`);
+  console.log(
+    `Brand names from products: ${counts.length}, upsert operations: ${upserted}, skipped blocked: ${skippedBlocked}`
+  );
 }
 
 main().catch((e) => {
