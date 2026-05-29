@@ -20,6 +20,10 @@ function main(): void {
   assert(isBlockedBrandName('RM Williamsn'), 'Expected typo variant RM Williamsn to be blocked');
   assert(isBlockedBrandHandle('penelope'), 'Expected penelope handle to be blocked');
   assert(
+    isBlockedBrandHandle('penelope-zoe-bracelet'),
+    'Expected product handles starting with penelope to be blocked'
+  );
+  assert(
     isBlockedBrandHandle('/brands/penelope-leprevost/'),
     'Expected penelope-leprevost brands URL-like handle to be blocked'
   );
@@ -38,6 +42,10 @@ function main(): void {
     'Expected Penelope LeProvost to be blocked'
   );
   assert(!isBlockedBrandName('Ariat'), 'Expected Ariat not to be blocked');
+  assert(
+    isBlockedBrandCandidate({ title: "QJ Riding Wear's Penelope Base Layer" }),
+    'Expected product titles containing Penelope to be blocked'
+  );
 
   const syncCandidates = [
     { name: 'RM Williams', handle: 'rm-williams' },

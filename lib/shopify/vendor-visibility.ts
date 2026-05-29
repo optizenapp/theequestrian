@@ -17,6 +17,8 @@ export function filterExcludedFrontendVendors<T extends { vendor?: string | null
 }
 
 export function isExcludedFrontendProduct(product: {
+  handle?: string | null;
+  title?: string | null;
   vendor?: string | null;
   brand?: string | null;
 }): boolean {
@@ -24,6 +26,8 @@ export function isExcludedFrontendProduct(product: {
 }
 
 export function filterExcludedFrontendProducts<T extends {
+  handle?: string | null;
+  title?: string | null;
   vendor?: string | null;
   brand?: string | null;
 }>(products: T[]): T[] {

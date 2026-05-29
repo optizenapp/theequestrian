@@ -36,6 +36,9 @@ export function isBlockedBrandHandle(value?: string | null): boolean {
     const slug = raw.slice('brands/'.length).trim();
     return BLOCKED_BRAND_HANDLES.has(slug);
   }
+  for (const handle of BLOCKED_BRAND_HANDLES) {
+    if (raw.startsWith(`${handle}-`)) return true;
+  }
   return false;
 }
 
@@ -51,11 +54,13 @@ export function isBlockedBrandCandidate(input: {
   handle?: string | null;
   brand?: string | null;
   vendor?: string | null;
+  title?: string | null;
 }): boolean {
   return (
     isBlockedBrandHandle(input.handle) ||
     isBlockedBrandName(input.brand) ||
-    isBlockedBrandName(input.vendor)
+    isBlockedBrandName(input.vendor) ||
+    isBlockedBrandText(input.title)
   );
 }
 
@@ -65,4 +70,14 @@ export function getBlockedBrandHandles(): string[] {
 
 export function getBlockedBrandKeys(): string[] {
   return [...BLOCKED_BRAND_KEYS];
+}
+
+export function isBlockedBrandText(value?: string | null): boolean {
+  if (!value) return false;
+  const key = normalizeBrandKey(value);
+  if (!key) return false;
+  for (const blockedKey of BLOCKED_BRAND_KEYS) {
+    if (key.includes(blockedKey)) return true;
+  }
+  return false;
 }
