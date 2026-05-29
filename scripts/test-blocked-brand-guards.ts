@@ -23,10 +23,19 @@ function main(): void {
     isBlockedBrandHandle('/brands/penelope-leprevost/'),
     'Expected penelope-leprevost brands URL-like handle to be blocked'
   );
+  assert(
+    isBlockedBrandHandle('/brands/penelope-leprovost/'),
+    'Expected penelope-leprovost brands URL-like handle to be blocked'
+  );
   assert(isBlockedBrandName('Penelope'), 'Expected Penelope to be blocked');
+  assert(isBlockedBrandName('Pénélope'), 'Expected accented Pénélope to be blocked');
   assert(
     isBlockedBrandName('Penelope LePrevost'),
     'Expected Penelope LePrevost to be blocked'
+  );
+  assert(
+    isBlockedBrandName('Penelope LeProvost'),
+    'Expected Penelope LeProvost to be blocked'
   );
   assert(!isBlockedBrandName('Ariat'), 'Expected Ariat not to be blocked');
 
@@ -36,6 +45,7 @@ function main(): void {
     { name: 'Ariat', handle: 'ariat' },
     { name: 'RM Williamsn', handle: 'rm-williamsn' },
     { name: 'Penelope LePrevost', handle: 'penelope-leprevost' },
+    { name: 'Penelope LeProvost', handle: 'penelope-leprovost' },
   ];
   const allowedForSync = syncCandidates.filter(
     (row) => !isBlockedBrandCandidate({ handle: row.handle, brand: row.name })

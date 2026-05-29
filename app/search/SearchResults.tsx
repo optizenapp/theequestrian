@@ -3,7 +3,7 @@ import { SearchResultsProductGrid } from '@/components/search/SearchResultsProdu
 import type { ShopifyProduct } from '@/types/shopify';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { getProductOverridesByHandles } from '@/lib/content/product-overrides';
-import { isExcludedFrontendVendor } from '@/lib/shopify/vendor-visibility';
+import { isExcludedFrontendProduct } from '@/lib/shopify/vendor-visibility';
 
 const SEARCH_PRODUCTS_QUERY = `
   query SearchProducts($query: String!, $first: Int!) {
@@ -80,7 +80,7 @@ export async function SearchResults({ query }: SearchResultsProps) {
   const visibleProducts = products.filter(
     (product) =>
       overrideMap.get(product.handle)?.is_published_headless !== false &&
-      !isExcludedFrontendVendor(product.vendor)
+      !isExcludedFrontendProduct(product)
   );
   const reviewStatsMap = await getReviewStatsForProducts(
     visibleProducts.map((product) => product.handle)

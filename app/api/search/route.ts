@@ -3,7 +3,7 @@ import { sql } from '@vercel/postgres';
 import { shopifyFetch } from '@/lib/shopify/client';
 import { getProductTypesForCollection } from '@/lib/mapping/collection-mapping';
 import { getProductOverridesByHandles } from '@/lib/content/product-overrides';
-import { isExcludedFrontendVendor } from '@/lib/shopify/vendor-visibility';
+import { isExcludedFrontendProduct } from '@/lib/shopify/vendor-visibility';
 import { getProductCanonicalUrls } from '@/lib/shopify/products';
 
 const SEARCH_PRODUCTS_QUERY = `
@@ -174,7 +174,7 @@ export async function GET(request: Request) {
     const visibleProducts = sortedProducts.filter(
       ({ node }) =>
         overrideMap.get(node.handle)?.is_published_headless !== false &&
-        !isExcludedFrontendVendor(node.vendor)
+        !isExcludedFrontendProduct(node)
     );
     const imageVisibleProducts = visibleProducts.filter(
       ({ node }) => Boolean(node.images.edges[0]?.node?.url)

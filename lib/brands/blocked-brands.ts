@@ -1,11 +1,17 @@
 import { slugFromBrandName } from '@/lib/brands/brand-slug';
 
-const BLOCKED_BRAND_HANDLES = new Set<string>(['rm-williams', 'penelope', 'penelope-leprevost']);
+const BLOCKED_BRAND_HANDLES = new Set<string>([
+  'rm-williams',
+  'penelope',
+  'penelope-leprevost',
+  'penelope-leprovost',
+]);
 const BLOCKED_BRAND_KEYS = new Set<string>([
   'rmwilliams',
   'rmwilliamsn',
   'penelope',
   'penelopeleprevost',
+  'penelopeleprovost',
 ]);
 
 function normalizeHandle(value: string): string {
@@ -15,6 +21,8 @@ function normalizeHandle(value: string): string {
 function normalizeBrandKey(value: string): string {
   return value
     .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '');
 }
@@ -53,4 +61,8 @@ export function isBlockedBrandCandidate(input: {
 
 export function getBlockedBrandHandles(): string[] {
   return [...BLOCKED_BRAND_HANDLES];
+}
+
+export function getBlockedBrandKeys(): string[] {
+  return [...BLOCKED_BRAND_KEYS];
 }

@@ -5,6 +5,7 @@
 
 import { sql } from './client';
 import { ensureProductsBrandColumns } from './ensure-products-brand-columns';
+import { getBlockedBrandKeys } from '@/lib/brands/blocked-brands';
 
 export interface ProductFilters {
   brands?: string[];
@@ -39,6 +40,22 @@ export interface FacetResult {
   colors: Array<{ value: string; count: number }>;
 }
 
+const BLOCKED_BRAND_KEYS_SQL = getBlockedBrandKeys()
+  .map((key) => `'${key.replace(/'/g, "''")}'`)
+  .join(', ');
+
+function normalizedBrandSql(column: 'brand' | 'vendor'): string {
+  return `regexp_replace(translate(lower(coalesce(${column}, '')), 'éèêëáàâäíìîïóòôöúùûüçñ', 'eeeeaaaaiiiioooouuuucn'), '[^a-z0-9]+', '', 'g')`;
+}
+
+function blockedBrandExclusionCondition(): string {
+  if (!BLOCKED_BRAND_KEYS_SQL) return 'TRUE';
+  return `(
+    ${normalizedBrandSql('brand')} NOT IN (${BLOCKED_BRAND_KEYS_SQL})
+    AND ${normalizedBrandSql('vendor')} NOT IN (${BLOCKED_BRAND_KEYS_SQL})
+  )`;
+}
+
 /**
  * Search products with filters and pagination
  */
@@ -55,7 +72,7 @@ export async function searchProducts(
   try {
     await ensureProductsBrandColumns();
     // Build WHERE clause dynamically
-    const conditions: string[] = [];
+    const conditions: string[] = [blockedBrandExclusionCondition()];
     const params: any[] = [];
     let paramIndex = 1;
     
@@ -101,7 +118,7 @@ export async function searchProducts(
       paramIndex++;
     }
     
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const whereClause = `WHERE ${conditions.join(' AND ')}`;
     
     // Get total count
     // Note: Neon's sql function doesn't support parameterized queries with dynamic WHERE clauses
@@ -112,35 +129,22 @@ export async function searchProducts(
         id, handle, title, vendor, brand, product_type,
         image_url, image_alt, available_for_sale, shopify_created_at`;
 
-    if (conditions.length === 0) {
-      countResult = await sql`SELECT COUNT(*) as total FROM products` as unknown as any[];
-    } else {
-      // Build query with params embedded (safe because params are from our controlled filters)
-      const countQuery = `SELECT COUNT(*) as total FROM products ${whereClause}`;
-      countResult = await sql.unsafe(countQuery) as unknown as any[];
-    }
+    // Build query with params embedded (safe because params are from our controlled filters)
+    const countQuery = `SELECT COUNT(*) as total FROM products ${whereClause}`;
+    countResult = await sql.unsafe(countQuery) as unknown as any[];
     const totalCount = parseInt(countResult[0].total);
     
     // Get products with pagination
     // Sort by: 1) In-stock first, 2) Created date (newest first)
     let productsResult: any[];
-    if (conditions.length === 0) {
-      productsResult = await sql.unsafe(`
-        SELECT ${listSelect}
-        FROM products
-        ORDER BY available_for_sale DESC, shopify_created_at DESC
-        LIMIT ${limit} OFFSET ${offset}
-      `) as unknown as any[];
-    } else {
-      const productsQuery = `
-        SELECT ${listSelect}
-        FROM products
-        ${whereClause}
-        ORDER BY available_for_sale DESC, shopify_created_at DESC
-        LIMIT ${limit} OFFSET ${offset}
-      `;
-      productsResult = await sql.unsafe(productsQuery) as unknown as any[];
-    }
+    const productsQuery = `
+      SELECT ${listSelect}
+      FROM products
+      ${whereClause}
+      ORDER BY available_for_sale DESC, shopify_created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+    productsResult = await sql.unsafe(productsQuery) as unknown as any[];
     
     return {
       products: productsResult as ProductQueryResult[],
@@ -163,7 +167,7 @@ export async function calculateFacets(
   try {
     await ensureProductsBrandColumns();
     // Build WHERE clause (same as searchProducts)
-    const conditions: string[] = [];
+    const conditions: string[] = [blockedBrandExclusionCondition()];
     const params: any[] = [];
     let paramIndex = 1;
     
@@ -193,7 +197,7 @@ export async function calculateFacets(
       paramIndex++;
     }
     
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const whereClause = `WHERE ${conditions.join(' AND ')}`;
     
     // Get brand facets
     const brandQuery = `

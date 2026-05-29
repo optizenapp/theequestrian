@@ -46,7 +46,8 @@ export function middleware(request: NextRequest) {
   if (
     pathname === '/brands/rm-williams' ||
     pathname === '/brands/penelope' ||
-    pathname === '/brands/penelope-leprevost'
+    pathname === '/brands/penelope-leprevost' ||
+    pathname === '/brands/penelope-leprovost'
   ) {
     return goneResponse();
   }
