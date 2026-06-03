@@ -78,7 +78,9 @@ export async function processVendorProductUpdateWebhook(
     const { shippingOffset, tagMatch } = resolveShippingOffset(
       mpVendor,
       normalizeTags(tags),
-      rates
+      rates,
+      undefined,
+      basePrice
     );
     const offset = shippingOffset ?? 0;
     const newPrice = (basePrice + offset).toFixed(2);

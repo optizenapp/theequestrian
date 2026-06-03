@@ -7,11 +7,17 @@ CREATE TABLE IF NOT EXISTS vendor_shipping_rates (
   base_rate NUMERIC(10, 2) NOT NULL DEFAULT 0,
   tag_overrides JSONB DEFAULT '{}', -- {"#HEAVY": 15.00, "ponyjet": 15.00}
   weight_tiers JSONB DEFAULT '[]',  -- [{"min": 0, "max": 5, "rate": 8}, ...]
+  -- When set, items priced at/above this (base price) get no shipping offset
+  -- (free shipping absorbs the cost). NULL = always apply the offset.
+  free_shipping_threshold NUMERIC(10, 2),
   active BOOLEAN DEFAULT true,
   notes TEXT,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
+
+ALTER TABLE vendor_shipping_rates
+  ADD COLUMN IF NOT EXISTS free_shipping_threshold NUMERIC(10, 2);
 
 -- Tag-based shipping rates (global, not vendor-specific)
 CREATE TABLE IF NOT EXISTS shipping_tag_rates (

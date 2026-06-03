@@ -10,6 +10,9 @@ export interface VendorRate {
   baseRate: number;
   tagOverrides: Record<string, number>;
   weightTiers?: Array<{ min: number; max: number; rate: number }>;
+  // When set, items priced at or above this amount get no shipping offset
+  // (free shipping absorbs the cost). Compared against the item's base price.
+  freeShippingThreshold?: number | null;
 }
 
 export interface ShippingRates {
@@ -43,7 +46,8 @@ export async function loadShippingRates(): Promise<ShippingRates> {
       vendor_name,
       base_rate,
       tag_overrides,
-      weight_tiers
+      weight_tiers,
+      free_shipping_threshold
     FROM vendor_shipping_rates
     WHERE active = true
   `;
@@ -51,11 +55,14 @@ export async function loadShippingRates(): Promise<ShippingRates> {
   const vendorsArray = Array.isArray(vendors) ? vendors : [];
   for (const rowRaw of vendorsArray) {
     const row = rowRaw as any;
+    const thresholdRaw = row.free_shipping_threshold;
+    const threshold = thresholdRaw == null ? null : parseFloat(thresholdRaw);
     vendorRates.set(row.vendor_name, {
       vendor: row.vendor_name,
       baseRate: parseFloat(row.base_rate),
       tagOverrides: row.tag_overrides || {},
       weightTiers: row.weight_tiers || undefined,
+      freeShippingThreshold: threshold != null && !Number.isNaN(threshold) ? threshold : null,
     });
   }
 
@@ -108,7 +115,8 @@ export function resolveShippingOffset(
   vendor: string,
   tags: string[],
   rates: ShippingRates,
-  weight?: number
+  weight?: number,
+  price?: number
 ): { shippingOffset: number | null; tagMatch: string | null } {
   const normalizedTags = normalizeTags(tags);
   const vendorLower = vendor.toLowerCase().trim();
@@ -123,6 +131,17 @@ export function resolveShippingOffset(
   }
 
   if (vendorMatch) {
+    // Priority 0: Free-shipping threshold. Items at/above the threshold ship
+    // free, so no offset is added — this overrides tag/weight/base rates.
+    if (
+      vendorMatch.freeShippingThreshold != null &&
+      price != null &&
+      Number.isFinite(price) &&
+      price >= vendorMatch.freeShippingThreshold
+    ) {
+      return { shippingOffset: 0, tagMatch: 'free_shipping_threshold' };
+    }
+
     // Priority 1: Vendor-specific tag overrides
     for (const tag of normalizedTags) {
       const cleanTag = tag.replace(/^#/, '').trim();
@@ -167,13 +186,30 @@ export function resolveShippingOffset(
 export function getShippingCost(
   vendor: string,
   tags: string[],
-  weight?: number
+  weight?: number,
+  price?: number
 ): number {
   // If cache is empty or expired, return 0 (rates not loaded)
   if (!cachedRates) {
     return 0;
   }
 
-  const result = resolveShippingOffset(vendor, tags, cachedRates, weight);
+  const result = resolveShippingOffset(vendor, tags, cachedRates, weight, price);
   return result.shippingOffset || 0;
+}
+
+/**
+ * Free-shipping threshold for a vendor (case-insensitive), or null if none set.
+ */
+export function getVendorFreeShippingThreshold(
+  vendor: string,
+  rates: ShippingRates
+): number | null {
+  const vendorLower = vendor.toLowerCase().trim();
+  for (const [vendorName, rate] of rates.vendorRates.entries()) {
+    if (vendorName.toLowerCase() === vendorLower) {
+      return rate.freeShippingThreshold ?? null;
+    }
+  }
+  return null;
 }

@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse, after } from 'next/server';
 import crypto from 'crypto';
 import { neon } from '@neondatabase/serverless';
-import { loadShippingRates, resolveShippingOffset, normalizeTags } from '@/lib/shipping/rates';
+import {
+  loadShippingRates,
+  resolveShippingOffset,
+  normalizeTags,
+  getVendorFreeShippingThreshold,
+} from '@/lib/shipping/rates';
 import { fetchVendorProduct } from '@/lib/shopify/vendor-shopify-rest';
 import {
   setMarketplaceInventoryLevel,
@@ -183,7 +188,8 @@ async function enforcePriceLocks(
 async function reconcileDirectVendorPriceDrift(
   product: MarketplaceWebhookProduct,
   shippingOffset: number,
-  vendorName: string
+  vendorName: string,
+  freeShippingThreshold: number | null
 ): Promise<number> {
   const connections = await getReconcilePriceConnectionsByMarketplaceVendor(vendorName);
   if (connections.length === 0) return 0;
@@ -231,7 +237,10 @@ async function reconcileDirectVendorPriceDrift(
       const currentPrice = parseFloat(marketplaceVariant.price);
       if (Number.isNaN(basePrice) || Number.isNaN(currentPrice)) continue;
 
-      const desiredPrice = (basePrice + shippingOffset).toFixed(2);
+      // Items at/above the free-shipping threshold get no offset.
+      const effectiveOffset =
+        freeShippingThreshold != null && basePrice >= freeShippingThreshold ? 0 : shippingOffset;
+      const desiredPrice = (basePrice + effectiveOffset).toFixed(2);
       if (Math.abs(currentPrice - parseFloat(desiredPrice)) < 0.01) {
         continue;
       }
@@ -305,7 +314,13 @@ async function processProductUpdate(
       const rates = await loadShippingRates();
       const { shippingOffset } = resolveShippingOffset(vendor, tags, rates);
       const offset = shippingOffset ?? 0;
-      const reconciled = await reconcileDirectVendorPriceDrift(product, offset, vendor);
+      const freeShippingThreshold = getVendorFreeShippingThreshold(vendor, rates);
+      const reconciled = await reconcileDirectVendorPriceDrift(
+        product,
+        offset,
+        vendor,
+        freeShippingThreshold
+      );
       console.log(
         `[Shopify Webhook] Direct sync vendor (${vendor}) reconcile completed; variants corrected: ${reconciled}`
       );

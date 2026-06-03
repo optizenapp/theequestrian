@@ -135,7 +135,12 @@
     "seo:enrichment:daily-report": "tsx scripts/daily-enrichment-report.ts",
     "seo:enrichment:fix-constraint": "tsx scripts/fix-internal-link-constraint.ts",
     "test:valueserp": "tsx scripts/test-valueserp.ts",
-    "audit:blog": "tsx scripts/audit-blog-liquid.ts"
+    "audit:blog": "tsx scripts/audit-blog-liquid.ts",
+    "audit:vendor-pricing": "tsx scripts/audit-vendor-pricing.ts",
+    "audit:vendor-pricing:trailrace": "tsx scripts/audit-vendor-pricing.ts --vendor=trailrace",
+    "audit:vendor-pricing:ascot": "tsx scripts/audit-vendor-pricing.ts --vendor=ascot",
+    "cleanup:vendor-map-dupes": "tsx scripts/cleanup-vendor-map-duplicates.ts",
+    "resync:vendor-drifts": "tsx scripts/resync-vendor-drifts.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.73.0",

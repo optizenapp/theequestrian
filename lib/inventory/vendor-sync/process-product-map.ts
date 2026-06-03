@@ -67,8 +67,39 @@ export async function processVendorProductCreateWebhook(
       console.log('[vendor-sync] No marketplace variant for SKU', sku, shopDomain);
       continue;
     }
+    // Ambiguous SKU: maps to multiple marketplace variants. Mapping all of them
+    // (or picking arbitrarily) corrupts sync, so skip and surface for review.
+    if (marketplaceMatches.length > 1) {
+      console.warn(
+        '[vendor-sync] Ambiguous SKU maps to',
+        marketplaceMatches.length,
+        'marketplace variants; skipping',
+        sku,
+        shopDomain
+      );
+      continue;
+    }
 
     for (const mkt of marketplaceMatches) {
+      // Guard against many-to-one pollution: never attach a second vendor variant
+      // to a marketplace variant that is already actively mapped elsewhere.
+      const alreadyMapped = await sql`
+        SELECT id FROM vendor_inventory_map
+        WHERE vendor_connection_id = ${connection.id}
+          AND marketplace_variant_id = ${mkt.variantId}
+          AND vendor_shopify_variant_id <> ${String(vv.id)}
+          AND status = 'active'
+        LIMIT 1
+      `;
+      if ((Array.isArray(alreadyMapped) ? alreadyMapped : []).length > 0) {
+        console.warn(
+          '[vendor-sync] Marketplace variant already mapped to another vendor variant; skipping',
+          sku,
+          mkt.variantId
+        );
+        continue;
+      }
+
       await sql`
         INSERT INTO vendor_inventory_map (
           vendor_connection_id,
