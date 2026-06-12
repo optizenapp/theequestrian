@@ -88,6 +88,8 @@ export default function RootLayout({
         {/* Analytics and tracking domains */}
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+
+        <link rel="entitymap" type="application/json" href={`${siteUrl}/entitymap.json`} />
       </head>
       <body className={`${manrope.className} overflow-x-hidden`}>
         {gaMeasurementId ? (

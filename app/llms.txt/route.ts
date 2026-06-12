@@ -108,6 +108,8 @@ The Equestrian (${siteUrl}) is structured for clear category discovery and produ
 - [Sitemap](${siteUrl}/sitemap.xml)
 - [Robots](${siteUrl}/robots.txt)
 - [LLMs](${siteUrl}/llms.txt)
+- [EntityMap (HTML)](${siteUrl}/entitymap.html)
+- [EntityMap (JSON)](${siteUrl}/entitymap.json)
 `;
 
   const etag = entityTag(content);

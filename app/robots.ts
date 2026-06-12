@@ -1,6 +1,8 @@
 import type { MetadataRoute } from 'next';
 import { getCanonicalSiteUrl } from '@/lib/seo/site-url';
 
+const ENTITYMAP_PATHS = ['/entitymap.json', '/entitymap.html'] as const;
+
 export default function robots(): MetadataRoute.Robots {
   const baseUrl = getCanonicalSiteUrl();
 
@@ -12,6 +14,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: 'Googlebot',
         allow: [
+          ...ENTITYMAP_PATHS,
           '/',
           '/products/',
           '/collections/',
@@ -57,6 +60,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: 'Googlebot-Image',
         allow: [
+          ...ENTITYMAP_PATHS,
           '/',
           '/products/',
           '/collections/',
@@ -106,6 +110,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: 'Bingbot',
         allow: [
+          ...ENTITYMAP_PATHS,
           '/',
           '/products/',
           '/collections/',
@@ -156,6 +161,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: [
+          ...ENTITYMAP_PATHS,
           '/',
           '/products/', // Allow so Google can follow 301 redirects to new nested URLs
           '/collections/', // Allow so Google can follow 301 redirects from old collection URLs

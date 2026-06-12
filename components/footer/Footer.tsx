@@ -40,6 +40,7 @@ const footerLinks = {
       { label: 'Become a Seller', href: '/contact' },
       { label: 'News & Blog', href: '/news' },
       { label: 'RSS feed', href: '/rss.xml' },
+      { label: 'EntityMap', href: '/entitymap.html' },
       { label: 'Brands', href: '/brands' },
     ],
   },

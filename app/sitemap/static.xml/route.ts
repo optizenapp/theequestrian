@@ -81,6 +81,12 @@ export async function GET() {
       changeFrequency: 'weekly',
       priority: 0.7,
     },
+    {
+      url: `${SITE_URL}/entitymap.html`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
   ];
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
