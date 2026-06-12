@@ -2,8 +2,17 @@ import { getCanonicalSiteUrl } from '@/lib/seo/site-url';
 import type { EntityMapDocument } from './types';
 
 const PUBLISHER = 'The Equestrian';
-const GENERATED = '2026-06-12T00:00:00Z';
+const GENERATED = '2026-06-12T12:00:00Z';
 const RETRIEVED = '2026-06-12T00:00:00Z';
+
+const WIKIDATA = {
+  onlineMarketplace: 'https://www.wikidata.org/wiki/Q3390477',
+  brand: 'https://www.wikidata.org/wiki/Q431289',
+  productReturn: 'https://www.wikidata.org/wiki/Q166778',
+  clothingSizes: 'https://www.wikidata.org/wiki/Q1075138',
+  freeShipping: 'https://www.wikidata.org/wiki/Q5500296',
+  equestrianism: 'https://www.wikidata.org/wiki/Q179226',
+} as const;
 
 function chunk(
   id: string,
@@ -35,6 +44,7 @@ export function buildEntityMap(): EntityMapDocument {
     publisher: {
       name: PUBLISHER,
       url: base,
+      sameAs: WIKIDATA.onlineMarketplace,
     },
     generated: GENERATED,
     profile: 'core',
@@ -47,8 +57,14 @@ export function buildEntityMap(): EntityMapDocument {
         description:
           'The Equestrian is an Australian online equestrian marketplace operated by Equine Marketplace Pty Ltd, selling horse tack, rider apparel, stable supplies, and pet essentials with nationwide delivery.',
         alternateName: 'Equine Marketplace Pty Ltd',
+        sameAs: WIKIDATA.equestrianism,
         maturityStatus: 'established',
         audienceType: 'general',
+        relations: [
+          { predicate: 'OFFERS', targetId: 'e_003', targetName: 'Free Shipping Sitewide' },
+          { predicate: 'OFFERS', targetId: 'e_008', targetName: 'Equestrian Sizing Guides' },
+          { predicate: 'RELATES_TO', targetId: 'e_010', targetName: 'Jono Farrington' },
+        ],
         hasChunks: [
           chunk(
             'c_001',
@@ -74,12 +90,15 @@ export function buildEntityMap(): EntityMapDocument {
         name: 'Australian Equestrian Marketplace',
         description:
           'A multi-category online marketplace where Australian horse owners, riders, and equestrian professionals shop for tack, apparel, stable gear, and related products from multiple sellers and global brands.',
+        sameAs: WIKIDATA.onlineMarketplace,
         maturityStatus: 'established',
         audienceType: 'general',
         relations: [
           { predicate: 'INCLUDES', targetId: 'e_004', targetName: 'Horse Tack and Supplies' },
           { predicate: 'INCLUDES', targetId: 'e_005', targetName: 'Rider Apparel and Equipment' },
           { predicate: 'INCLUDES', targetId: 'e_006', targetName: 'Equestrian Brand Directory' },
+          { predicate: 'INCLUDES', targetId: 'e_007', targetName: 'Multi-Vendor Marketplace' },
+          { predicate: 'DESCRIBED_BY', targetId: 'e_009', targetName: '30-Day Returns Policy' },
         ],
         hasChunks: [
           chunk(
@@ -106,8 +125,10 @@ export function buildEntityMap(): EntityMapDocument {
         name: 'Free Shipping Sitewide',
         description:
           'Eligible orders on The Equestrian ship free across Australia. Express shipping options are available at checkout where applicable.',
+        sameAs: WIKIDATA.freeShipping,
         maturityStatus: 'established',
         audienceType: 'general',
+        relations: [{ predicate: 'ENABLES', targetId: 'e_002', targetName: 'Australian Equestrian Marketplace' }],
         hasChunks: [
           chunk(
             'c_005',
@@ -135,6 +156,7 @@ export function buildEntityMap(): EntityMapDocument {
           'The horse category at The Equestrian covers saddles, bridles, bits, rugs, boots, grooming, health products, and stable-related gear for horses.',
         maturityStatus: 'established',
         audienceType: 'general',
+        relations: [{ predicate: 'RELATES_TO', targetId: 'e_005', targetName: 'Rider Apparel and Equipment' }],
         hasChunks: [
           chunk(
             'c_007',
@@ -154,6 +176,7 @@ export function buildEntityMap(): EntityMapDocument {
           'The rider category includes footwear, breeches, helmets, gloves, safety equipment, and riding apparel for equestrian athletes and enthusiasts.',
         maturityStatus: 'established',
         audienceType: 'general',
+        relations: [{ predicate: 'DEPENDS_ON', targetId: 'e_008', targetName: 'Equestrian Sizing Guides' }],
         hasChunks: [
           chunk(
             'c_008',
@@ -171,8 +194,10 @@ export function buildEntityMap(): EntityMapDocument {
         name: 'Equestrian Brand Directory',
         description:
           'Curated brand landing pages on The Equestrian that group products by manufacturer or label, with brand-specific copy and product listings.',
+        sameAs: WIKIDATA.brand,
         maturityStatus: 'established',
         audienceType: 'general',
+        relations: [{ predicate: 'COVERS', targetId: 'e_004', targetName: 'Horse Tack and Supplies' }],
         hasChunks: [
           chunk(
             'c_009',
@@ -190,6 +215,7 @@ export function buildEntityMap(): EntityMapDocument {
         name: 'Multi-Vendor Marketplace',
         description:
           'The Equestrian connects customers with multiple sellers and warehouses across Australia, so a single order may ship in separate parcels from different locations.',
+        sameAs: WIKIDATA.onlineMarketplace,
         maturityStatus: 'established',
         audienceType: 'general',
         relations: [{ predicate: 'PART_OF', targetId: 'e_002', targetName: 'Australian Equestrian Marketplace' }],
@@ -218,8 +244,10 @@ export function buildEntityMap(): EntityMapDocument {
         name: 'Equestrian Sizing Guides',
         description:
           'Brand-specific sizing charts on The Equestrian help riders choose correct fit for boots, breeches, helmets, rugs, and other sized equestrian products.',
+        sameAs: WIKIDATA.clothingSizes,
         maturityStatus: 'established',
         audienceType: 'general',
+        relations: [{ predicate: 'ENABLES', targetId: 'e_005', targetName: 'Rider Apparel and Equipment' }],
         hasChunks: [
           chunk(
             'c_012',
@@ -237,6 +265,7 @@ export function buildEntityMap(): EntityMapDocument {
         name: '30-Day Returns Policy',
         description:
           'The Equestrian accepts returns within 30 days of delivery for unused items in original packaging. Refunds cover the product value; postage is excluded unless faulty.',
+        sameAs: WIKIDATA.productReturn,
         maturityStatus: 'established',
         audienceType: 'general',
         hasChunks: [
@@ -266,7 +295,10 @@ export function buildEntityMap(): EntityMapDocument {
           'Co-founder of The Equestrian with 20 years in digital marketing and e-commerce. Former competitive showjumper; leads technical, digital marketing, and strategy.',
         maturityStatus: 'established',
         audienceType: 'general',
-        relations: [{ predicate: 'AFFILIATED_WITH', targetId: 'e_001', targetName: PUBLISHER }],
+        relations: [
+          { predicate: 'AFFILIATED_WITH', targetId: 'e_001', targetName: PUBLISHER },
+          { predicate: 'AFFILIATED_WITH', targetId: 'e_002', targetName: 'Australian Equestrian Marketplace' },
+        ],
         hasChunks: [
           chunk(
             'c_015',
