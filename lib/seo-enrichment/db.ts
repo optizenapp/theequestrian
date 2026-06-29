@@ -32,7 +32,17 @@ export async function getEligiblePages(
 
   const params: unknown[] = [String(intervalDays)];
   const vendorClause = vendor
-    ? `AND LOWER(TRIM(p.vendor)) = LOWER(TRIM($${params.push(vendor)}))`
+    ? (() => {
+        params.push(vendor);
+        const vendorParam = `$${params.length}`;
+        const vendorLike = `${vendor.trim().split(/\s+/)[0]?.toLowerCase() || vendor.trim().toLowerCase()}%`;
+        params.push(vendorLike);
+        const vendorLikeParam = `$${params.length}`;
+        return `AND (
+          LOWER(TRIM(p.vendor)) = LOWER(TRIM(${vendorParam}))
+          OR LOWER(TRIM(p.vendor)) LIKE ${vendorLikeParam}
+        )`;
+      })()
     : '';
   const brandClause = brand
     ? (() => {
@@ -77,6 +87,8 @@ export async function getEligiblePages(
     ? `SELECT * FROM product_pages`
     : `SELECT * FROM product_pages UNION ALL SELECT * FROM collection_pages`;
 
+  const skipRecentlyEnriched = Boolean(vendor);
+
   const text = `
     WITH product_pages AS (
       SELECT
@@ -114,7 +126,7 @@ export async function getEligiblePages(
       ON re.page_type = ap.page_type
      AND re.page_identifier = ap.page_identifier
     WHERE ap.is_active = TRUE
-      AND re.page_identifier IS NULL
+      ${skipRecentlyEnriched ? '' : 'AND re.page_identifier IS NULL'}
     ORDER BY ap.last_enriched_at ASC NULLS FIRST
   `;
 
