@@ -4,13 +4,15 @@ import {
   fetchCollectionForEnrichment,
   fetchProductForEnrichment,
 } from '@/lib/seo-enrichment/db';
-import { evaluateKorayCompliance } from '@/lib/seo-enrichment/koray-compliance';
+import { evaluateCollectiveAugmentCompliance, evaluateKorayCompliance, evaluateMetadataOnlyCompliance } from '@/lib/seo-enrichment/koray-compliance';
+import { normaliseVendorDescription } from '@/lib/seo-enrichment/description-normalisation';
 import { buildKorayRuleBlock, selectKorayRules } from '@/lib/seo-enrichment/koray-retrieval';
 import { buildKoraySystemPromptWithSelection } from '@/lib/seo-enrichment/koray';
 import { log } from '@/lib/seo-enrichment/logger';
-import { validateCollectionPayload, validateProductPayload } from '@/lib/seo-enrichment/validation';
+import { buildCollectiveEnrichmentPayload, validateProductCollectiveAugmentPayload, validateCollectionPayload, validateProductMetadataPayload, validateProductPayload } from '@/lib/seo-enrichment/validation';
 import { findRelevantPages, getLinkableSitemap } from '@/lib/seo-enrichment/sitemap-cache';
-import type { EnrichmentResult, QueueItem } from '@/lib/seo-enrichment/types';
+import { getProductByHandle } from '@/lib/shopify/products';
+import type { EnrichmentResult, ProductCollectiveEnrichmentPayload, QueueItem } from '@/lib/seo-enrichment/types';
 
 function parseJson(text: string): unknown {
   try {
@@ -74,6 +76,9 @@ export class EnrichmentEngine {
   }
 
   private async enrichProduct(item: QueueItem, serpAnalysis: Record<string, unknown>): Promise<EnrichmentResult | null> {
+    if (seoEnrichmentConfig.metadataOnly) {
+      return this.enrichProductMetadataOnly(item, serpAnalysis);
+    }
     const row = await fetchProductForEnrichment(item.page_identifier);
     if (!row) return null;
     const selection = selectKorayRules('product', item.gsc_data);
@@ -232,6 +237,244 @@ export class EnrichmentEngine {
         compliance,
       },
     };
+  }
+
+  /** Collective metadata enrichment: title, meta, bullets; optional augment + description normalisation */
+  private async enrichProductMetadataOnly(
+    item: QueueItem,
+    serpAnalysis: Record<string, unknown>
+  ): Promise<EnrichmentResult | null> {
+    const row = await fetchProductForEnrichment(item.page_identifier);
+    if (!row) return null;
+
+    const selection = selectKorayRules('product', item.gsc_data);
+    const selectedRuleBlock = buildKorayRuleBlock(selection);
+    const vendorDescription = String(row.description || '').slice(0, 4000);
+    const shopifyProduct = await getProductByHandle(item.page_identifier);
+    const vendorDescriptionHtml = String(
+      shopifyProduct?.descriptionHtml || row.description_html || row.description || ''
+    ).slice(0, 8000);
+    const useAugment = seoEnrichmentConfig.collectiveAugment;
+    const useNormalise = seoEnrichmentConfig.normaliseDescription;
+
+    const beforeContent = {
+      meta_title: row.meta_title || '',
+      meta_description: row.meta_description || '',
+      title_override: row.title_override || '',
+      bullet_points: row.bullet_points || [],
+      top_description_html: row.top_description_html || '',
+      bottom_description_html: row.bottom_description_html || '',
+      description_html: row.description_html || '',
+    };
+
+    const buildResult = (
+      collective: ProductCollectiveEnrichmentPayload,
+      usage: EnrichmentResult['usage'],
+      compliance: EnrichmentResult['koray']['compliance']
+    ): EnrichmentResult => ({
+      pageType: 'product',
+      pageIdentifier: item.page_identifier,
+      canonicalPath: item.canonical_path,
+      beforeContent,
+      payload: {
+        meta_title: collective.meta_title,
+        meta_description: collective.meta_description,
+        title_override: collective.title_override,
+        description_html: collective.description_html,
+        top_description_html: collective.top_description_html,
+        bottom_description_html: collective.bottom_description_html,
+        bullet_points: collective.bullet_points,
+        internal_link_suggestions: [],
+        reasoning: collective.reasoning,
+      },
+      usage,
+      serpAnalysis,
+      koray: {
+        frameworkVersion: selection.frameworkVersion,
+        ruleIdsUsed: selection.rules.map((r) => r.id),
+        intent: selection.intent,
+        compliance,
+      },
+      collective,
+    });
+
+    if (seoEnrichmentConfig.mode === 'dry-run' || !this.openai) {
+      const metadata = validateProductMetadataPayload({
+        meta_title: String(beforeContent.meta_title || `${row.title} | The Equestrian`).slice(0, 68),
+        meta_description: String(
+          beforeContent.meta_description || `Shop ${row.title} at The Equestrian.`
+        ).slice(0, 158),
+        title_override: String(beforeContent.title_override || row.title || ''),
+        bullet_points: Array.isArray(beforeContent.bullet_points) && beforeContent.bullet_points.length >= 3
+          ? beforeContent.bullet_points
+          : [
+              `Brand: ${row.vendor || 'Quality equestrian brand'}`,
+              `Type: ${row.product_type || 'Equestrian product'}`,
+              `Available at The Equestrian with fast AU shipping`,
+            ],
+        reasoning: 'Dry-run Collective metadata fallback from existing values.',
+      });
+      const normalised = useNormalise ? normaliseVendorDescription(vendorDescriptionHtml) : null;
+      const collective = buildCollectiveEnrichmentPayload({
+        metadata,
+        top_description_html: useAugment ? String(beforeContent.top_description_html || '') : '',
+        bottom_description_html: useAugment ? String(beforeContent.bottom_description_html || '') : '',
+        description_html: normalised?.changed ? normalised.html : '',
+        use_headless_description: Boolean(normalised?.changed),
+        use_headless_top_description: useAugment && Boolean(beforeContent.top_description_html),
+        use_headless_bottom_description: useAugment && Boolean(beforeContent.bottom_description_html),
+        normalisation_steps: normalised?.steps || [],
+      });
+      const compliance = useAugment
+        ? evaluateCollectiveAugmentCompliance(collective, vendorDescription)
+        : evaluateMetadataOnlyCompliance(metadata, vendorDescription);
+      return buildResult(collective, { model: 'dry-run-fallback', inputTokens: 0, outputTokens: 0, costUsd: 0 }, compliance);
+    }
+
+    const metadataSystem = buildKoraySystemPromptWithSelection(
+      'You are an ecommerce SEO editor for product pages on an Australian equestrian marketplace (Shopify Collective supplier copy).',
+      selectedRuleBlock,
+      [
+        'CRITICAL: Return JSON with ONLY these keys: meta_title, meta_description, title_override, bullet_points, reasoning.',
+        'Do NOT generate description_html or any HTML body content — the vendor product description is shown separately on the page.',
+        'Use vendor_description ONLY as factual context. Extract materials, sizes, certifications, and features — never invent specs.',
+        'title_override (H1): name the central entity + key attribute. Entity-complete, no brand stuffing, no fluff. e.g. "Roeck-Grip Unlined Riding Gloves".',
+        'meta_title (≤68 chars): win the SERP click — add qualifying context (use-case, material, audience). Must NOT duplicate title_override verbatim.',
+        'meta_description (≤158 chars): compelling click-through copy with a differentiator. Australian English.',
+        'bullet_points: 5–8 plain strings in Entity-Attribute-Value format ("Material: Goatskin leather"). Only state facts present in vendor_description. No markdown. No fluff like "premium quality".',
+        'Bullets should re-represent prose facts in structured form — same facts, different structure. Prioritise spec-style attributes over benefit claims.',
+        'Use Australian spelling.',
+      ]
+    );
+
+    const metadataUserPayload = {
+      page_type: 'product',
+      enrichment_mode: 'collective_metadata',
+      page_identifier: item.page_identifier,
+      canonical_path: item.canonical_path,
+      performance: { gsc: item.gsc_data, ga4: item.ga4_data },
+      serp_analysis: serpAnalysis,
+      product: {
+        title: row.title,
+        vendor: row.vendor,
+        product_type: row.product_type,
+        tags: row.tags,
+        vendor_description: vendorDescription,
+      },
+      current_content: beforeContent,
+      constraints: {
+        meta_title_max: 68,
+        meta_description_max: 158,
+        bullet_points_min: 5,
+        bullet_points_max: 8,
+        h1_must_differ_from_meta_title: true,
+      },
+    };
+
+    let totalPromptTokens = 0;
+    let totalCompletionTokens = 0;
+    const firstPass = await this.generateJsonResponse({ system: metadataSystem, userPayload: metadataUserPayload });
+    totalPromptTokens += firstPass.promptTokens;
+    totalCompletionTokens += firstPass.completionTokens;
+    let metadataPayload = validateProductMetadataPayload(firstPass.parsed);
+    let compliance = evaluateMetadataOnlyCompliance(metadataPayload, vendorDescription);
+
+    if (
+      compliance.score < seoEnrichmentConfig.korayComplianceThreshold &&
+      seoEnrichmentConfig.maxRegenerationAttempts > 0
+    ) {
+      const secondPass = await this.generateJsonResponse({
+        system: metadataSystem,
+        userPayload: {
+          ...metadataUserPayload,
+          previous_output: metadataPayload,
+          compliance_feedback: compliance,
+          instruction: 'Regenerate metadata and bullets only. Fix compliance. H1 and meta_title must differ. Do not output HTML descriptions.',
+        },
+      });
+      totalPromptTokens += secondPass.promptTokens;
+      totalCompletionTokens += secondPass.completionTokens;
+      metadataPayload = validateProductMetadataPayload(secondPass.parsed);
+      compliance = evaluateMetadataOnlyCompliance(metadataPayload, vendorDescription);
+    }
+
+    let topHtml = '';
+    let bottomHtml = '';
+
+    if (useAugment) {
+      const augmentSystem = buildKoraySystemPromptWithSelection(
+        'You are an ecommerce SEO editor adding grounded augment content around unchanged supplier copy.',
+        selectedRuleBlock,
+        [
+          'CRITICAL: Return JSON with ONLY: top_description_html, bottom_description_html, reasoning.',
+          'Generate net-new questions, framing, and structure. Every fact, value, and claim MUST come from vendor_description.',
+          'Do NOT introduce specs, materials, dimensions, certifications, compatibility, or claims not present in the source.',
+          'Do NOT rewrite or paraphrase supplier sentences.',
+          'top_description_html: optional short framing intro (0–2 sentences in <p> tags). Omit if not needed.',
+          'bottom_description_html: main augment block with 2–4 extractive-answer Q&A pairs using <h3>question</h3><p>short direct answer</p>. Use <h3> only — never <h2> or <h1>.',
+          'Optionally add a use-case/context paragraph after Q&A. Australian English.',
+        ]
+      );
+
+      const augmentPass = await this.generateJsonResponse({
+        system: augmentSystem,
+        userPayload: {
+          page_type: 'product',
+          enrichment_mode: 'collective_augment',
+          product: {
+            title: row.title,
+            vendor: row.vendor,
+            product_type: row.product_type,
+            vendor_description: vendorDescription,
+          },
+          generated_metadata: metadataPayload,
+        },
+      });
+      totalPromptTokens += augmentPass.promptTokens;
+      totalCompletionTokens += augmentPass.completionTokens;
+      const augmentPayload = validateProductCollectiveAugmentPayload(augmentPass.parsed);
+      topHtml = augmentPayload.top_description_html;
+      bottomHtml = augmentPayload.bottom_description_html;
+      if (augmentPayload.reasoning) {
+        metadataPayload.reasoning = [metadataPayload.reasoning, augmentPayload.reasoning].filter(Boolean).join(' ');
+      }
+    }
+
+    const normalised = useNormalise ? normaliseVendorDescription(vendorDescriptionHtml) : null;
+    const collective = buildCollectiveEnrichmentPayload({
+      metadata: metadataPayload,
+      top_description_html: topHtml,
+      bottom_description_html: bottomHtml,
+      description_html: normalised?.changed ? normalised.html : '',
+      use_headless_description: Boolean(normalised?.changed),
+      use_headless_top_description: useAugment && Boolean(topHtml.trim()),
+      use_headless_bottom_description: useAugment && Boolean(bottomHtml.trim()),
+      normalisation_steps: normalised?.steps || [],
+    });
+
+    if (useAugment) {
+      compliance = evaluateCollectiveAugmentCompliance(collective, vendorDescription);
+      if (
+        !compliance.passed &&
+        seoEnrichmentConfig.maxRegenerationAttempts > 0
+      ) {
+        log('warn', 'Collective augment failed compliance; metadata-only portion may still apply in shadow', {
+          handle: item.page_identifier,
+          issues: compliance.issues,
+        });
+      }
+    }
+
+    return buildResult(
+      collective,
+      {
+        model: seoEnrichmentConfig.openaiModel,
+        inputTokens: totalPromptTokens,
+        outputTokens: totalCompletionTokens,
+        costUsd: estimateCost(totalPromptTokens, totalCompletionTokens),
+      },
+      compliance
+    );
   }
 
   private async enrichCollection(item: QueueItem, serpAnalysis: Record<string, unknown>): Promise<EnrichmentResult | null> {

@@ -3,8 +3,11 @@ import type {
   EnrichmentPageType,
   KorayComplianceCheck,
   KorayComplianceResult,
+  ProductCollectiveEnrichmentPayload,
   ProductEnrichmentPayload,
+  ProductMetadataEnrichmentPayload,
 } from '@/lib/seo-enrichment/types';
+import { evaluateFactFidelity } from '@/lib/seo-enrichment/fact-fidelity';
 
 const FLUFF_PATTERNS = [
   /premium quality/gi,
@@ -90,6 +93,31 @@ function evaluateInternalLinks(paths: string[]): KorayComplianceCheck {
   return buildCheck('internal_links', 'Internal linking relevance', score, 70, `Valid internal paths=${valid}/${paths.length}`);
 }
 
+function evaluateTitleDistinctness(h1: string, metaTitle: string): KorayComplianceCheck {
+  const h1Norm = h1.toLowerCase().trim();
+  const metaNorm = metaTitle.toLowerCase().trim();
+  const identical = h1Norm === metaNorm;
+  const score = identical ? 35 : h1Norm.length > 0 && metaNorm.includes(h1Norm.split(/\s+/)[0] || '') ? 85 : 70;
+  return buildCheck(
+    'title_distinctness',
+    'H1 distinct from meta title',
+    score,
+    60,
+    identical ? 'H1 and meta_title are identical' : 'H1 and meta_title serve different roles'
+  );
+}
+
+function evaluateHeadingHygiene(augmentHtml: string): KorayComplianceCheck {
+  const hasH2 = /<h2\b/i.test(augmentHtml);
+  const score = hasH2 ? 40 : augmentHtml.trim() ? 85 : 70;
+  return buildCheck(
+    'heading_hygiene',
+    'Augment blocks use h3 only (no h2)',
+    score,
+    60,
+    hasH2 ? 'Found h2 in augment HTML — use h3 only' : 'No h2 in augment blocks'
+  );
+}
 function evaluateFluff(allText: string): KorayComplianceCheck {
   const hits = FLUFF_PATTERNS.reduce((sum, p) => sum + countMatches(allText, p), 0);
   const score = Math.max(0, 100 - hits * 20);
@@ -153,3 +181,77 @@ export function evaluateKorayCompliance(
   };
 }
 
+/** Lighter compliance gate for metadata-only enrichment (no HTML body generated). */
+export function evaluateMetadataOnlyCompliance(
+  payload: ProductMetadataEnrichmentPayload,
+  vendorDescription: string
+): KorayComplianceResult {
+  const checks: KorayComplianceCheck[] = [];
+  const contextText = vendorDescription || payload.meta_description;
+
+  checks.push(evaluateMacroContext(payload.title_override, contextText));
+  checks.push(evaluateEav(payload.bullet_points));
+  checks.push(evaluateTitleDistinctness(payload.title_override, payload.meta_title));
+  checks.push(
+    evaluateFluff(
+      `${payload.title_override} ${payload.meta_title} ${payload.meta_description} ${payload.bullet_points.join(' ')}`
+    )
+  );
+
+  const score = Math.round(average(checks.map((c) => c.score)));
+  const issues = checks.filter((c) => !c.passed).map((c) => `${c.label}: ${c.detail}`);
+  return {
+    score,
+    passed: score >= 60 && issues.length <= 1,
+    issues,
+    checks,
+  };
+}
+
+/** Compliance for Collective augment mode — structure + hard fact-fidelity gate. */
+export function evaluateCollectiveAugmentCompliance(
+  payload: ProductCollectiveEnrichmentPayload,
+  vendorDescription: string
+): KorayComplianceResult {
+  const augmentHtml = `${payload.top_description_html}\n${payload.bottom_description_html}`;
+  const checks: KorayComplianceCheck[] = [];
+
+  checks.push(evaluateMetadataOnlyCompliance(payload, vendorDescription).checks[0]);
+  checks.push(evaluateEav(payload.bullet_points));
+  checks.push(evaluateTitleDistinctness(payload.title_override, payload.meta_title));
+  checks.push(evaluateExtractiveAnswers(payload.bottom_description_html || augmentHtml));
+  checks.push(evaluateHeadingHygiene(augmentHtml));
+
+  const fidelity = evaluateFactFidelity(augmentHtml, vendorDescription);
+  checks.push(
+    buildCheck(
+      'fact_fidelity',
+      'Fact fidelity (augment grounded in vendor source)',
+      fidelity.passed ? 100 : 0,
+      100,
+      fidelity.passed
+        ? `Checked ${fidelity.checkedPairs} attribute pairs — all grounded`
+        : `Unsourced claims: ${fidelity.unsourcedClaims.slice(0, 3).join('; ')}`
+    )
+  );
+
+  checks.push(
+    evaluateFluff(
+      `${payload.title_override} ${payload.meta_title} ${payload.bullet_points.join(' ')} ${stripHtml(augmentHtml)}`
+    )
+  );
+
+  const hardFail = !fidelity.passed;
+  const score = hardFail ? 0 : Math.round(average(checks.map((c) => c.score)));
+  const issues = checks.filter((c) => !c.passed).map((c) => `${c.label}: ${c.detail}`);
+  if (hardFail && fidelity.unsourcedClaims.length) {
+    issues.unshift(`Fact fidelity hard fail: ${fidelity.unsourcedClaims.join('; ')}`);
+  }
+
+  return {
+    score,
+    passed: !hardFail && score >= 72 && issues.length <= 2,
+    issues,
+    checks,
+  };
+}

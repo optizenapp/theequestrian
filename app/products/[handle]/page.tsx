@@ -21,6 +21,7 @@ import ProductReviewSection from '@/components/reviews/ProductReviewSection';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
 import ProductIdentifierMetaRow from '@/components/product/ProductIdentifierMetaRow';
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
+import { composeProductDescriptionHtml } from '@/lib/products/compose-product-description';
 import { getProductIdentifiers } from '@/lib/products/product-identifiers';
 import { getProductBrandForDisplay } from '@/lib/db/product-brand';
 import {
@@ -32,7 +33,7 @@ import ProductPdpCroTrialMain from '@/components/product/ProductPdpCroTrialMain'
 import ProductPdpCroTwoMain from '@/components/product/ProductPdpCroTwoMain';
 import { createManualRedirect, getManualRedirect } from '@/lib/redirects/manual';
 import { getProductOverrideByHandle, resolveProductHandleFromSlug } from '@/lib/content/product-overrides';
-import { buildProductSeoMetadata } from '@/lib/seo/product-metadata';
+import { buildProductSeoMetadata, resolveProductPageDescription, resolveProductPageTitle } from '@/lib/seo/product-metadata';
 import { cache } from 'react';
 import { ProductViewTracker } from '@/components/analytics/ProductViewTracker';
 import { getProductReviewsWithStats } from '@/lib/reviews/product-reviews';
@@ -84,11 +85,12 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
     notFound();
   }
   const displayTitle = override?.use_headless_title ? (override?.title_override || product.title) : product.title;
-  const rawDescriptionHtml = override?.use_headless_description
-    ? (override?.description_html || product.descriptionHtml)
-    : product.descriptionHtml;
+  const composedDescription = composeProductDescriptionHtml({
+    shopifyDescriptionHtml: product.descriptionHtml,
+    override,
+  });
   const { html: descriptionHtml, videos: descriptionVideos } =
-    extractVideosFromHtml(rawDescriptionHtml);
+    extractVideosFromHtml(composedDescription.html);
 
   // Get the canonical URL
   const canonicalUrl = await getProductCanonicalUrl(product);
@@ -395,8 +397,8 @@ export async function generateMetadata({ params }: ProductPageProps) {
     productDescription: product.description,
     override,
   });
-  const title = seoMetadata.proposedTitle;
-  const description = seoMetadata.proposedDescription;
+  const title = resolveProductPageTitle(seoMetadata, override);
+  const description = resolveProductPageDescription(seoMetadata, override);
 
   return {
     title,

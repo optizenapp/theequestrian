@@ -15,6 +15,57 @@ function toBool(value: string | undefined, fallback = false): boolean {
   return ['1', 'true', 'yes', 'on'].includes(value.toLowerCase());
 }
 
+export type SeoEnrichmentRuntimeOverrides = {
+  metadataOnly?: boolean;
+  /** Generate grounded top/bottom augment blocks (Collective framework). */
+  collectiveAugment?: boolean;
+  /** Deterministic supplier description layout normalisation. */
+  normaliseDescription?: boolean;
+  vendorFilter?: string;
+  brandFilter?: string;
+  productsOnly?: boolean;
+};
+
+let runtimeOverrides: SeoEnrichmentRuntimeOverrides = {};
+
+/** Set CLI/runtime overrides before creating the worker (e.g. --vendor, --metadata-only). */
+export function setSeoEnrichmentRuntimeOverrides(overrides: SeoEnrichmentRuntimeOverrides): void {
+  runtimeOverrides = { ...runtimeOverrides, ...overrides };
+}
+
+export function getSeoEnrichmentRuntimeOverrides(): SeoEnrichmentRuntimeOverrides {
+  return { ...runtimeOverrides };
+}
+
+function readMetadataOnly(): boolean {
+  if (runtimeOverrides.metadataOnly !== undefined) return runtimeOverrides.metadataOnly;
+  return toBool(process.env.SEO_ENRICHMENT_METADATA_ONLY);
+}
+
+function readCollectiveAugment(): boolean {
+  if (runtimeOverrides.collectiveAugment !== undefined) return runtimeOverrides.collectiveAugment;
+  return toBool(process.env.SEO_ENRICHMENT_COLLECTIVE_AUGMENT);
+}
+
+function readNormaliseDescription(): boolean {
+  if (runtimeOverrides.normaliseDescription !== undefined) return runtimeOverrides.normaliseDescription;
+  return toBool(process.env.SEO_ENRICHMENT_NORMALISE_DESCRIPTION);
+}
+
+function readVendorFilter(): string {
+  return (runtimeOverrides.vendorFilter ?? process.env.SEO_ENRICHMENT_VENDOR_FILTER ?? '').trim();
+}
+
+function readProductsOnly(): boolean {
+  if (runtimeOverrides.productsOnly !== undefined) return runtimeOverrides.productsOnly;
+  if (readVendorFilter()) return true;
+  return toBool(process.env.SEO_ENRICHMENT_PRODUCTS_ONLY);
+}
+
+function readBrandFilter(): string {
+  return (runtimeOverrides.brandFilter ?? process.env.SEO_ENRICHMENT_BRAND_FILTER ?? '').trim();
+}
+
 export const seoEnrichmentConfig = {
   mode: ((process.env.SEO_ENRICHMENT_MODE || 'dry-run') as EnrichmentMode),
   dailyBatchSize: toInt(process.env.SEO_ENRICHMENT_DAILY_BATCH_SIZE, 120),
@@ -49,7 +100,31 @@ export const seoEnrichmentConfig = {
   logVerbose: toBool(process.env.SEO_ENRICHMENT_VERBOSE, false),
   // Minimum collection pages guaranteed per daily batch (front-loads categories each cycle)
   collectionMinSlots: toInt(process.env.SEO_ENRICHMENT_COLLECTION_MIN_SLOTS, 30),
-} as const;
+  /** Metadata-only mode: meta title/desc, H1, bullets — vendor description unchanged on PDP */
+  get metadataOnly(): boolean {
+    return readMetadataOnly();
+  },
+  /** Collective augment layer: grounded top/bottom_description_html blocks */
+  get collectiveAugment(): boolean {
+    return readCollectiveAugment();
+  },
+  /** Deterministic supplier description normalisation (strip heading, split blocks) */
+  get normaliseDescription(): boolean {
+    return readNormaliseDescription();
+  },
+  /** Restrict selection/enrichment to products matching this Shopify vendor name */
+  get vendorFilter(): string {
+    return readVendorFilter();
+  },
+  /** Restrict selection/enrichment to products matching brand (name or handle prefix) */
+  get brandFilter(): string {
+    return readBrandFilter();
+  },
+  /** Skip collection pages in selection (auto-enabled when vendorFilter is set) */
+  get productsOnly(): boolean {
+    return readProductsOnly();
+  },
+};
 
 export function assertSeoEnrichmentEnvForApply() {
   if (seoEnrichmentConfig.mode === 'apply' || seoEnrichmentConfig.mode === 'shadow') {

@@ -17,6 +17,7 @@ import { generateProductSchemaGraph } from '@/lib/utils/product-schema';
 import { getBreadcrumbsForProduct } from '@/lib/mapping/collection-mapping';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
+import { composeProductDescriptionHtml } from '@/lib/products/compose-product-description';
 import ProductIdentifierMetaRow from '@/components/product/ProductIdentifierMetaRow';
 import { getProductIdentifiers } from '@/lib/products/product-identifiers';
 import { getProductBrandForDisplay } from '@/lib/db/product-brand';
@@ -111,9 +112,10 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
     notFound();
   }
   const displayTitle = override?.use_headless_title ? (override?.title_override || resolvedProduct.title) : resolvedProduct.title;
-  const descriptionHtml = override?.use_headless_description
-    ? (override?.description_html || resolvedProduct.descriptionHtml)
-    : resolvedProduct.descriptionHtml;
+  const descriptionHtml = composeProductDescriptionHtml({
+    shopifyDescriptionHtml: resolvedProduct.descriptionHtml,
+    override,
+  }).html;
 
   // Get the canonical URL for this product
   const canonicalUrl = await getProductCanonicalUrl(resolvedProduct);

@@ -40,6 +40,7 @@ import { getAllowedBrandVendors } from '@/lib/filters/brand-filter-helper';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
 import ProductIdentifierMetaRow from '@/components/product/ProductIdentifierMetaRow';
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
+import { composeProductDescriptionHtml } from '@/lib/products/compose-product-description';
 import { getProductIdentifiers } from '@/lib/products/product-identifiers';
 import { getProductBrandForDisplay } from '@/lib/db/product-brand';
 import {
@@ -54,7 +55,7 @@ import type { Metadata } from 'next';
 import type { ShopifyBuyBoxProduct, ShopifyProduct } from '@/types/shopify';
 import { getManualRedirect } from '@/lib/redirects/manual';
 import { getProductOverrideByHandle, resolveProductHandleFromSlug } from '@/lib/content/product-overrides';
-import { buildProductSeoMetadata } from '@/lib/seo/product-metadata';
+import { buildProductSeoMetadata, resolveProductPageDescription, resolveProductPageTitle } from '@/lib/seo/product-metadata';
 import { cache } from 'react';
 import { ProductViewTracker } from '@/components/analytics/ProductViewTracker';
 import { ProductGridSkeleton } from '@/components/filters/ProductGridSkeleton';
@@ -195,11 +196,12 @@ async function renderProductPage(
     notFound();
   }
   const displayTitle = override?.use_headless_title ? (override?.title_override || product.title) : product.title;
-  const rawDescriptionHtml = override?.use_headless_description
-    ? (override?.description_html || product.descriptionHtml)
-    : product.descriptionHtml;
+  const composedDescription = composeProductDescriptionHtml({
+    shopifyDescriptionHtml: product.descriptionHtml,
+    override,
+  });
   const { html: descriptionHtml, videos: descriptionVideos } =
-    extractVideosFromHtml(rawDescriptionHtml);
+    extractVideosFromHtml(composedDescription.html);
   // Build breadcrumb paths from allocation table (priority) or product type (fallback)
   const breadcrumbPaths = await getBreadcrumbsForProduct(
     product.productType || '',
@@ -741,8 +743,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     productDescription: product.description,
     override,
   });
-  const title = seoMetadata.proposedTitle;
-  const description = seoMetadata.proposedDescription;
+  const title = resolveProductPageTitle(seoMetadata, override);
+  const description = resolveProductPageDescription(seoMetadata, override);
 
   return {
     title,

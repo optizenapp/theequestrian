@@ -245,6 +245,83 @@ export const EnrichmentQueries = {
       updated_at = NOW()
   `,
 
+  /** Metadata-only: SEO fields + bullets; leaves vendor description on PDP untouched */
+  upsertProductMetadataOverride: `
+    INSERT INTO product_content_overrides (
+      product_handle,
+      meta_title,
+      meta_description,
+      title_override,
+      bullet_points,
+      use_headless_title,
+      use_headless_meta_title,
+      use_headless_meta_description,
+      use_headless_bullets,
+      use_headless_description,
+      use_headless_top_description,
+      use_headless_bottom_description
+    ) VALUES (
+      $1, $2, $3, $4, $5::jsonb,
+      TRUE, TRUE, TRUE, TRUE,
+      FALSE, FALSE, FALSE
+    )
+    ON CONFLICT (product_handle) DO UPDATE SET
+      meta_title = EXCLUDED.meta_title,
+      meta_description = EXCLUDED.meta_description,
+      title_override = EXCLUDED.title_override,
+      bullet_points = EXCLUDED.bullet_points,
+      use_headless_title = TRUE,
+      use_headless_meta_title = TRUE,
+      use_headless_meta_description = TRUE,
+      use_headless_bullets = TRUE,
+      use_headless_description = FALSE,
+      use_headless_top_description = FALSE,
+      use_headless_bottom_description = FALSE,
+      updated_at = NOW()
+  `,
+
+  /** Collective framework: metadata + optional normalised supplier HTML + augment blocks */
+  upsertProductCollectiveOverride: `
+    INSERT INTO product_content_overrides (
+      product_handle,
+      meta_title,
+      meta_description,
+      title_override,
+      bullet_points,
+      description_html,
+      top_description_html,
+      bottom_description_html,
+      use_headless_title,
+      use_headless_meta_title,
+      use_headless_meta_description,
+      use_headless_bullets,
+      use_headless_description,
+      use_headless_top_description,
+      use_headless_bottom_description
+    ) VALUES (
+      $1, $2, $3, $4, $5::jsonb,
+      $6, $7, $8,
+      TRUE, TRUE, TRUE, TRUE,
+      $9, $10, $11
+    )
+    ON CONFLICT (product_handle) DO UPDATE SET
+      meta_title = EXCLUDED.meta_title,
+      meta_description = EXCLUDED.meta_description,
+      title_override = EXCLUDED.title_override,
+      bullet_points = EXCLUDED.bullet_points,
+      description_html = CASE WHEN $9 THEN EXCLUDED.description_html ELSE product_content_overrides.description_html END,
+      top_description_html = CASE WHEN $10 THEN EXCLUDED.top_description_html ELSE product_content_overrides.top_description_html END,
+      bottom_description_html = CASE WHEN $11 THEN EXCLUDED.bottom_description_html ELSE product_content_overrides.bottom_description_html END,
+      use_headless_title = TRUE,
+      use_headless_meta_title = TRUE,
+      use_headless_meta_description = TRUE,
+      use_headless_bullets = TRUE,
+      use_headless_description = EXCLUDED.use_headless_description,
+      use_headless_top_description = EXCLUDED.use_headless_top_description,
+      use_headless_bottom_description = EXCLUDED.use_headless_bottom_description,
+      updated_at = NOW()
+  `,
+
   updateCollectionContent: `
     UPDATE collection_content
     SET

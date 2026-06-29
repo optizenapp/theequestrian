@@ -3,6 +3,7 @@ import { AnalyticsCollector } from '@/lib/seo-enrichment/collector';
 import { EnrichmentEngine } from '@/lib/seo-enrichment/engine';
 import {
   claimQueueBatch,
+  createSingleHandleQueueItem,
   markQueueCompleted,
   markQueueFailed,
   requeueFailed,
@@ -81,6 +82,16 @@ export class SeoEnrichmentWorker {
     const retried = await requeueFailed(seoEnrichmentConfig.requeueFailedRetries);
     log('info', 'Requeued failed items', { count: retried });
     return retried;
+  }
+
+  /** Process one product handle directly (skips selection). */
+  async processHandle(handle: string): Promise<number> {
+    assertSeoEnrichmentEnvForApply();
+    const trimmed = handle.trim();
+    if (!trimmed) throw new Error('Handle is required');
+    const item = await createSingleHandleQueueItem(trimmed);
+    await this.processItem(item);
+    return 1;
   }
 
   private async processBatch(items: QueueItem[]) {

@@ -14,8 +14,111 @@ function asJson(value: unknown): string {
   return JSON.stringify(value ?? {});
 }
 
-export async function getEligiblePages(intervalDays: number): Promise<QueuePageCandidate[]> {
-  const result = await sql.query(EnrichmentQueries.selectEligiblePages, [String(intervalDays)]);
+export type EligiblePagesOptions = {
+  vendor?: string;
+  brand?: string;
+  metadataOnly?: boolean;
+  productsOnly?: boolean;
+};
+
+export async function getEligiblePages(
+  intervalDays: number,
+  options: EligiblePagesOptions = {}
+): Promise<QueuePageCandidate[]> {
+  const vendor = options.vendor?.trim() || '';
+  const brand = options.brand?.trim() || '';
+  const metadataOnly = options.metadataOnly ?? false;
+  const productsOnly = options.productsOnly ?? Boolean(vendor);
+
+  const params: unknown[] = [String(intervalDays)];
+  const vendorClause = vendor
+    ? `AND LOWER(TRIM(p.vendor)) = LOWER(TRIM($${params.push(vendor)}))`
+    : '';
+  const brandClause = brand
+    ? (() => {
+        params.push(brand);
+        const brandParam = `$${params.length}`;
+        const handlePrefix = `${brand.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-%`;
+        params.push(handlePrefix);
+        const prefixParam = `$${params.length}`;
+        return `AND (LOWER(TRIM(p.brand)) = LOWER(TRIM(${brandParam})) OR LOWER(p.handle) LIKE ${prefixParam})`;
+      })()
+    : '';
+  const metadataClause = metadataOnly
+    ? `AND (
+        co.product_handle IS NULL
+        OR COALESCE(co.use_headless_meta_title, FALSE) IS NOT TRUE
+        OR COALESCE(co.use_headless_meta_description, FALSE) IS NOT TRUE
+        OR COALESCE(co.use_headless_title, FALSE) IS NOT TRUE
+        OR COALESCE(co.use_headless_bullets, FALSE) IS NOT TRUE
+      )`
+    : '';
+
+  const collectionPagesCte = productsOnly
+    ? ''
+    : `,
+    collection_pages AS (
+      SELECT
+        'collection'::text AS page_type,
+        cc.url_path AS page_identifier,
+        cc.url_path AS canonical_path,
+        (
+          SELECT MAX(el.created_at)
+          FROM enrichment_log el
+          WHERE el.page_type = 'collection'
+            AND el.page_identifier = cc.url_path
+            AND el.applied = TRUE
+        ) AS last_enriched_at,
+        (cc.status = 'published') AS is_active
+      FROM collection_content cc
+    )`;
+
+  const allPagesSource = productsOnly
+    ? `SELECT * FROM product_pages`
+    : `SELECT * FROM product_pages UNION ALL SELECT * FROM collection_pages`;
+
+  const text = `
+    WITH product_pages AS (
+      SELECT
+        'product'::text AS page_type,
+        p.handle AS page_identifier,
+        COALESCE(pca.canonical_path, '/products/' || p.handle) AS canonical_path,
+        co.updated_at AS last_enriched_at,
+        (p.available_for_sale IS NOT FALSE) AS is_active
+      FROM products p
+      LEFT JOIN product_content_overrides co
+        ON co.product_handle = p.handle
+      LEFT JOIN product_category_assignments pca
+        ON pca.product_handle = p.handle
+      WHERE 1=1
+        ${vendorClause}
+        ${brandClause}
+        ${metadataClause}
+    )${collectionPagesCte},
+    all_pages AS (
+      ${allPagesSource}
+    ),
+    recently_enriched AS (
+      SELECT DISTINCT page_type, page_identifier
+      FROM enrichment_log
+      WHERE created_at > NOW() - ($1::text || ' days')::interval
+        AND applied = TRUE
+    )
+    SELECT
+      ap.page_type,
+      ap.page_identifier,
+      ap.canonical_path,
+      ap.last_enriched_at
+    FROM all_pages ap
+    LEFT JOIN recently_enriched re
+      ON re.page_type = ap.page_type
+     AND re.page_identifier = ap.page_identifier
+    WHERE ap.is_active = TRUE
+      AND re.page_identifier IS NULL
+    ORDER BY ap.last_enriched_at ASC NULLS FIRST
+  `;
+
+  const result = await sql.query(text, params);
   return result.rows.map((row) => ({
     pageType: row.page_type as EnrichmentPageType,
     pageIdentifier: row.page_identifier as string,
@@ -61,6 +164,61 @@ export async function requeueFailed(maxRetries: number): Promise<void> {
   await sql.query(EnrichmentQueries.requeueFailed, [maxRetries]);
 }
 
+export async function createSingleHandleQueueItem(handle: string): Promise<QueueItem> {
+  const trimmed = handle.trim();
+  const canonicalPath = await resolveProductCanonicalPath(trimmed);
+  const gscData: GscMetrics = {
+    totalImpressions: 0,
+    totalClicks: 0,
+    avgPosition: 0,
+    avgCtr: 0,
+    topQueries: [],
+    highImpressionLowPosition: [],
+    highImpressionLowCtr: [],
+  };
+  const ga4Data: Ga4Metrics = {
+    sessions: 0,
+    revenue: 0,
+    conversions: 0,
+    bounceRate: 0,
+    avgSessionDuration: 0,
+    addToCarts: 0,
+    transactions: 0,
+  };
+  const priorityReasons = { single_handle_test: true };
+
+  const inserted = await sql.query(EnrichmentQueries.enqueuePage, [
+    'product',
+    trimmed,
+    canonicalPath,
+    100,
+    asJson(priorityReasons),
+    asJson(gscData),
+    asJson(ga4Data),
+  ]);
+
+  const queueId = Number(inserted.rows[0]?.id);
+  if (!Number.isFinite(queueId)) {
+    throw new Error(`Failed to enqueue handle: ${trimmed}`);
+  }
+
+  await sql.query(
+    `UPDATE enrichment_queue SET status = 'processing', started_at = NOW(), updated_at = NOW() WHERE id = $1`,
+    [queueId]
+  );
+
+  return {
+    id: queueId,
+    page_type: 'product',
+    page_identifier: trimmed,
+    canonical_path: canonicalPath,
+    priority_score: 100,
+    priority_reasons: priorityReasons,
+    gsc_data: gscData,
+    ga4_data: ga4Data,
+  };
+}
+
 export async function fetchProductForEnrichment(handle: string) {
   const result = await sql.query(EnrichmentQueries.productDataForEnrichment, [handle]);
   return result.rows[0] || null;
@@ -92,6 +250,54 @@ export async function writeProductEnrichment(
     payload.top_description_html,
     payload.bottom_description_html,
     JSON.stringify(payload.bullet_points || []),
+  ]);
+}
+
+export async function writeProductMetadataEnrichment(
+  handle: string,
+  payload: {
+    meta_title: string;
+    meta_description: string;
+    title_override: string;
+    bullet_points: string[];
+  }
+): Promise<void> {
+  await sql.query(EnrichmentQueries.upsertProductMetadataOverride, [
+    handle,
+    payload.meta_title,
+    payload.meta_description,
+    payload.title_override,
+    JSON.stringify(payload.bullet_points || []),
+  ]);
+}
+
+export async function writeProductCollectiveEnrichment(
+  handle: string,
+  payload: {
+    meta_title: string;
+    meta_description: string;
+    title_override: string;
+    bullet_points: string[];
+    description_html: string;
+    top_description_html: string;
+    bottom_description_html: string;
+    use_headless_description: boolean;
+    use_headless_top_description: boolean;
+    use_headless_bottom_description: boolean;
+  }
+): Promise<void> {
+  await sql.query(EnrichmentQueries.upsertProductCollectiveOverride, [
+    handle,
+    payload.meta_title,
+    payload.meta_description,
+    payload.title_override,
+    JSON.stringify(payload.bullet_points || []),
+    payload.description_html,
+    payload.top_description_html,
+    payload.bottom_description_html,
+    payload.use_headless_description,
+    payload.use_headless_top_description,
+    payload.use_headless_bottom_description,
   ]);
 }
 

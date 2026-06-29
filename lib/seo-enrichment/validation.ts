@@ -1,7 +1,9 @@
 import { z } from 'zod';
 import type {
   CollectionEnrichmentPayload,
+  ProductCollectiveEnrichmentPayload,
   ProductEnrichmentPayload,
+  ProductMetadataEnrichmentPayload,
 } from '@/lib/seo-enrichment/types';
 
 const internalLinkSuggestionSchema = z.object({
@@ -60,6 +62,65 @@ function sanitizeHtml(value: string): string {
     .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
     .replace(/\son\w+="[^"]*"/gi, '')
     .trim();
+}
+
+const productMetadataSchema = z.object({
+  meta_title: z.string().min(1),
+  meta_description: z.string().min(1),
+  title_override: z.string(),
+  bullet_points: z.array(z.string().min(1).max(180)).min(3).max(10),
+  reasoning: z.string().max(1000).optional(),
+});
+
+const productCollectiveAugmentSchema = z.object({
+  top_description_html: z.string().max(15000).default(''),
+  bottom_description_html: z.string().max(15000).default(''),
+  reasoning: z.string().max(1000).optional(),
+});
+
+export function validateProductCollectiveAugmentPayload(input: unknown): {
+  top_description_html: string;
+  bottom_description_html: string;
+  reasoning?: string;
+} {
+  const parsed = productCollectiveAugmentSchema.parse(input);
+  return {
+    top_description_html: sanitizeHtml(parsed.top_description_html),
+    bottom_description_html: sanitizeHtml(parsed.bottom_description_html),
+    reasoning: parsed.reasoning,
+  };
+}
+
+export function buildCollectiveEnrichmentPayload(input: {
+  metadata: ProductMetadataEnrichmentPayload;
+  top_description_html?: string;
+  bottom_description_html?: string;
+  description_html?: string;
+  use_headless_description?: boolean;
+  use_headless_top_description?: boolean;
+  use_headless_bottom_description?: boolean;
+  normalisation_steps?: string[];
+}): ProductCollectiveEnrichmentPayload {
+  return {
+    ...input.metadata,
+    top_description_html: input.top_description_html || '',
+    bottom_description_html: input.bottom_description_html || '',
+    description_html: input.description_html || '',
+    use_headless_description: input.use_headless_description ?? false,
+    use_headless_top_description: input.use_headless_top_description ?? false,
+    use_headless_bottom_description: input.use_headless_bottom_description ?? false,
+    normalisation_steps: input.normalisation_steps || [],
+  };
+}
+export function validateProductMetadataPayload(input: unknown): ProductMetadataEnrichmentPayload {
+  const parsed = productMetadataSchema.parse(input);
+  return {
+    meta_title: parsed.meta_title.substring(0, 68),
+    meta_description: parsed.meta_description.substring(0, 158),
+    title_override: parsed.title_override.substring(0, 200),
+    bullet_points: parsed.bullet_points,
+    reasoning: parsed.reasoning,
+  };
 }
 
 export function validateProductPayload(input: unknown): ProductEnrichmentPayload {

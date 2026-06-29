@@ -5,7 +5,9 @@ import {
   insertEnrichmentLog,
   writeCollectionEnrichment,
   writeInternalLinkSuggestions,
+  writeProductCollectiveEnrichment,
   writeProductEnrichment,
+  writeProductMetadataEnrichment,
 } from '@/lib/seo-enrichment/db';
 import { log } from '@/lib/seo-enrichment/logger';
 import type { EnrichmentResult, QueueItem } from '@/lib/seo-enrichment/types';
@@ -58,9 +60,14 @@ async function revalidateItem(result: EnrichmentResult): Promise<void> {
 
 export class EnrichmentWriter {
   async write(queueItem: QueueItem, result: EnrichmentResult): Promise<number> {
+    const complianceThreshold = seoEnrichmentConfig.metadataOnly
+      ? seoEnrichmentConfig.collectiveAugment
+        ? 72
+        : 60
+      : seoEnrichmentConfig.korayComplianceThreshold;
     const complianceGatePassed =
       result.koray.compliance.passed &&
-      result.koray.compliance.score >= seoEnrichmentConfig.korayComplianceThreshold;
+      result.koray.compliance.score >= complianceThreshold;
     const shouldApply = seoEnrichmentConfig.mode === 'apply' && complianceGatePassed;
     const isShadow = seoEnrichmentConfig.mode === 'shadow';
     const payload = result.payload;
@@ -84,17 +91,50 @@ export class EnrichmentWriter {
           bottom_description_html: string;
           bullet_points: string[];
         };
-        await writeProductEnrichment(result.pageIdentifier, {
-          meta_title: productPayload.meta_title,
-          meta_description: productPayload.meta_description,
-          title_override: productPayload.title_override,
-          description_html: productPayload.description_html,
-          top_description_html: productPayload.top_description_html,
-          bottom_description_html: productPayload.bottom_description_html,
-          bullet_points: productPayload.bullet_points,
-        });
-        const sourcePath = `/products/${result.pageIdentifier}`;
-        await writeInternalLinkSuggestions(sourcePath, productPayload.internal_link_suggestions || []);
+        if (seoEnrichmentConfig.metadataOnly) {
+          const collective = result.collective;
+          const usesCollectiveWrite =
+            collective != null &&
+            (collective.use_headless_description ||
+              collective.use_headless_top_description ||
+              collective.use_headless_bottom_description ||
+              seoEnrichmentConfig.normaliseDescription ||
+              seoEnrichmentConfig.collectiveAugment);
+
+          if (usesCollectiveWrite && collective) {
+            await writeProductCollectiveEnrichment(result.pageIdentifier, {
+              meta_title: productPayload.meta_title,
+              meta_description: productPayload.meta_description,
+              title_override: productPayload.title_override,
+              bullet_points: productPayload.bullet_points,
+              description_html: collective.description_html,
+              top_description_html: collective.top_description_html,
+              bottom_description_html: collective.bottom_description_html,
+              use_headless_description: collective.use_headless_description,
+              use_headless_top_description: collective.use_headless_top_description,
+              use_headless_bottom_description: collective.use_headless_bottom_description,
+            });
+          } else {
+            await writeProductMetadataEnrichment(result.pageIdentifier, {
+              meta_title: productPayload.meta_title,
+              meta_description: productPayload.meta_description,
+              title_override: productPayload.title_override,
+              bullet_points: productPayload.bullet_points,
+            });
+          }
+        } else {
+          await writeProductEnrichment(result.pageIdentifier, {
+            meta_title: productPayload.meta_title,
+            meta_description: productPayload.meta_description,
+            title_override: productPayload.title_override,
+            description_html: productPayload.description_html,
+            top_description_html: productPayload.top_description_html,
+            bottom_description_html: productPayload.bottom_description_html,
+            bullet_points: productPayload.bullet_points,
+          });
+          const sourcePath = `/products/${result.pageIdentifier}`;
+          await writeInternalLinkSuggestions(sourcePath, productPayload.internal_link_suggestions || []);
+        }
       } else {
         const collectionPayload = payload as EnrichmentResult['payload'] & {
           h1_title: string;
@@ -126,6 +166,31 @@ export class EnrichmentWriter {
           bottom_description_html: string;
           bullet_points: string[];
         };
+        if (seoEnrichmentConfig.metadataOnly) {
+          const collective = result.collective;
+          return collective
+            ? {
+                enrichment_mode: 'collective_metadata',
+                meta_title: productPayload.meta_title,
+                meta_description: productPayload.meta_description,
+                title_override: productPayload.title_override,
+                bullet_points: productPayload.bullet_points,
+                description_html: collective.description_html,
+                top_description_html: collective.top_description_html,
+                bottom_description_html: collective.bottom_description_html,
+                use_headless_description: collective.use_headless_description,
+                use_headless_top_description: collective.use_headless_top_description,
+                use_headless_bottom_description: collective.use_headless_bottom_description,
+                normalisation_steps: collective.normalisation_steps,
+              }
+            : {
+                enrichment_mode: 'metadata_only',
+                meta_title: productPayload.meta_title,
+                meta_description: productPayload.meta_description,
+                title_override: productPayload.title_override,
+                bullet_points: productPayload.bullet_points,
+              };
+        }
         return {
           meta_title: productPayload.meta_title,
           meta_description: productPayload.meta_description,

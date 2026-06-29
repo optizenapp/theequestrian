@@ -88,9 +88,18 @@ export class EnrichmentSelector {
   constructor(private readonly collector: AnalyticsCollector) {}
 
   async runSelection(): Promise<number> {
-    const eligiblePages = await getEligiblePages(seoEnrichmentConfig.enrichmentIntervalDays);
+    const eligiblePages = await getEligiblePages(seoEnrichmentConfig.enrichmentIntervalDays, {
+      vendor: seoEnrichmentConfig.vendorFilter || undefined,
+      brand: seoEnrichmentConfig.brandFilter || undefined,
+      metadataOnly: seoEnrichmentConfig.metadataOnly,
+      productsOnly: seoEnrichmentConfig.productsOnly,
+    });
     if (eligiblePages.length === 0) {
-      log('info', 'No eligible pages for enrichment selection');
+      log('info', 'No eligible pages for enrichment selection', {
+        vendor: seoEnrichmentConfig.vendorFilter || 'all',
+        brand: seoEnrichmentConfig.brandFilter || 'all',
+        metadataOnly: seoEnrichmentConfig.metadataOnly,
+      });
       return 0;
     }
 
@@ -105,6 +114,9 @@ export class EnrichmentSelector {
       eligiblePages: eligiblePages.length,
       batchSize,
       candidateLimit,
+      vendor: seoEnrichmentConfig.vendorFilter || 'all',
+      metadataOnly: seoEnrichmentConfig.metadataOnly,
+      productsOnly: seoEnrichmentConfig.productsOnly,
     });
 
     const withMetrics: QueuePageWithMetrics[] = [];
@@ -151,12 +163,10 @@ export class EnrichmentSelector {
 
     withMetrics.sort((a, b) => b.priorityScore - a.priorityScore);
 
-    // Reserve guaranteed slots for collection pages so they are always front-loaded
-    // each enrichment cycle rather than drowned out by the larger product backlog.
-    const minCollectionSlots = Math.min(
-      seoEnrichmentConfig.collectionMinSlots,
-      batchSize
-    );
+    // Reserve guaranteed slots for collection pages (skipped in products-only / vendor mode)
+    const minCollectionSlots = seoEnrichmentConfig.productsOnly
+      ? 0
+      : Math.min(seoEnrichmentConfig.collectionMinSlots, batchSize);
     const collections = withMetrics.filter((p) => p.pageType === 'collection');
     const nonCollections = withMetrics.filter((p) => p.pageType !== 'collection');
     const reservedCollections = collections.slice(0, minCollectionSlots);

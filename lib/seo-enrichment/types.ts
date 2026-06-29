@@ -66,6 +66,27 @@ export interface ProductEnrichmentPayload {
   reasoning?: string;
 }
 
+/** Subset written in metadata-only mode (Collective vendor migration). */
+export interface ProductMetadataEnrichmentPayload {
+  meta_title: string;
+  meta_description: string;
+  title_override: string;
+  bullet_points: string[];
+  reasoning?: string;
+}
+
+/** Collective framework: metadata + optional augment blocks + optional normalised supplier HTML. */
+export interface ProductCollectiveEnrichmentPayload extends ProductMetadataEnrichmentPayload {
+  top_description_html: string;
+  bottom_description_html: string;
+  /** Normalised supplier copy — only written when layout changed. */
+  description_html: string;
+  use_headless_description: boolean;
+  use_headless_top_description: boolean;
+  use_headless_bottom_description: boolean;
+  normalisation_steps: string[];
+}
+
 export interface CollectionFaqItem {
   question: string;
   answer: string;
@@ -147,5 +168,7 @@ export interface EnrichmentResult {
     intent: KoraySelection['intent'];
     compliance: KorayComplianceResult;
   };
+  /** Present when running Collective metadata framework (--metadata-only). */
+  collective?: ProductCollectiveEnrichmentPayload;
 }
 

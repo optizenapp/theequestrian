@@ -86,16 +86,44 @@ function buildProposedDescription(displayTitle: string, productDescription?: str
   return truncateAtWordBoundary(`${baseDescription} ${cta}`, DEFAULT_DESCRIPTION_MAX_LENGTH);
 }
 
+export function resolveProductPageTitle(
+  seo: ProductSeoOutput,
+  override?: ProductContentOverride | null
+): string {
+  if (override?.use_headless_meta_title && override.meta_title?.trim()) {
+    return seo.currentTitle;
+  }
+  return seo.proposedTitle;
+}
+
+export function resolveProductPageDescription(
+  seo: ProductSeoOutput,
+  override?: ProductContentOverride | null
+): string {
+  if (override?.use_headless_meta_description && override.meta_description?.trim()) {
+    return seo.currentDescription;
+  }
+  return seo.proposedDescription;
+}
+
 export function buildProductSeoMetadata(input: ProductSeoInput): ProductSeoOutput {
   const { displayTitle, productDescription, override } = input;
 
   const currentTitle = buildCurrentTitle(displayTitle, override);
   const currentDescription = buildCurrentDescription(displayTitle, productDescription, override);
+  const legacyProposedTitle = buildProposedTitle(displayTitle);
+  const legacyProposedDescription = buildProposedDescription(displayTitle, productDescription);
+
+  // Collective enrichment: enriched meta wins over legacy FREE Shipping template
+  const hasEnrichedMetaTitle =
+    Boolean(override?.use_headless_meta_title && override.meta_title?.trim());
+  const hasEnrichedMetaDescription =
+    Boolean(override?.use_headless_meta_description && override.meta_description?.trim());
 
   return {
     currentTitle,
     currentDescription,
-    proposedTitle: buildProposedTitle(displayTitle),
-    proposedDescription: buildProposedDescription(displayTitle, productDescription),
+    proposedTitle: hasEnrichedMetaTitle ? currentTitle : legacyProposedTitle,
+    proposedDescription: hasEnrichedMetaDescription ? currentDescription : legacyProposedDescription,
   };
 }

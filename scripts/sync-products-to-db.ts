@@ -18,7 +18,7 @@ config({ path: resolve(process.cwd(), '.env') });
 
 import { sql } from '@/lib/db/client';
 import { getAllProducts } from '@/lib/shopify/products';
-import { upsertProductVariantsFromStorefront } from '@/lib/db/product-variants';
+import { syncProductToDb } from './lib/sync-product-to-db';
 import type { ProductWithPrimaryCollection } from '@/types/shopify';
 
 interface SyncStats {
@@ -30,73 +30,8 @@ interface SyncStats {
   errors: Array<{ productId: string; error: string }>;
 }
 
-/**
- * Sync a single product to the database
- */
 async function syncProduct(product: ProductWithPrimaryCollection): Promise<'inserted' | 'updated' | 'failed'> {
-  try {
-    // Extract first image
-    const firstImage = product.images.edges[0]?.node;
-    const imageUrl = firstImage?.url || null;
-    const imageAlt = firstImage?.altText || null;
-    
-    // Upsert product (insert or update if exists)
-    await sql`
-      INSERT INTO products (
-        id,
-        handle,
-        title,
-        description,
-        vendor,
-        product_type,
-        tags,
-        image_url,
-        image_alt,
-        available_for_sale,
-        shopify_created_at,
-        synced_at,
-        updated_at
-      ) VALUES (
-        ${product.id},
-        ${product.handle},
-        ${product.title},
-        ${product.description || ''},
-        ${product.vendor || ''},
-        ${product.productType || ''},
-        ${product.tags || []},
-        ${imageUrl},
-        ${imageAlt},
-        ${product.availableForSale},
-        ${product.createdAt || new Date().toISOString()},
-        NOW(),
-        NOW()
-      )
-      ON CONFLICT (id) DO UPDATE SET
-        handle = EXCLUDED.handle,
-        title = EXCLUDED.title,
-        description = EXCLUDED.description,
-        vendor = EXCLUDED.vendor,
-        product_type = EXCLUDED.product_type,
-        tags = EXCLUDED.tags,
-        image_url = EXCLUDED.image_url,
-        image_alt = EXCLUDED.image_alt,
-        available_for_sale = EXCLUDED.available_for_sale,
-        shopify_created_at = EXCLUDED.shopify_created_at,
-        updated_at = NOW()
-    `;
-
-    // Keep structured variant/options projection in Postgres for accurate facets.
-    await upsertProductVariantsFromStorefront({
-      id: product.id,
-      handle: product.handle,
-      variants: product.variants,
-    });
-    
-    return 'inserted';
-  } catch (error) {
-    console.error(`[syncProduct] Failed to sync product ${product.id}:`, error);
-    return 'failed';
-  }
+  return syncProductToDb(product);
 }
 
 /**
