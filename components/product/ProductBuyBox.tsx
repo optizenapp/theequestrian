@@ -107,7 +107,6 @@ export function ProductBuyBox({ product, layout = 'default' }: ProductBuyBoxProp
         analyticsItem={analyticsItem}
         currencyCode={currencyCode}
         showBuyNow={!isCro}
-        variant={isCro ? 'croTrial' : 'default'}
       />
     </div>
   );

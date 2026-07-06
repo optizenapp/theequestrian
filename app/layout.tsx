@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { Manrope } from 'next/font/google';
 import './globals.css';
 import { Header } from '@/components/header/Header';
-import { FreeShippingBanner } from '@/components/header/FreeShippingBanner';
 import { Footer } from '@/components/footer/Footer';
 import dynamic from 'next/dynamic';
 import { CartProvider } from '@/components/cart/cart-context';
@@ -49,7 +48,7 @@ const ga4LinkerDomainsJson = JSON.stringify(
 
 export const metadata: Metadata = {
   title: 'Australian Equestrian Marketplace | Horse, Rider & Pet',
-  description: 'Shop 10,000+ horse and rider products with FREE SHIPPING sitewide. Discover global brands for horse, rider, and pet.',
+  description: 'Shop 10,000+ horse and rider products. Discover global brands for horse, rider, and pet.',
   alternates: {
     types: {
       'application/rss+xml': `${siteUrl}/rss.xml`,
@@ -116,7 +115,6 @@ export default function RootLayout({
         ) : null}
         <CartProvider>
           <NavigationProgress />
-          <FreeShippingBanner />
           <Header />
           <main className="min-h-screen overflow-x-hidden">
             {children}

@@ -15,15 +15,13 @@ interface MobileStickyBarProps {
   currencyCode?: string;
   /** When false, sticky bar is Add to Cart only (CRO trial). Default true. */
   showBuyNow?: boolean;
-  /** CRO trial uses accurate shipping copy and optional single CTA. */
-  variant?: 'default' | 'croTrial';
 }
 
 /**
  * Mobile Sticky Bottom Bar
  * 
  * Appears on scroll (after 300px) on mobile devices
- * Shows shipping note + Add to Cart (+ optional Buy Now)
+ * Shows Add to Cart (+ optional Buy Now)
  * Fixed at bottom of screen for easy access
  */
 export function MobileStickyBar({
@@ -33,7 +31,6 @@ export function MobileStickyBar({
   analyticsItem,
   currencyCode,
   showBuyNow = true,
-  variant = 'default',
 }: MobileStickyBarProps) {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -68,22 +65,7 @@ export function MobileStickyBar({
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       aria-label={`${productTitle} — quick add to cart`}
     >
-      <div className="px-2 pt-2 pb-1 space-y-1">
-        <div className="flex justify-center">
-          <span
-            className={`inline-flex items-center justify-center gap-0.5 text-[10px] font-bold text-white px-2 py-0.5 rounded-full text-center leading-snug ${
-              variant === 'croTrial' ? 'max-w-[min(100%,17rem)]' : 'uppercase tracking-wide'
-            }`}
-            style={{ backgroundColor: '#155dfb' }}
-          >
-            <svg className="w-2.5 h-2.5 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden>
-              <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-              <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
-            </svg>
-            FREE SHIPPING
-          </span>
-        </div>
-
+      <div className="px-2 py-2">
         <div className={showBuyNow ? 'flex flex-row gap-2' : 'flex flex-col'}>
           <AddToCartButton
             variantId={selectedVariant?.id || ''}
