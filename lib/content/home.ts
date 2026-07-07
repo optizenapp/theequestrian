@@ -1,13 +1,10 @@
 /**
  * Home Page Content Management
  *
- * Reads homepage section configuration from `exports/home-sections.csv`.
- * - In development: reloads on every request (or when file changes)
- * - In production: caches and only reloads when CSV mtime changes (per instance)
+ * Loads homepage sections from the `home_sections` Postgres table.
+ * Use `/admin/home-sections` to edit live content, or seed/sync from CSV via:
+ *   npm run db:migrate-home-sections
  */
-import fs from 'fs';
-import path from 'path';
-import { parse } from 'csv-parse/sync';
 import { sql } from '@/lib/db/client';
 import { collectionRedirects } from '@/lib/redirects/maps';
 
@@ -174,16 +171,22 @@ interface CsvRow {
   product_handles?: string | null; // New: Comma-separated product handles
   faqs_json?: string | null;
   seen_in_json?: string | null;
-  items_json?: string | null;
+  items_json?: string | unknown | null;
 }
  
 let cachedSections: HomeSection[] | null = null;
-let lastModified: number | null = null;
 let lastDbRead: number | null = null;
+
+/** Bust in-process cache after admin edits or DB migrations. */
+export function invalidateHomeSectionsCache(): void {
+  cachedSections = null;
+  lastDbRead = null;
+}
  
-function safeJsonParse<T>(raw: string | undefined | null, fallback: T): T {
-  if (!raw) return fallback;
-  const trimmed = typeof raw === 'string' ? raw.trim() : '';
+function safeJsonParse<T>(raw: string | unknown | null | undefined, fallback: T): T {
+  if (raw == null) return fallback;
+  if (typeof raw !== 'string') return raw as T;
+  const trimmed = raw.trim();
   if (!trimmed) return fallback;
   try {
     return JSON.parse(trimmed) as T;
@@ -363,53 +366,14 @@ function parseRows(records: CsvRow[]): HomeSection[] {
   return sections;
 }
 
-function loadHomeSectionsFromCsv(): HomeSection[] {
-  const csvPath = path.join(process.cwd(), 'exports', 'home-sections.csv');
- 
-  if (!fs.existsSync(csvPath)) {
-    // No CSV → no custom sections (page can fallback to defaults)
-    return [];
-  }
- 
-  const stats = fs.statSync(csvPath);
-  const currentModified = stats.mtimeMs;
-  const isDevelopment = process.env.NODE_ENV === 'development';
- 
-  if (!isDevelopment && cachedSections && lastModified === currentModified) {
-    return cachedSections;
-  }
- 
-  const fileContent = fs.readFileSync(csvPath, 'utf-8');
-  const records = parse(fileContent, {
-    columns: true,
-    skip_empty_lines: true,
-    trim: true,
-  }) as CsvRow[];
- 
-  const sections = parseRows(records);
- 
-  const normalized = sections
-    .filter((s) => s.enabled)
-    .sort((a, b) => a.sort_order - b.sort_order);
- 
-  cachedSections = normalized;
-  lastModified = currentModified;
- 
-  if (!isDevelopment && process.env.NODE_ENV === 'production') {
-    console.log(`[Home Content] Loaded ${normalized.length} enabled sections from CSV`);
-  }
- 
-  return normalized;
-}
- 
 export async function getHomeSections(): Promise<HomeSection[]> {
   const now = Date.now();
-  // Return cached sections if still fresh (5 minute TTL)
   if (cachedSections && lastDbRead && now - lastDbRead < CACHE_TTL_MS) {
     return cachedSections;
   }
 
   try {
+    await ensureHomeSectionsTable();
     const result = await sql`
       SELECT
         key,
@@ -436,23 +400,26 @@ export async function getHomeSections(): Promise<HomeSection[]> {
       ORDER BY sort_order ASC
     `;
 
-    if (Array.isArray(result) && result.length > 0) {
-      const sections = parseRows(result as unknown as CsvRow[]);
-      const normalized = sections
-        .filter((s) => s.enabled)
-        .sort((a, b) => a.sort_order - b.sort_order);
-      cachedSections = normalized;
+    if (!Array.isArray(result) || result.length === 0) {
+      console.warn(
+        '[Home Sections] No rows in home_sections. Seed with: npm run db:migrate-home-sections'
+      );
+      cachedSections = [];
       lastDbRead = now;
-      return normalized;
+      return [];
     }
-  } catch (error) {
-    console.error('[Home Sections] DB load error, falling back to CSV:', error);
-  }
 
-  // Fallback to CSV if database fails or returns no rows
-  const fallback = loadHomeSectionsFromCsv();
-  cachedSections = fallback;
-  lastDbRead = now;
-  return fallback;
+    const sections = parseRows(result as unknown as CsvRow[]);
+    const normalized = sections
+      .filter((s) => s.enabled)
+      .sort((a, b) => a.sort_order - b.sort_order);
+    cachedSections = normalized;
+    lastDbRead = now;
+    return normalized;
+  } catch (error) {
+    console.error('[Home Sections] DB load error:', error);
+    cachedSections = [];
+    lastDbRead = now;
+    return [];
+  }
 }
- 

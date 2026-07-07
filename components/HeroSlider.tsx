@@ -18,8 +18,8 @@ interface HeroSliderProps {
 
 function slideCta(slide: HeroSlide, fallbackText?: string, fallbackLink?: string) {
   return {
-    text: slide.cta_text || fallbackText || 'Shop Now',
-    link: slide.cta_link || fallbackLink || '/horse',
+    text: fallbackText || 'Shop Now',
+    link: slide.cta_link?.trim() || fallbackLink || '/horse',
   };
 }
 
@@ -31,7 +31,7 @@ export function HeroSlider({
   ctaLink = '/horse',
   secondaryCtaText = 'View Collections',
   secondaryCtaLink = '/collections',
-  intervalMs = 7000,
+  intervalMs = 3000,
 }: HeroSliderProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -50,9 +50,11 @@ export function HeroSlider({
 
   useEffect(() => {
     if (count <= 1 || paused) return;
-    const timer = window.setInterval(() => goTo(activeIndex + 1), intervalMs);
+    const timer = window.setInterval(() => {
+      setActiveIndex((current) => (current + 1) % count);
+    }, intervalMs);
     return () => window.clearInterval(timer);
-  }, [activeIndex, count, goTo, intervalMs, paused]);
+  }, [count, intervalMs, paused]);
 
   useEffect(() => {
     slides.forEach((slide, index) => {
@@ -127,6 +129,7 @@ export function HeroSlider({
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <Link
+              key={primary.link}
               href={primary.link}
               className="btn-primary text-lg px-8 py-4 shadow-xl hover:scale-105 transform transition-transform duration-200 bg-white text-black hover:bg-gray-100 border-none"
             >

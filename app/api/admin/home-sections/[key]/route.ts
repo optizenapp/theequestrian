@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { sql } from '@vercel/postgres';
+import { invalidateHomeSectionsCache } from '@/lib/content/home';
 
 const ensureHomeSectionsTable = async () => {
   await sql`
@@ -91,6 +93,9 @@ export async function PATCH(
     if (!result.rows[0]) {
       return NextResponse.json({ error: 'Section not found' }, { status: 404 });
     }
+    invalidateHomeSectionsCache();
+    revalidateTag('home-sections', 'max');
+    revalidatePath('/');
     return NextResponse.json({ section: result.rows[0] });
   } catch (error) {
     console.error('Error updating home section:', error);
@@ -109,6 +114,9 @@ export async function DELETE(
       DELETE FROM home_sections
       WHERE key = ${key}
     `;
+    invalidateHomeSectionsCache();
+    revalidateTag('home-sections', 'max');
+    revalidatePath('/');
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting home section:', error);

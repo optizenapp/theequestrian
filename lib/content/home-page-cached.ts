@@ -25,5 +25,5 @@ async function loadHomeSectionsWithProducts(): Promise<HomeSectionWithFetchedPro
 export const getCachedHomeSectionsWithProducts = unstable_cache(
   loadHomeSectionsWithProducts,
   ['home-sections-with-products'],
-  { revalidate: HOME_DATA_CACHE_REVALIDATE_SECONDS }
+  { revalidate: HOME_DATA_CACHE_REVALIDATE_SECONDS, tags: ['home-sections'] }
 );

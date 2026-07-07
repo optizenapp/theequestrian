@@ -1,5 +1,10 @@
 /**
- * Migrate home-sections CSV into Postgres (home_sections table)
+ * Seed or sync home page sections from exports/home-sections.csv into Postgres.
+ * Runtime reads home_sections only — edit live content at /admin/home-sections.
+ *
+ * Usage:
+ *   npm run db:migrate-home-sections
+ *   CUSTOM_DATABASE_URL=... npm run db:migrate-home-sections   # prod
  */
 import { config } from 'dotenv';
 import { resolve } from 'path';

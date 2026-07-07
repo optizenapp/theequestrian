@@ -27,6 +27,7 @@
     "gsc:index-products:dry-run": "tsx scripts/gsc-api-index-products.ts -- --dry-run",
     "import:mapping": "tsx scripts/import-mapping.ts",
     "db:init": "tsx scripts/init-database.ts",
+    "db:migrate-home-sections": "tsx scripts/migrate-home-sections-to-db.ts",
     "db:article-migrations": "tsx scripts/run-article-migrations.ts",
     "db:migrate-articles": "tsx scripts/migrate-shopify-articles-to-db.ts",
     "db:test-article-connection": "tsx scripts/test-article-db-connection.ts",

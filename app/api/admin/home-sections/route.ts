@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { sql } from '@vercel/postgres';
+import { invalidateHomeSectionsCache } from '@/lib/content/home';
 
 const ensureHomeSectionsTable = async () => {
   await sql`
@@ -105,6 +107,9 @@ export async function POST(request: NextRequest) {
       RETURNING *
     `;
 
+    invalidateHomeSectionsCache();
+    revalidateTag('home-sections', 'max');
+    revalidatePath('/');
     return NextResponse.json({ section: result.rows[0] });
   } catch (error) {
     console.error('Error creating home section:', error);

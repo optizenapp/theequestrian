@@ -16,8 +16,8 @@ interface Product {
 interface MostWantedCarouselProps {
   products: Product[] | ShopifyProductCard[]; // Support both old and new format
   eyebrow?: string;
-  heading?: string;
-  description?: string;
+  heading?: React.ReactNode;
+  description?: React.ReactNode;
 }
 
 // Helper to check if product is a Shopify product card shape
@@ -118,7 +118,7 @@ export function MostWantedCarousel({
           {/* Carousel Container */}
           <div 
             ref={scrollContainerRef}
-            className="flex gap-6 overflow-x-auto scroll-smooth scrollbar-hide pb-4"
+            className="flex flex-nowrap gap-6 overflow-x-auto scroll-smooth scrollbar-hide pb-4"
             style={{
               scrollSnapType: 'x mandatory',
               WebkitOverflowScrolling: 'touch',
@@ -160,7 +160,7 @@ export function MostWantedCarousel({
               return (
                 <div 
                   key={`${formatted.title}-${index}`}
-                  className="flex-shrink-0 w-[calc(100%-2rem)] sm:w-[calc(50%-1rem)] lg:w-[calc(25%-1.125rem)] scroll-snap-align-start"
+                  className="flex-shrink-0 w-[260px] sm:w-[280px] lg:w-[300px] scroll-snap-align-start"
                   style={{ scrollSnapAlign: 'start' }}
                 >
                   {formatted.handle ? (
