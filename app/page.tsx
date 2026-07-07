@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
+import { SITE_DESCRIPTION, SITE_NAME, SITE_NAME_DISPLAY } from '@/lib/seo/site-identity';
 import { Hero } from '@/components/Hero';
 import { TrustSignals } from '@/components/TrustSignals';
 import dynamicImport from 'next/dynamic';
@@ -16,11 +17,21 @@ export const revalidate = 300;
 const _homeSiteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/+$/, '');
 
 export const metadata: Metadata = {
+  title: `${SITE_NAME_DISPLAY} | Premium Horse Riding Gear & Apparel Australia`,
+  description: SITE_DESCRIPTION,
   alternates: {
     canonical: _homeSiteUrl,
     types: {
       'application/rss+xml': `${_homeSiteUrl}/rss.xml`,
     },
+  },
+  openGraph: {
+    title: `${SITE_NAME_DISPLAY} | Premium Horse Riding Gear & Apparel Australia`,
+    description: SITE_DESCRIPTION,
+    url: _homeSiteUrl,
+    siteName: SITE_NAME_DISPLAY,
+    locale: 'en_AU',
+    type: 'website',
   },
 };
 
@@ -152,7 +163,7 @@ export default async function Home() {
       {
         "@type": "OnlineStore",
         "@id": `${siteUrl}#organization`,
-        "name": "The Equestrian",
+        "name": SITE_NAME,
         "url": siteUrl,
         "logo": {
           "@type": "ImageObject",
@@ -208,8 +219,9 @@ export default async function Home() {
         "@type": "WebSite",
         "@id": `${siteUrl}#website`,
         "url": siteUrl,
-        "name": "The Equestrian",
-        "description": "Your premier Australian destination for equestrian fashion and horse gear.",
+        "name": SITE_NAME_DISPLAY,
+        "alternateName": SITE_NAME,
+        "description": SITE_DESCRIPTION,
         "inLanguage": "en-AU",
         "publisher": {
           "@id": `${siteUrl}#organization`
@@ -270,10 +282,10 @@ export default async function Home() {
           },
           {
             "@type": "Question",
-            "name": "Do you offer free shipping on equestrian gear orders in Australia?",
+            "name": "How does shipping work for equestrian gear orders in Australia?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Yes, we offer free standard shipping on qualifying orders within Australia. We ensure all packages, especially saddles and leather goods, are packed securely to arrive in pristine condition."
+              "text": "Shipping rates vary by product and seller. Eligible items may qualify for free shipping, which is shown on the product page. All shipping costs are calculated and displayed at checkout before you pay."
             }
           },
           {
@@ -391,7 +403,8 @@ export default async function Home() {
                                 fill
                                 className="h-full w-full object-cover"
                                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                                loading={index < 4 ? 'eager' : 'lazy'}
+                                loading="lazy"
+                                fetchPriority="low"
                               />
                             )}
                           </div>

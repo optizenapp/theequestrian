@@ -10,19 +10,24 @@ import { ProductBuyBoxPostCta } from './ProductBuyBoxPostCta';
 import { ProductBuyBoxPriceAndBadges } from './ProductBuyBoxPriceAndBadges';
 import { buildGa4ItemFromProduct } from '@/lib/analytics/ga4-ecommerce';
 import { useProductVariantSelection } from '@/hooks/useProductVariantSelection';
+import type { ProductShippingDisplay } from '@/lib/shipping/product-shipping-display';
+import { SHIPPING_DISPLAY_FALLBACK } from '@/lib/shipping/product-shipping-display';
 
 interface ProductBuyBoxProps {
   product: ShopifyBuyBoxProduct;
   /** CRO PDP trial: accurate trust copy, sale %, trust under CTAs, sticky ATC-only. */
   layout?: 'default' | 'croTrial' | 'croTheme3';
+  shippingDisplay?: ProductShippingDisplay;
 }
 
-export function ProductBuyBox({ product, layout = 'default' }: ProductBuyBoxProps) {
+export function ProductBuyBox({
+  product,
+  layout = 'default',
+  shippingDisplay = SHIPPING_DISPLAY_FALLBACK,
+}: ProductBuyBoxProps) {
   const { selectedOptions, selectedVariant, handleOptionSelect } = useProductVariantSelection(product);
 
   const basePrice = selectedVariant?.price.amount || product.priceRange.minVariantPrice.amount;
-  // Use variant-level compareAtPrice when available; fall back to product-level
-  // compareAtPriceRange so the badge matches what the category card shows.
   const baseCompareAtPrice =
     selectedVariant?.compareAtPrice?.amount ??
     product.compareAtPriceRange?.minVariantPrice?.amount;
@@ -55,6 +60,7 @@ export function ProductBuyBox({ product, layout = 'default' }: ProductBuyBoxProp
     onSale && compareNum !== null && compareNum > 0
       ? Math.round((saveAmount / compareNum) * 100)
       : null;
+  const sku = selectedVariant?.sku ?? product.variants.edges[0]?.node.sku ?? null;
 
   return (
     <div className="space-y-6">
@@ -65,6 +71,9 @@ export function ProductBuyBox({ product, layout = 'default' }: ProductBuyBoxProp
         saveAmount={saveAmount}
         savePercent={savePercent}
         layout={layout}
+        currencyCode={currencyCode}
+        sku={sku}
+        shippingDisplay={shippingDisplay}
       />
 
       {product.variants.edges.length > 1 && (
@@ -98,7 +107,7 @@ export function ProductBuyBox({ product, layout = 'default' }: ProductBuyBoxProp
         />
       </div>
 
-      <ProductBuyBoxPostCta layout={layout} />
+      <ProductBuyBoxPostCta layout={layout} shippingDisplay={shippingDisplay} />
 
       <MobileStickyBar
         productTitle={product.title}

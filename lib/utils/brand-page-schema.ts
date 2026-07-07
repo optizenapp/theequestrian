@@ -8,6 +8,7 @@
  */
 
 import type { ShopifyProduct } from '@/types/shopify';
+import { SITE_NAME_DISPLAY } from '@/lib/seo/site-identity';
 
 export interface BrandPageSchemaInput {
   brand: {
@@ -134,6 +135,17 @@ export function generateBrandPageSchema(input: BrandPageSchemaInput) {
 
   return {
     '@context': 'https://schema.org',
-    '@graph': [breadcrumbList, brandEntity, collectionPage, itemList],
+    '@graph': [
+      {
+        '@type': 'WebSite',
+        '@id': `${baseUrl}#website`,
+        url: baseUrl,
+        name: SITE_NAME_DISPLAY,
+      },
+      breadcrumbList,
+      brandEntity,
+      collectionPage,
+      itemList,
+    ],
   };
 }

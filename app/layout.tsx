@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { Manrope } from 'next/font/google';
+import { SITE_DESCRIPTION, SITE_NAME, SITE_NAME_DISPLAY } from '@/lib/seo/site-identity';
+import { generateSitewideSchemaGraph } from '@/lib/utils/site-schema';
 import './globals.css';
 import { Header } from '@/components/header/Header';
 import { Footer } from '@/components/footer/Footer';
@@ -47,12 +49,22 @@ const ga4LinkerDomainsJson = JSON.stringify(
 );
 
 export const metadata: Metadata = {
-  title: 'Australian Equestrian Marketplace | Horse, Rider & Pet',
-  description: 'Shop 10,000+ horse and rider products. Discover global brands for horse, rider, and pet.',
+  metadataBase: new URL(siteUrl),
+  applicationName: SITE_NAME_DISPLAY,
+  title: {
+    default: `${SITE_NAME_DISPLAY} | Premium Horse Riding Gear & Apparel Australia`,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
   alternates: {
     types: {
       'application/rss+xml': `${siteUrl}/rss.xml`,
     },
+  },
+  openGraph: {
+    siteName: SITE_NAME_DISPLAY,
+    locale: 'en_AU',
+    type: 'website',
   },
   icons: {
     icon: [
@@ -89,6 +101,12 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
 
         <link rel="entitymap" type="application/json" href={`${siteUrl}/entitymap.json`} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateSitewideSchemaGraph(siteUrl)),
+          }}
+        />
       </head>
       <body className={`${manrope.className} overflow-x-hidden`}>
         {gaMeasurementId ? (

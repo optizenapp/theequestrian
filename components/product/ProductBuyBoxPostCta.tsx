@@ -3,9 +3,12 @@
 import Image from 'next/image';
 import { FaCcVisa, FaCcMastercard, FaCcPaypal } from 'react-icons/fa';
 import { SiAfterpay, SiShopify } from 'react-icons/si';
+import type { ProductShippingDisplay } from '@/lib/shipping/product-shipping-display';
+import { SHIPPING_DISPLAY_FALLBACK } from '@/lib/shipping/product-shipping-display';
 
 interface ProductBuyBoxPostCtaProps {
   layout: 'default' | 'croTrial' | 'croTheme3';
+  shippingDisplay?: ProductShippingDisplay;
 }
 
 function PaymentMethodsRow() {
@@ -33,14 +36,14 @@ function PaymentMethodsRow() {
   );
 }
 
-function TrustRowsCro() {
+function TrustRowsCro({ shippingMessage }: { shippingMessage: string }) {
   return (
     <>
       <div className="flex items-center gap-3 text-sm text-gray-600">
         <svg className="w-5 h-5 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
         </svg>
-        <span>Free shipping on all orders</span>
+        <span>{shippingMessage}</span>
       </div>
       <div className="flex items-center gap-3 text-sm text-gray-600">
         <svg className="w-5 h-5 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,14 +61,14 @@ function TrustRowsCro() {
   );
 }
 
-function TrustRowsDefault() {
+function TrustRowsDefault({ shippingMessage }: { shippingMessage: string }) {
   return (
     <>
       <div className="flex items-center gap-3 text-sm text-gray-600">
         <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
         </svg>
-        <span>Free shipping on all orders</span>
+        <span>{shippingMessage}</span>
       </div>
       <div className="flex items-center gap-3 text-sm text-gray-600">
         <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -84,11 +87,19 @@ function TrustRowsDefault() {
 }
 
 /** Trust strip + payment icons after primary CTAs (order differs for CRO trial). */
-export function ProductBuyBoxPostCta({ layout }: ProductBuyBoxPostCtaProps) {
+export function ProductBuyBoxPostCta({
+  layout,
+  shippingDisplay = SHIPPING_DISPLAY_FALLBACK,
+}: ProductBuyBoxPostCtaProps) {
   const isCro = layout === 'croTrial' || layout === 'croTheme3';
+  const shippingMessage = shippingDisplay.shortMessage;
   const trustBlock = (
     <div className={`space-y-3 ${isCro ? 'pt-2' : 'pt-4 border-t'}`}>
-      {isCro ? <TrustRowsCro /> : <TrustRowsDefault />}
+      {isCro ? (
+        <TrustRowsCro shippingMessage={shippingMessage} />
+      ) : (
+        <TrustRowsDefault shippingMessage={shippingMessage} />
+      )}
     </div>
   );
   const paymentBlock = <PaymentMethodsRow />;

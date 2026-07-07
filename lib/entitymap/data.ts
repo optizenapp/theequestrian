@@ -61,7 +61,7 @@ export function buildEntityMap(): EntityMapDocument {
         maturityStatus: 'established',
         audienceType: 'general',
         relations: [
-          { predicate: 'OFFERS', targetId: 'e_003', targetName: 'Free Shipping Sitewide' },
+          { predicate: 'OFFERS', targetId: 'e_003', targetName: 'Product Shipping' },
           { predicate: 'OFFERS', targetId: 'e_008', targetName: 'Equestrian Sizing Guides' },
           { predicate: 'RELATES_TO', targetId: 'e_010', targetName: 'Jono Farrington' },
         ],
@@ -103,7 +103,7 @@ export function buildEntityMap(): EntityMapDocument {
         hasChunks: [
           chunk(
             'c_003',
-            'Shop 10,000+ horse and rider products with FREE SHIPPING sitewide. Discover global brands for horse, rider, and pet at The Equestrian.',
+            'Shop 10,000+ horse and rider products from global brands for horse, rider, and pet at The Equestrian.',
             '/',
             'Australian Equestrian Marketplace | Horse, Rider & Pet',
             'definition',
@@ -122,9 +122,9 @@ export function buildEntityMap(): EntityMapDocument {
       {
         entityId: 'e_003',
         '@type': 'Service',
-        name: 'Free Shipping Sitewide',
+        name: 'Product Shipping',
         description:
-          'Eligible orders on The Equestrian ship free across Australia. Express shipping options are available at checkout where applicable.',
+          'Shipping rates vary by product and seller on The Equestrian. Eligible items may qualify for free shipping. All costs are calculated and shown at checkout.',
         sameAs: WIKIDATA.freeShipping,
         maturityStatus: 'established',
         audienceType: 'general',
@@ -132,7 +132,7 @@ export function buildEntityMap(): EntityMapDocument {
         hasChunks: [
           chunk(
             'c_005',
-            'Yes, we offer free shipping sitewide on eligible items. Any exceptions are clearly shown at checkout.',
+            'Shipping rates vary by product and seller. Eligible items may qualify for free shipping. All costs are calculated and shown at checkout.',
             '/faq',
             'FAQs | The Equestrian',
             'definition',

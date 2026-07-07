@@ -41,7 +41,7 @@ function shopifyProductToCuratedCard(
     price: price ? `$${parseFloat(price).toFixed(2)}` : '',
     compareAtPrice: compareAt ? `$${parseFloat(compareAt).toFixed(2)}` : undefined,
     savePercent: savePercent || undefined,
-    freeShippingBadge: true,
+    freeShippingBadge: false,
   };
 }
 

@@ -9,8 +9,9 @@ const FALLBACK_FAQS: FaqItem[] = [
       'We connect you with over 10,000 sellers across Australia and global brands, so you can shop one destination for a huge range of equestrian products.',
   },
   {
-    question: 'Do you offer free shipping?',
-    answer: 'Yes, we offer free shipping sitewide on eligible items. Any exceptions are clearly shown at checkout.',
+    question: 'How does shipping work?',
+    answer:
+      'Shipping rates vary by product and seller. Eligible items may qualify for free shipping — this is shown on the product page. All shipping costs are calculated and displayed at checkout before you pay.',
   },
   {
     question: 'Will my order arrive in multiple shipments?',
@@ -112,8 +113,11 @@ export default async function FaqPage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">Do you offer free shipping?</h2>
-          <p>Yes, we offer free shipping sitewide on eligible items. Any exceptions are clearly shown at checkout.</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">How does shipping work?</h2>
+          <p>
+            Shipping rates vary by product and seller. Eligible items may qualify for free shipping — this is
+            shown on the product page. All shipping costs are calculated and displayed at checkout before you pay.
+          </p>
         </section>
 
         <section>

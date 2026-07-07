@@ -1,10 +1,9 @@
 import type { ProductContentOverride } from '@/lib/content/product-overrides';
+import { SHIPPING_CHECKOUT_MESSAGE } from '@/lib/shipping/messaging';
 
 const DEFAULT_SITE_NAME = 'The Equestrian';
 const DEFAULT_TITLE_MAX_LENGTH = 68;
 const DEFAULT_DESCRIPTION_MAX_LENGTH = 158;
-const FREE_SHIPPING_SUFFIX = ' | FREE Shipping Australia';
-const FREE_SHIPPING_SHORT_SUFFIX = ' | FREE Shipping AU';
 
 interface ProductSeoInput {
   displayTitle: string;
@@ -55,26 +54,14 @@ function buildCurrentDescription(displayTitle: string, productDescription?: stri
 }
 
 function buildProposedTitle(displayTitle: string): string {
-  const fullCandidate = cleanText(`${displayTitle}${FREE_SHIPPING_SUFFIX} | ${DEFAULT_SITE_NAME}`);
+  const fullCandidate = cleanText(`${displayTitle} | ${DEFAULT_SITE_NAME}`);
   if (fullCandidate.length <= DEFAULT_TITLE_MAX_LENGTH) {
     return fullCandidate;
   }
 
-  // If over limit, drop brand suffix first to keep the "FREE Shipping" message.
-  const noBrandCandidate = cleanText(`${displayTitle}${FREE_SHIPPING_SUFFIX}`);
-  if (noBrandCandidate.length <= DEFAULT_TITLE_MAX_LENGTH) {
-    return noBrandCandidate;
-  }
-
-  // If still too long, shorten shipping suffix before truncating product title.
-  const shortSuffixCandidate = cleanText(`${displayTitle}${FREE_SHIPPING_SHORT_SUFFIX}`);
-  if (shortSuffixCandidate.length <= DEFAULT_TITLE_MAX_LENGTH) {
-    return shortSuffixCandidate;
-  }
-
-  const maxTitleLength = Math.max(12, DEFAULT_TITLE_MAX_LENGTH - FREE_SHIPPING_SHORT_SUFFIX.length);
+  const maxTitleLength = Math.max(12, DEFAULT_TITLE_MAX_LENGTH - ` | ${DEFAULT_SITE_NAME}`.length);
   const shortenedTitle = truncateAtWordBoundary(displayTitle, maxTitleLength).replace(/\.\.\.$/, '');
-  return cleanText(`${shortenedTitle}${FREE_SHIPPING_SHORT_SUFFIX}`);
+  return cleanText(`${shortenedTitle} | ${DEFAULT_SITE_NAME}`);
 }
 
 function buildProposedDescription(displayTitle: string, productDescription?: string | null): string {
@@ -82,8 +69,7 @@ function buildProposedDescription(displayTitle: string, productDescription?: str
     ? cleanText(productDescription)
     : `Shop ${displayTitle} at ${DEFAULT_SITE_NAME}.`;
 
-  const cta = 'FREE shipping Australia-wide. Price shown is your final delivered price.';
-  return truncateAtWordBoundary(`${baseDescription} ${cta}`, DEFAULT_DESCRIPTION_MAX_LENGTH);
+  return truncateAtWordBoundary(`${baseDescription} ${SHIPPING_CHECKOUT_MESSAGE}`, DEFAULT_DESCRIPTION_MAX_LENGTH);
 }
 
 export function resolveProductPageTitle(
@@ -114,7 +100,7 @@ export function buildProductSeoMetadata(input: ProductSeoInput): ProductSeoOutpu
   const legacyProposedTitle = buildProposedTitle(displayTitle);
   const legacyProposedDescription = buildProposedDescription(displayTitle, productDescription);
 
-  // Collective enrichment: enriched meta wins over legacy FREE Shipping template
+  // Collective enrichment: enriched meta wins over legacy product title template
   const hasEnrichedMetaTitle =
     Boolean(override?.use_headless_meta_title && override.meta_title?.trim());
   const hasEnrichedMetaDescription =

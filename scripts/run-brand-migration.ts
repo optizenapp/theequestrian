@@ -9,7 +9,7 @@
  *   4. Activate
  *
  * Then run this script:
- *   npx tsx scripts/run-brand-migration.ts --vendor="Trailrace Equestrian Outfitters" --brand=Roeckl --phase=all
+ *   npx tsx scripts/run-brand-migration.ts --vendor=Trailrace --brand=Roeckl --phase=all
  *   npx tsx scripts/run-brand-migration.ts --vendor="..." --brand=Roeckl --phase=audit
  *   npx tsx scripts/run-brand-migration.ts --vendor="..." --brand=Roeckl --phase=post-cutover
  *
@@ -59,7 +59,11 @@ if (hasFlag('--floral-prod')) {
   console.log('[floral-prod] Using production database (ep-floral-wind)\n');
 }
 
-const VENDOR_DEFAULT = 'Trailrace Equestrian Outfitters';
+const VENDOR_DEFAULT = 'Trailrace';
+
+function vendorPrimaryToken(vendor: string): string {
+  return vendor.trim().split(/\s+/)[0] || vendor.trim();
+}
 
 type Phase =
   | 'export'
@@ -116,7 +120,7 @@ async function exportChecklist(vendor: string, brand: string, handlesFile?: stri
       }>({
         query,
         variables: {
-          query: `vendor:"${vendor}" title:*Roeckl*`,
+          query: `vendor:${vendorPrimaryToken(vendor)} title:*${brand}*`,
           first: 100,
           after: cursor,
         },
@@ -181,7 +185,7 @@ async function exportChecklist(vendor: string, brand: string, handlesFile?: stri
 
   console.log(`\nExport: ${exportPath}`);
   console.log(`  DB rows: ${dbRows.length}`);
-  console.log(`  Shopify (title:*Roeckl*): ${shopifyRows.length}`);
+  console.log(`  Shopify (title:*${brand}*): ${shopifyRows.length}`);
   console.log(`  Merged: ${merged.length}`);
   console.log(`  Handle suffix (-1 etc): ${merged.filter((m) => m.handle_suffix).length}`);
 

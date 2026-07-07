@@ -35,9 +35,12 @@ import { SizingGuideLink } from '@/components/product/SizingGuideLink';
 import { extractVideosFromHtml } from '@/lib/products/extract-videos';
 import { generateBreadcrumbSchema } from '@/lib/utils/breadcrumb-schema';
 import { generateProductSchemaGraph } from '@/lib/utils/product-schema';
+import { resolveProductShippingDisplay } from '@/lib/shipping/product-shipping-display';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
+import { getStoreReviewStats } from '@/lib/reviews/store-stats';
 import { getAllowedBrandVendors } from '@/lib/filters/brand-filter-helper';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
+import { StoreRatingBadge } from '@/components/reviews/StoreRatingBadge';
 import ProductIdentifierMetaRow from '@/components/product/ProductIdentifierMetaRow';
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
 import { composeProductDescriptionHtml } from '@/lib/products/compose-product-description';
@@ -244,6 +247,13 @@ async function renderProductPage(
   // brand entity links to /brands/[hub] and uses a stable @id.
   const { brand: canonicalBrand, brandHubHandle } = await getProductBrandForDisplay(product.handle);
 
+  const shippingDisplay = await resolveProductShippingDisplay({
+    vendor: product.vendor || '',
+    tags: product.tags || [],
+    price: parseFloat(product.priceRange.minVariantPrice.amount),
+  });
+  const storeReviewStats = await getStoreReviewStats();
+
   const canonicalUrl = canonicalPath || await getProductCanonicalUrl(product);
   const schemaGraph = generateProductSchemaGraph(
     { ...product, title: displayTitle },
@@ -251,7 +261,7 @@ async function renderProductPage(
     breadcrumbSchemas,
     siteUrl,
     reviewStats,
-    { brandHubHandle, brandName: canonicalBrand }
+    { brandHubHandle, brandName: canonicalBrand, hasFreeShipping: shippingDisplay.hasFreeShipping }
   );
 
   // Fetch related products (limit 4)
@@ -343,6 +353,7 @@ async function renderProductPage(
             reviewBadgeStats={reviewBadgeStats}
             canonicalBrand={canonicalBrand}
             brandHubHandle={brandHubHandle}
+            shippingDisplay={shippingDisplay}
             videoSection={
               <ProductVideoSection
                 videos={descriptionVideos}
@@ -369,6 +380,7 @@ async function renderProductPage(
             styleMode={isCroThreePdp ? 'cro3' : 'cro2'}
             canonicalBrand={canonicalBrand}
             brandHubHandle={brandHubHandle}
+            shippingDisplay={shippingDisplay}
             afterDescription={
               <>
                 <ProductVideoSection
@@ -402,6 +414,7 @@ async function renderProductPage(
                 initialStats={reviewBadgeStats}
               />
               <ProductIdentifierMetaRow identifiers={identifiers} />
+              <StoreRatingBadge stats={storeReviewStats} />
             </div>
             <div className="space-y-2 mt-4">
               {featureHighlights.map((feature) => (
@@ -439,7 +452,7 @@ async function renderProductPage(
             aria-label="Purchase options"
           >
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-gray-100">
-              <ProductBuyBox product={buyBoxProduct} />
+              <ProductBuyBox product={buyBoxProduct} shippingDisplay={shippingDisplay} />
             </div>
           </section>
 

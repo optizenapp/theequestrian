@@ -15,10 +15,13 @@ import { RelatedProducts } from '@/components/product/RelatedProducts';
 import { extractVideosFromHtml } from '@/lib/products/extract-videos';
 import { generateBreadcrumbSchema } from '@/lib/utils/breadcrumb-schema';
 import { generateProductSchemaGraph } from '@/lib/utils/product-schema';
+import { resolveProductShippingDisplay } from '@/lib/shipping/product-shipping-display';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
+import { getStoreReviewStats } from '@/lib/reviews/store-stats';
 import { getBreadcrumbsForProduct } from '@/lib/mapping/collection-mapping';
 import ProductReviewSection from '@/components/reviews/ProductReviewSection';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
+import { StoreRatingBadge } from '@/components/reviews/StoreRatingBadge';
 import ProductIdentifierMetaRow from '@/components/product/ProductIdentifierMetaRow';
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
 import { composeProductDescriptionHtml } from '@/lib/products/compose-product-description';
@@ -150,13 +153,20 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
   // a stable @id for cross-page entity resolution.
   const { brand: canonicalBrand, brandHubHandle } = await getProductBrandForDisplay(product.handle);
 
+  const shippingDisplay = await resolveProductShippingDisplay({
+    vendor: product.vendor || '',
+    tags: product.tags || [],
+    price: parseFloat(product.priceRange.minVariantPrice.amount),
+  });
+  const storeReviewStats = await getStoreReviewStats();
+
   const schemaGraph = generateProductSchemaGraph(
     { ...product, title: displayTitle },
     currentUrl,
     breadcrumbSchemas,
     siteUrl,
     reviewStats,
-    { brandHubHandle, brandName: canonicalBrand }
+    { brandHubHandle, brandName: canonicalBrand, hasFreeShipping: shippingDisplay.hasFreeShipping }
   );
 
   // Fetch related products (limit 4)
@@ -247,6 +257,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
           reviewBadgeStats={reviewBadgeStats}
           canonicalBrand={canonicalBrand}
           brandHubHandle={brandHubHandle}
+          shippingDisplay={shippingDisplay}
           videoSection={
             <ProductVideoSection
               videos={descriptionVideos}
@@ -272,6 +283,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
           styleMode={isCroThreePdp ? 'cro3' : 'cro2'}
           canonicalBrand={canonicalBrand}
           brandHubHandle={brandHubHandle}
+          shippingDisplay={shippingDisplay}
           afterDescription={
             <ProductVideoSection
               videos={descriptionVideos}
@@ -296,6 +308,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
                 initialStats={reviewBadgeStats}
               />
               <ProductIdentifierMetaRow identifiers={identifiers} />
+              <StoreRatingBadge stats={storeReviewStats} />
             </div>
             <div className="space-y-2 mt-4">
               {featureHighlights.map((feature) => (
@@ -321,7 +334,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
             aria-label="Purchase options"
           >
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-gray-100">
-              <ProductBuyBox product={buyBoxProduct} />
+              <ProductBuyBox product={buyBoxProduct} shippingDisplay={shippingDisplay} />
             </div>
           </section>
 

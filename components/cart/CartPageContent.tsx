@@ -32,15 +32,14 @@ export function CartPageContent({
 
   const itemCount = cart?.totalQuantity || 0;
   
-  // Calculate subtotal (shipping is already included in Shopify prices via Webkul middleware)
-  const subtotalWithShipping = cart?.lines.edges.reduce((total, { node: line }) => {
+  // Subtotal from cart line prices; shipping is calculated at Shopify checkout.
+  const subtotal = cart?.lines.edges.reduce((total, { node: line }) => {
     const price = parseFloat(line.merchandise.price.amount);
     return total + (price * line.quantity);
   }, 0) || 0;
   
   const currencyCode = cart?.cost.subtotalAmount.currencyCode || 'AUD';
-  const shippingCost = 0; // Free (already included in prices)
-  const total = subtotalWithShipping;
+  const total = subtotal;
 
   // Date for delivery estimate (e.g., 3-5 days from now)
   const deliveryDateStart = new Date();
@@ -332,11 +331,11 @@ if (isInCart) return null;
                 <div className="space-y-3 text-sm text-gray-600 mb-6">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span>${subtotalWithShipping.toFixed(2)}</span>
+                    <span>${subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Shipping</span>
-                    <span className="text-green-600 font-medium">Free</span>
+                    <span className="text-gray-700 font-medium">Calculated at checkout</span>
                   </div>
                 </div>
 

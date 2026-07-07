@@ -47,6 +47,13 @@ NEXT_PUBLIC_GOOGLE_ANALYTICS_ID=your_ga_id_here
 
 # Site Configuration
 NEXT_PUBLIC_SITE_URL=https://thequestrian.com
+
+# PDP BNPL on-site messaging (optional — widgets hidden until set)
+# Afterpay: https://developers.afterpay.com/afterpay-online-developer/guides/afterpay-messaging/implementation
+NEXT_PUBLIC_AFTERPAY_MP_ID=
+NEXT_PUBLIC_AFTERPAY_PLACEMENT_ID=
+# Zip: https://developers.zip.co/docs/product-cart-widget
+NEXT_PUBLIC_ZIP_MERCHANT_KEY=
 ```
 
 ## Setup Instructions

@@ -159,6 +159,8 @@ export interface ProductSchemaOptions {
   brandHubHandle?: string | null;
   /** Display brand label (products.brand). Falls back to product.vendor. */
   brandName?: string | null;
+  /** When true, Offer schema includes a $0 shippingRate. Omit for paid-shipping products. */
+  hasFreeShipping?: boolean;
 }
 
 /**
@@ -296,10 +298,39 @@ export function generateProductSchema(
   // same @graph on PDPs — Google would otherwise treat them as dangling and drop
   // the trust signals from the rich result.
   //
-  // `shippingDetails` intentionally omits a hard-coded $0 shippingRate. Showing
-  // free shipping on every product violates merchant guidelines whenever real
-  // shipping cost is non-zero. Shipping handling/transit time still convey the
-  // trust signal without a misleading price claim.
+  // `shippingDetails` omits a hard-coded $0 shippingRate unless the product
+  // explicitly qualifies for free shipping. Delivery time is always included.
+  const shippingDetails: Record<string, unknown> = {
+    "@type": "OfferShippingDetails",
+    "shippingDestination": {
+      "@type": "DefinedRegion",
+      "addressCountry": "AU"
+    },
+    "deliveryTime": {
+      "@type": "ShippingDeliveryTime",
+      "handlingTime": {
+        "@type": "QuantitativeValue",
+        "minValue": 0,
+        "maxValue": 2,
+        "unitCode": "DAY"
+      },
+      "transitTime": {
+        "@type": "QuantitativeValue",
+        "minValue": 2,
+        "maxValue": 7,
+        "unitCode": "DAY"
+      }
+    }
+  };
+
+  if (options.hasFreeShipping) {
+    shippingDetails.shippingRate = {
+      "@type": "MonetaryAmount",
+      "value": "0",
+      "currency": price.currencyCode || "AUD",
+    };
+  }
+
   const offerBase = {
     "url": productAbsoluteUrl,
     "priceCurrency": price.currencyCode,
@@ -320,28 +351,7 @@ export function generateProductSchema(
       "returnFees": "https://schema.org/FreeReturn",
       "refundType": "https://schema.org/FullRefund",
     },
-    "shippingDetails": {
-      "@type": "OfferShippingDetails",
-      "shippingDestination": {
-        "@type": "DefinedRegion",
-        "addressCountry": "AU"
-      },
-      "deliveryTime": {
-        "@type": "ShippingDeliveryTime",
-        "handlingTime": {
-          "@type": "QuantitativeValue",
-          "minValue": 0,
-          "maxValue": 2,
-          "unitCode": "DAY"
-        },
-        "transitTime": {
-          "@type": "QuantitativeValue",
-          "minValue": 2,
-          "maxValue": 7,
-          "unitCode": "DAY"
-        }
-      }
-    }
+    "shippingDetails": shippingDetails
   };
   
   // Single price vs price range

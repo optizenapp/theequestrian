@@ -1,3 +1,5 @@
+import sharp from 'sharp';
+import { uploadBufferToS3 } from '@/lib/s3/storage';
 import { getValidYoutubeAccessToken, getSocialCredential } from './credentials';
 import { getMetaSystemCredential } from './meta-system';
 import { getStandaloneSocialPost, markStandaloneSocialPublished, updateStandaloneSocialPost } from './standalone-repository';
@@ -22,6 +24,131 @@ function publishText(post: StandaloneSocialPost): string {
   return [post.content, post.sourceUrl].filter(Boolean).join('\n\n');
 }
 
+function decodeRepeated(value: string): string {
+  let output = value;
+  for (let i = 0; i < 3; i += 1) {
+    try {
+      const decoded = decodeURIComponent(output);
+      if (decoded === output) break;
+      output = decoded;
+    } catch {
+      break;
+    }
+  }
+  return output;
+}
+
+function unwrapProxiedImageUrl(rawUrl: string): string {
+  const value = rawUrl.trim();
+  if (!value) return value;
+  try {
+    const parsed = new URL(value);
+    const isNextImage = parsed.pathname === '/_next/image';
+    const isImageProxy = parsed.pathname === '/api/image-proxy';
+    if (!isNextImage && !isImageProxy) return value;
+    const nested = parsed.searchParams.get('url');
+    if (!nested) return value;
+    const resolved = decodeRepeated(nested).trim();
+    return /^https?:\/\//i.test(resolved) ? resolved : value;
+  } catch {
+    return value;
+  }
+}
+
+function buildInstagramProxyCandidate(sourceUrl: string): string {
+  const configured = (process.env.NEXT_PUBLIC_SITE_URL || '').trim();
+  let base = 'https://www.theequestrian.com.au';
+  if (configured) {
+    try {
+      const parsed = new URL(configured);
+      const host = parsed.hostname.toLowerCase();
+      const isLocal = host === 'localhost' || host.endsWith('.local') || host === '127.0.0.1' || host === '0.0.0.0';
+      if (!isLocal) base = configured;
+    } catch {
+      base = 'https://www.theequestrian.com.au';
+    }
+  }
+  base = base.replace(/\/+$/, '');
+  return `${base}/api/image-proxy?url=${encodeURIComponent(sourceUrl)}`;
+}
+
+function buildInstagramImageCandidates(rawUrl: string): string[] {
+  const value = unwrapProxiedImageUrl(rawUrl);
+  if (!value) return [];
+  let parsed: URL;
+  try {
+    parsed = new URL(value);
+  } catch {
+    return [value];
+  }
+  if (parsed.hostname !== 'cdn.shopify.com' && !parsed.hostname.endsWith('.cdn.shopify.com')) {
+    return [buildInstagramProxyCandidate(value), value];
+  }
+  const withTransforms = new URL(parsed.toString());
+  withTransforms.searchParams.set('width', '1080');
+  withTransforms.searchParams.set('crop', 'center');
+  return [
+    buildInstagramProxyCandidate(value),
+    value,
+    (() => {
+      const candidate = new URL(withTransforms.toString());
+      candidate.searchParams.set('format', 'jpg');
+      return candidate.toString();
+    })(),
+    (() => {
+      const candidate = new URL(withTransforms.toString());
+      candidate.searchParams.set('format', 'pjpg');
+      return candidate.toString();
+    })(),
+  ];
+}
+
+function isRecoverableInstagramImageError(message: string): boolean {
+  return (
+    message.includes('aspect ratio') ||
+    message.includes('"error_subcode":2207009') ||
+    message.includes('"error_subcode":2207052') ||
+    message.includes('Only photo or video can be accepted as media type') ||
+    message.includes("media URI doesn't meet our requirements")
+  );
+}
+
+async function createHostedInstagramJpegCandidate(rawUrl: string): Promise<{ url: string } | { error: string }> {
+  const sourceUrl = unwrapProxiedImageUrl(rawUrl);
+  if (!sourceUrl) return { error: 'empty source url' };
+  let response: Response;
+  try {
+    response = await fetch(sourceUrl, { cache: 'no-store' });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'unknown fetch failure';
+    console.error(`[instagram-publish] fetch source failed (${sourceUrl}): ${message}`);
+    return { error: `fetch source failed: ${message}` };
+  }
+  if (!response.ok) {
+    console.error(`[instagram-publish] fetch source non-ok (${sourceUrl}): ${response.status}`);
+    return { error: `fetch source ${response.status}` };
+  }
+  const sourceBuffer = Buffer.from(await response.arrayBuffer());
+  if (!sourceBuffer.length) return { error: 'source image was empty' };
+  let jpegBuffer: Buffer;
+  try {
+    jpegBuffer = await sharp(sourceBuffer, { failOn: 'none' }).rotate().jpeg({ quality: 90, mozjpeg: true }).toBuffer();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'unknown image conversion failure';
+    console.error(`[instagram-publish] sharp jpeg conversion failed (${sourceUrl}): ${message}`);
+    return { error: `sharp conversion failed: ${message}` };
+  }
+  try {
+    const uploaded = await uploadBufferToS3(jpegBuffer, 'social/instagram-images', 'image/jpeg', { forceUnique: true });
+    console.error(`[instagram-publish] hosted jpeg uploaded for ${sourceUrl} -> ${uploaded}`);
+    return { url: uploaded };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'unknown upload failure';
+    console.error(`[instagram-publish] s3 upload failed (${sourceUrl}): ${message}`);
+    return { error: `s3 upload failed: ${message}` };
+  }
+}
+
 async function publishFacebook(post: StandaloneSocialPost): Promise<PublishResult> {
   const system = await getMetaSystemCredential();
   const stored = system ? null : await getSocialCredential('facebook');
@@ -31,13 +158,21 @@ async function publishFacebook(post: StandaloneSocialPost): Promise<PublishResul
   const endpoint = post.postKind === 'image' ? 'photos' : post.postKind === 'video' ? 'videos' : 'feed';
   let body: BodyInit;
   if (post.postKind === 'image') {
-    const imageResponse = await fetch(firstMedia(post), { cache: 'no-store' });
+    const sourceUrl = unwrapProxiedImageUrl(firstMedia(post));
+    const imageResponse = await fetch(sourceUrl, { cache: 'no-store' });
     if (!imageResponse.ok) throw new Error(`Failed to fetch Facebook image: ${await imageResponse.text()}`);
-    const contentType = imageResponse.headers.get('content-type') || 'image/jpeg';
+    const sourceBuffer = Buffer.from(await imageResponse.arrayBuffer());
+    if (!sourceBuffer.length) throw new Error('Facebook image source was empty');
+    const jpegBuffer = await sharp(sourceBuffer, { failOn: 'none' })
+      .rotate()
+      .resize({ width: 2048, height: 2048, fit: 'inside', withoutEnlargement: true })
+      .jpeg({ quality: 85, mozjpeg: true })
+      .toBuffer();
+    console.error(`[facebook-publish] normalized image bytes=${jpegBuffer.length} source=${sourceUrl}`);
     const form = new FormData();
     form.set('access_token', accessToken);
     form.set('caption', publishText(post));
-    form.set('source', new Blob([await imageResponse.arrayBuffer()], { type: contentType }), 'social-image.jpg');
+    form.set('source', new Blob([new Uint8Array(jpegBuffer)], { type: 'image/jpeg' }), 'social-image.jpg');
     body = form;
   } else if (post.postKind === 'video') {
     const params = new URLSearchParams({ access_token: accessToken });
@@ -71,22 +206,37 @@ async function publishInstagram(post: StandaloneSocialPost): Promise<PublishResu
   if (post.postKind === 'video') {
     containerId = await createInstagramMediaContainer(instagramId, accessToken, firstMedia(post), caption);
   } else {
-    const candidates = Array.from(new Set(post.mediaUrls.map((item) => item.trim()).filter(Boolean)));
+    const mediaUrls = post.mediaUrls.map((item) => item.trim()).filter(Boolean);
+    const hostedCandidates: string[] = [];
+    const hostedErrors: string[] = [];
+    for (const mediaUrl of mediaUrls) {
+      const normalized = await createHostedInstagramJpegCandidate(mediaUrl);
+      if ('url' in normalized) hostedCandidates.push(normalized.url);
+      else hostedErrors.push(normalized.error);
+    }
+    const candidates = Array.from(new Set([...hostedCandidates, ...mediaUrls.flatMap((url) => buildInstagramImageCandidates(url))]));
     if (!candidates.length) throw new Error('instagram image posts require a media URL');
+    console.error(`[instagram-publish] candidate count=${candidates.length} hosted=${hostedCandidates.length} hosted_errors=${hostedErrors.join(' | ') || 'none'}`);
     let lastError = '';
+    let lastUrl = '';
     let createdContainer: string | null = null;
     for (const imageUrl of candidates) {
+      console.error(`[instagram-publish] trying candidate: ${imageUrl}`);
       try {
         createdContainer = await createInstagramImageContainer(instagramId, accessToken, imageUrl, caption);
+        console.error(`[instagram-publish] container created with: ${imageUrl}`);
         break;
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Instagram image container creation failed';
-        const isAspectRatioError = message.includes('aspect ratio') || message.includes('"error_subcode":2207009');
-        if (!isAspectRatioError) throw error;
+        if (!isRecoverableInstagramImageError(message)) throw error;
         lastError = message;
+        lastUrl = imageUrl;
       }
     }
-    if (!createdContainer) throw new Error(lastError || 'No Instagram image candidate had a supported aspect ratio');
+    if (!createdContainer) {
+      const hostedSummary = hostedErrors.length ? ` hosted_jpeg_errors=[${hostedErrors.join(' | ')}]` : '';
+      throw new Error(`Instagram could not fetch any candidate image. last_url=${lastUrl} last_error=${lastError}${hostedSummary}`);
+    }
     containerId = createdContainer;
   }
   await waitForInstagramMediaReady(containerId, accessToken);

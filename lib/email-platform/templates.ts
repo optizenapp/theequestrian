@@ -203,7 +203,7 @@ function normalizeCuratedCard(card: unknown, index: number): CuratedProductCard 
     compareAtPrice:
       typeof input.compareAtPrice === 'string' && input.compareAtPrice.trim() ? input.compareAtPrice.trim() : undefined,
     savePercent: typeof input.savePercent === 'string' && input.savePercent.trim() ? input.savePercent.trim() : undefined,
-    freeShippingBadge: input.freeShippingBadge !== false,
+    freeShippingBadge: input.freeShippingBadge === true,
   };
 }
 
@@ -403,7 +403,7 @@ export function renderTemplateBlocksHtml(input: {
           const showCompare = cardCompareAtPrice.length > 0;
           const savePercent = product.savePercent || '';
           const showSavePercent = savePercent.length > 0;
-          const showFreeShipping = product.freeShippingBadge !== false;
+          const showFreeShipping = product.freeShippingBadge === true;
           const image = product.imageUrl
             ? `<img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(cardTitle)}" style="max-width:220px;width:100%;height:auto;border-radius:8px;margin:0 auto 12px;display:block;" />`
             : '';

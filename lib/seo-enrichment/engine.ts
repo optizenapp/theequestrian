@@ -310,7 +310,7 @@ export class EnrichmentEngine {
           : [
               `Brand: ${row.vendor || 'Quality equestrian brand'}`,
               `Type: ${row.product_type || 'Equestrian product'}`,
-              `Available at The Equestrian with fast AU shipping`,
+              `Shipping rates vary by product — see checkout for your order total`,
             ],
         reasoning: 'Dry-run Collective metadata fallback from existing values.',
       });

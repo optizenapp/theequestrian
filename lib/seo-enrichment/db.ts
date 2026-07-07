@@ -88,6 +88,7 @@ export async function getEligiblePages(
     : `SELECT * FROM product_pages UNION ALL SELECT * FROM collection_pages`;
 
   const skipRecentlyEnriched = Boolean(vendor);
+  const skipActiveCheck = Boolean(vendor);
 
   const text = `
     WITH product_pages AS (
@@ -125,7 +126,7 @@ export async function getEligiblePages(
     LEFT JOIN recently_enriched re
       ON re.page_type = ap.page_type
      AND re.page_identifier = ap.page_identifier
-    WHERE ap.is_active = TRUE
+    WHERE ${skipActiveCheck ? 'TRUE' : 'ap.is_active = TRUE'}
       ${skipRecentlyEnriched ? '' : 'AND re.page_identifier IS NULL'}
     ORDER BY ap.last_enriched_at ASC NULLS FIRST
   `;

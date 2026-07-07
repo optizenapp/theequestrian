@@ -17,21 +17,21 @@ interface ProductPriceProps {
     value: number;
     unit: string;
   };
-  includeShipping?: boolean; // Default: true
+  includeShipping?: boolean; // When true, shows FREE SHIPPING badge for qualifying products
 }
 
 /**
  * Product Price Component
  * Renders a price with currency formatting and optional compare-at price
  * 
- * NOTE: Prices from Shopify already include shipping offset (updated by bulk script/webhooks)
- * No need to calculate shipping on the frontend anymore!
+ * NOTE: Prices are shown as listed. Free shipping badge only appears when
+ * `includeShipping` is true (product qualifies for free shipping).
  */
 export function ProductPrice({ 
   price, 
   compareAtPrice, 
   className = '',
-  includeShipping = true,
+  includeShipping = false,
 }: ProductPriceProps) {
   if (!price) return null;
 

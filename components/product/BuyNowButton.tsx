@@ -89,11 +89,7 @@ export function BuyNowButton({
       disabled={disabled || isProcessing}
       type="button"
       style={{ touchAction: 'manipulation' }}
-      className={`${widthClass} ${sizeClass} rounded-full font-semibold transition-all border ${
-        disabled || isProcessing
-          ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed'
-          : 'bg-transparent text-action border-gray-300 hover:border-action hover:-translate-y-0.5 active:scale-95'
-      }`}
+      className={`${widthClass} ${sizeClass} btn-buy-now`}
       aria-label="Buy now and proceed to checkout"
     >
       {isProcessing ? 'Processing...' : 'Buy Now'}

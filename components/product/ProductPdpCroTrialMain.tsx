@@ -7,9 +7,12 @@ import ProductIdentifierMetaRow from '@/components/product/ProductIdentifierMeta
 import ProductPdpStructuredDetails from '@/components/product/ProductPdpStructuredDetails';
 import ProductPdpValueSummary from '@/components/product/ProductPdpValueSummary';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
+import { StoreRatingBadge } from '@/components/reviews/StoreRatingBadge';
+import { getStoreReviewStats } from '@/lib/reviews/store-stats';
 import { extractCareSectionPlainText } from '@/lib/products/extract-care-from-html';
 import { getProductIdentifiers } from '@/lib/products/product-identifiers';
 import { buildPdpSummaryLine } from '@/lib/products/pdp-summary-line';
+import type { ProductShippingDisplay } from '@/lib/shipping/product-shipping-display';
 import type { ShopifyBuyBoxProduct, ShopifyProduct } from '@/types/shopify';
 
 interface ReviewBadgeStats {
@@ -27,11 +30,12 @@ interface ProductPdpCroTrialMainProps {
   children: ReactNode;
   canonicalBrand?: string | null;
   brandHubHandle?: string | null;
+  shippingDisplay?: ProductShippingDisplay;
   /** Optional full-width video section rendered above the review block. */
   videoSection?: ReactNode;
 }
 
-export default function ProductPdpCroTrialMain({
+export default async function ProductPdpCroTrialMain({
   product,
   displayTitle,
   descriptionHtml,
@@ -40,8 +44,10 @@ export default function ProductPdpCroTrialMain({
   children,
   canonicalBrand = null,
   brandHubHandle = null,
+  shippingDisplay,
   videoSection = null,
 }: ProductPdpCroTrialMainProps) {
+  const storeReviewStats = await getStoreReviewStats();
   const croSummaryLine = buildPdpSummaryLine(descriptionHtml, displayTitle);
   const croCarePlain = extractCareSectionPlainText(descriptionHtml);
   const identifiers = getProductIdentifiers(product, { canonicalBrand, brandHubHandle });
@@ -81,6 +87,7 @@ export default function ProductPdpCroTrialMain({
             initialStats={reviewBadgeStats}
           />
           <ProductIdentifierMetaRow identifiers={identifiers} />
+          <StoreRatingBadge stats={storeReviewStats} />
         </section>
 
         {/* Left: gallery spans the hero rows on desktop */}
@@ -97,7 +104,7 @@ export default function ProductPdpCroTrialMain({
           aria-label="Purchase options"
         >
           <div className="bg-surface rounded-2xl p-6 shadow-sm border border-gray-100">
-            <ProductBuyBox product={buyBoxProduct} layout="croTrial" />
+            <ProductBuyBox product={buyBoxProduct} layout="croTrial" shippingDisplay={shippingDisplay} />
           </div>
           <SizingGuideLink
             vendor={product.vendor}

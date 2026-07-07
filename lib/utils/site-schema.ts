@@ -1,3 +1,5 @@
+import { SITE_DESCRIPTION, SITE_NAME, SITE_NAME_DISPLAY } from '@/lib/seo/site-identity';
+
 const DEFAULT_SITE_URL = 'https://www.theequestrian.com.au';
 
 export interface FaqItem {
@@ -41,7 +43,7 @@ function buildOrganizationEntity(siteUrl?: string) {
   return {
     '@type': 'OnlineStore',
     '@id': `${baseUrl}#organization`,
-    name: 'The Equestrian',
+    name: SITE_NAME,
     legalName: 'Equine Marketplace Pty Ltd',
     url: baseUrl,
     logo: {
@@ -108,7 +110,7 @@ export function generateWebPageSchema(input: WebPageSchemaInput, siteUrl?: strin
       '@type': 'WebSite',
       '@id': `${baseUrl}#website`,
       url: baseUrl,
-      name: 'The Equestrian',
+      name: SITE_NAME,
     },
     publisher: {
       '@id': `${baseUrl}#organization`,
@@ -182,7 +184,7 @@ export function generateAboutPageSchema(path: string, title: string, description
       {
         '@type': 'LocalBusiness',
         '@id': `${baseUrl}#localbusiness`,
-        name: 'The Equestrian',
+        name: SITE_NAME,
         url: baseUrl,
         image: `${baseUrl}/logo.png`,
         address: {
@@ -389,7 +391,7 @@ export function generateSearchPageSchema(path: string, title: string, descriptio
           '@type': 'WebSite',
           '@id': `${baseUrl}#website`,
           url: baseUrl,
-          name: 'The Equestrian',
+          name: SITE_NAME,
           potentialAction: {
             '@type': 'SearchAction',
             target: `${toAbsoluteUrl(path, siteUrl)}?q={search_term_string}`,
@@ -417,6 +419,37 @@ export function generateSimplePageSchema(path: string, title: string, descriptio
         },
         siteUrl
       ),
+    ],
+  };
+}
+
+/** Sitewide entity graph for root layout — establishes WebSite name for Google site name. */
+export function generateSitewideSchemaGraph(siteUrl?: string) {
+  const baseUrl = getSiteUrl(siteUrl);
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      buildOrganizationEntity(siteUrl),
+      {
+        '@type': 'WebSite',
+        '@id': `${baseUrl}#website`,
+        url: baseUrl,
+        name: SITE_NAME_DISPLAY,
+        alternateName: SITE_NAME,
+        description: SITE_DESCRIPTION,
+        inLanguage: 'en-AU',
+        publisher: {
+          '@id': `${baseUrl}#organization`,
+        },
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: {
+            '@type': 'EntryPoint',
+            urlTemplate: `${baseUrl}/search?q={search_term_string}`,
+          },
+          'query-input': 'required name=search_term_string',
+        },
+      },
     ],
   };
 }

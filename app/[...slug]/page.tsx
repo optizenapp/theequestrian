@@ -14,8 +14,10 @@ import { ProductDescription } from '@/components/product/ProductDescription';
 import { RelatedProducts } from '@/components/product/RelatedProducts';
 import { generateBreadcrumbSchema } from '@/lib/utils/breadcrumb-schema';
 import { generateProductSchemaGraph } from '@/lib/utils/product-schema';
+import { resolveProductShippingDisplay } from '@/lib/shipping/product-shipping-display';
 import { getBreadcrumbsForProduct } from '@/lib/mapping/collection-mapping';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
+import { StoreRatingBadge } from '@/components/reviews/StoreRatingBadge';
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
 import { composeProductDescriptionHtml } from '@/lib/products/compose-product-description';
 import ProductIdentifierMetaRow from '@/components/product/ProductIdentifierMetaRow';
@@ -34,6 +36,7 @@ import { getProductOverrideByHandle, resolveProductHandleFromSlug } from '@/lib/
 import { getProductAllocationByHandle } from '@/lib/db/product-allocations';
 import ProductReviewSection from '@/components/reviews/ProductReviewSection';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
+import { getStoreReviewStats } from '@/lib/reviews/store-stats';
 import { getReviewStatsWithCache } from '@/lib/reviews/get-review-stats';
 import { cache } from 'react';
 import { ProductViewTracker } from '@/components/analytics/ProductViewTracker';
@@ -181,13 +184,20 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
   // brand entity links to /brands/[hub] and uses a stable @id.
   const { brand: canonicalBrand, brandHubHandle } = await getProductBrandForDisplay(resolvedProduct.handle);
 
+  const shippingDisplay = await resolveProductShippingDisplay({
+    vendor: resolvedProduct.vendor || '',
+    tags: resolvedProduct.tags || [],
+    price: parseFloat(resolvedProduct.priceRange.minVariantPrice.amount),
+  });
+  const storeReviewStats = await getStoreReviewStats();
+
   const schemaGraph = generateProductSchemaGraph(
     { ...resolvedProduct, title: displayTitle },
     canonicalUrl,
     breadcrumbSchemas,
     siteUrl,
     reviewStats,
-    { brandHubHandle, brandName: canonicalBrand }
+    { brandHubHandle, brandName: canonicalBrand, hasFreeShipping: shippingDisplay.hasFreeShipping }
   );
 
   // Fetch related products and review stats (server-side batch)
@@ -262,6 +272,7 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
             reviewBadgeStats={reviewBadgeStats}
             canonicalBrand={canonicalBrand}
             brandHubHandle={brandHubHandle}
+            shippingDisplay={shippingDisplay}
           >
             <ProductReviewSection
               productId={resolvedProduct.id}
@@ -280,6 +291,7 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
             styleMode={isCroThreePdp ? 'cro3' : 'cro2'}
             canonicalBrand={canonicalBrand}
             brandHubHandle={brandHubHandle}
+            shippingDisplay={shippingDisplay}
           />
         ) : (
         <article aria-labelledby="pdp-product-title">
@@ -298,6 +310,7 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
                 initialStats={reviewBadgeStats}
               />
               <ProductIdentifierMetaRow identifiers={identifiers} />
+              <StoreRatingBadge stats={storeReviewStats} />
             </div>
             <div className="space-y-2 mt-4">
               {featureHighlights.map((feature) => (
@@ -335,7 +348,7 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
             aria-label="Purchase options"
           >
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-gray-100">
-              <ProductBuyBox product={buyBoxProduct} />
+              <ProductBuyBox product={buyBoxProduct} shippingDisplay={shippingDisplay} />
             </div>
           </section>
 

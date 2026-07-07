@@ -70,12 +70,8 @@ export function AddToCartButton({
     <button
       onClick={handleAddToCart}
       disabled={disabled || isAdding}
-      className={`${widthClass} ${sizeClass} rounded-full font-semibold transition-all ${
-        showSuccess
-          ? 'bg-[#E91E8C] text-white'
-          : disabled
-          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-          : 'bg-action text-white hover:bg-action-hover hover:-translate-y-0.5 hover:shadow-md'
+      className={`${widthClass} ${sizeClass} btn-atc ${
+        showSuccess ? 'btn-atc-success' : ''
       }`}
     >
       {isAdding ? (

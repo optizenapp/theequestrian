@@ -1,5 +1,9 @@
 'use client';
 
+import { ProductBuyBoxBnplMessaging } from '@/components/product/ProductBuyBoxBnplMessaging';
+import type { ProductShippingDisplay } from '@/lib/shipping/product-shipping-display';
+import { SHIPPING_DISPLAY_FALLBACK } from '@/lib/shipping/product-shipping-display';
+
 interface ProductBuyBoxPriceAndBadgesProps {
   priceNum: number;
   compareAmount: string | null;
@@ -7,6 +11,9 @@ interface ProductBuyBoxPriceAndBadgesProps {
   saveAmount: number;
   savePercent: number | null;
   layout: 'default' | 'croTrial' | 'croTheme3';
+  currencyCode: string;
+  sku?: string | null;
+  shippingDisplay?: ProductShippingDisplay;
 }
 
 export function ProductBuyBoxPriceAndBadges({
@@ -16,6 +23,9 @@ export function ProductBuyBoxPriceAndBadges({
   saveAmount,
   savePercent,
   layout,
+  currencyCode,
+  sku,
+  shippingDisplay = SHIPPING_DISPLAY_FALLBACK,
 }: ProductBuyBoxPriceAndBadgesProps) {
   const isCroTrial = layout === 'croTrial';
   const isCroTheme3 = layout === 'croTheme3';
@@ -65,6 +75,19 @@ export function ProductBuyBoxPriceAndBadges({
           </span>
         </div>
       ) : null}
+
+      {shippingDisplay.badgeLabel ? (
+        <div className="mt-2">
+          <span
+            className="inline-flex items-center gap-1 text-xs font-bold text-white px-2 py-0.5 rounded"
+            style={{ backgroundColor: '#155dfb' }}
+          >
+            {shippingDisplay.badgeLabel}
+          </span>
+        </div>
+      ) : null}
+
+      <ProductBuyBoxBnplMessaging priceNum={priceNum} currencyCode={currencyCode} sku={sku} />
     </div>
   );
 }

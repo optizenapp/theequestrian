@@ -4,7 +4,10 @@ import { ProductBuyBox } from '@/components/product/ProductBuyBox';
 import { ProductDescription } from '@/components/product/ProductDescription';
 import ProductIdentifierMetaRow from '@/components/product/ProductIdentifierMetaRow';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
+import { StoreRatingBadge } from '@/components/reviews/StoreRatingBadge';
+import { getStoreReviewStats } from '@/lib/reviews/store-stats';
 import { getProductIdentifiers } from '@/lib/products/product-identifiers';
+import type { ProductShippingDisplay } from '@/lib/shipping/product-shipping-display';
 import type { ShopifyBuyBoxProduct, ShopifyProduct } from '@/types/shopify';
 
 interface ReviewBadgeStats {
@@ -23,6 +26,7 @@ interface ProductPdpCroTwoMainProps {
   styleMode?: 'cro2' | 'cro3';
   canonicalBrand?: string | null;
   brandHubHandle?: string | null;
+  shippingDisplay?: ProductShippingDisplay;
 }
 
 function FeatureHighlights({ featureHighlights }: { featureHighlights: string[] }) {
@@ -56,7 +60,7 @@ function ArcEquinePromo() {
   );
 }
 
-export default function ProductPdpCroTwoMain({
+export default async function ProductPdpCroTwoMain({
   product,
   displayTitle,
   descriptionHtml,
@@ -67,7 +71,9 @@ export default function ProductPdpCroTwoMain({
   styleMode = 'cro2',
   canonicalBrand = null,
   brandHubHandle = null,
+  shippingDisplay,
 }: ProductPdpCroTwoMainProps) {
+  const storeReviewStats = await getStoreReviewStats();
   const identifiers = getProductIdentifiers(product, { canonicalBrand, brandHubHandle });
   const galleryImages = product.images.edges.map(({ node }) => node);
   const buyBoxProduct: ShopifyBuyBoxProduct = {
@@ -133,6 +139,7 @@ export default function ProductPdpCroTwoMain({
                 initialStats={reviewBadgeStats}
               />
               <ProductIdentifierMetaRow identifiers={identifiers} />
+              <StoreRatingBadge stats={storeReviewStats} />
             </section>
 
             <section
@@ -143,6 +150,7 @@ export default function ProductPdpCroTwoMain({
                 <ProductBuyBox
                   product={buyBoxProduct}
                   layout={styleMode === 'cro3' ? 'croTheme3' : 'croTrial'}
+                  shippingDisplay={shippingDisplay}
                 />
               </div>
             </section>
