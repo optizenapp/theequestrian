@@ -273,13 +273,13 @@ export default async function Home() {
             return <TrustSignals key={section.key} />;
 
           case 'most_wanted_carousel':
-            // Use fetched products if available, otherwise fall back to manual items
+          case 'most_wanted_grid': {
             const carouselProducts = ('fetchedProducts' in section && section.fetchedProducts)
               ? section.fetchedProducts
               : (section.most_wanted_items || []);
-            
+
             return (
-              <LazySection 
+              <LazySection
                 key={section.key}
                 fallback={<div className="h-96 bg-white animate-pulse rounded-lg" />}
                 minHeight="24rem"
@@ -292,26 +292,7 @@ export default async function Home() {
                 />
               </LazySection>
             );
-
-          case 'most_wanted_grid':
-            const gridProducts = ('fetchedProducts' in section && section.fetchedProducts)
-              ? section.fetchedProducts
-              : (section.most_wanted_items || []);
-
-            return (
-              <LazySection
-                key={section.key}
-                fallback={<div className="h-96 bg-gray-50 animate-pulse rounded-lg" />}
-                minHeight="24rem"
-              >
-                <MostWantedCarousel
-                  products={gridProducts}
-                  eyebrow={section.eyebrow}
-                  heading={<InlineHtml html={section.title_html} />}
-                  description={<InlineHtml html={section.body_html || section.subtitle_html} />}
-                />
-              </LazySection>
-            );
+          }
 
           case 'best_deals_slider':
             return (

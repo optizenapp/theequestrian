@@ -114,11 +114,11 @@ export function MostWantedCarousel({
           </p>
         </div>
 
-        <div className="relative">
+        <div className="relative overflow-hidden">
           {/* Carousel Container */}
           <div 
             ref={scrollContainerRef}
-            className="flex flex-nowrap gap-6 overflow-x-auto scroll-smooth scrollbar-hide pb-4"
+            className="flex flex-nowrap gap-6 overflow-x-auto scroll-smooth scrollbar-hide pb-4 -mx-1 px-1"
             style={{
               scrollSnapType: 'x mandatory',
               WebkitOverflowScrolling: 'touch',
@@ -142,7 +142,7 @@ export function MostWantedCarousel({
                   <p className="mt-6 text-xs text-primary font-semibold uppercase tracking-[0.4em]">
                     {formatted.tag}
                   </p>
-                  <h3 className="mt-2 text-xl font-semibold text-gray-900 line-clamp-2">{formatted.title}</h3>
+                  <h3 className="mt-2 text-xl font-semibold text-gray-900 line-clamp-1">{formatted.title}</h3>
                   <p className="mt-1 text-lg text-gray-700">{formatted.price}</p>
                   {formatted.rating && (
                     <div className="mt-2">
