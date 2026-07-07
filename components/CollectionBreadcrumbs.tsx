@@ -2,12 +2,11 @@
 
 /**
  * Collection Breadcrumbs Component
- * 
- * Displays breadcrumbs for collection pages
- * Uses proper category names from mapping
+ *
+ * Displays breadcrumbs for collection pages with a compact mobile carousel.
  */
 
-import Link from 'next/link';
+import { BreadcrumbTrail } from '@/components/BreadcrumbTrail';
 
 interface BreadcrumbItem {
   label: string;
@@ -20,30 +19,14 @@ interface CollectionBreadcrumbsProps {
 }
 
 export function CollectionBreadcrumbs({ breadcrumbs, className = '' }: CollectionBreadcrumbsProps) {
-  return (
-    <nav className={`text-sm text-gray-600 mb-6 ${className}`} aria-label="Breadcrumb">
-      <Link href="/" className="hover:underline hover:text-primary transition-colors">
-        Home
-      </Link>
-      {breadcrumbs.map((crumb, index) => (
-        <span key={crumb.href}>
-          {' / '}
-          {index === breadcrumbs.length - 1 ? (
-            <span className="text-gray-900 font-medium">{crumb.label}</span>
-          ) : (
-            <Link 
-              href={crumb.href} 
-              className="hover:underline hover:text-primary transition-colors"
-            >
-              {crumb.label}
-            </Link>
-          )}
-        </span>
-      ))}
-    </nav>
-  );
+  const items = [
+    { label: 'Home', href: '/' },
+    ...breadcrumbs.map((crumb, index) =>
+      index === breadcrumbs.length - 1
+        ? { label: crumb.label }
+        : { label: crumb.label, href: crumb.href }
+    ),
+  ];
+
+  return <BreadcrumbTrail items={items} className={`mb-6 ${className}`} />;
 }
-
-
-
-

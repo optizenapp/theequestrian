@@ -2,6 +2,7 @@
 
 import { useRef } from 'react';
 import Link from 'next/link';
+import type { HomeCarouselProduct } from '@/lib/content/home-page-cached';
 import type { ShopifyProductCard } from '@/types/shopify';
 import { ReviewStars } from '@/components/reviews/ReviewStars';
 
@@ -14,26 +15,27 @@ interface Product {
 }
 
 interface MostWantedCarouselProps {
-  products: Product[] | ShopifyProductCard[]; // Support both old and new format
+  products: Product[] | HomeCarouselProduct[] | ShopifyProductCard[];
   eyebrow?: string;
   heading?: React.ReactNode;
   description?: React.ReactNode;
 }
 
 // Helper to check if product is a Shopify product card shape
-function isShopifyProduct(product: Product | ShopifyProductCard): product is ShopifyProductCard {
+function isShopifyProduct(
+  product: Product | HomeCarouselProduct | ShopifyProductCard
+): product is HomeCarouselProduct | ShopifyProductCard {
   return 'handle' in product && 'priceRange' in product;
 }
 
 // Helper to format Shopify product for display
-function formatProduct(product: Product | ShopifyProductCard): {
+function formatProduct(product: Product | HomeCarouselProduct | ShopifyProductCard): {
   title: string;
   price: string;
   rating: string;
   tag: string;
   image: string;
-  handle?: string;
-  primaryCollection?: string;
+  href?: string;
   reviewCount?: string;
 } {
   if (isShopifyProduct(product)) {
@@ -54,14 +56,21 @@ function formatProduct(product: Product | ShopifyProductCard): {
     
     const reviewCount = product.reviewCount?.value || null;
 
+    const primaryCollection = product.primaryCollection?.value || product.metafield?.value;
+    const href =
+      'href' in product && product.href
+        ? product.href
+        : primaryCollection
+          ? `/${primaryCollection}/${product.handle}`
+          : `/products/${product.handle}`;
+
     return {
       title: product.title,
       price: priceDisplay,
       rating: rating || '', // Empty string if no rating
       tag: hasDiscount ? 'On Sale' : 'Best Seller',
       image: product.images.edges[0]?.node.url || '',
-      handle: product.handle,
-      primaryCollection: product.primaryCollection?.value || product.metafield?.value,
+      href,
       reviewCount: reviewCount || undefined,
     };
   }
@@ -126,9 +135,7 @@ export function MostWantedCarousel({
           >
             {products.map((item, index) => {
               const formatted = formatProduct(item);
-              const productUrl = formatted.handle && formatted.primaryCollection
-                ? `/${formatted.primaryCollection}/${formatted.handle}`
-                : '#';
+              const productUrl = formatted.href;
               
               const CardContent = (
                 <>
@@ -163,7 +170,7 @@ export function MostWantedCarousel({
                   className="flex-shrink-0 w-[260px] sm:w-[280px] lg:w-[300px] scroll-snap-align-start"
                   style={{ scrollSnapAlign: 'start' }}
                 >
-                  {formatted.handle ? (
+                  {productUrl ? (
                     <Link href={productUrl} className="block rounded-3xl border border-gray-100 bg-gray-50 p-6 shadow-sm hover:shadow-md transition-shadow h-full">
                       {CardContent}
                     </Link>

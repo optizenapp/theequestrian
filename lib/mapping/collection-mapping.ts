@@ -14,7 +14,12 @@ import { unstable_cache } from 'next/cache';
 import { SHOPIFY_GRAPHQL_FORCE_CACHE_REVALIDATE_SECONDS } from '@/lib/config/route-revalidate';
 import { getCategoryContent } from '@/lib/content/collections';
 import { sql } from '@/lib/db/client';
-import { resolvePillAnchorText } from '@/lib/seo/pill-anchor-text';
+import {
+  HORSE_RUGS_PILL_LABELS,
+  resolveCollectionDisplayLabel,
+  resolvePillAnchorText,
+  titleFromHandle,
+} from '@/lib/seo/pill-anchor-text';
 
 interface MappingRow {
   top_level: string;
@@ -461,38 +466,64 @@ export function getCollectionTitle(
   
   const collectionPath = pathParts.join('/');
   const rows = mapping.get(collectionPath);
+  const lastPart = subsubcategory || subcategory || category;
+  const parentHandle = subsubcategory ? subcategory : subcategory ? category : undefined;
+
+  if (category === 'horse' && subcategory === 'rugs' && subsubcategory) {
+    const rugLabel = HORSE_RUGS_PILL_LABELS[subsubcategory];
+    if (rugLabel) return rugLabel;
+  }
   
   if (rows && rows.length > 0) {
-    const lastPart = subsubcategory || subcategory || category;
     const normalizedHandle = lastPart
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
 
-    // Prefer rows that explicitly map to this handle (merge_to) or match the handle when normalized
-    const preferredRow = rows.find((row) => {
-      if (row.merge_to && row.merge_to.trim()) {
-        return row.merge_to.trim().toLowerCase() === normalizedHandle;
-      }
-      if (row.product_type && row.product_type.trim()) {
-        const normalizedType = row.product_type
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/^-+|-+$/g, '');
-        return normalizedType === normalizedHandle;
-      }
-      return false;
-    });
+    // Prefer explicit merge_to targets over incidental product_type name matches
+    const preferredRow =
+      rows.find((row) => {
+        if (row.merge_to && row.merge_to.trim()) {
+          return row.merge_to.trim().toLowerCase() === normalizedHandle;
+        }
+        return false;
+      }) ??
+      rows.find((row) => {
+        if (row.product_type && row.product_type.trim()) {
+          const normalizedType = row.product_type
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+          return normalizedType === normalizedHandle;
+        }
+        return false;
+      });
+
+    if (preferredRow?.merge_to?.trim()) {
+      return resolveCollectionDisplayLabel(
+        titleFromHandle(preferredRow.merge_to.trim()),
+        lastPart,
+        { parentHandle, categoryHandle: category }
+      );
+    }
 
     const titleSource = preferredRow?.product_type || rows[0].product_type;
     if (titleSource) {
-      return titleSource;
+      const normalizedTitle = titleSource
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      if (normalizedTitle === lastPart.toLowerCase().replace(/[^a-z0-9]+/g, '-')) {
+        return titleFromHandle(lastPart);
+      }
+      return resolveCollectionDisplayLabel(titleSource, lastPart, {
+        parentHandle,
+        categoryHandle: category,
+      });
     }
   }
 
-  // Fallback: generate from path
-  const lastPart = subsubcategory || subcategory || category;
-  return lastPart.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  return titleFromHandle(lastPart);
 }
 
 /**

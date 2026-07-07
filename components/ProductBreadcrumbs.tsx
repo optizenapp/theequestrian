@@ -2,16 +2,15 @@
 
 /**
  * Product Breadcrumbs Component
- * 
- * Features:
- * - Shows primary breadcrumb path by default
- * - Additional category paths can be toggled
- * - All paths remain in HTML for SEO
- * - Generates proper schema for all paths
+ *
+ * - Mobile: compact sliding window (see BreadcrumbTrail)
+ * - Desktop: full path
+ * - Additional category paths stay in HTML (sr-only) for SEO
  */
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { BreadcrumbTrail, formatBreadcrumbLabel } from '@/components/BreadcrumbTrail';
 
 interface BreadcrumbPath {
   label: string;
@@ -24,51 +23,48 @@ interface ProductBreadcrumbsProps {
   additionalPaths?: BreadcrumbPath[][];
 }
 
-export function ProductBreadcrumbs({ 
-  productTitle, 
-  primaryPath, 
-  additionalPaths = [] 
+export function ProductBreadcrumbs({
+  productTitle,
+  primaryPath,
+  additionalPaths = [],
 }: ProductBreadcrumbsProps) {
   const [showAllPaths, setShowAllPaths] = useState(false);
 
-  const renderBreadcrumbPath = (path: BreadcrumbPath[], isVisible: boolean, pathIndex: number) => (
+  const primaryItems = [
+    { label: 'Home', href: '/' },
+    ...primaryPath.map((crumb) => ({ label: crumb.label, href: crumb.href })),
+    { label: productTitle },
+  ];
+
+  const renderHiddenPath = (path: BreadcrumbPath[], pathIndex: number) => (
     <nav
       key={pathIndex}
-      className={`flex items-center flex-wrap gap-y-1 text-sm text-gray-500 ${isVisible ? '' : 'sr-only'}`}
+      className="sr-only"
       aria-label={pathIndex === 0 ? 'Primary breadcrumb' : `Alternative breadcrumb ${pathIndex}`}
     >
-      <Link href="/" className="hover:text-action transition-colors whitespace-nowrap">Home</Link>
+      <Link href="/">Home</Link>
       {path.map((crumb, i) => (
-        <span key={i} className="flex items-center whitespace-nowrap">
-          <span className="mx-1.5 text-gray-400">/</span>
-          <Link
-            href={crumb.href}
-            className="hover:text-action capitalize transition-colors"
-          >
-            {crumb.label}
-          </Link>
+        <span key={i}>
+          {' / '}
+          <Link href={crumb.href}>{formatBreadcrumbLabel(crumb.label)}</Link>
         </span>
       ))}
-      <span className="flex items-center min-w-0">
-        <span className="mx-1.5 text-gray-400">/</span>
-        <span className="text-gray-900 font-medium truncate">{productTitle}</span>
+      <span>
+        {' / '}
+        {productTitle}
       </span>
     </nav>
   );
 
   return (
     <div className="mb-8">
-      {/* Primary Breadcrumb - Always Visible */}
-      {renderBreadcrumbPath(primaryPath, true, 0)}
+      <BreadcrumbTrail items={primaryItems} ariaLabel="Primary breadcrumb" />
 
-      {/* Additional Paths - Hidden for SEO (sr-only) */}
-      {!showAllPaths && additionalPaths.map((path, index) => 
-        renderBreadcrumbPath(path, false, index + 1)
-      )}
+      {!showAllPaths && additionalPaths.map((path, index) => renderHiddenPath(path, index + 1))}
 
-      {/* Toggle Button for Additional Paths */}
       {additionalPaths.length > 0 && (
         <button
+          type="button"
           onClick={() => setShowAllPaths(!showAllPaths)}
           className="mt-2 text-xs text-primary hover:text-primary-dark font-medium flex items-center gap-1"
         >
@@ -82,7 +78,7 @@ export function ProductBreadcrumbs({
           ) : (
             <>
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7-7 7-7" />
               </svg>
               Also in {additionalPaths.length} other {additionalPaths.length === 1 ? 'category' : 'categories'}
             </>
@@ -90,20 +86,18 @@ export function ProductBreadcrumbs({
         </button>
       )}
 
-      {/* Show Additional Paths when toggled */}
       {showAllPaths && additionalPaths.length > 0 && (
         <div className="mt-3 space-y-2 pl-4 border-l-2 border-gray-200">
           {additionalPaths.map((path, index) => (
-            <div key={index} className="flex text-sm text-gray-500">
-              <Link href="/" className="hover:text-action transition-colors">Home</Link>
+            <div key={index} className="flex flex-wrap text-sm text-gray-500">
+              <Link href="/" className="hover:text-action transition-colors">
+                Home
+              </Link>
               {path.map((crumb, i) => (
-                <span key={i} className="flex items-center">
+                <span key={i} className="flex items-center min-w-0">
                   <span className="mx-2">/</span>
-                  <Link 
-                    href={crumb.href}
-                    className="hover:text-action capitalize transition-colors"
-                  >
-                    {crumb.label}
+                  <Link href={crumb.href} className="hover:text-action capitalize transition-colors truncate">
+                    {formatBreadcrumbLabel(crumb.label)}
                   </Link>
                 </span>
               ))}
@@ -116,5 +110,3 @@ export function ProductBreadcrumbs({
     </div>
   );
 }
-
-
