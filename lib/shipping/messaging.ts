@@ -24,3 +24,6 @@ export function vendorShippingCheckoutMessage(baseRate: number): string {
 export const SHIPPING_TRUST_TITLE = 'Australia-wide Delivery';
 
 export const SHIPPING_TRUST_DESCRIPTION = 'Rates vary by product';
+
+/** Cart / checkout sidebar — express shipping upsell as text, not a button. */
+export const EXPRESS_SHIPPING_CHECKOUT_NOTE = 'Express shipping available at checkout.';

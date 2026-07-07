@@ -11,7 +11,7 @@ export const getStoreReviewStats = cache(async (): Promise<StoreReviewStats | nu
   try {
     const { rows } = await sql`
       SELECT
-        AVG(rating)::numeric(3,2) AS average_rating,
+        AVG(rating::numeric) AS average_rating,
         COUNT(*)::int AS total_reviews
       FROM reviews
       WHERE status = 'approved'

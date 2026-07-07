@@ -12,6 +12,7 @@ import {
 import { FaCcVisa, FaCcMastercard, FaCcPaypal } from 'react-icons/fa';
 import { SiAfterpay, SiShopify } from 'react-icons/si';
 import { BnplMessaging } from '@/components/product/BnplMessaging';
+import { EXPRESS_SHIPPING_CHECKOUT_NOTE } from '@/lib/shipping/messaging';
 
 export function CartDrawer() {
   const { cart, isOpen, closeCart, updateCartItem, removeCartItem } = useCart();
@@ -216,6 +217,7 @@ export function CartDrawer() {
             >
               Checkout
             </a>
+            <p className="text-xs text-gray-500 text-center">{EXPRESS_SHIPPING_CHECKOUT_NOTE}</p>
             <div className="border border-gray-200 rounded-lg p-2 bg-gray-50 flex justify-center items-center gap-1.5 flex-wrap transition-all">
               <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center" title="Visa">
                 <FaCcVisa className="text-[#1A1F71] text-2xl" />
