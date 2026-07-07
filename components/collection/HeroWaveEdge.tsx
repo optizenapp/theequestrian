@@ -6,9 +6,8 @@ export const HERO_WAVE_PATH =
 
 const LEFT_WAVE_CLIP_ID = 'hero-image-left-wave';
 
-/** Smooth vertical wave on the left edge — clips image/mask content, not a white overlay. */
-const LEFT_WAVE_CLIP_PATH =
-  'M0.08,0 C0.02,0.14,0.14,0.26,0.07,0.38 C0.01,0.5,0.13,0.62,0.06,0.74 C0.01,0.86,0.12,0.96,0.08,1 L1,1 L1,0 Z';
+/** Single gentle wave on the left edge — one curve like the home hero bottom. */
+const LEFT_WAVE_CLIP_PATH = 'M0.08,0 C0,0.35,0.14,0.65,0.08,1 L1,1 L1,0 Z';
 
 type HeroWaveEdgeProps = {
   edge: 'bottom';
