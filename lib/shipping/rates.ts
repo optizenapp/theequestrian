@@ -4,6 +4,7 @@
  */
 
 import { sql } from '@/lib/db/client';
+import { ensureVendorShippingColumns } from '@/lib/db/ensure-vendor-shipping-columns';
 
 export interface VendorRate {
   vendor: string;
@@ -30,43 +31,42 @@ const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
  */
 export async function loadShippingRates(): Promise<ShippingRates> {
   const now = Date.now();
-  
-  // Return cached rates if still valid
-  if (cachedRates && (now - cacheTimestamp) < CACHE_TTL) {
+
+  if (cachedRates && now - cacheTimestamp < CACHE_TTL) {
     return cachedRates;
   }
 
-  // Load from database
   const vendorRates = new Map<string, VendorRate>();
   const tagRates = new Map<string, number>();
 
-  // Load vendor rates
-  const vendors = await sql`
-    SELECT 
-      vendor_name,
-      base_rate,
-      tag_overrides,
-      weight_tiers,
-      free_shipping_threshold
-    FROM vendor_shipping_rates
-    WHERE active = true
-  `;
+  await ensureVendorShippingColumns();
 
-  const vendorsArray = Array.isArray(vendors) ? vendors : [];
-  for (const rowRaw of vendorsArray) {
-    const row = rowRaw as any;
-    const thresholdRaw = row.free_shipping_threshold;
-    const threshold = thresholdRaw == null ? null : parseFloat(thresholdRaw);
-    vendorRates.set(row.vendor_name, {
-      vendor: row.vendor_name,
-      baseRate: parseFloat(row.base_rate),
-      tagOverrides: row.tag_overrides || {},
-      weightTiers: row.weight_tiers || undefined,
-      freeShippingThreshold: threshold != null && !Number.isNaN(threshold) ? threshold : null,
-    });
+  try {
+    const vendors = await sql`
+      SELECT
+        vendor_name,
+        base_rate,
+        tag_overrides,
+        weight_tiers,
+        free_shipping_threshold
+      FROM vendor_shipping_rates
+      WHERE active = true
+    `;
+    appendVendorRates(vendorRates, vendors);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (!message.includes('free_shipping_threshold')) {
+      throw err;
+    }
+    console.warn('[loadShippingRates] free_shipping_threshold missing; loading without threshold');
+    const vendors = await sql`
+      SELECT vendor_name, base_rate, tag_overrides, weight_tiers
+      FROM vendor_shipping_rates
+      WHERE active = true
+    `;
+    appendVendorRates(vendorRates, vendors);
   }
 
-  // Load global tag rates
   const tags = await sql`
     SELECT tag, rate
     FROM shipping_tag_rates
@@ -75,15 +75,36 @@ export async function loadShippingRates(): Promise<ShippingRates> {
 
   const tagsArray = Array.isArray(tags) ? tags : [];
   for (const rowRaw of tagsArray) {
-    const row = rowRaw as any;
-    tagRates.set(row.tag, parseFloat(row.rate));
+    const row = rowRaw as { tag: string; rate: string | number };
+    tagRates.set(row.tag, parseFloat(String(row.rate)));
   }
 
-  // Update cache
   cachedRates = { vendorRates, tagRates };
   cacheTimestamp = now;
 
   return cachedRates;
+}
+
+function appendVendorRates(vendorRates: Map<string, VendorRate>, vendors: unknown): void {
+  const vendorsArray = Array.isArray(vendors) ? vendors : [];
+  for (const rowRaw of vendorsArray) {
+    const row = rowRaw as {
+      vendor_name: string;
+      base_rate: string | number;
+      tag_overrides: Record<string, number> | null;
+      weight_tiers: Array<{ min: number; max: number; rate: number }> | null;
+      free_shipping_threshold?: string | number | null;
+    };
+    const thresholdRaw = row.free_shipping_threshold;
+    const threshold = thresholdRaw == null ? null : parseFloat(String(thresholdRaw));
+    vendorRates.set(row.vendor_name, {
+      vendor: row.vendor_name,
+      baseRate: parseFloat(String(row.base_rate)),
+      tagOverrides: row.tag_overrides || {},
+      weightTiers: row.weight_tiers || undefined,
+      freeShippingThreshold: threshold != null && !Number.isNaN(threshold) ? threshold : null,
+    });
+  }
 }
 
 /**

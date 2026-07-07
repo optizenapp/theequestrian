@@ -12,7 +12,7 @@
  */
 import Script from 'next/script';
 
-const AFTERPAY_SCRIPT = 'https://js.afterpay.com/afterpay-1.x.js';
+const AFTERPAY_SCRIPT = 'https://js.squarecdn.com/square-marketplace.js';
 const ZIP_SCRIPT = 'https://static.zip.co/lib/js/zm-widget-js/dist/zip-widget.min.js';
 
 const afterpayMpId = process.env.NEXT_PUBLIC_AFTERPAY_MP_ID?.trim();

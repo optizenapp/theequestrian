@@ -90,6 +90,11 @@ export async function resolveProductShippingDisplay(input: {
   tags: string[];
   price?: number;
 }): Promise<ProductShippingDisplay> {
-  const rates = await loadShippingRates();
-  return resolveProductShippingDisplaySync({ ...input, rates });
+  try {
+    const rates = await loadShippingRates();
+    return resolveProductShippingDisplaySync({ ...input, rates });
+  } catch (error) {
+    console.error('[resolveProductShippingDisplay] Failed:', error);
+    return SHIPPING_DISPLAY_FALLBACK;
+  }
 }
