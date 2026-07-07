@@ -23,6 +23,7 @@ const ensureBrandContentTable = async () => {
   await sql`CREATE INDEX IF NOT EXISTS idx_brand_content_handle ON brand_content(handle)`;
   await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS products_count INTEGER DEFAULT 0`;
   await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS rules TEXT`;
+  await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS logo_url TEXT`;
 };
 
 export async function GET(
@@ -80,6 +81,7 @@ export async function PATCH(
         long_description,
         breadcrumb_label,
         faq_json,
+        logo_url,
         status,
         updated_at
       ) VALUES (
@@ -94,6 +96,7 @@ export async function PATCH(
         ${String(body?.long_description ?? base.long_description ?? '')},
         ${String(body?.breadcrumb_label ?? base.breadcrumb_label ?? '')},
         ${String(body?.faq_json ?? base.faq_json ?? '')},
+        ${body?.logo_url !== undefined ? (body.logo_url ? String(body.logo_url) : null) : (base.logo_url ?? null)},
         ${String(body?.status || 'published')},
         NOW()
       )
@@ -109,6 +112,7 @@ export async function PATCH(
         long_description = EXCLUDED.long_description,
         breadcrumb_label = EXCLUDED.breadcrumb_label,
         faq_json = EXCLUDED.faq_json,
+        logo_url = EXCLUDED.logo_url,
         status = EXCLUDED.status,
         updated_at = NOW()
       RETURNING *

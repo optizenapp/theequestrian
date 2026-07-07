@@ -15,6 +15,7 @@ export interface BrandContentRow {
   breadcrumb_label: string | null;
   faq_json: string | null;
   quick_answer: string | null;
+  logo_url: string | null;
   status: string | null;
   updated_at?: string | null;
 }
@@ -47,6 +48,7 @@ async function ensureBrandContentTable() {
   await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS products_count INTEGER DEFAULT 0`;
   await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS rules TEXT`;
   await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS quick_answer TEXT`;
+  await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS logo_url TEXT`;
 }
 
 async function loadBrandContent(): Promise<Map<string, BrandContentRow>> {

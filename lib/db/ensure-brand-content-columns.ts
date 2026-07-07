@@ -13,6 +13,7 @@ export function ensureBrandContentColumns(): Promise<void> {
   ensurePromise = (async () => {
     try {
       await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS quick_answer TEXT`;
+      await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS logo_url TEXT`;
     } catch (err) {
       console.warn('[ensureBrandContentColumns] could not add columns:', err);
     }

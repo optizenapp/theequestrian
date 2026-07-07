@@ -36,6 +36,7 @@ export interface BrandSEOContent {
   breadcrumb_label?: string;
   /** 40–60 word entity-first answer rendered under the H1 (Section 3.5 of framework). */
   quick_answer?: string;
+  logo_url?: string;
   rules?: Array<{ column: string; relation?: string; condition: string }>;
   faq_items?: BrandFaqItem[];
 }
@@ -99,10 +100,12 @@ async function main() {
   // Self-heal the quick_answer column so the script works on any DB that may
   // not have run the runtime ensureBrandContentColumns hook yet.
   await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS quick_answer TEXT`;
+  await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS logo_url TEXT`;
 
   const faqJson = JSON.stringify(content.faq_items || []);
   const rulesJson = content.rules ? JSON.stringify(content.rules) : null;
   const quickAnswer = content.quick_answer ?? null;
+  const logoUrl = content.logo_url ?? null;
   const result = await sql`
     INSERT INTO brand_content (
       handle,
@@ -117,6 +120,7 @@ async function main() {
       breadcrumb_label,
       faq_json,
       quick_answer,
+      logo_url,
       status
     ) VALUES (
       ${content.handle},
@@ -131,6 +135,7 @@ async function main() {
       ${content.breadcrumb_label || content.title},
       ${faqJson},
       ${quickAnswer},
+      ${logoUrl},
       'published'
     )
     ON CONFLICT (handle) DO UPDATE SET
@@ -144,6 +149,7 @@ async function main() {
       breadcrumb_label = EXCLUDED.breadcrumb_label,
       faq_json = EXCLUDED.faq_json,
       quick_answer = EXCLUDED.quick_answer,
+      logo_url = EXCLUDED.logo_url,
       status = EXCLUDED.status,
       updated_at = NOW()
     RETURNING handle, title, h1_title, meta_title

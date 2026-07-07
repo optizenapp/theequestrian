@@ -11,6 +11,8 @@ import { getBrandProductsFromDb } from '@/lib/brands/get-brand-products';
 import { getBrandCategories } from '@/lib/brands/get-brand-categories';
 import { BrandQuickAnswer } from '@/components/brand/BrandQuickAnswer';
 import { BrandProductLines } from '@/components/brand/BrandProductLines';
+import { BrandLogo } from '@/components/brand/BrandLogo';
+import { resolveBrandLogoUrl } from '@/lib/brands/resolve-brand-logo';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
@@ -115,6 +117,7 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
   }
 
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
+  const logoUrl = resolveBrandLogoUrl(brand);
 
   const enhancedSchema = generateBrandPageSchema({
     brand: {
@@ -122,6 +125,11 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
       name: brand.title,
       description: brand.meta_description || shortDescription,
       breadcrumbLabel: brand.breadcrumb_label,
+      logoUrl: logoUrl
+        ? logoUrl.startsWith('http')
+          ? logoUrl
+          : `${siteUrl}${logoUrl}`
+        : null,
     },
     products,
     totalProductCount: totalProductCount || brand.products_count || products.length,
@@ -163,16 +171,28 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
         {/* Hero Header */}
         <div className="bg-white border-b border-gray-200">
           <div className="container mx-auto px-4 py-12">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              {pageTitle}
-            </h1>
-            {brand.quick_answer && <BrandQuickAnswer text={brand.quick_answer} />}
-            <div className="mt-6">
-              <CollectionDescription description={shortDescription} />
-              {totalProductCount > 0 && (
-                <p className="mt-4 text-sm text-gray-500">
-                  Showing {totalProductCount} results
-                </p>
+            <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+              <div className="min-w-0 flex-1">
+                <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                  {pageTitle}
+                </h1>
+                {brand.quick_answer && <BrandQuickAnswer text={brand.quick_answer} />}
+                <div className="mt-6">
+                  <CollectionDescription description={shortDescription} />
+                  {totalProductCount > 0 && (
+                    <p className="mt-4 text-sm text-gray-500">
+                      Showing {totalProductCount} results
+                    </p>
+                  )}
+                </div>
+              </div>
+              {logoUrl && (
+                <BrandLogo
+                  src={logoUrl}
+                  alt={`${brand.title} logo`}
+                  size="md"
+                  className="self-start md:self-center"
+                />
               )}
             </div>
           </div>

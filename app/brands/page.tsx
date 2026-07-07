@@ -4,6 +4,8 @@ import {
   getAllPublishedBrandContent,
   getBrandIndexDisplayName,
 } from '@/lib/content/brand-content';
+import { BrandLogo } from '@/components/brand/BrandLogo';
+import { resolveBrandLogoUrl } from '@/lib/brands/resolve-brand-logo';
 import type { Metadata } from 'next';
 import { generateBrandIndexSchema } from '@/lib/utils/site-schema';
 
@@ -104,22 +106,31 @@ export default async function BrandsIndexPage() {
                 {letter}
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {groupedBrands[letter].map((brand) => (
-                  <Link
-                    key={brand.handle}
-                    href={`/brands/${brand.handle}`}
-                    className="block p-4 bg-white rounded-lg border border-gray-200 hover:border-primary hover:shadow-md transition-all group"
-                  >
-                    <span className="font-medium text-gray-900 group-hover:text-primary transition-colors">
-                      {getBrandIndexDisplayName(brand)}
-                    </span>
-                    {brand.products_count > 0 && (
-                      <span className="block text-xs text-gray-500 mt-1">
-                        {brand.products_count} products
-                      </span>
-                    )}
-                  </Link>
-                ))}
+                {groupedBrands[letter].map((brand) => {
+                  const logoUrl = resolveBrandLogoUrl(brand);
+                  const name = getBrandIndexDisplayName(brand);
+                  return (
+                    <Link
+                      key={brand.handle}
+                      href={`/brands/${brand.handle}`}
+                      className="flex items-center justify-between gap-3 p-4 bg-white rounded-lg border border-gray-200 hover:border-primary hover:shadow-md transition-all group"
+                    >
+                      <div className="min-w-0">
+                        <span className="font-medium text-gray-900 group-hover:text-primary transition-colors">
+                          {name}
+                        </span>
+                        {brand.products_count > 0 && (
+                          <span className="block text-xs text-gray-500 mt-1">
+                            {brand.products_count} products
+                          </span>
+                        )}
+                      </div>
+                      {logoUrl && (
+                        <BrandLogo src={logoUrl} alt={`${name} logo`} size="sm" />
+                      )}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           ))}

@@ -26,6 +26,7 @@ interface BrandOverride {
   long_description: string;
   breadcrumb_label: string;
   faq_json: string;
+  logo_url: string;
   status: string;
 }
 
@@ -56,6 +57,7 @@ export default function AdminBrandDetail({ params }: { params: { handle: string 
           long_description: data.override.long_description || '',
           breadcrumb_label: data.override.breadcrumb_label || '',
           faq_json: data.override.faq_json || '',
+          logo_url: data.override.logo_url || '',
           status: data.override.status || 'published',
         });
       } else {
@@ -68,6 +70,7 @@ export default function AdminBrandDetail({ params }: { params: { handle: string 
           long_description: data.brand?.long_description || '',
           breadcrumb_label: data.brand?.breadcrumb_label || '',
           faq_json: data.brand?.faq_json || '[]',
+          logo_url: data.brand?.logo_url || '',
           status: 'published',
         });
       }
@@ -102,6 +105,7 @@ export default function AdminBrandDetail({ params }: { params: { handle: string 
         long_description: data.override.long_description || override.long_description,
         breadcrumb_label: data.override.breadcrumb_label || override.breadcrumb_label,
         faq_json: data.override.faq_json || override.faq_json,
+        logo_url: data.override.logo_url ?? override.logo_url,
         status: data.override.status || override.status,
       });
     } catch (error) {
@@ -189,6 +193,15 @@ export default function AdminBrandDetail({ params }: { params: { handle: string 
             <input
               value={override.meta_description}
               onChange={(event) => setOverride({ ...override, meta_description: event.target.value })}
+              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            />
+          </div>
+          <div className="md:col-span-2">
+            <label className="text-sm font-medium text-gray-700">Logo URL</label>
+            <input
+              value={override.logo_url}
+              onChange={(event) => setOverride({ ...override, logo_url: event.target.value })}
+              placeholder="/brands/logos/brand-handle.png"
               className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
             />
           </div>

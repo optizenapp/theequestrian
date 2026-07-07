@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS brand_content (
   long_description TEXT,
   breadcrumb_label TEXT,
   faq_json TEXT,
+  logo_url TEXT,
   status TEXT DEFAULT 'published',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()

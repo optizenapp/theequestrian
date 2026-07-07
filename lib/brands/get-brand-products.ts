@@ -296,11 +296,14 @@ async function fetchBrandProductsFast(
 
   const enrichedRows = await enrichDbBrandProducts(rows);
   const mappedProducts = enrichedRows.map(dbProductToShopifyFormat);
+  const productsWithVariants = await attachStorefrontVariants(
+    mappedProducts as ProductWithPrimaryCollection[]
+  );
   const [liveStatus, facets] = await Promise.all([
-    getLiveStatusByProductIds(mappedProducts.map((p) => p.id)),
+    getLiveStatusByProductIds(productsWithVariants.map((p) => p.id)),
     getBrandFacetsFromDb(brandBase, filters),
   ]);
-  const products = applyLiveStatus(mappedProducts, liveStatus);
+  const products = applyLiveStatus(productsWithVariants, liveStatus);
 
   const productUrls = new Map<string, string>();
   for (const row of enrichedRows) {
