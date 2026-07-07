@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'acavallo',
   title: 'Acavallo',
   breadcrumb_label: 'Acavallo',
+  logo_url: '/brands/logos/acavallo.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Acavallo' },
   ],
