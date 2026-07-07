@@ -18,7 +18,7 @@ function formatShippingRate(rate: number): string {
 
 /** Per-vendor Collective shipping — rate hint without claiming shipping is included in price. */
 export function vendorShippingCheckoutMessage(baseRate: number): string {
-  return `Shipping from ${formatShippingRate(baseRate)} for this seller — calculated at checkout.`;
+  return `Shipping from ${formatShippingRate(baseRate)} for this item — calculated at checkout.`;
 }
 
 export const SHIPPING_TRUST_TITLE = 'Australia-wide Delivery';
