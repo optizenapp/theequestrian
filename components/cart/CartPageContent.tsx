@@ -174,9 +174,8 @@ export function CartPageContent({
                             </div>
                           </div>
 
-                          {/* Controls Row */}
-                          <div className="flex justify-between items-center mt-6">
-                            {/* Quantity Selector */}
+                          {/* Controls */}
+                          <div className="mt-6 flex flex-col items-start gap-2">
                             <div className="flex items-center bg-gray-50 rounded-full p-1 border border-gray-200">
                               <button
                                 onClick={() => {
@@ -195,11 +194,10 @@ export function CartPageContent({
                                 +
                               </button>
                             </div>
-
-                            {/* Remove Button */}
                             <button
+                              type="button"
                               onClick={() => removeCartItem(line.id)}
-                              className="text-sm text-red-600 hover:text-red-700 font-medium border border-red-200 rounded-lg px-4 py-1.5 hover:bg-red-50 transition-colors"
+                              className="text-sm text-gray-500 hover:text-gray-900 hover:underline transition-colors"
                             >
                               Remove
                             </button>

@@ -158,7 +158,7 @@ export function CartDrawer() {
                       </p>
 
                       {/* Quantity Controls */}
-                      <div className="flex items-center gap-3 mt-3">
+                      <div className="flex flex-col items-start gap-1.5 mt-3">
                         <div className="flex items-center border rounded-full overflow-hidden">
                           <button
                             onClick={() => {
@@ -179,10 +179,10 @@ export function CartDrawer() {
                             +
                           </button>
                         </div>
-
                         <button
+                          type="button"
                           onClick={() => removeCartItem(line.id)}
-                          className="text-sm text-gray-500 hover:text-red-600 transition-colors"
+                          className="text-sm text-gray-500 hover:text-gray-900 hover:underline transition-colors"
                         >
                           Remove
                         </button>
