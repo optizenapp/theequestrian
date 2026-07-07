@@ -11,6 +11,7 @@ import {
 } from '@/lib/analytics/ga4-linker';
 import { FaCcVisa, FaCcMastercard, FaCcPaypal } from 'react-icons/fa';
 import { SiAfterpay, SiShopify } from 'react-icons/si';
+import { BnplMessaging } from '@/components/product/BnplMessaging';
 
 export function CartDrawer() {
   const { cart, isOpen, closeCart, updateCartItem, removeCartItem } = useCart();
@@ -203,6 +204,11 @@ export function CartDrawer() {
             <p className="text-sm text-gray-600">
               Shipping and taxes calculated at checkout
             </p>
+            <BnplMessaging
+              pageType="cart"
+              amount={parseFloat(subtotal) || 0}
+              currencyCode={currencyCode}
+            />
             <a
               ref={checkoutLinkRef}
               href={checkoutHref}
@@ -233,16 +239,6 @@ export function CartDrawer() {
                 <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>
                 Secure payment
               </div>
-            </div>
-            <div className="mx-auto w-full max-w-[108px] rounded-md border border-gray-200 overflow-hidden bg-white">
-              <Image
-                src="/google top quality store.jpg"
-                alt="Google Top Quality Store"
-                width={420}
-                height={112}
-                className="w-full h-auto object-contain"
-                priority={false}
-              />
             </div>
             <Link
               href="/cart"

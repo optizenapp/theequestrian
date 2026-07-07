@@ -1,6 +1,7 @@
 #!/usr/bin/env tsx
 /**
- * Audit vendor migration readiness: allocations, SEO overrides, handle suffixes, brand.
+ * Audit vendor migration readiness: allocations, SEO overrides, handle suffixes, brand,
+ * and bullet-point content quality (E-A-V count, enrichment_log status).
  */
 
 import { config } from 'dotenv';
@@ -8,7 +9,7 @@ import { resolve } from 'path';
 import * as fs from 'fs';
 import { stringify } from 'csv-stringify/sync';
 import {
-  fetchMigrationProducts,
+  fetchVendorBulletAuditRows,
   getArg,
   loadHandlesFromFile,
 } from './lib/migration-cli';
@@ -35,18 +36,81 @@ type AuditRow = {
   stale_allocation_id: boolean;
   has_seo_override: boolean;
   seo_metadata_complete: boolean;
+  bullet_count: number;
+  eav_bullet_count: number;
+  last_enrichment_applied: boolean | null;
   brand: string | null;
   brand_hub_handle: string | null;
   handle_suffix: string | null;
+  migration_bucket: string;
+  bullet_bucket: string;
   bucket: string;
 };
+
+function parseBulletPoints(raw: unknown): string[] {
+  if (Array.isArray(raw)) {
+    return raw.filter((b): b is string => typeof b === 'string' && b.trim().length > 0);
+  }
+  if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw) as unknown;
+      return Array.isArray(parsed)
+        ? parsed.filter((b): b is string => typeof b === 'string' && b.trim().length > 0)
+        : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+function countEavBullets(bullets: string[]): number {
+  return bullets.filter((b) => b.includes(':')).length;
+}
+
+function resolveMigrationBucket(input: {
+  handle: string;
+  hasAllocation: boolean;
+  staleAllocationId: boolean;
+  hasSeoOverride: boolean;
+  seoMetadataComplete: boolean;
+}): string {
+  const suffixPattern = /-\d+$/;
+  if (suffixPattern.test(input.handle)) return 'handle_suffix';
+  if (!input.hasAllocation) return 'unallocated';
+  if (input.staleAllocationId) return 'stale_product_id';
+  if (!input.hasSeoOverride || !input.seoMetadataComplete) return 'needs_seo';
+  return 'ok';
+}
+
+function resolveBulletBucket(input: {
+  hasSeoOverride: boolean;
+  seoMetadataComplete: boolean;
+  bulletCount: number;
+  eavBulletCount: number;
+  lastEnrichmentApplied: boolean | null;
+}): string {
+  if (!input.hasSeoOverride) return 'missing_override';
+  if (!input.seoMetadataComplete) return 'flags_incomplete';
+  if (input.bulletCount < 3) return 'bullets_empty';
+  if (input.eavBulletCount < 3) return 'bullets_low_quality';
+  if (input.lastEnrichmentApplied === false) return 'compliance_blocked';
+  return 'ok';
+}
+
+function resolveCombinedBucket(migrationBucket: string, bulletBucket: string): string {
+  if (migrationBucket !== 'ok') return migrationBucket;
+  return bulletBucket;
+}
 
 async function main(): Promise<void> {
   const vendor = getArg('--vendor')?.trim();
   const brand = getArg('--brand')?.trim();
   const handlesFile = getArg('--handles-file');
   if (!vendor) {
-    console.error('Usage: npx tsx scripts/audit-vendor-migration.ts --vendor="Vendor Name" [--brand=Roeckl]');
+    console.error(
+      'Usage: npx tsx scripts/audit-vendor-migration.ts --vendor="Vendor Name" [--brand=QJ Riding Wear] [--floral-prod]'
+    );
     process.exit(1);
   }
 
@@ -57,7 +121,7 @@ async function main(): Promise<void> {
   if (handles?.length) console.log(`  Handles file: ${handles.length} handles`);
   console.log('');
 
-  const rows = (await fetchMigrationProducts({ vendor, brand, handles })) as unknown as Array<{
+  const rows = (await fetchVendorBulletAuditRows({ vendor, brand, handles })) as unknown as Array<{
     product_id: string;
     handle: string;
     title: string;
@@ -67,10 +131,12 @@ async function main(): Promise<void> {
     allocation_product_id: string | null;
     canonical_path: string | null;
     override_handle: string | null;
+    bullet_points: unknown;
     use_headless_meta_title: boolean | null;
     use_headless_meta_description: boolean | null;
     use_headless_title: boolean | null;
     use_headless_bullets: boolean | null;
+    last_enrichment_applied: boolean | null;
   }>;
 
   if (rows.length === 0) {
@@ -89,13 +155,26 @@ async function main(): Promise<void> {
       row.use_headless_meta_description === true &&
       row.use_headless_title === true &&
       row.use_headless_bullets === true;
+    const bullets = parseBulletPoints(row.bullet_points);
+    const bulletCount = bullets.length;
+    const eavBulletCount = countEavBullets(bullets);
     const handleSuffix = suffixPattern.test(row.handle) ? row.handle.match(suffixPattern)?.[0] ?? null : null;
 
-    let bucket = 'ok';
-    if (handleSuffix) bucket = 'handle_suffix';
-    else if (!hasAllocation) bucket = 'unallocated';
-    else if (staleAllocationId) bucket = 'stale_product_id';
-    else if (!hasSeoOverride || !seoMetadataComplete) bucket = 'needs_seo';
+    const migrationBucket = resolveMigrationBucket({
+      handle: row.handle,
+      hasAllocation,
+      staleAllocationId,
+      hasSeoOverride,
+      seoMetadataComplete,
+    });
+    const bulletBucket = resolveBulletBucket({
+      hasSeoOverride,
+      seoMetadataComplete,
+      bulletCount,
+      eavBulletCount,
+      lastEnrichmentApplied: row.last_enrichment_applied,
+    });
+    const bucket = resolveCombinedBucket(migrationBucket, bulletBucket);
 
     return {
       handle: row.handle,
@@ -107,9 +186,14 @@ async function main(): Promise<void> {
       stale_allocation_id: staleAllocationId,
       has_seo_override: hasSeoOverride,
       seo_metadata_complete: seoMetadataComplete,
+      bullet_count: bulletCount,
+      eav_bullet_count: eavBulletCount,
+      last_enrichment_applied: row.last_enrichment_applied,
       brand: row.brand,
       brand_hub_handle: row.brand_hub_handle,
       handle_suffix: handleSuffix,
+      migration_bucket: migrationBucket,
+      bullet_bucket: bulletBucket,
       bucket,
     };
   });
@@ -119,11 +203,22 @@ async function main(): Promise<void> {
     return acc;
   }, {});
 
-  console.log('Summary:');
+  const bulletCounts = auditRows.reduce<Record<string, number>>((acc, row) => {
+    acc[row.bullet_bucket] = (acc[row.bullet_bucket] || 0) + 1;
+    return acc;
+  }, {});
+
+  console.log('Combined summary:');
   for (const [bucket, count] of Object.entries(counts).sort((a, b) => a[0].localeCompare(b[0]))) {
     console.log(`  ${bucket}: ${count}`);
   }
   console.log(`  total: ${auditRows.length}\n`);
+
+  console.log('Bullet content summary:');
+  for (const [bucket, count] of Object.entries(bulletCounts).sort((a, b) => a[0].localeCompare(b[0]))) {
+    console.log(`  ${bucket}: ${count}`);
+  }
+  console.log('');
 
   const ts = new Date().toISOString().replace(/[:.]/g, '-');
   const slug = [vendor, brand].filter(Boolean).join('-').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -131,6 +226,15 @@ async function main(): Promise<void> {
   fs.mkdirSync(resolve(process.cwd(), 'exports'), { recursive: true });
   fs.writeFileSync(exportPath, stringify(auditRows, { header: true }));
   console.log(`Full report: ${exportPath}`);
+
+  const gapHandles = auditRows
+    .filter((r) => r.bullet_bucket !== 'ok' || r.migration_bucket !== 'ok')
+    .map((r) => r.handle);
+  if (gapHandles.length > 0) {
+    const gapPath = resolve(process.cwd(), 'exports', `vendor-migration-gaps-${slug}-${ts}.txt`);
+    fs.writeFileSync(gapPath, gapHandles.join('\n') + '\n');
+    console.log(`Gap handles (${gapHandles.length}): ${gapPath}`);
+  }
 }
 
 main().catch((error) => {

@@ -7,6 +7,7 @@ import { TrustSignals } from '@/components/TrustSignals';
 import { useEffect, useRef, useState } from 'react';
 import { FaCcVisa, FaCcMastercard, FaCcPaypal } from 'react-icons/fa';
 import { SiAfterpay, SiShopify } from 'react-icons/si';
+import { BnplMessaging } from '@/components/product/BnplMessaging';
 import { ShopifyProduct } from '@/types/shopify';
 import { normalizeCheckoutUrl } from '@/lib/shopify/cart-utils';
 import { trackGaEvent } from '@/lib/analytics/ga4';
@@ -347,6 +348,13 @@ if (isInCart) return null;
                   <span className="text-2xl font-bold text-gray-900">${total.toFixed(2)}</span>
                 </div>
 
+                <BnplMessaging
+                  pageType="cart"
+                  amount={subtotal}
+                  currencyCode={currencyCode}
+                  className="mb-4"
+                />
+
                 {/* Checkout Button - Standard Shopify Checkout */}
                 <a
                   ref={checkoutLinkRef}
@@ -397,16 +405,6 @@ if (isInCart) return null;
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>
                       Secure payment
                    </div>
-                </div>
-                <div className="mx-auto mt-3 w-full max-w-[132px] rounded-md border border-gray-200 overflow-hidden bg-white">
-                  <Image
-                    src="/google top quality store.jpg"
-                    alt="Google Top Quality Store"
-                    width={420}
-                    height={112}
-                    className="w-full h-auto object-contain"
-                    priority={false}
-                  />
                 </div>
 
               </div>

@@ -207,9 +207,9 @@ body {
   transform: translateY(0);
 }
 
-/* PDP purchase CTAs */
+/* PDP + cart primary CTA — black pill (matches cart Checkout) */
 .btn-atc {
-  background-color: var(--primary);
+  background-color: var(--action);
   color: white;
   font-weight: 600;
   border-radius: 9999px;
@@ -217,7 +217,7 @@ body {
 }
 
 .btn-atc:hover:not(:disabled) {
-  background-color: var(--primary-dark);
+  background-color: var(--action-hover);
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
@@ -237,18 +237,19 @@ body {
   color: white;
 }
 
+/* Secondary PDP CTA — outline black, fills on hover */
 .btn-buy-now {
-  background-color: var(--secondary);
-  color: white;
+  background-color: var(--surface);
+  color: var(--action);
   font-weight: 600;
   border-radius: 9999px;
-  border: 1px solid var(--secondary);
+  border: 2px solid var(--action);
   transition: all 0.2s;
 }
 
 .btn-buy-now:hover:not(:disabled) {
-  background-color: var(--secondary-dark);
-  border-color: var(--secondary-dark);
+  background-color: var(--action);
+  color: white;
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }

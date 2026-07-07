@@ -12,6 +12,15 @@ export function shippingThresholdMessage(threshold: number): string {
   return `Free shipping on orders over ${formatted} from this seller.`;
 }
 
+function formatShippingRate(rate: number): string {
+  return Number.isInteger(rate) ? `$${rate}` : `$${rate.toFixed(2)}`;
+}
+
+/** Per-vendor Collective shipping — rate hint without claiming shipping is included in price. */
+export function vendorShippingCheckoutMessage(baseRate: number): string {
+  return `Shipping from ${formatShippingRate(baseRate)} for this seller — calculated at checkout.`;
+}
+
 export const SHIPPING_TRUST_TITLE = 'Australia-wide Delivery';
 
 export const SHIPPING_TRUST_DESCRIPTION = 'Rates vary by product';

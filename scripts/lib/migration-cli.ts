@@ -105,6 +105,90 @@ export async function fetchMigrationProducts(options: {
   `;
 }
 
+/** Migration + bullet-content audit rows (includes enrichment_log status). */
+export async function fetchVendorBulletAuditRows(options: {
+  vendor: string;
+  brand?: string;
+  handles?: string[];
+}) {
+  const vendor = options.vendor.trim();
+  const brand = options.brand?.trim();
+  const handles = options.handles?.filter(Boolean);
+
+  if (handles && handles.length > 0) {
+    return sql`
+      SELECT p.id AS product_id, p.handle, p.title, p.available_for_sale, p.vendor, p.brand, p.brand_hub_handle,
+        pca.product_id AS allocation_product_id, pca.canonical_path,
+        co.product_handle AS override_handle,
+        co.bullet_points,
+        co.use_headless_meta_title, co.use_headless_meta_description, co.use_headless_title, co.use_headless_bullets,
+        el.applied AS last_enrichment_applied,
+        el.after_scores AS last_enrichment_scores
+      FROM products p
+      LEFT JOIN product_category_assignments pca ON pca.product_handle = p.handle
+      LEFT JOIN product_content_overrides co ON co.product_handle = p.handle
+      LEFT JOIN LATERAL (
+        SELECT applied, after_scores
+        FROM enrichment_log
+        WHERE page_type = 'product' AND page_identifier = p.handle
+        ORDER BY created_at DESC
+        LIMIT 1
+      ) el ON true
+      WHERE (LOWER(TRIM(p.vendor)) = LOWER(TRIM(${vendor})) OR LOWER(TRIM(p.vendor)) LIKE ${vendorPrimaryLike(vendor)})
+        AND p.handle = ANY(${handles})
+      ORDER BY p.handle
+    `;
+  }
+
+  if (brand) {
+    const prefix = brandHandlePrefix(brand);
+    return sql`
+      SELECT p.id AS product_id, p.handle, p.title, p.available_for_sale, p.vendor, p.brand, p.brand_hub_handle,
+        pca.product_id AS allocation_product_id, pca.canonical_path,
+        co.product_handle AS override_handle,
+        co.bullet_points,
+        co.use_headless_meta_title, co.use_headless_meta_description, co.use_headless_title, co.use_headless_bullets,
+        el.applied AS last_enrichment_applied,
+        el.after_scores AS last_enrichment_scores
+      FROM products p
+      LEFT JOIN product_category_assignments pca ON pca.product_handle = p.handle
+      LEFT JOIN product_content_overrides co ON co.product_handle = p.handle
+      LEFT JOIN LATERAL (
+        SELECT applied, after_scores
+        FROM enrichment_log
+        WHERE page_type = 'product' AND page_identifier = p.handle
+        ORDER BY created_at DESC
+        LIMIT 1
+      ) el ON true
+      WHERE (LOWER(TRIM(p.vendor)) = LOWER(TRIM(${vendor})) OR LOWER(TRIM(p.vendor)) LIKE ${vendorPrimaryLike(vendor)})
+        AND (LOWER(TRIM(p.brand)) = LOWER(TRIM(${brand})) OR LOWER(p.handle) LIKE ${prefix})
+      ORDER BY p.handle
+    `;
+  }
+
+  return sql`
+    SELECT p.id AS product_id, p.handle, p.title, p.available_for_sale, p.vendor, p.brand, p.brand_hub_handle,
+      pca.product_id AS allocation_product_id, pca.canonical_path,
+      co.product_handle AS override_handle,
+      co.bullet_points,
+      co.use_headless_meta_title, co.use_headless_meta_description, co.use_headless_title, co.use_headless_bullets,
+      el.applied AS last_enrichment_applied,
+      el.after_scores AS last_enrichment_scores
+    FROM products p
+    LEFT JOIN product_category_assignments pca ON pca.product_handle = p.handle
+    LEFT JOIN product_content_overrides co ON co.product_handle = p.handle
+    LEFT JOIN LATERAL (
+      SELECT applied, after_scores
+      FROM enrichment_log
+      WHERE page_type = 'product' AND page_identifier = p.handle
+      ORDER BY created_at DESC
+      LIMIT 1
+    ) el ON true
+    WHERE (LOWER(TRIM(p.vendor)) = LOWER(TRIM(${vendor})) OR LOWER(TRIM(p.vendor)) LIKE ${vendorPrimaryLike(vendor)})
+    ORDER BY p.handle
+  `;
+}
+
 export async function fetchStaleAllocations(options: {
   vendor: string;
   brand?: string;

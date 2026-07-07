@@ -1,9 +1,9 @@
 import { tagsIndicateFreeShipping } from '@/lib/shipping/free-shipping';
 import {
   SHIPPING_CHECKOUT_MESSAGE,
-  SHIPPING_INCLUDED_MESSAGE,
   SHIPPING_PRODUCT_FREE_MESSAGE,
   shippingThresholdMessage,
+  vendorShippingCheckoutMessage,
 } from '@/lib/shipping/messaging';
 import {
   getVendorFreeShippingThreshold,
@@ -76,8 +76,8 @@ export function resolveProductShippingDisplaySync(input: {
 
   if (shippingOffset != null && shippingOffset > 0) {
     return {
-      shortMessage: SHIPPING_INCLUDED_MESSAGE,
-      isShippingIncluded: true,
+      shortMessage: vendorShippingCheckoutMessage(shippingOffset),
+      isShippingIncluded: false,
       hasFreeShipping: false,
     };
   }

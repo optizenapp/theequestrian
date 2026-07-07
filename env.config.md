@@ -52,6 +52,7 @@ NEXT_PUBLIC_SITE_URL=https://thequestrian.com
 # Afterpay: https://developers.afterpay.com/afterpay-online-developer/guides/afterpay-messaging/implementation
 NEXT_PUBLIC_AFTERPAY_MP_ID=
 NEXT_PUBLIC_AFTERPAY_PLACEMENT_ID=
+NEXT_PUBLIC_AFTERPAY_CART_PLACEMENT_ID=
 # Zip: https://developers.zip.co/docs/product-cart-widget
 NEXT_PUBLIC_ZIP_MERCHANT_KEY=
 ```
