@@ -8,7 +8,7 @@ import { getSalePageByPath } from '@/lib/mapping/sale-mapping';
 import { RichContent } from '@/components/collection/RichContent';
 import { FAQSection } from '@/components/collection/FAQSection';
 import { CollectionDescription } from '@/components/CollectionDescription';
-import { HeroWaveEdge } from '@/components/collection/HeroWaveEdge';
+import { HeroImageLeftWaveFrame } from '@/components/collection/HeroWaveEdge';
 import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
 import { FAQItem } from '@/lib/content/collections';
 import Image from 'next/image';
@@ -153,16 +153,19 @@ export default async function OnSalePage({
                   </p>
                 )}
               </div>
-              <div className="relative h-40 w-full flex-1 overflow-hidden rounded-r-xl bg-gray-100 sm:h-44 md:-ml-6 md:h-[11.5rem] lg:-ml-8 lg:h-[12.5rem]">
-                <HeroWaveEdge edge="left" />
-                <Image
-                  src={ON_SALE_HERO_IMAGE}
-                  alt={ON_SALE_HERO_ALT}
-                  fill
-                  className="object-cover object-center"
-                  sizes="(max-width: 768px) 100vw, 60vw"
-                  priority
-                />
+              <div className="h-40 w-full flex-1 overflow-hidden rounded-r-xl sm:h-44 md:h-[11.5rem] lg:h-[12.5rem]">
+                <HeroImageLeftWaveFrame className="h-full w-full">
+                  <div className="relative h-full w-full bg-gray-100">
+                    <Image
+                      src={ON_SALE_HERO_IMAGE}
+                      alt={ON_SALE_HERO_ALT}
+                      fill
+                      className="object-cover object-center"
+                      sizes="(max-width: 768px) 100vw, 60vw"
+                      priority
+                    />
+                  </div>
+                </HeroImageLeftWaveFrame>
               </div>
             </div>
           </div>
