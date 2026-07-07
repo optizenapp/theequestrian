@@ -139,26 +139,26 @@ export default async function OnSalePage({
 
         {/* Hero Header */}
         <div className="bg-white border-b border-gray-200">
-          <div className="container mx-auto px-4 py-12">
-            <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
-              <div className="min-w-0 flex-1">
-                <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+          <div className="container mx-auto px-4 py-8 md:py-10">
+            <div className="flex flex-col gap-6 md:flex-row md:items-center md:gap-8 lg:gap-10">
+              <div className="min-w-0 shrink-0 md:w-[38%] md:max-w-lg">
+                <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 md:mb-5">
                   {pageTitle}
                 </h1>
                 <CollectionDescription description={shortDescription} />
                 {totalCount > 0 && (
-                  <p className="mt-4 text-sm text-gray-500">
+                  <p className="mt-3 text-sm text-gray-500">
                     {totalCount} {totalCount === 1 ? 'deal' : 'deals'} live now
                   </p>
                 )}
               </div>
-              <div className="relative w-full md:w-[min(42%,28rem)] aspect-[4/3] shrink-0 overflow-hidden rounded-xl bg-gray-100">
+              <div className="relative h-40 w-full flex-1 overflow-hidden rounded-xl bg-gray-100 sm:h-44 md:h-[11.5rem] lg:h-[12.5rem]">
                 <Image
                   src={collection.image?.url || ON_SALE_HERO_IMAGE}
                   alt={collection.image?.altText || ON_SALE_HERO_ALT}
                   fill
-                  className="object-cover object-[65%_center]"
-                  sizes="(max-width: 768px) 100vw, 28rem"
+                  className="object-cover object-[72%_center]"
+                  sizes="(max-width: 768px) 100vw, 60vw"
                   priority
                 />
               </div>
