@@ -81,8 +81,13 @@ export function Header() {
             </div>
 
             {/* 3. Right Actions */}
-            <div className="flex items-center space-x-6">
-              {/* Help/About */}
+            <div className="flex items-center space-x-5">
+              <Link href="/reviews" className="hidden xl:inline text-sm font-medium text-gray-600 hover:text-action">
+                Reviews
+              </Link>
+              <Link href="/contact" className="hidden xl:inline text-sm font-medium text-gray-600 hover:text-action">
+                Contact
+              </Link>
               <Link href="/about" className="text-sm font-medium text-gray-600 hover:text-action">
                 About us
               </Link>
@@ -129,7 +134,7 @@ export function Header() {
       )}
 
       {/* Secondary Navigation - Categories */}
-      <div className="hidden lg:flex border-b border-gray-100 bg-surface py-3 relative z-50">
+      <div className="hidden lg:flex border-b border-gray-100 bg-surface py-2 relative z-50">
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 flex justify-center">
           <HeaderNavigation />
         </div>

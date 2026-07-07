@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { getMegaMenuFetchKey } from '@/lib/navigation/menu-structure';
 import { MegaMenu } from './MegaMenu';
 import { MegaMenuLoader } from './MegaMenuLoader';
 
@@ -29,6 +30,7 @@ interface FeaturedImage {
   productTitle: string;
   subtitle?: string;
   link?: string;
+  fallbackUrl?: string;
 }
 
 interface CustomQuickLink {
@@ -73,7 +75,10 @@ function preloadImage(url: string) {
  * Call this on hover to load data before menu opens
  */
 export async function prefetchMegaMenuData(categoryLabel: string) {
-  const categoryHandle = categoryLabel.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and');
+  const categoryHandle = getMegaMenuFetchKey(categoryLabel);
+  if (!categoryHandle) {
+    return;
+  }
   
   // Don't prefetch if already cached
   if (menuCache.has(categoryHandle)) {
@@ -150,7 +155,11 @@ export function MegaMenuWrapper({ categoryLabel, onClose }: MegaMenuWrapperProps
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const categoryHandle = categoryLabel.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and');
+        const categoryHandle = getMegaMenuFetchKey(categoryLabel);
+        if (!categoryHandle) {
+          setIsLoading(false);
+          return;
+        }
         
         // Check cache first for instant display
         const cached = menuCache.get(categoryHandle);

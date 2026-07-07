@@ -10,8 +10,13 @@ import { FAQSection } from '@/components/collection/FAQSection';
 import { CollectionDescription } from '@/components/CollectionDescription';
 import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
 import { FAQItem } from '@/lib/content/collections';
+import Image from 'next/image';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+
+const ON_SALE_HERO_IMAGE = '/hero-good-deals.png';
+const ON_SALE_HERO_ALT =
+  'Horse wearing a premium navy equestrian rug — shop Good Deals at The Equestrian';
 
 export const revalidate = 3600;
 
@@ -21,7 +26,11 @@ export async function generateMetadata(): Promise<Metadata> {
   // Default values if CSV is missing or empty
   const title = pageData?.meta_title || 'On Sale | The Equestrian';
   const description = pageData?.meta_description || 'Shop our best deals and clearance items at The Equestrian.';
-  const canonicalUrl = `${(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '')}/on-sale`;
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(
+    /\/$/,
+    ''
+  );
+  const canonicalUrl = `${siteUrl}/on-sale`;
 
   return {
     title,
@@ -35,6 +44,7 @@ export async function generateMetadata(): Promise<Metadata> {
       url: canonicalUrl,
       type: 'website',
       siteName: 'The Equestrian',
+      images: [{ url: `${siteUrl}${ON_SALE_HERO_IMAGE}`, alt: ON_SALE_HERO_ALT }],
     },
   };
 }
@@ -130,11 +140,28 @@ export default async function OnSalePage({
         {/* Hero Header */}
         <div className="bg-white border-b border-gray-200">
           <div className="container mx-auto px-4 py-12">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              {pageTitle}
-            </h1>
-            <div className="max-w-3xl">
-              <CollectionDescription description={shortDescription} />
+            <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
+              <div className="min-w-0 flex-1">
+                <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                  {pageTitle}
+                </h1>
+                <CollectionDescription description={shortDescription} />
+                {totalCount > 0 && (
+                  <p className="mt-4 text-sm text-gray-500">
+                    {totalCount} {totalCount === 1 ? 'deal' : 'deals'} live now
+                  </p>
+                )}
+              </div>
+              <div className="relative w-full md:w-[min(42%,28rem)] aspect-[4/3] shrink-0 overflow-hidden rounded-xl bg-gray-100">
+                <Image
+                  src={collection.image?.url || ON_SALE_HERO_IMAGE}
+                  alt={collection.image?.altText || ON_SALE_HERO_ALT}
+                  fill
+                  className="object-cover object-[65%_center]"
+                  sizes="(max-width: 768px) 100vw, 28rem"
+                  priority
+                />
+              </div>
             </div>
           </div>
         </div>

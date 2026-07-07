@@ -3,6 +3,10 @@ import { getSubcategoriesForCollection } from '@/lib/mapping/collection-mapping'
 import { getProductTypesForCollection } from '@/lib/mapping/collection-mapping';
 import { getMegaMenuContent } from '@/lib/content/mega-menu-content';
 import { shopifyFetch } from '@/lib/shopify/client';
+import {
+  enrichMenuImageItems,
+  firstSubcategoryImageUrl,
+} from '@/lib/navigation/mega-menu-images';
 
 /**
  * API Route: Get subcategories with sample product images + featured hero image
@@ -110,6 +114,24 @@ export async function GET(request: NextRequest) {
         }
       })
     );
+
+    customQuickLinks = enrichMenuImageItems(customQuickLinks, subcategoriesWithImages, category);
+    customSubcategoryCards = enrichMenuImageItems(customSubcategoryCards, subcategoriesWithImages, category);
+
+    const featuredFallbackUrl = firstSubcategoryImageUrl(subcategoriesWithImages);
+    if (featuredImage && featuredFallbackUrl) {
+      featuredImage = { ...featuredImage, fallbackUrl: featuredFallbackUrl };
+    } else if (!featuredImage && featuredFallbackUrl) {
+      featuredImage = {
+        url: featuredFallbackUrl,
+        altText: category,
+        width: 1200,
+        height: 800,
+        productTitle: category.charAt(0).toUpperCase() + category.slice(1),
+        subtitle: `Shop ${category}`,
+        link: `/${category}`,
+      };
+    }
 
     return NextResponse.json({
       category,

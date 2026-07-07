@@ -31,6 +31,7 @@ const footerLinks = {
       { label: 'Returns & Refunds', href: '/returns-refunds' },
       { label: 'Sizing Charts', href: '/sizing' },
       { label: 'FAQs', href: '/faq' },
+      { label: 'Reviews', href: '/reviews' },
     ],
   },
   company: {

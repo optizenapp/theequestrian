@@ -18,12 +18,12 @@ export function HeaderTopBar() {
     <div className="bg-[#1DC4C6]/70 text-black text-center py-2.5 px-4 text-sm font-medium relative transition-all">
       <div className="container mx-auto flex items-center justify-center">
         <p className="flex items-center gap-1">
-          Our daily deals - Global brands at amazing prices!
-          <Link 
-            href="/on-sale" 
+          Australia-wide delivery — rates calculated at checkout per product.
+          <Link
+            href="/shipping-delivery"
             className="underline font-bold hover:text-black/80 transition-colors"
           >
-            Get Started
+            Learn more
           </Link>
         </p>
 

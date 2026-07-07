@@ -1,90 +1,117 @@
 /**
  * Navigation Menu Structure
- * 
- * Defines the top-level navigation menu items
- * and maps them to Shopify collections
+ *
+ * Centered shop-first nav: categories, then Sale + Brands together.
  */
+
+export type MenuGroup = 'shop' | 'utility';
 
 export interface TopLevelMenuItem {
   label: string;
   handle: string;
   href: string;
-  shopifyCollectionHandle?: string; // Optional: if present, shows Mega Menu
+  group: MenuGroup;
+  shopifyCollectionHandle?: string;
   isHighlight?: boolean;
+  showChevron?: boolean;
 }
 
-export const TOP_LEVEL_MENU: TopLevelMenuItem[] = [
-  {
-    label: 'Home',
-    handle: 'home',
-    href: '/',
-  },
-  {
-    label: 'Good deals',
-    handle: 'good-deals',
-    href: '/on-sale',
-    isHighlight: true,
-  },
+/** Category links — left cluster with mega menus */
+export const SHOP_MENU: TopLevelMenuItem[] = [
   {
     label: 'Horse',
     handle: 'horse',
     href: '/horse',
+    group: 'shop',
     shopifyCollectionHandle: 'horse',
+    showChevron: true,
   },
   {
     label: 'Rider',
     handle: 'rider',
     href: '/rider',
+    group: 'shop',
     shopifyCollectionHandle: 'rider',
+    showChevron: true,
   },
   {
     label: 'Clothing',
     handle: 'clothing',
     href: '/clothing',
+    group: 'shop',
     shopifyCollectionHandle: 'clothing',
+    showChevron: true,
   },
   {
     label: 'Pet',
     handle: 'pet',
     href: '/pet',
+    group: 'shop',
     shopifyCollectionHandle: 'pet',
+    showChevron: true,
   },
   {
     label: 'Accessories',
     handle: 'accessories',
     href: '/accessories',
+    group: 'shop',
     shopifyCollectionHandle: 'accessories',
+    showChevron: true,
+  },
+];
+
+/** Sale + Brands — grouped after categories */
+export const UTILITY_MENU: TopLevelMenuItem[] = [
+  {
+    label: 'Sale',
+    handle: 'sale',
+    href: '/on-sale',
+    group: 'utility',
+    isHighlight: true,
   },
   {
     label: 'Brands',
     handle: 'brands',
     href: '/brands',
-  },
-  {
-    label: 'Reviews',
-    handle: 'reviews',
-    href: '/reviews',
-  },
-  {
-    label: 'Contact',
-    handle: 'contact',
-    href: '/contact',
+    group: 'utility',
   },
 ];
 
-/**
- * Get Shopify collection handle for a menu item
- * Returns the actual Shopify collection handle to use for fetching data
- */
-export function getShopifyCollectionHandle(menuLabel: string): string | null {
-  const menuItem = TOP_LEVEL_MENU.find((item) => item.label === menuLabel);
-  return menuItem?.shopifyCollectionHandle || null;
+/** Full secondary nav row (desktop + mobile base list) */
+export const TOP_LEVEL_MENU: TopLevelMenuItem[] = [...SHOP_MENU, ...UTILITY_MENU];
+
+/** Extra links shown in mobile drawer footer area */
+export const MOBILE_SECONDARY_LINKS = [
+  { label: 'Reviews', href: '/reviews' },
+  { label: 'Contact', href: '/contact' },
+  { label: 'About', href: '/about' },
+] as const;
+
+function findMenuItem(menuLabel: string): TopLevelMenuItem | undefined {
+  return TOP_LEVEL_MENU.find((item) => item.label === menuLabel);
 }
 
-/**
- * Check if a menu item should show a mega menu
- */
+export function getShopifyCollectionHandle(menuLabel: string): string | null {
+  return findMenuItem(menuLabel)?.shopifyCollectionHandle ?? null;
+}
+
 export function shouldShowMegaMenu(menuLabel: string): boolean {
-  const menuItem = TOP_LEVEL_MENU.find((item) => item.label === menuLabel);
-  return !!menuItem?.shopifyCollectionHandle;
+  return !!findMenuItem(menuLabel)?.shopifyCollectionHandle;
+}
+
+/** API fetch key for mega menu prefetch / wrapper */
+export function getMegaMenuFetchKey(menuLabel: string): string | null {
+  return findMenuItem(menuLabel)?.shopifyCollectionHandle ?? null;
+}
+
+/** Whether a pathname is under this nav item */
+export function isNavItemActive(pathname: string, item: TopLevelMenuItem): boolean {
+  if (item.handle === 'sale') {
+    return pathname === '/on-sale' || pathname.startsWith('/on-sale/');
+  }
+  if (item.handle === 'brands') {
+    return pathname === '/brands' || pathname.startsWith('/brands/');
+  }
+  const base = `/${item.handle}`;
+  return pathname === base || pathname.startsWith(`${base}/`);
 }

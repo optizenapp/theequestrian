@@ -22,6 +22,7 @@ interface FeaturedImage {
   productTitle: string;
   subtitle?: string;
   link?: string;
+  fallbackUrl?: string;
 }
 
 interface CustomQuickLink {
@@ -109,6 +110,9 @@ export function MegaMenu({
     if (event.currentTarget.src === fallbackUrl) return;
     event.currentTarget.src = fallbackUrl;
   };
+
+  const categoryHeroFallback =
+    featuredImage?.fallbackUrl || subcategories.find((sub) => sub.image?.url)?.image?.url || '';
   
   // Use custom subcategory cards if provided, otherwise use auto-generated from mapping
   const cardsToShow: Array<{
@@ -185,6 +189,7 @@ export function MegaMenu({
                   className="w-full h-full object-cover transition-transform group-hover:scale-105"
                   loading="eager"
                   decoding="async"
+                  onError={(event) => handleImageLoadError(event, categoryHeroFallback)}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
@@ -220,6 +225,12 @@ export function MegaMenu({
                         className="w-full h-full object-cover"
                         loading="eager"
                         decoding="async"
+                        onError={(event) =>
+                          handleImageLoadError(
+                            event,
+                            getSubcategoryImageFallback(quickLink.link, quickLink.title)
+                          )
+                        }
                       />
                     </div>
                   ) : (
