@@ -35,6 +35,7 @@ export function HeroSlider({
 }: HeroSliderProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const pauseTimeoutRef = useRef<number | null>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const count = slides.length;
   const active = slides[activeIndex] ?? slides[0];
@@ -47,6 +48,35 @@ export function HeroSlider({
     },
     [count]
   );
+
+  const pauseTemporarily = useCallback(() => {
+    setPaused(true);
+    if (pauseTimeoutRef.current != null) {
+      window.clearTimeout(pauseTimeoutRef.current);
+    }
+    pauseTimeoutRef.current = window.setTimeout(() => {
+      setPaused(false);
+      pauseTimeoutRef.current = null;
+    }, 8000);
+  }, []);
+
+  const goPrev = useCallback(() => {
+    goTo(activeIndex - 1);
+    pauseTemporarily();
+  }, [activeIndex, goTo, pauseTemporarily]);
+
+  const goNext = useCallback(() => {
+    goTo(activeIndex + 1);
+    pauseTemporarily();
+  }, [activeIndex, goTo, pauseTemporarily]);
+
+  useEffect(() => {
+    return () => {
+      if (pauseTimeoutRef.current != null) {
+        window.clearTimeout(pauseTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (count <= 1 || paused) return;
@@ -72,11 +102,7 @@ export function HeroSlider({
   if (!active) return null;
 
   return (
-    <section
-      className="relative h-[600px] w-full overflow-hidden bg-gray-900"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-    >
+    <section className="relative h-[600px] w-full overflow-hidden bg-gray-900">
       <div className="absolute inset-0 w-full h-full">
         {slides.map((slide, index) => {
           const isActive = index === activeIndex;
@@ -129,8 +155,9 @@ export function HeroSlider({
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <Link
-              key={primary.link}
+              key={`hero-cta-${activeIndex}`}
               href={primary.link}
+              prefetch={false}
               className="btn-primary text-lg px-8 py-4 shadow-xl hover:scale-105 transform transition-transform duration-200 bg-white text-black hover:bg-gray-100 border-none"
             >
               {primary.text}
@@ -148,20 +175,45 @@ export function HeroSlider({
       </div>
 
       {count > 1 && (
-        <div className="absolute bottom-20 left-1/2 z-20 flex -translate-x-1/2 gap-2">
-          {slides.map((slide, index) => (
-            <button
-              key={`${slide.src}-dot-${index}`}
-              type="button"
-              aria-label={`Show slide ${index + 1}`}
-              aria-current={index === activeIndex}
-              onClick={() => goTo(index)}
-              className={`h-2.5 w-2.5 rounded-full transition-all ${
-                index === activeIndex ? 'bg-white w-8' : 'bg-white/50 hover:bg-white/80'
-              }`}
-            />
-          ))}
-        </div>
+        <>
+          <button
+            type="button"
+            onClick={goPrev}
+            aria-label="Previous slide"
+            className="absolute left-4 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/40 bg-black/35 text-white shadow-lg backdrop-blur-sm transition hover:bg-black/55 sm:left-6 lg:h-12 lg:w-12"
+          >
+            <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path fillRule="evenodd" d="M10.957 12l3.47-3.47a.75.75 0 10-1.06-1.06L9.72 11.116a1.25 1.25 0 000 1.768l3.646 3.646a.75.75 0 001.06-1.06L10.958 12" clipRule="evenodd" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={goNext}
+            aria-label="Next slide"
+            className="absolute right-4 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/40 bg-black/35 text-white shadow-lg backdrop-blur-sm transition hover:bg-black/55 sm:right-6 lg:h-12 lg:w-12"
+          >
+            <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path fillRule="evenodd" d="M13.043 12l-3.47 3.47a.75.75 0 101.06 1.06l3.647-3.646a1.25 1.25 0 000-1.768L10.634 7.47a.75.75 0 00-1.06 1.06L13.042 12" clipRule="evenodd" />
+            </svg>
+          </button>
+          <div className="absolute bottom-20 left-1/2 z-20 flex -translate-x-1/2 gap-2">
+            {slides.map((slide, index) => (
+              <button
+                key={`${slide.src}-dot-${index}`}
+                type="button"
+                aria-label={`Show slide ${index + 1}`}
+                aria-current={index === activeIndex}
+                onClick={() => {
+                  goTo(index);
+                  pauseTemporarily();
+                }}
+                className={`h-2.5 w-2.5 rounded-full transition-all ${
+                  index === activeIndex ? 'bg-white w-8' : 'bg-white/50 hover:bg-white/80'
+                }`}
+              />
+            ))}
+          </div>
+        </>
       )}
 
       <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0] z-10">
