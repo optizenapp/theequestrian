@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_NAME_DISPLAY } from '@/lib/seo/site-identity';
 import { Hero } from '@/components/Hero';
+import { HeroSlider } from '@/components/HeroSlider';
 import { TrustSignals } from '@/components/TrustSignals';
 import dynamicImport from 'next/dynamic';
 import { getCachedHomeSectionsWithProducts } from '@/lib/content/home-page-cached';
@@ -324,6 +325,20 @@ export default async function Home() {
       {sectionsWithProducts.map((section, index) => {
         switch (section.type) {
           case 'hero':
+            if (section.hero_slides && section.hero_slides.length > 0) {
+              return (
+                <HeroSlider
+                  key={section.key}
+                  slides={section.hero_slides}
+                  title={<InlineHtml html={section.title_html} />}
+                  subtitle={<InlineHtml html={section.subtitle_html} />}
+                  ctaText={section.cta_text}
+                  ctaLink={section.cta_link}
+                  secondaryCtaText={section.secondary_cta_text}
+                  secondaryCtaLink={section.secondary_cta_link}
+                />
+              );
+            }
             return (
               <Hero
                 key={section.key}

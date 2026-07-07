@@ -109,6 +109,17 @@ export interface HomeSliderItem {
   productHref?: string;
 }
 
+export interface HeroSlide {
+  media_type: 'image' | 'video';
+  src: string;
+  alt?: string;
+  poster?: string;
+  cta_text?: string;
+  cta_link?: string;
+  secondary_cta_text?: string;
+  secondary_cta_link?: string;
+}
+
 export interface HomeSection {
   key: string;
   type: HomeSectionType;
@@ -136,6 +147,7 @@ export interface HomeSection {
   faqs?: HomeFaqItem[];
   seen_in?: string[];
   items?: HomeSliderItem[];
+  hero_slides?: HeroSlide[];
 }
  
 interface CsvRow {
@@ -313,6 +325,29 @@ function parseRows(records: CsvRow[]): HomeSection[] {
     if (type === 'best_deals_slider') {
       const items = safeJsonParse<HomeSliderItem[]>(row.items_json, []);
       section.items = Array.isArray(items) ? items : [];
+    }
+
+    if (type === 'hero') {
+      const slides = safeJsonParse<HeroSlide[]>(row.items_json, []);
+      if (Array.isArray(slides) && slides.length > 0) {
+        section.hero_slides = slides.map((slide) => ({
+          ...slide,
+          cta_link: rewriteBrandCollectionPath(slide.cta_link),
+          secondary_cta_link: rewriteBrandCollectionPath(slide.secondary_cta_link),
+        }));
+      } else if (section.image_url) {
+        section.hero_slides = [
+          {
+            media_type: 'image',
+            src: section.image_url,
+            alt: section.image_alt,
+            cta_text: section.cta_text,
+            cta_link: section.cta_link,
+            secondary_cta_text: section.secondary_cta_text,
+            secondary_cta_link: section.secondary_cta_link,
+          },
+        ];
+      }
     }
 
     section.body_html = rewriteBrandCollectionUrlsInHtml(section.body_html);
