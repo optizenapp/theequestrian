@@ -17,9 +17,25 @@ interface HeroSliderProps {
 }
 
 function slideCta(slide: HeroSlide, fallbackText?: string, fallbackLink?: string) {
+  const link = slide.cta_link?.trim() || fallbackLink || '/horse';
+
+  let text = slide.cta_text?.trim();
+  if (!text && slide.alt?.trim()) {
+    text = `Shop ${slide.alt.trim()}`;
+  }
+  if (!text) {
+    const brandHandle = link.match(/^\/brands\/([^/?#]+)/)?.[1];
+    if (brandHandle) {
+      text = `Shop ${brandHandle
+        .split('-')
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ')}`;
+    }
+  }
+
   return {
-    text: fallbackText || 'Shop Now',
-    link: slide.cta_link?.trim() || fallbackLink || '/horse',
+    text: text || fallbackText || 'Shop Now',
+    link,
   };
 }
 
@@ -31,7 +47,7 @@ export function HeroSlider({
   ctaLink = '/horse',
   secondaryCtaText = 'View Collections',
   secondaryCtaLink = '/collections',
-  intervalMs = 3000,
+  intervalMs = 4000,
 }: HeroSliderProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);

@@ -245,7 +245,7 @@ export default async function Home() {
                 <HeroSlider
                   key={section.key}
                   slides={section.hero_slides}
-                  intervalMs={3000}
+                  intervalMs={4000}
                   title={<InlineHtml html={section.title_html} />}
                   subtitle={<InlineHtml html={section.subtitle_html} />}
                   ctaText={section.cta_text}
