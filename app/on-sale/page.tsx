@@ -8,6 +8,7 @@ import { getSalePageByPath } from '@/lib/mapping/sale-mapping';
 import { RichContent } from '@/components/collection/RichContent';
 import { FAQSection } from '@/components/collection/FAQSection';
 import { CollectionDescription } from '@/components/CollectionDescription';
+import { HeroWaveEdge } from '@/components/collection/HeroWaveEdge';
 import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
 import { FAQItem } from '@/lib/content/collections';
 import Image from 'next/image';
@@ -140,7 +141,7 @@ export default async function OnSalePage({
         {/* Hero Header */}
         <div className="bg-white border-b border-gray-200">
           <div className="container mx-auto px-4 py-8 md:py-10">
-            <div className="flex flex-col gap-6 md:flex-row md:items-center md:gap-8 lg:gap-10">
+            <div className="flex flex-col gap-6 md:flex-row md:items-center md:gap-6 lg:gap-8">
               <div className="min-w-0 shrink-0 md:w-[38%] md:max-w-lg">
                 <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 md:mb-5">
                   {pageTitle}
@@ -152,7 +153,8 @@ export default async function OnSalePage({
                   </p>
                 )}
               </div>
-              <div className="relative h-40 w-full flex-1 overflow-hidden rounded-xl bg-gray-100 sm:h-44 md:h-[11.5rem] lg:h-[12.5rem]">
+              <div className="relative h-40 w-full flex-1 overflow-hidden rounded-r-xl bg-gray-100 sm:h-44 md:-ml-6 md:h-[11.5rem] lg:-ml-8 lg:h-[12.5rem]">
+                <HeroWaveEdge edge="left" />
                 <Image
                   src={ON_SALE_HERO_IMAGE}
                   alt={ON_SALE_HERO_ALT}
