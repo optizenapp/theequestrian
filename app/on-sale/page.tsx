@@ -154,10 +154,10 @@ export default async function OnSalePage({
               </div>
               <div className="relative h-40 w-full flex-1 overflow-hidden rounded-xl bg-gray-100 sm:h-44 md:h-[11.5rem] lg:h-[12.5rem]">
                 <Image
-                  src={collection.image?.url || ON_SALE_HERO_IMAGE}
-                  alt={collection.image?.altText || ON_SALE_HERO_ALT}
+                  src={ON_SALE_HERO_IMAGE}
+                  alt={ON_SALE_HERO_ALT}
                   fill
-                  className="object-cover object-[72%_center]"
+                  className="object-cover object-center"
                   sizes="(max-width: 768px) 100vw, 60vw"
                   priority
                 />
