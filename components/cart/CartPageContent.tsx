@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 import { FaCcVisa, FaCcMastercard, FaCcPaypal } from 'react-icons/fa';
 import { SiAfterpay, SiShopify } from 'react-icons/si';
 import { BnplMessaging } from '@/components/product/BnplMessaging';
-import { EXPRESS_SHIPPING_CHECKOUT_NOTE } from '@/lib/shipping/messaging';
+import { EXPRESS_SHIPPING_CHECKOUT_NOTE, MULTI_ORIGIN_SHIPPING_CHECKOUT_NOTE } from '@/lib/shipping/messaging';
 import { ShopifyProduct } from '@/types/shopify';
 import { normalizeCheckoutUrl } from '@/lib/shopify/cart-utils';
 import { trackGaEvent } from '@/lib/analytics/ga4';
@@ -328,6 +328,9 @@ if (isInCart) return null;
                     <span>Shipping</span>
                     <span className="text-gray-700 font-medium">Calculated at checkout</span>
                   </div>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    {MULTI_ORIGIN_SHIPPING_CHECKOUT_NOTE}
+                  </p>
                 </div>
 
                 {/* Total */}

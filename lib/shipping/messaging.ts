@@ -27,3 +27,7 @@ export const SHIPPING_TRUST_DESCRIPTION = 'Rates vary by product';
 
 /** Cart / checkout sidebar — express shipping upsell as text, not a button. */
 export const EXPRESS_SHIPPING_CHECKOUT_NOTE = 'Express shipping available at checkout.';
+
+/** Cart — items may fulfil from multiple locations; checkout shows one combined shipping total. */
+export const MULTI_ORIGIN_SHIPPING_CHECKOUT_NOTE =
+  'Items may ship from different locations. Your shipping total at checkout may combine rates for each item.';

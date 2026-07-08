@@ -6,13 +6,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { normalizeCheckoutUrl } from '@/lib/shopify/cart-utils';
 import { trackGaEvent } from '@/lib/analytics/ga4';
-import {
-  bindDecoratedCheckoutLink,
-} from '@/lib/analytics/ga4-linker';
-import { FaCcVisa, FaCcMastercard, FaCcPaypal } from 'react-icons/fa';
-import { SiAfterpay, SiShopify } from 'react-icons/si';
-import { BnplMessaging } from '@/components/product/BnplMessaging';
-import { EXPRESS_SHIPPING_CHECKOUT_NOTE } from '@/lib/shipping/messaging';
+import { bindDecoratedCheckoutLink } from '@/lib/analytics/ga4-linker';
+import { MULTI_ORIGIN_SHIPPING_CHECKOUT_NOTE } from '@/lib/shipping/messaging';
 
 export function CartDrawer() {
   const { cart, isOpen, closeCart, updateCartItem, removeCartItem } = useCart();
@@ -58,9 +53,7 @@ export function CartDrawer() {
   const subtotal = cart?.cost.subtotalAmount.amount || '0';
   const currencyCode = cart?.cost.subtotalAmount.currencyCode || 'AUD';
   const checkoutHref =
-    cart && cart.lines.edges.length > 0
-      ? normalizeCheckoutUrl(cart.checkoutUrl)
-      : '';
+    cart && cart.lines.edges.length > 0 ? normalizeCheckoutUrl(cart.checkoutUrl) : '';
 
   useEffect(() => {
     if (!isOpen) return;
@@ -85,96 +78,113 @@ export function CartDrawer() {
 
   return (
     <>
-      {/* Overlay */}
       <div
         className="fixed inset-0 bg-black/50 z-40 transition-opacity"
         onClick={closeCart}
+        aria-hidden
       />
 
-      {/* Drawer */}
-      <div className="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-xl z-50 flex flex-col">
+      <div className="fixed right-0 top-0 z-50 flex h-full w-full max-w-md flex-col bg-white shadow-xl">
         {/* Header */}
-        <div className="flex items-center justify-between border-b p-6">
-          <h2 className="text-2xl font-bold">Cart ({itemCount})</h2>
+        <div className="flex shrink-0 items-center justify-between border-b px-4 py-3">
+          <h2 className="text-lg font-bold text-gray-900">Cart ({itemCount})</h2>
           <button
+            type="button"
             onClick={closeCart}
-            className="text-gray-500 hover:text-gray-700 text-2xl"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-900"
             aria-label="Close cart"
           >
-            ×
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
 
-        {/* Cart Items */}
-        <div className="flex-1 overflow-y-auto p-6">
+        {/* Line items */}
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
           {!cart || cart.lines.edges.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center">
-              <p className="text-gray-500 text-lg mb-4">Your cart is empty</p>
+            <div className="flex h-full flex-col items-center justify-center text-center">
+              <p className="mb-3 text-gray-500">Your cart is empty</p>
               <button
+                type="button"
                 onClick={closeCart}
-                className="text-action hover:underline transition-colors"
+                className="text-sm font-medium text-action hover:underline"
               >
                 Continue shopping
               </button>
             </div>
           ) : (
-            <div className="space-y-4">
+            <ul className="divide-y divide-gray-100">
               {cart.lines.edges.map(({ node: line }) => {
                 const product = line.merchandise.product;
                 const image = product?.images.edges[0]?.node;
+                const variantLabel =
+                  line.merchandise.title !== 'Default Title' ? line.merchandise.title : null;
+                const linePrice = parseFloat(line.merchandise.price.amount);
 
                 return (
-                  <div key={line.id} className="flex gap-4 border-b pb-4">
-                    {/* Product Image */}
-                    {image && product && (
-                      <Link href={hrefFor(product.handle)} onClick={closeCart}>
-                        <div className="relative w-24 h-24 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
-                          <Image
-                            src={image.url}
-                            alt={image.altText || product.title}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
+                  <li key={line.id} className="flex gap-3 py-3 first:pt-0">
+                    {image && product ? (
+                      <Link
+                        href={hrefFor(product.handle)}
+                        onClick={closeCart}
+                        className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-50"
+                      >
+                        <Image
+                          src={image.url}
+                          alt={image.altText || product.title}
+                          fill
+                          className="object-cover"
+                          sizes="64px"
+                        />
                       </Link>
+                    ) : (
+                      <div className="h-16 w-16 shrink-0 rounded-lg bg-gray-100" />
                     )}
 
-                    {/* Product Details */}
-                    <div className="flex-1 min-w-0">
-                      {product && (
-                        <Link
-                          href={hrefFor(product.handle)}
-                          onClick={closeCart}
-                          className="font-semibold hover:text-action transition-colors line-clamp-2"
-                        >
-                          {product.title}
-                        </Link>
-                      )}
-                      <p className="text-sm text-gray-600 mt-1">
-                        {line.merchandise.title !== 'Default Title' && line.merchandise.title}
-                      </p>
-                      <p className="text-lg font-semibold mt-2">
-                        ${parseFloat(line.merchandise.price.amount).toFixed(2)} {line.merchandise.price.currencyCode}
-                      </p>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        {product ? (
+                          <Link
+                            href={hrefFor(product.handle)}
+                            onClick={closeCart}
+                            className="line-clamp-2 text-sm font-medium leading-snug text-gray-900 hover:text-action"
+                          >
+                            {product.title}
+                          </Link>
+                        ) : (
+                          <span className="text-sm font-medium text-gray-900">
+                            {line.merchandise.title}
+                          </span>
+                        )}
+                        <span className="shrink-0 text-sm font-semibold text-gray-900">
+                          ${linePrice.toFixed(2)}
+                        </span>
+                      </div>
 
-                      {/* Quantity Controls */}
-                      <div className="flex flex-col items-start gap-1.5 mt-3">
-                        <div className="flex items-center border rounded-full overflow-hidden">
+                      {variantLabel && (
+                        <p className="mt-0.5 truncate text-xs text-gray-500">{variantLabel}</p>
+                      )}
+
+                      <div className="mt-2 flex items-center gap-3">
+                        <div className="flex items-center rounded-full border border-gray-200 text-xs">
                           <button
+                            type="button"
                             onClick={() => {
-                              if (line.quantity > 1) {
-                                updateCartItem(line.id, line.quantity - 1);
-                              }
+                              if (line.quantity > 1) updateCartItem(line.id, line.quantity - 1);
                             }}
-                            className="px-3 py-1 hover:bg-gray-100 transition-colors"
                             disabled={line.quantity <= 1}
+                            className="flex h-7 w-7 items-center justify-center hover:bg-gray-50 disabled:opacity-40"
+                            aria-label="Decrease quantity"
                           >
                             −
                           </button>
-                          <span className="px-4 py-1 border-x">{line.quantity}</span>
+                          <span className="min-w-[1.25rem] text-center font-medium">{line.quantity}</span>
                           <button
+                            type="button"
                             onClick={() => updateCartItem(line.id, line.quantity + 1)}
-                            className="px-3 py-1 hover:bg-gray-100 transition-colors"
+                            className="flex h-7 w-7 items-center justify-center hover:bg-gray-50"
+                            aria-label="Increase quantity"
                           >
                             +
                           </button>
@@ -182,72 +192,47 @@ export function CartDrawer() {
                         <button
                           type="button"
                           onClick={() => removeCartItem(line.id)}
-                          className="text-sm text-gray-500 hover:text-gray-900 hover:underline transition-colors"
+                          className="text-xs text-gray-500 hover:text-gray-900 hover:underline"
                         >
                           Remove
                         </button>
                       </div>
                     </div>
-                  </div>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
           )}
         </div>
 
         {/* Footer */}
         {cart && cart.lines.edges.length > 0 && (
-          <div className="border-t p-6 space-y-4">
-            <div className="flex justify-between text-lg font-semibold">
-              <span>Subtotal</span>
-              <span>${parseFloat(subtotal).toFixed(2)} {currencyCode}</span>
+          <div className="shrink-0 border-t bg-white px-4 py-4">
+            <div className="mb-3 flex items-baseline justify-between">
+              <span className="text-sm font-medium text-gray-700">Subtotal</span>
+              <span className="text-base font-bold text-gray-900">
+                ${parseFloat(subtotal).toFixed(2)} {currencyCode}
+              </span>
             </div>
-            <p className="text-sm text-gray-600">
-              Shipping and taxes calculated at checkout
+
+            <p className="mb-3 text-xs leading-relaxed text-gray-500">
+              {MULTI_ORIGIN_SHIPPING_CHECKOUT_NOTE} Taxes calculated at checkout.
             </p>
-            <BnplMessaging
-              pageType="cart"
-              amount={parseFloat(subtotal) || 0}
-              currencyCode={currencyCode}
-            />
+
             <a
               ref={checkoutLinkRef}
               href={checkoutHref}
-              className="block w-full bg-action text-white text-center py-3 rounded-full font-semibold hover:bg-action-hover hover:-translate-y-0.5 hover:shadow-md transition-all"
+              className="block w-full rounded-full bg-action py-2.5 text-center text-sm font-semibold text-white hover:bg-action-hover transition-colors"
             >
               Checkout
             </a>
-            <p className="text-xs text-gray-500 text-center">{EXPRESS_SHIPPING_CHECKOUT_NOTE}</p>
-            <div className="border border-gray-200 rounded-lg p-2 bg-gray-50 flex justify-center items-center gap-1.5 flex-wrap transition-all">
-              <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center" title="Visa">
-                <FaCcVisa className="text-[#1A1F71] text-2xl" />
-              </div>
-              <div className="h-6 w-10 bg-[#5A31F4] border border-gray-200 rounded flex items-center justify-center" title="Shop Pay">
-                <SiShopify className="text-white text-xl" />
-              </div>
-              <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center" title="Mastercard">
-                <FaCcMastercard className="text-[#EB001B] text-2xl" />
-              </div>
-              <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center" title="PayPal">
-                <FaCcPaypal className="text-[#003087] text-2xl" />
-              </div>
-              <div className="h-6 w-10 bg-[#b2fce4] border border-gray-200 rounded flex items-center justify-center" title="Afterpay">
-                <SiAfterpay className="text-black text-lg" />
-              </div>
-              <div className="h-6 w-10 bg-white border border-gray-200 rounded flex items-center justify-center p-0.5 overflow-hidden" title="Zip">
-                <Image src="/zip.png" alt="Zip Pay" width={40} height={24} className="h-full w-auto object-contain" />
-              </div>
-              <div className="text-[10px] flex items-center gap-1 text-gray-500 font-medium border-l pl-2 border-gray-300 h-6">
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>
-                Secure payment
-              </div>
-            </div>
+
             <Link
               href="/cart"
               onClick={closeCart}
-              className="block w-full text-center py-3 text-action hover:underline transition-colors"
+              className="mt-2 block text-center text-xs font-medium text-gray-600 hover:text-action hover:underline"
             >
-              View Cart
+              View full cart
             </Link>
           </div>
         )}
@@ -255,4 +240,3 @@ export function CartDrawer() {
     </>
   );
 }
-
