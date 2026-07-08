@@ -62,6 +62,7 @@ export function CartDrawer() {
 
     return bindDecoratedCheckoutLink(link, {
       source: 'cart_drawer',
+      cartId: cart?.id,
       onPlainLeftClick: () =>
         trackGaEvent('begin_checkout', {
           currency: currencyCode,
@@ -70,7 +71,7 @@ export function CartDrawer() {
           source: 'cart_drawer',
         }),
     });
-  }, [isOpen, checkoutHref, currencyCode, itemCount, subtotal]);
+  }, [isOpen, checkoutHref, currencyCode, itemCount, subtotal, cart?.id]);
 
   const hrefFor = (handle: string) => productHrefByHandle[handle] ?? `/products/${handle}`;
 

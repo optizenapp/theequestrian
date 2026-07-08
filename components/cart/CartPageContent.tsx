@@ -62,6 +62,7 @@ export function CartPageContent({
 
     return bindDecoratedCheckoutLink(link, {
       source: 'cart_page',
+      cartId: cart.id,
       onPlainLeftClick: () =>
         trackGaEvent('begin_checkout', {
           currency: cart.cost.totalAmount.currencyCode,

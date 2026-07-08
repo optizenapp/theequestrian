@@ -2,7 +2,14 @@
 
 import { cookies } from 'next/headers';
 import { shopifyFetch } from '@/lib/shopify/client';
-import { CREATE_CART, ADD_TO_CART, UPDATE_CART, REMOVE_FROM_CART, GET_CART } from '@/lib/shopify/queries';
+import {
+  CREATE_CART,
+  ADD_TO_CART,
+  UPDATE_CART,
+  REMOVE_FROM_CART,
+  GET_CART,
+  UPDATE_CART_ATTRIBUTES,
+} from '@/lib/shopify/queries';
 import { ShopifyCart } from '@/types/shopify';
 
 const CART_COOKIE_NAME = 'shopify_cart_id';
@@ -33,6 +40,13 @@ interface CartLinesRemoveResponse {
 
 interface GetCartResponse {
   cart: ShopifyCart | null;
+}
+
+interface CartAttributesUpdateResponse {
+  cartAttributesUpdate: {
+    cart: Pick<ShopifyCart, 'id' | 'checkoutUrl'>;
+    userErrors: Array<{ field: string[] | null; message: string }>;
+  };
 }
 
 /**
@@ -144,6 +158,30 @@ export async function removeFromCart(cartId: string, lineIds: string[]) {
   } catch (error) {
     console.error('Error removing from cart:', error);
     throw new Error('Failed to remove item from cart');
+  }
+}
+
+export async function updateCartAttributes(cartId: string, sdAttr: string) {
+  try {
+    const response = await shopifyFetch<CartAttributesUpdateResponse>({
+      query: UPDATE_CART_ATTRIBUTES,
+      variables: {
+        cartId,
+        attributes: [{ key: '_sd_attr', value: sdAttr }],
+      },
+      ...CART_FETCH_OPTIONS,
+    });
+
+    const { cart, userErrors } = response.cartAttributesUpdate;
+    if (userErrors.length > 0) {
+      console.error('Cart attribute update errors:', userErrors);
+      throw new Error(userErrors.map((e) => e.message).join(', '));
+    }
+
+    return cart;
+  } catch (error) {
+    console.error('Error updating cart attributes:', error);
+    throw new Error('Failed to update cart attributes');
   }
 }
 

@@ -790,6 +790,21 @@ export const REMOVE_FROM_CART = `
   }
 `;
 
+export const UPDATE_CART_ATTRIBUTES = `
+  mutation UpdateCartAttributes($cartId: ID!, $attributes: [AttributeInput!]!) {
+    cartAttributesUpdate(cartId: $cartId, attributes: $attributes) {
+      cart {
+        id
+        checkoutUrl
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
+
 export const GET_CART = `
   query GetCart($cartId: ID!) {
     cart(id: $cartId) {

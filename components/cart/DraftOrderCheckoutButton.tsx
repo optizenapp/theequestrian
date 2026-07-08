@@ -10,7 +10,7 @@
 import { useState } from 'react';
 import { useCart } from './cart-context';
 import { trackGaEvent } from '@/lib/analytics/ga4';
-import { redirectToDecoratedCheckout } from '@/lib/analytics/ga4-linker';
+import { prepareCheckoutRedirect } from '@/lib/analytics/ga4-linker';
 
 interface DraftOrderCheckoutButtonProps {
   className?: string;
@@ -116,7 +116,10 @@ export function DraftOrderCheckoutButton({ className }: DraftOrderCheckoutButton
       if (!data.invoiceUrl) {
         throw new Error('Missing invoice URL');
       }
-      redirectToDecoratedCheckout(data.invoiceUrl);
+      await prepareCheckoutRedirect(data.invoiceUrl, {
+        source: 'draft_order',
+        cartId: cart.id,
+      });
       
     } catch (err) {
       console.error('[Checkout] Error:', err);

@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { useRouter } from 'next/navigation';
 import { ShopifyCart } from '@/types/shopify';
 import { createCart, addToCart, updateCart, removeFromCart, getCart, setCartCookie } from '@/app/actions/cart';
+import { syncPerformCartAttribute } from '@/lib/analytics/perform';
 
 interface CartContextType {
   cart: ShopifyCart | null;
@@ -63,6 +64,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
 
       setCart(updatedCart);
+      void syncPerformCartAttribute(updatedCart.id);
       
       // Refresh server components to update recommendations on cart page
       router.refresh();
@@ -83,6 +85,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     try {
       const updatedCart = await updateCart(cart.id, [{ id: lineId, quantity }]);
       setCart(updatedCart);
+      void syncPerformCartAttribute(updatedCart.id);
       
       // Refresh server components to update recommendations
       router.refresh();
@@ -101,6 +104,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     try {
       const updatedCart = await removeFromCart(cart.id, [lineId]);
       setCart(updatedCart);
+      void syncPerformCartAttribute(updatedCart.id);
       
       // Refresh server components to update recommendations
       router.refresh();

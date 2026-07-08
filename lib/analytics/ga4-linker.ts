@@ -3,6 +3,11 @@
  * when gtag auto-linker runs (temporary anchor + rAF). Falls back if gtag is missing.
  */
 
+import {
+  flushPerformBeforeCheckout,
+  syncPerformCartAttribute,
+} from '@/lib/analytics/perform';
+
 const FALLBACK_MS = 1000;
 const LINKER_DEBUG_KEY = 'ga4-linker-debug';
 
@@ -46,10 +51,28 @@ function recordLinkerDebug(stage: string, details: Record<string, unknown>) {
   }
 }
 
+export async function prepareCheckoutRedirect(
+  url: string,
+  options: { source?: string; cartId?: string } = {}
+): Promise<void> {
+  flushPerformBeforeCheckout();
+
+  if (options.cartId) {
+    try {
+      await syncPerformCartAttribute(options.cartId);
+    } catch (err) {
+      console.error('[perform] cart attribute sync failed', err);
+    }
+  }
+
+  redirectToDecoratedCheckout(url, options.source ?? 'unknown');
+}
+
 export function bindDecoratedCheckoutLink(
   link: HTMLAnchorElement,
   options: {
     source: string;
+    cartId?: string;
     onPlainLeftClick?: () => void;
   }
 ) {
@@ -66,7 +89,10 @@ export function bindDecoratedCheckoutLink(
 
     event.preventDefault();
     options.onPlainLeftClick?.();
-    redirectToDecoratedCheckout(link.href, options.source);
+    void prepareCheckoutRedirect(link.href, {
+      source: options.source,
+      cartId: options.cartId,
+    });
   };
 
   link.addEventListener('click', handleClick, { capture: true });

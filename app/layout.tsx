@@ -27,6 +27,9 @@ const manrope = Manrope({
   variable: '--font-manrope',
 });
 const gaMeasurementId = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID;
+const performSiteId =
+  process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || 'theequestrian.myshopify.com';
+const PERFORM_SCRIPT = `https://perform-by-silicondales.vercel.app/api/attribution/script?siteId=${performSiteId}`;
 const siteUrl = (
   process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au'
 ).replace(/\/$/, '');
@@ -99,6 +102,7 @@ export default function RootLayout({
         {/* Analytics and tracking domains */}
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://perform-by-silicondales.vercel.app" />
 
         <link rel="entitymap" type="application/json" href={`${siteUrl}/entitymap.json`} />
         <script
@@ -131,6 +135,7 @@ export default function RootLayout({
             </Script>
           </>
         ) : null}
+        <Script src={PERFORM_SCRIPT} strategy="afterInteractive" />
         <CartProvider>
           <NavigationProgress />
           <Header />
