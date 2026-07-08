@@ -8,6 +8,9 @@ import { ShopifyCart } from '@/types/shopify';
 const CART_COOKIE_NAME = 'shopify_cart_id';
 const CART_COOKIE_MAX_AGE = 60 * 60 * 24 * 14; // 14 days
 
+/** Cart is per-session and must never be served from the GraphQL data cache. */
+const CART_FETCH_OPTIONS = { cache: 'no-store' as const };
+
 interface CartResponse {
   cart: ShopifyCart;
 }
@@ -70,6 +73,7 @@ export async function createCart(lineItems?: Array<{ merchandiseId: string; quan
       variables: {
         lineItems: lineItems || [],
       },
+      ...CART_FETCH_OPTIONS,
     });
 
     const cart = response.cartCreate.cart;
@@ -92,6 +96,7 @@ export async function addToCart(cartId: string, lines: Array<{ merchandiseId: st
         cartId,
         lines,
       },
+      ...CART_FETCH_OPTIONS,
     });
 
     const cart = response.cartLinesAdd.cart;
@@ -114,6 +119,7 @@ export async function updateCart(cartId: string, lines: Array<{ id: string; quan
         cartId,
         lines,
       },
+      ...CART_FETCH_OPTIONS,
     });
 
     return response.cartLinesUpdate.cart;
@@ -131,6 +137,7 @@ export async function removeFromCart(cartId: string, lineIds: string[]) {
         cartId,
         lineIds,
       },
+      ...CART_FETCH_OPTIONS,
     });
 
     return response.cartLinesRemove.cart;
@@ -147,6 +154,7 @@ export async function getCart(cartId: string) {
       variables: {
         cartId,
       },
+      ...CART_FETCH_OPTIONS,
     });
 
     return response.cart;
