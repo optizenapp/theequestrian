@@ -6,6 +6,7 @@ const content: BrandSEOContent = {
   breadcrumb_label: 'Fort Worth',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Fort Worth' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'fort-worth-' },
   ],
 
   meta_title: 'Fort Worth Saddlery Australia | Western Tack, Halters, Bridles & Boots | The Equestrian',

@@ -7,9 +7,7 @@ const content: BrandSEOContent = {
   logo_url: '/brands/logos/kentucky.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Kentucky' },
-    { column: 'TAG', relation: 'EQUALS', condition: 'kentucky' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'kentucky-' },
-    { column: 'TITLE', relation: 'CONTAINS', condition: 'kentucky' },
   ],
 
   meta_title: 'Kentucky Horsewear Australia | Boots, Pads & More | The Equestrian',

@@ -6,6 +6,7 @@ const content: BrandSEOContent = {
   breadcrumb_label: 'Horze',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Horze' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'horze-' },
   ],
 
   meta_title: 'Horze Australia | Tall Boots, Breeches, Helmets & Horse Boots | The Equestrian',

@@ -7,8 +7,7 @@ const content: BrandSEOContent = {
   logo_url: '/brands/logos/effax.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Effax' },
-    { column: 'HANDLE', relation: 'CONTAINS', condition: 'effax' },
-    { column: 'TITLE', relation: 'CONTAINS', condition: 'effax' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'effax-' },
   ],
 
   meta_title: 'Effax Leather Care Products in Australia',

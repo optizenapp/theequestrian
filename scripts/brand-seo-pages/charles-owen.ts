@@ -5,9 +5,8 @@ const content: BrandSEOContent = {
   title: 'Charles Owen',
   breadcrumb_label: 'Charles Owen',
   rules: [
-    { column: 'TAG', condition: 'charles owen' },
+    { column: 'BRAND', relation: 'EQUALS', condition: 'Charles Owen' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'charles-owen-' },
-    { column: 'TITLE', relation: 'CONTAINS', condition: 'charles owen' },
   ],
 
   meta_title: 'Charles Owen Helmets Australia | The Equestrian',

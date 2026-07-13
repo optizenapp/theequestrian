@@ -6,9 +6,7 @@ const content: BrandSEOContent = {
   breadcrumb_label: 'Credelio',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Credelio' },
-    { column: 'HANDLE', relation: 'CONTAINS', condition: 'credelio' },
-    { column: 'TITLE', relation: 'CONTAINS', condition: 'credelio' },
-    { column: 'TITLE', relation: 'CONTAINS', condition: 'credilio' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'credelio-' },
   ],
 
   meta_title: 'Credelio for Dogs Australia | Credelio Plus Chews | The Equestrian',

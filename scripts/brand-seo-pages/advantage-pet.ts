@@ -5,8 +5,8 @@ const content: BrandSEOContent = {
   title: 'Advantage Pet',
   breadcrumb_label: 'Advantage Pet',
   rules: [
-    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'advantage-' },
-    { column: 'TITLE', relation: 'CONTAINS', condition: 'advantage' },
+    { column: 'BRAND', relation: 'EQUALS', condition: 'Advantage Pet' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'advantage-pet-' },
   ],
 
   meta_title: 'Advantage Pet for Dogs & Cats Australia | The Equestrian',

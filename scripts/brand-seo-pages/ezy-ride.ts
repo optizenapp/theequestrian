@@ -6,9 +6,7 @@ const content: BrandSEOContent = {
   breadcrumb_label: 'EZY Ride',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'EZY Ride' },
-    { column: 'BRAND', relation: 'EQUALS', condition: 'Ezy Ride' },
-    { column: 'HANDLE', relation: 'CONTAINS', condition: 'ezy-ride' },
-    { column: 'TITLE', relation: 'CONTAINS', condition: 'ezy ride' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'ezy-ride-' },
   ],
 
   meta_title: 'EZY Ride Australia | Saddles, Stirrups, Girths & Western Gear',

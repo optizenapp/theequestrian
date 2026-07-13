@@ -29,13 +29,11 @@ function buildRuleClause(rule: BrandRule): string | null {
   return null;
 }
 
-/** Default allocation rules from inventory display name + handle. */
+/** Default allocation rules — BRAND + HANDLE prefix only (index-friendly, avoids OOM). */
 export function proposeRules(inventory: BrandInventory): BrandRule[] {
-  const phrase = inventory.handle.replace(/-/g, ' ');
   return [
     { column: 'BRAND', relation: 'EQUALS', condition: inventory.displayName },
-    { column: 'HANDLE', relation: 'CONTAINS', condition: inventory.handle },
-    { column: 'TITLE', relation: 'CONTAINS', condition: phrase },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: `${inventory.handle}-` },
   ];
 }
 

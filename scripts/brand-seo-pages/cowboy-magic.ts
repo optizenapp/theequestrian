@@ -7,8 +7,7 @@ const content: BrandSEOContent = {
   logo_url: '/brands/logos/cowboy-magic.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Cowboy Magic' },
-    { column: 'HANDLE', relation: 'CONTAINS', condition: 'cowboy-magic' },
-    { column: 'TITLE', relation: 'CONTAINS', condition: 'cowboy magic' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'cowboy-magic-' },
   ],
 
   meta_title: 'Cowboy Magic Grooming Products',

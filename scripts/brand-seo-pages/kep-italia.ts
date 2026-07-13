@@ -5,9 +5,8 @@ const content: BrandSEOContent = {
   title: 'KEP Italia',
   breadcrumb_label: 'KEP Italia',
   rules: [
-    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'kep-' },
-    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'helmet-kep-' },
-    { column: 'HANDLE', relation: 'CONTAINS', condition: '-kep-' },
+    { column: 'BRAND', relation: 'EQUALS', condition: 'KEP Italia' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'kep-italia-' },
   ],
 
   meta_title: 'KEP Italia Helmets Australia | The Equestrian',

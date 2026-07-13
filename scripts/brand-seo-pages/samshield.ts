@@ -8,7 +8,6 @@ const content: BrandSEOContent = {
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Samshield' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'samshield-' },
-    { column: 'TITLE', relation: 'CONTAINS', condition: 'samshield' },
   ],
 
   meta_title: 'Samshield Helmets & Riding Wear Australia | The Equestrian',

@@ -6,8 +6,7 @@ const content: BrandSEOContent = {
   breadcrumb_label: 'Eurohunter',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Eurohunter' },
-    { column: 'HANDLE', relation: 'CONTAINS', condition: 'eurohunter' },
-    { column: 'TITLE', relation: 'CONTAINS', condition: 'eurohunter' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'eurohunter-' },
   ],
 
   meta_title: 'Eurohunter Australia | Rugs, Helmets, Boots & Riding Gear',

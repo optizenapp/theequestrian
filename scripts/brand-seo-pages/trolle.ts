@@ -5,9 +5,8 @@ const content: BrandSEOContent = {
   title: 'Trolle',
   breadcrumb_label: 'Trolle',
   rules: [
-    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'trolle-' },
-    { column: 'TITLE', relation: 'CONTAINS', condition: 'trolle' },
     { column: 'BRAND', relation: 'EQUALS', condition: 'Trolle' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'trolle-' },
   ],
 
   meta_title: 'Trolle Riding Wear Australia | Breeches, Jackets & Apparel',

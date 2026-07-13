@@ -7,8 +7,7 @@ const content: BrandSEOContent = {
   logo_url: '/brands/logos/tommy-hilfiger.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Tommy Hilfiger' },
-    { column: 'HANDLE', relation: 'CONTAINS', condition: 'tommy-hilfiger' },
-    { column: 'TITLE', relation: 'CONTAINS', condition: 'tommy hilfiger' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'tommy-hilfiger-' },
   ],
 
   meta_title: 'Tommy Hilfiger Equestrian Gear Australia',

@@ -7,6 +7,7 @@ const content: BrandSEOContent = {
   logo_url: '/brands/logos/acavallo.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Acavallo' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'acavallo-' },
   ],
 
   meta_title: 'Acavallo Australia | Stirrups, Gel Pads & Seat Savers | The Equestrian',

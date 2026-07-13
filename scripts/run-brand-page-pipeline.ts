@@ -38,6 +38,7 @@ function parseFlags(argv: string[]): PipelineFlags {
     floralProd: argv.includes('--floral-prod'),
     skipGenerate: argv.includes('--skip-generate'),
     overwrite: argv.includes('--overwrite'),
+    skipExisting: argv.includes('--skip-existing'),
     skipRevalidate: argv.includes('--skip-revalidate'),
   };
 }
@@ -72,13 +73,18 @@ async function processBrand(handle: string, flags: PipelineFlags): Promise<void>
   const existing = existsSync(modulePath(handle));
   let content: BrandSEOContent;
 
+  if (flags.skipExisting && existing && !flags.overwrite) {
+    console.log('[skip] module already exists — skipping');
+    return;
+  }
+
   if (flags.skipGenerate) {
     if (!existing) throw new Error(`No module at scripts/brand-seo-pages/${handle}.ts`);
     content = await loadExistingModule(handle);
     console.log('[generate] skipped — loaded existing module');
   } else {
     if (existing && !flags.overwrite) {
-      throw new Error(`Module exists for ${handle}. Use --overwrite or --skip-generate.`);
+      throw new Error(`Module exists for ${handle}. Use --overwrite, --skip-generate, or --skip-existing.`);
     }
     const research = await researchBrand(inventory);
     console.log('[research]', research.serpSummary.slice(0, 160).replace(/\s+/g, ' '));

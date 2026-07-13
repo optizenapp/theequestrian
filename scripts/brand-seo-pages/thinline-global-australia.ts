@@ -5,9 +5,8 @@ const content: BrandSEOContent = {
   title: 'ThinLine Global Australia',
   breadcrumb_label: 'ThinLine Global Australia',
   rules: [
-    { column: 'HANDLE', relation: 'CONTAINS', condition: 'thinline' },
-    { column: 'TITLE', relation: 'CONTAINS', condition: 'thinline' },
-    { column: 'TITLE', relation: 'CONTAINS', condition: 'thin line' },
+    { column: 'BRAND', relation: 'EQUALS', condition: 'ThinLine Global Australia' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'thinline-global-australia-' },
   ],
 
   meta_title: 'ThinLine Global Australia | Saddle Pads & Western Pads | The Equestrian',

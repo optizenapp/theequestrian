@@ -6,6 +6,7 @@ const content: BrandSEOContent = {
   breadcrumb_label: 'Blackdog',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Blackdog' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'blackdog-' },
   ],
 
   meta_title: 'Blackdog Treats Australia | Natural Aussie Made Dog Treats | The Equestrian',

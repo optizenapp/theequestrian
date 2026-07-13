@@ -5,8 +5,8 @@ const content: BrandSEOContent = {
   title: 'Advocate Pet',
   breadcrumb_label: 'Advocate Pet',
   rules: [
-    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'advocate-' },
-    { column: 'TITLE', relation: 'CONTAINS', condition: 'advocate' },
+    { column: 'BRAND', relation: 'EQUALS', condition: 'Advocate Pet' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'advocate-pet-' },
   ],
 
   meta_title: 'Advocate Pet for Dogs & Cats Australia | The Equestrian',

@@ -6,10 +6,8 @@ const content: BrandSEOContent = {
   breadcrumb_label: 'QJ Riding Wear',
   logo_url: '/brands/logos/qj-riding-wear.png',
   rules: [
-    { column: 'VENDOR', relation: 'EQUALS', condition: 'QJ Riding Wear' },
     { column: 'BRAND', relation: 'EQUALS', condition: 'QJ Riding Wear' },
-    { column: 'HANDLE', relation: 'CONTAINS', condition: 'qj-' },
-    { column: 'TITLE', relation: 'CONTAINS', condition: 'qj riding wear' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'qj-riding-wear-' },
   ],
 
   meta_title: 'QJ Riding Wear Australia | Breeches & Riding Apparel',

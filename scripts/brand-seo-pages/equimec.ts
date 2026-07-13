@@ -19,8 +19,8 @@ const content: BrandSEOContent = {
   title: 'Equimec',
   breadcrumb_label: 'Equimec',
   rules: [
+    { column: 'BRAND', relation: 'EQUALS', condition: 'Equimec' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'equimec-' },
-    { column: 'TITLE', relation: 'CONTAINS', condition: 'equimec' },
   ],
 
   meta_title: 'Equimec Australia | Horse Wormer Paste | The Equestrian',

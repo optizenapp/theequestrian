@@ -5,9 +5,8 @@ const content: BrandSEOContent = {
   title: 'TRUST',
   breadcrumb_label: 'TRUST',
   rules: [
-    { column: 'BRAND', relation: 'EQUALS', condition: 'Trust' },
-    { column: 'HANDLE', relation: 'CONTAINS', condition: 'trust' },
-    { column: 'TITLE', relation: 'CONTAINS', condition: 'trust' },
+    { column: 'BRAND', relation: 'EQUALS', condition: 'TRUST' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'trust-' },
   ],
 
   meta_title: 'TRUST Bits Australia | Sweet Iron, Inno Sense & Leather',

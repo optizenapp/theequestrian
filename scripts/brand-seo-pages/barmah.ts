@@ -6,6 +6,7 @@ const content: BrandSEOContent = {
   breadcrumb_label: 'Barmah',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Barmah' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'barmah-' },
   ],
 
   meta_title: 'Barmah Hats Australia | Genuine Aussie Made Leather & Canvas Hats | The Equestrian',

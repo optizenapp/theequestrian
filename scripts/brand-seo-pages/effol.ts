@@ -7,8 +7,7 @@ const content: BrandSEOContent = {
   logo_url: '/brands/logos/effol.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Effol' },
-    { column: 'HANDLE', relation: 'CONTAINS', condition: 'effol' },
-    { column: 'TITLE', relation: 'CONTAINS', condition: 'effol' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'effol-' },
   ],
 
   meta_title: 'Effol Equestrian Products in Australia',

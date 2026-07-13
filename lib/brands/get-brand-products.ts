@@ -427,6 +427,7 @@ async function fetchBrandProductsInMemory(
     ) pca ON true
     WHERE ${brandBase}
     ORDER BY p.available_for_sale DESC, p.shopify_created_at DESC NULLS LAST, p.updated_at DESC
+    LIMIT 500
   `) as unknown as BrandProductRow[];
 
   const rows = (Array.isArray(rowsResult) ? rowsResult : []) as BrandProductRow[];
@@ -502,6 +503,13 @@ export async function getBrandProductsFromDb(
         '[getBrandProductsFromDb] variant_options table missing — falling back to in-memory filters. Run npm run db:sync to populate.'
       );
       return fetchBrandProductsInMemory(brandBase, limit, offset, filters);
+    }
+    const code = typeof error === 'object' && error && 'code' in error ? String((error as { code: string }).code) : '';
+    if (code === '53200') {
+      console.error(
+        `[getBrandProductsFromDb] Neon OOM for brand=${brand.handle}; returning empty grid`
+      );
+      return EMPTY_RESULT;
     }
     throw error;
   }

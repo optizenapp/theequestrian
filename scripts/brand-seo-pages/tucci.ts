@@ -5,8 +5,8 @@ const content: BrandSEOContent = {
   title: 'Tucci',
   breadcrumb_label: 'Tucci',
   rules: [
+    { column: 'BRAND', relation: 'EQUALS', condition: 'Tucci' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'tucci-' },
-    { column: 'TITLE', relation: 'CONTAINS', condition: 'tucci' },
   ],
 
   meta_title: 'Tucci Riding Boots Australia | The Equestrian',

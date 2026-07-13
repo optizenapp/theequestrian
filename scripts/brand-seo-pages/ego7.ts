@@ -5,9 +5,8 @@ const content: BrandSEOContent = {
   title: 'Ego7',
   breadcrumb_label: 'Ego7',
   rules: [
+    { column: 'BRAND', relation: 'EQUALS', condition: 'Ego7' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'ego7-' },
-    { column: 'TITLE', relation: 'CONTAINS', condition: 'ego7' },
-    { column: 'TITLE', relation: 'CONTAINS', condition: 'ego 7' },
   ],
 
   meta_title: 'Ego7 Riding Boots Australia | The Equestrian',

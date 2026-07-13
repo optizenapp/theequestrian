@@ -5,7 +5,8 @@ const content: BrandSEOContent = {
   title: 'BetaVet',
   breadcrumb_label: 'BetaVet',
   rules: [
-    { column: 'BRAND', relation: 'EQUALS', condition: 'Betavet' },
+    { column: 'BRAND', relation: 'EQUALS', condition: 'BetaVet' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'betavet-' },
   ],
 
   meta_title: 'BetaVet Australia | Equine Herbal Supplements | The Equestrian',

@@ -36,6 +36,7 @@ export type PipelineFlags = {
   floralProd: boolean;
   skipGenerate: boolean;
   overwrite: boolean;
+  skipExisting: boolean;
   skipRevalidate: boolean;
 };
 

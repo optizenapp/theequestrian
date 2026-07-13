@@ -7,8 +7,7 @@ const content: BrandSEOContent = {
   logo_url: '/brands/logos/thomas-cook.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Thomas Cook' },
-    { column: 'HANDLE', relation: 'CONTAINS', condition: 'thomas-cook' },
-    { column: 'TITLE', relation: 'CONTAINS', condition: 'thomas cook' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'thomas-cook-' },
   ],
 
   meta_title: 'Thomas Cook Equestrian Apparel Australia',

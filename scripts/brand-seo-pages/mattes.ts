@@ -5,9 +5,8 @@ const content: BrandSEOContent = {
   title: 'Mattes',
   breadcrumb_label: 'Mattes',
   rules: [
-    { column: 'HANDLE', relation: 'CONTAINS', condition: 'mattes' },
-    { column: 'TITLE', relation: 'CONTAINS', condition: 'mattes' },
-    { column: 'TITLE', relation: 'CONTAINS', condition: 'e.a mattes' },
+    { column: 'BRAND', relation: 'EQUALS', condition: 'Mattes' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'mattes-' },
   ],
 
   meta_title: 'Mattes Saddle Pads & Girths Australia | The Equestrian',

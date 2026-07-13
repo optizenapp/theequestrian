@@ -5,8 +5,8 @@ const content: BrandSEOContent = {
   title: 'Cavallo',
   breadcrumb_label: 'Cavallo',
   rules: [
+    { column: 'BRAND', relation: 'EQUALS', condition: 'Cavallo' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'cavallo-' },
-    { column: 'TITLE', relation: 'CONTAINS', condition: 'cavallo' },
   ],
 
   meta_title: 'Cavallo Riding Boots Australia | The Equestrian',

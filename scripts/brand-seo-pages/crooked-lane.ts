@@ -7,8 +7,7 @@ const content: BrandSEOContent = {
   logo_url: '/brands/logos/crooked-lane.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Crooked Lane' },
-    { column: 'HANDLE', relation: 'CONTAINS', condition: 'crooked-lane' },
-    { column: 'TITLE', relation: 'CONTAINS', condition: 'crooked lane' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'crooked-lane-' },
   ],
 
   meta_title: 'Crooked Lane Horse Supplements Australia',
