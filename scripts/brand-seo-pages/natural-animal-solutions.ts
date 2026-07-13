@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'natural-animal-solutions',
   title: 'Natural Animal Solutions',
   breadcrumb_label: 'Natural Animal Solutions',
+  logo_url: '/brands/logos/natural-animal-solutions.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Natural Animal Solutions' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'natural-animal-solutions-' },

@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'ranvet',
   title: 'Ranvet',
   breadcrumb_label: 'Ranvet',
+  logo_url: '/brands/logos/ranvet.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Ranvet' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'ranvet-' },

@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'trolle',
   title: 'Trolle',
   breadcrumb_label: 'Trolle',
+  logo_url: '/brands/logos/trolle.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Trolle' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'trolle-' },

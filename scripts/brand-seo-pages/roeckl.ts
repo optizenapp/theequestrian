@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'roeckl',
   title: 'Roeckl Equestrian Gloves',
   breadcrumb_label: 'Roeckl',
+  logo_url: '/brands/logos/roeckl.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Roeckl' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'roeckl-' },

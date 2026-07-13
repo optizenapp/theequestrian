@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'sprenger',
   title: 'Sprenger',
   breadcrumb_label: 'Sprenger',
+  logo_url: '/brands/logos/sprenger.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Sprenger' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'sprenger-' },

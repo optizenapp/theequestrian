@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'kep-italia',
   title: 'KEP Italia',
   breadcrumb_label: 'KEP Italia',
+  logo_url: '/brands/logos/kep-italia.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'KEP Italia' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'kep-italia-' },

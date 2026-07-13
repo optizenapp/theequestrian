@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'stance-equitec',
   title: 'Stance Equitec',
   breadcrumb_label: 'Stance Equitec',
+  logo_url: '/brands/logos/stance-equitec.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Stance Equitec' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'stance-equitec-' },

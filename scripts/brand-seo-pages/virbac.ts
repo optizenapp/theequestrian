@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'virbac',
   title: 'Virbac',
   breadcrumb_label: 'Virbac',
+  logo_url: '/brands/logos/virbac.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Virbac' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'virbac-' },

@@ -76,23 +76,19 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
 
   // Brand PLPs always use Postgres + brand rules so new brands work without a matching Shopify collection.
   // Variants for cart CTAs are merged from Storefront inside getBrandProductsFromDb.
-  const [
-    {
-      products,
-      pageInfo,
-      totalCount: totalProductCount,
-      productUrls: productUrlsMap,
-      facets,
-    },
-    brandCategories,
-  ] = await Promise.all([
-    getBrandProductsFromDb(brand, 36, afterCursor, {
-      brands: filterBrands,
-      sizes: filterSizes,
-      colors: filterColors,
-    }),
-    getBrandCategories(brand, 12),
-  ]);
+  // Sequential on purpose: parallel products+categories+facets was killing Neon (`08P01`).
+  const {
+    products,
+    pageInfo,
+    totalCount: totalProductCount,
+    productUrls: productUrlsMap,
+    facets,
+  } = await getBrandProductsFromDb(brand, 36, afterCursor, {
+    brands: filterBrands,
+    sizes: filterSizes,
+    colors: filterColors,
+  });
+  const brandCategories = await getBrandCategories(brand, 12);
 
   // Fetch review stats for all products in one batch (server-side)
   const productHandles = products.map(p => p.handle);

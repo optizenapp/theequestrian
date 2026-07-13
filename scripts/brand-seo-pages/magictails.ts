@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'magictails',
   title: 'Magictails',
   breadcrumb_label: 'Magictails',
+  logo_url: '/brands/logos/magictails.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Magictails' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'magictails-' },

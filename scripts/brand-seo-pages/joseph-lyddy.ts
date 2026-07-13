@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'joseph-lyddy',
   title: 'Joseph Lyddy',
   breadcrumb_label: 'Joseph Lyddy',
+  logo_url: '/brands/logos/joseph-lyddy.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Joseph Lyddy' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'joseph-lyddy-' },

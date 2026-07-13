@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'leovet',
   title: 'Leovet',
   breadcrumb_label: 'Leovet',
+  logo_url: '/brands/logos/leovet.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Leovet' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'leovet-' },

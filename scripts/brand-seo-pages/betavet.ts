@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'betavet',
   title: 'BetaVet',
   breadcrumb_label: 'BetaVet',
+  logo_url: '/brands/logos/betavet.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'BetaVet' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'betavet-' },

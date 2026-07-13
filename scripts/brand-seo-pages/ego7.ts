@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'ego7',
   title: 'Ego7',
   breadcrumb_label: 'Ego7',
+  logo_url: '/brands/logos/ego7.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Ego7' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'ego7-' },

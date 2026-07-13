@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'thinline-global-australia',
   title: 'ThinLine Global Australia',
   breadcrumb_label: 'ThinLine Global Australia',
+  logo_url: '/brands/logos/thinline-global-australia.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'ThinLine Global Australia' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'thinline-global-australia-' },

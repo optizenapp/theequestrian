@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'metalab',
   title: 'Metalab',
   breadcrumb_label: 'Metalab',
+  logo_url: '/brands/logos/metalab.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Metalab' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'metalab-' },

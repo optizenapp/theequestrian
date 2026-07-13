@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'zilco',
   title: 'Zilco',
   breadcrumb_label: 'Zilco',
+  logo_url: '/brands/logos/zilco.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Zilco' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'zilco-' },

@@ -13,50 +13,50 @@ const OUT = resolve(process.cwd(), 'public', 'brands', 'logos');
 
 /** Official homepage(s) to scrape for logo assets. */
 const OFFICIAL_SITES: Record<string, string[]> = {
-  heritage: ['https://www.heritageequestrian.com/', 'https://heritageboots.com/'],
-  horze: ['https://www.horze.com.au/', 'https://www.horze.com/'],
-  huntington: ['https://huntingtonfeed.com.au/', 'https://www.huntington.com.au/'],
-  'joseph-lyddy': ['https://www.josephlyddy.com.au/'],
-  kask: ['https://www.kask.com/', 'https://www.kask.com/en/'],
-  kelato: ['https://kelato.com.au/', 'https://www.kelatoanimalhealth.com.au/'],
-  'kep-italia': ['https://www.kepitalia.com/', 'https://www.kep-italia.com/'],
-  'kohnkes-own': ['https://www.kohnkesown.com/'],
-  'lami-cell': ['https://www.lamicell.com/', 'https://www.lami-cell.com/'],
-  leovet: ['https://www.leovet.de/', 'https://www.leovet.com/'],
-  magictails: ['https://magictails.com.au/', 'https://www.magictails.com/'],
-  mattes: ['https://www.mattes-saddlepad.com/', 'https://www.steffenmattes.com/'],
-  metalab: ['https://www.metalab.com/', 'https://metalab.horse/'],
-  'noble-outfitters': ['https://www.nobleoutfitters.com/'],
-  nrg: ['https://www.nrgteam.com.au/', 'https://nrgadditives.com.au/'],
-  oregon: ['https://www.oregonhatco.com/', 'https://oregonhatcompany.com/'],
-  paw: ['https://www.blackdog.com.au/collections/paw', 'https://www.pawbypet.com.au/'],
-  prestige: ['https://www.prestigeitaly.com/', 'https://prestige-italia.com/'],
-  'ps-of-sweden': ['https://www.psofsweden.com/'],
-  ranvet: ['https://www.ranvet.com.au/'],
-  roeckl: ['https://www.roeckl.com/', 'https://www.roeckl.de/'],
-  shanga: ['https://shanga.com.au/', 'https://www.shanga.com/'],
-  'shear-magic': ['https://www.shearmagic.com.au/', 'https://shearmagic.com/'],
-  showcraft: ['https://www.showcraft.com.au/', 'https://showcraft.com/'],
-  showmaster: ['https://www.kramer.de/', 'https://www.kramer.co.uk/'],
-  sprenger: ['https://www.sprenger.de/', 'https://www.herm-sprenger.com/'],
-  'stance-equitec': ['https://stanceequitec.com.au/', 'https://www.stanceglobal.com/'],
-  tech: ['https://www.techstirrups.com/', 'https://techstirrups.com/'],
+  metalab: ['https://www.metalab.fr/', 'https://metalab.horse/', 'https://www.metalab.com/'],
+  mattes: ['https://www.mattes.de/', 'https://www.mattes-saddlepad.com/', 'https://www.steffenmattes.com/'],
+  horze: ['https://www.horze.com.au/', 'https://www.horze.com/en-us/', 'https://www.horze.com/'],
+  showmaster: ['https://www.kramer.co.uk/showmaster/', 'https://www.kramer.de/', 'https://www.kramer.co.uk/'],
+  prestige: ['https://www.prestigeitalia.com/', 'https://www.prestigeitaly.com/'],
+  'lami-cell': ['https://www.lamicell.com/en/', 'https://www.lamicell.com/', 'https://www.lami-cell.com/'],
+  tucci: ['https://www.tucciridingboots.com/', 'https://www.tucci.com/', 'https://tuccisrl.com/'],
+  trust: ['https://www.trust-equestrian.com/', 'https://www.trustequestrian.com/en/'],
+  veredus: ['https://www.veredus.com/en/', 'https://www.veredus.com/'],
+  vestrum: ['https://www.vestrum.com/en/', 'https://www.vestrum.com/'],
+  waldhausen: ['https://www.waldhausen.com/en/', 'https://www.waldhausen.com/', 'https://www.waldhausen.de/'],
+  sprenger: ['https://www.sprenger.de/en/', 'https://www.herm-sprenger.com/', 'https://www.sprenger.de/'],
+  roeckl: ['https://www.roeckl.com/en/', 'https://www.roeckl.com/', 'https://www.roeckl.de/'],
+  'ps-of-sweden': ['https://www.psofsweden.com/en-us/', 'https://www.psofsweden.com/'],
+  tech: ['https://www.techstirrups.com/', 'https://techstirrups.com/en/'],
+  woof: ['https://www.woofwear.com/', 'https://woofwear.com/en-gb/'],
   'the-equestrian': ['https://www.theequestrian.com.au/'],
-  thorowgood: ['https://www.thorowgood.com/'],
-  toptac: ['https://www.toptac.com.au/', 'https://toptac.com/'],
-  trolle: ['https://www.trolle.com/', 'https://trollecompany.com/'],
-  troy: ['https://www.troyboots.com.au/', 'https://troy.com.au/'],
-  trust: ['https://www.trust-equestrian.com/', 'https://www.trustequestrian.com/'],
-  tucci: ['https://www.tucci.com/', 'https://tuccisrl.com/'],
-  veredus: ['https://www.veredus.com/', 'https://veredusworld.com/'],
-  vestrum: ['https://www.vestrum.com/'],
+  heritage: ['https://www.heritagegloves.com/', 'https://www.heritageequestrian.com/', 'https://heritageboots.com/'],
+  oregon: ['https://www.stetson.com/', 'https://www.oregonhatco.com/'],
+  paw: ['https://www.blackdog.com.au/', 'https://www.blackdog.com.au/collections/paw'],
+  nrg: ['https://nrgadditives.com.au/', 'https://www.nrgteam.com.au/'],
+  wahl: ['https://www.wahl.com/animal', 'https://www.wahlanimal.com/', 'https://www.wahl.com/'],
+  virbac: ['https://au.virbac.com/', 'https://www.virbac.com/au/home'],
+  'joseph-lyddy': ['https://www.josephlyddy.com.au/', 'https://josephlyddy.com.au/'],
+  'kohnkes-own': ['https://www.kohnkesown.com.au/', 'https://www.kohnkesown.com/'],
+  kelato: ['https://kelato.com.au/', 'https://www.kelato.com.au/'],
+  zilco: ['https://www.zilco.net/', 'https://www.zilco.com.au/'],
+  ranvet: ['https://www.ranvet.com.au/'],
   vetsense: ['https://www.vetsense.com.au/'],
-  virbac: ['https://au.virbac.com/', 'https://www.virbac.com.au/'],
-  wahl: ['https://www.wahl.com/', 'https://www.wahlanimal.com/'],
-  waldhausen: ['https://www.waldhausen.com/', 'https://www.waldhausen.de/'],
-  'wild-horse': ['https://www.wildhorse.com.au/', 'https://wildhorseaustralia.com/'],
-  woof: ['https://www.woofwear.com/', 'https://woofwear.com/'],
-  zilco: ['https://www.zilco.com.au/', 'https://www.zilco.net/'],
+  'stance-equitec': ['https://stanceequitec.com.au/', 'https://www.stanceequitec.com.au/'],
+  leovet: ['https://www.leovet.de/en/', 'https://www.leovet.de/'],
+  'kep-italia': ['https://www.kepitalia.com/en/', 'https://www.kepitalia.com/'],
+  kask: ['https://www.kask.com/en/', 'https://www.kask.com/'],
+  'noble-outfitters': ['https://www.nobleoutfitters.com/'],
+  thorowgood: ['https://www.thorowgood.com/'],
+  trolle: ['https://trollecompany.com/', 'https://www.trolle.com/'],
+  huntington: ['https://www.huntington.com.au/', 'https://huntingtonfeed.com.au/'],
+  magictails: ['https://www.magictails.com.au/', 'https://magictails.com.au/'],
+  shanga: ['https://www.shanga.com.au/', 'https://shanga.com.au/'],
+  'shear-magic': ['https://www.shearmagic.com.au/'],
+  showcraft: ['https://www.showcraft.com.au/'],
+  toptac: ['https://www.toptac.com.au/'],
+  troy: ['https://www.troyboots.com.au/'],
+  'wild-horse': ['https://www.wildhorse.com.au/'],
 };
 
 function parseHandles(argv: string[]): string[] {
@@ -74,17 +74,19 @@ function parseHandles(argv: string[]): string[] {
   return Object.keys(OFFICIAL_SITES);
 }
 
-function scoreUrl(url: string): number {
+function scoreUrl(url: string, handle: string): number {
   const u = url.toLowerCase();
+  const h = handle.toLowerCase().replace(/-/g, '');
   let score = 0;
   if (u.includes('logo')) score += 50;
+  if (u.includes(handle) || u.includes(h)) score += 35;
   if (u.includes('brand')) score += 20;
   if (u.includes('header')) score += 10;
   if (u.endsWith('.svg')) score += 15;
   if (u.endsWith('.png')) score += 10;
-  if (u.includes('favicon') || u.includes('icon') || u.includes('sprite')) score -= 40;
-  if (u.includes('banner') || u.includes('hero') || u.includes('product')) score -= 20;
-  if (u.includes('facebook') || u.includes('instagram')) score -= 50;
+  if (u.includes('favicon') || u.includes('icon') || u.includes('sprite') || u.includes('apple-touch')) score -= 40;
+  if (u.includes('banner') || u.includes('hero') || u.includes('product') || u.includes('slider')) score -= 20;
+  if (u.includes('facebook') || u.includes('instagram') || u.includes('youtube')) score -= 50;
   return score;
 }
 
@@ -103,6 +105,17 @@ function extractImageUrls(html: string, base: string): string[] {
   while ((m = css.exec(html))) {
     try {
       urls.add(new URL(m[2], base).href);
+    } catch {
+      /* ignore */
+    }
+  }
+  // srcset first candidate
+  const srcset = /srcset=["']([^"']+)["']/gi;
+  while ((m = srcset.exec(html))) {
+    const first = m[1].split(',')[0]?.trim().split(/\s+/)[0];
+    if (!first) continue;
+    try {
+      if (/\.(png|jpg|jpeg|webp|svg)/i.test(first)) urls.add(new URL(first, base).href);
     } catch {
       /* ignore */
     }
@@ -154,13 +167,13 @@ async function findLogoForHandle(handle: string): Promise<string | null> {
     const html = await fetchText(site);
     if (!html) continue;
     for (const url of extractImageUrls(html, site)) {
-      candidates.push({ url, score: scoreUrl(url) });
+      candidates.push({ url, score: scoreUrl(url, handle) });
     }
   }
   candidates.sort((a, b) => b.score - a.score);
   const tried = new Set<string>();
   for (const c of candidates.slice(0, 25)) {
-    if (c.score < 5 || tried.has(c.url)) continue;
+    if (c.score < 0 || tried.has(c.url)) continue;
     tried.add(c.url);
     const bin = await fetchBinary(c.url);
     if (!bin) continue;

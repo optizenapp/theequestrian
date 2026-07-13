@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'huntington',
   title: 'Huntington',
   breadcrumb_label: 'Huntington',
+  logo_url: '/brands/logos/huntington.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Huntington' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'huntington-' },

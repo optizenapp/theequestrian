@@ -13,6 +13,7 @@ const content: BrandSEOContent = {
   handle: 'bare-equestrian',
   title: 'BARE Equestrian',
   breadcrumb_label: 'BARE Equestrian',
+  logo_url: '/brands/logos/bare-equestrian.png',
 
   meta_title: 'BARE Equestrian Australia - Riding Tights | The Equestrian',
   meta_description:

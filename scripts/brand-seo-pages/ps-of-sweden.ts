@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'ps-of-sweden',
   title: 'PS Of Sweden',
   breadcrumb_label: 'PS Of Sweden',
+  logo_url: '/brands/logos/ps-of-sweden.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'PS Of Sweden' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'ps-of-sweden-' },

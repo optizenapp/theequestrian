@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'thorowgood',
   title: 'Thorowgood',
   breadcrumb_label: 'Thorowgood',
+  logo_url: '/brands/logos/thorowgood.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Thorowgood' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'thorowgood-' },

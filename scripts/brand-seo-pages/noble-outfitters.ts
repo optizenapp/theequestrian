@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'noble-outfitters',
   title: 'Noble Outfitters',
   breadcrumb_label: 'Noble Outfitters',
+  logo_url: '/brands/logos/noble-outfitters.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Noble Outfitters' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'noble-outfitters-' },

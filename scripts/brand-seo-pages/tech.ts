@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'tech',
   title: 'Tech Equestrian Gear',
   breadcrumb_label: 'Tech',
+  logo_url: '/brands/logos/tech.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Tech' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'tech-' },

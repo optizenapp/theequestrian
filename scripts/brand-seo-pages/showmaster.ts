@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'showmaster',
   title: 'Showmaster',
   breadcrumb_label: 'Showmaster',
+  logo_url: '/brands/logos/showmaster.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Showmaster' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'showmaster-' },

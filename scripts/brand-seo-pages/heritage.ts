@@ -4,9 +4,13 @@ const content: BrandSEOContent = {
   handle: 'heritage',
   title: 'Ariat Heritage Collection',
   breadcrumb_label: 'Ariat',
+  logo_url: '/brands/logos/heritage.png',
   rules: [
-    { column: 'BRAND', relation: 'EQUALS', condition: 'Ariat' },
+    // HANDLE only — BRAND EQUALS Ariat OR heritage- matched the entire Ariat catalog and OOMed Neon.
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'heritage-' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'ariat-heritage-' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'ariat-mens-heritage-' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'ariat-womens-heritage-' },
   ],
 
   meta_title: 'Ariat Heritage Boots & Apparel',

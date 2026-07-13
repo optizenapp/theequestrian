@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'the-equestrian',
   title: 'The Equestrian',
   breadcrumb_label: 'The Equestrian',
+  logo_url: '/brands/logos/the-equestrian.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'The Equestrian' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'the-equestrian-' },

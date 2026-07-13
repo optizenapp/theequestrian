@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'nrg',
   title: 'NRG',
   breadcrumb_label: 'NRG',
+  logo_url: '/brands/logos/nrg.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'NRG' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'nrg-' },

@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'prestige',
   title: 'Prestige',
   breadcrumb_label: 'Prestige',
+  logo_url: '/brands/logos/prestige.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Prestige' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'prestige-' },

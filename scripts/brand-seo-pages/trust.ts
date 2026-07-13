@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'trust',
   title: 'TRUST',
   breadcrumb_label: 'TRUST',
+  logo_url: '/brands/logos/trust.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'TRUST' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'trust-' },

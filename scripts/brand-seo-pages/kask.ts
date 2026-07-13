@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'kask',
   title: 'KASK',
   breadcrumb_label: 'KASK Helmets',
+  logo_url: '/brands/logos/kask.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'KASK Helmets' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'kask-' },

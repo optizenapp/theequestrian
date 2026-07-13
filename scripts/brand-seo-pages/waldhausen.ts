@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'waldhausen',
   title: 'Waldhausen',
   breadcrumb_label: 'Waldhausen',
+  logo_url: '/brands/logos/waldhausen.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Waldhausen' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'waldhausen-' },

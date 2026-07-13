@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'veredus',
   title: 'Veredus',
   breadcrumb_label: 'Veredus',
+  logo_url: '/brands/logos/veredus.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Veredus' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'veredus-' },

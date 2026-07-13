@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'lami-cell',
   title: 'Lami-Cell',
   breadcrumb_label: 'Lami-Cell',
+  logo_url: '/brands/logos/lami-cell.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Lami-Cell' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'lami-cell-' },

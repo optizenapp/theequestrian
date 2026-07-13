@@ -13,6 +13,7 @@ const content: BrandSEOContent = {
   handle: 'ariat',
   title: 'Ariat',
   breadcrumb_label: 'Ariat',
+  logo_url: '/brands/logos/ariat.png',
 
   meta_title: 'Ariat Australia - Riding Clothing & Footwear | The Equestrian',
   meta_description:

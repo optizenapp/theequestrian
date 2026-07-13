@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'charles-owen',
   title: 'Charles Owen',
   breadcrumb_label: 'Charles Owen',
+  logo_url: '/brands/logos/charles-owen.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Charles Owen' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'charles-owen-' },

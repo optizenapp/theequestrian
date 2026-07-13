@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'wahl',
   title: 'Wahl',
   breadcrumb_label: 'Wahl',
+  logo_url: '/brands/logos/wahl.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Wahl' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'wahl-' },

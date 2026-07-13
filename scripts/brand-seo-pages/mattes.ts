@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'mattes',
   title: 'Mattes',
   breadcrumb_label: 'Mattes',
+  logo_url: '/brands/logos/mattes.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Mattes' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'mattes-' },

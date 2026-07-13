@@ -186,13 +186,14 @@ async function getBrandFacetsFromDb(
   brandBase: string,
   filters?: BrandFilters
 ): Promise<BrandFacets> {
-  // Disjunctive facets: each dimension computed without filtering on itself
+  // Disjunctive facets: each dimension computed without filtering on itself.
+  // Run sequentially — parallel facet JOINs on variant_options can OOM Neon.
   const sizeWhere = buildWhereClause(brandBase, { brands: filters?.brands, colors: filters?.colors });
   const colorWhere = buildWhereClause(brandBase, { brands: filters?.brands, sizes: filters?.sizes });
   const brandWhere = buildWhereClause(brandBase, { sizes: filters?.sizes, colors: filters?.colors });
 
-  const [brandRows, sizeRows, colorRows] = await Promise.all([
-    sql.unsafe(`
+  try {
+    const brandRows = (await sql.unsafe(`
       SELECT
         LOWER(TRIM(p.brand)) AS value,
         MIN(TRIM(p.brand)) AS display_name,
@@ -202,9 +203,10 @@ async function getBrandFacetsFromDb(
         AND COALESCE(TRIM(p.brand), '') <> ''
       GROUP BY LOWER(TRIM(p.brand))
       ORDER BY count DESC
-    `) as unknown as Array<{ value: string; display_name: string; count: number }>,
+      LIMIT 50
+    `)) as unknown as Array<{ value: string; display_name: string; count: number }>;
 
-    sql.unsafe(`
+    const sizeRows = (await sql.unsafe(`
       SELECT
         vo.option_value AS value,
         COUNT(DISTINCT p.id)::int AS count
@@ -215,9 +217,10 @@ async function getBrandFacetsFromDb(
         AND COALESCE(vo.option_value, '') <> ''
       GROUP BY vo.option_value
       ORDER BY count DESC
-    `) as unknown as Array<{ value: string; count: number }>,
+      LIMIT 100
+    `)) as unknown as Array<{ value: string; count: number }>;
 
-    sql.unsafe(`
+    const colorRows = (await sql.unsafe(`
       SELECT
         vo.option_value_normalized AS value,
         MIN(vo.option_value) AS original_value,
@@ -229,29 +232,41 @@ async function getBrandFacetsFromDb(
         AND COALESCE(vo.option_value_normalized, '') <> ''
       GROUP BY vo.option_value_normalized
       ORDER BY count DESC
-    `) as unknown as Array<{ value: string; original_value: string; count: number }>,
-  ]);
+      LIMIT 100
+    `)) as unknown as Array<{ value: string; original_value: string; count: number }>;
 
-  return {
-    brands: (brandRows as Array<{ value: string; display_name: string; count: number }>)
-      .filter((r) => r.value)
-      .map((r) => ({ value: r.value, count: Number(r.count), displayName: r.display_name || r.value }))
-      .sort((a, b) => a.displayName.localeCompare(b.displayName)),
+    return {
+      brands: (brandRows as Array<{ value: string; display_name: string; count: number }>)
+        .filter((r) => r.value)
+        .map((r) => ({ value: r.value, count: Number(r.count), displayName: r.display_name || r.value }))
+        .sort((a, b) => a.displayName.localeCompare(b.displayName)),
 
-    sizes: (sizeRows as Array<{ value: string; count: number }>)
-      .map((r) => ({ value: r.value, count: Number(r.count) }))
-      .sort((a, b) => {
-        const an = parseFloat(a.value);
-        const bn = parseFloat(b.value);
-        return !Number.isNaN(an) && !Number.isNaN(bn) ? an - bn : a.value.localeCompare(b.value);
-      }),
+      sizes: (sizeRows as Array<{ value: string; count: number }>)
+        .map((r) => ({ value: r.value, count: Number(r.count) }))
+        .sort((a, b) => {
+          const an = parseFloat(a.value);
+          const bn = parseFloat(b.value);
+          return !Number.isNaN(an) && !Number.isNaN(bn) ? an - bn : a.value.localeCompare(b.value);
+        }),
 
-    colors: (colorRows as Array<{ value: string; original_value: string; count: number }>)
-      .map((r) => ({ value: r.value, count: Number(r.count), originalValue: r.original_value }))
-      .sort((a, b) => a.originalValue.localeCompare(b.originalValue)),
+      colors: (colorRows as Array<{ value: string; original_value: string; count: number }>)
+        .map((r) => ({ value: r.value, count: Number(r.count), originalValue: r.original_value }))
+        .sort((a, b) => a.originalValue.localeCompare(b.originalValue)),
 
-    price: PRICE_FACET_FALLBACK,
-  };
+      price: PRICE_FACET_FALLBACK,
+    };
+  } catch (error) {
+    if (isNeonResourceError(error) || isTableMissingError(error)) {
+      console.error('[getBrandFacetsFromDb] degraded facets:', neonErrorCode(error) || error);
+      return {
+        brands: [],
+        sizes: [],
+        colors: [],
+        price: PRICE_FACET_FALLBACK,
+      };
+    }
+    throw error;
+  }
 }
 
 async function fetchBrandProductsFast(
@@ -299,10 +314,10 @@ async function fetchBrandProductsFast(
   const productsWithVariants = await attachStorefrontVariants(
     mappedProducts as ProductWithPrimaryCollection[]
   );
-  const [liveStatus, facets] = await Promise.all([
-    getLiveStatusByProductIds(productsWithVariants.map((p) => p.id)),
-    getBrandFacetsFromDb(brandBase, filters),
-  ]);
+  // Keep Neon + Storefront fan-out sequential after the page query — parallel
+  // facets were crashing floral-prod (`08P01` / server conn crashed).
+  const liveStatus = await getLiveStatusByProductIds(productsWithVariants.map((p) => p.id));
+  const facets = await getBrandFacetsFromDb(brandBase, filters);
   const products = applyLiveStatus(productsWithVariants, liveStatus);
 
   const productUrls = new Map<string, string>();
@@ -476,6 +491,21 @@ function isTableMissingError(error: unknown): boolean {
   );
 }
 
+function neonErrorCode(error: unknown): string {
+  if (typeof error === 'object' && error && 'code' in error) {
+    return String((error as { code: string }).code);
+  }
+  return '';
+}
+
+/** Neon OOM / compute kill — page should degrade, not 500. */
+function isNeonResourceError(error: unknown): boolean {
+  const code = neonErrorCode(error);
+  if (code === '53200' || code === '08P01' || code === '57P01') return true;
+  const msg = error instanceof Error ? error.message : String(error ?? '');
+  return /server conn crashed|out of memory|terminating connection/i.test(msg);
+}
+
 export async function getBrandProductsFromDb(
   brand: BrandContentRow,
   limit: number = 36,
@@ -504,10 +534,9 @@ export async function getBrandProductsFromDb(
       );
       return fetchBrandProductsInMemory(brandBase, limit, offset, filters);
     }
-    const code = typeof error === 'object' && error && 'code' in error ? String((error as { code: string }).code) : '';
-    if (code === '53200') {
+    if (isNeonResourceError(error)) {
       console.error(
-        `[getBrandProductsFromDb] Neon OOM for brand=${brand.handle}; returning empty grid`
+        `[getBrandProductsFromDb] Neon resource error for brand=${brand.handle} code=${neonErrorCode(error)}; returning empty grid`
       );
       return EMPTY_RESULT;
     }

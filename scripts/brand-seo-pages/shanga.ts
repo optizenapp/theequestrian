@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'shanga',
   title: 'Shanga Equestrian Gear',
   breadcrumb_label: 'Shanga',
+  logo_url: '/brands/logos/shanga.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Shanga' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'shanga-' },

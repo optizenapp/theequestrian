@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'vetsense',
   title: 'Vetsense',
   breadcrumb_label: 'Vetsense',
+  logo_url: '/brands/logos/vetsense.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Vetsense' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'vetsense-' },

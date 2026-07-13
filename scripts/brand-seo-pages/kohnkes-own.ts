@@ -7,18 +7,18 @@ import type { BrandSEOContent } from '../run-brand-seo-update';
  *   - Product lines: Trim, Cell Vital, Cell Perform, Palomino Gold, Gastro-Coat, Mag-E, Muscle XL
  *
  * Product rules:
- *   - HANDLE STARTS_WITH kohnkes-own-
- *   - HANDLE STARTS_WITH kohnke-
- *   - TITLE CONTAINS kohnke
+ *   - BRAND EQUALS Kohnke's Own
+ *   - HANDLE STARTS_WITH kohnkes-own- / kohnke-
  */
 const content: BrandSEOContent = {
   handle: 'kohnkes-own',
   title: "Kohnke's Own",
   breadcrumb_label: "Kohnke's Own",
+  logo_url: '/brands/logos/kohnkes-own.png',
   rules: [
+    { column: 'BRAND', relation: 'EQUALS', condition: "Kohnke's Own" },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'kohnkes-own-' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'kohnke-' },
-    { column: 'TITLE', relation: 'CONTAINS', condition: 'kohnke' },
   ],
 
   meta_title: "Kohnke's Own Horse Supplements Australia | The Equestrian",

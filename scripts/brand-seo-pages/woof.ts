@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'woof',
   title: 'Woof Equestrian Gear',
   breadcrumb_label: 'Woof',
+  logo_url: '/brands/logos/woof.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Woof' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'woof-' },

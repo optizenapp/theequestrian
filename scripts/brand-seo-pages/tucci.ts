@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'tucci',
   title: 'Tucci',
   breadcrumb_label: 'Tucci',
+  logo_url: '/brands/logos/tucci.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Tucci' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'tucci-' },

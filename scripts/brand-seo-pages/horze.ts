@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'horze',
   title: 'Horze',
   breadcrumb_label: 'Horze',
+  logo_url: '/brands/logos/horze.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Horze' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'horze-' },

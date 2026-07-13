@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'kelly-herd',
   title: 'Kelly Herd',
   breadcrumb_label: 'Kelly Herd',
+  logo_url: '/brands/logos/kelly-herd.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Kelly Herd' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'kelly-herd-' },

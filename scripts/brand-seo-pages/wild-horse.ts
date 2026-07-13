@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'wild-horse',
   title: 'Wild Horse',
   breadcrumb_label: 'Wild Horse',
+  logo_url: '/brands/logos/wild-horse.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Wild Horse' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'wild-horse-' },

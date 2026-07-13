@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'kelato',
   title: 'Kelato',
   breadcrumb_label: 'Kelato',
+  logo_url: '/brands/logos/kelato.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Kelato' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'kelato-' },
