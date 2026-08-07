@@ -32,12 +32,25 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
   if (!brand) {
     return {
       title: 'Brand Not Found',
+      robots: { index: false, follow: false },
     };
   }
+
+  const { totalCount, degraded } = await getBrandProductsFromDb(brand, 1, null);
+  const isEmpty = !degraded && totalCount === 0;
 
   const title = brand.meta_title || `${brand.title} | The Equestrian`;
   const description = brand.meta_description || `Shop the full range of ${brand.title} equestrian products. Saddles, tack, clothing and more from ${brand.title}.`;
   const canonicalUrl = `${(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '')}/brands/${handle}`;
+
+  if (isEmpty) {
+    return {
+      title,
+      description,
+      robots: { index: false, follow: true },
+      alternates: { canonical: canonicalUrl },
+    };
+  }
 
   return {
     title,
@@ -77,17 +90,25 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
   // Brand PLPs always use Postgres + brand rules so new brands work without a matching Shopify collection.
   // Variants for cart CTAs are merged from Storefront inside getBrandProductsFromDb.
   // Sequential on purpose: parallel products+categories+facets was killing Neon (`08P01`).
+  const hasFilters = Boolean(filterBrands?.length || filterSizes?.length || filterColors?.length);
   const {
     products,
     pageInfo,
     totalCount: totalProductCount,
     productUrls: productUrlsMap,
     facets,
+    degraded,
   } = await getBrandProductsFromDb(brand, 36, afterCursor, {
     brands: filterBrands,
     sizes: filterSizes,
     colors: filterColors,
   });
+
+  // Confirmed-empty hubs stay in brand_content but are hidden until sellable stock returns.
+  if (!degraded && !hasFilters && !afterCursor && totalProductCount === 0) {
+    notFound();
+  }
+
   const brandCategories = await getBrandCategories(brand, 12);
 
   // Fetch review stats for all products in one batch (server-side)
@@ -128,7 +149,7 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
         : null,
     },
     products,
-    totalProductCount: totalProductCount || brand.products_count || products.length,
+    totalProductCount: totalProductCount || products.length,
     productUrls: productUrlsMap,
     siteUrl,
     maxProductsInSchema: 12,

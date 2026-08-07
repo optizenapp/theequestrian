@@ -210,13 +210,21 @@ function buildCategoryWhereClause(categoryPath: string, filters?: CategoryFilter
   return conditions.join(' AND ');
 }
 
-export async function getLiveStatusByProductIds(productIds: string[]): Promise<Map<string, {
+export type LiveProductStatus = {
   available: boolean;
   price: string;
   compareAtPrice?: string;
   currencyCode: string;
-}>> {
-  if (productIds.length === 0) return new Map();
+};
+
+/** ok=false means timeout/error — callers should keep Neon placeholders. */
+export type LiveStatusResult = {
+  ok: boolean;
+  map: Map<string, LiveProductStatus>;
+};
+
+export async function getLiveStatusByProductIds(productIds: string[]): Promise<LiveStatusResult> {
+  if (productIds.length === 0) return { ok: true, map: new Map() };
   // 1.2s is too aggressive in production and causes frequent fallback to placeholder prices,
   // which hides sale badges on category grids.
   const timeoutMs = Number(process.env.DB_SERVER_STATUS_TIMEOUT_MS || 4000);
@@ -248,16 +256,11 @@ export async function getLiveStatusByProductIds(productIds: string[]): Promise<M
       ),
     ]);
   } catch (error) {
-    console.warn('[getProductsByCategoryFromDB] Live status fetch skipped:', error);
-    return new Map();
+    console.warn('[getLiveStatusByProductIds] Live status fetch skipped:', error);
+    return { ok: false, map: new Map() };
   }
 
-  const statusMap = new Map<string, {
-    available: boolean;
-    price: string;
-    compareAtPrice?: string;
-    currencyCode: string;
-  }>();
+  const statusMap = new Map<string, LiveProductStatus>();
 
   for (const node of data.nodes || []) {
     if (!node?.id) continue;
@@ -270,20 +273,26 @@ export async function getLiveStatusByProductIds(productIds: string[]): Promise<M
     });
   }
 
-  return statusMap;
+  // Successful Storefront response (including all-null for DRAFT/deleted IDs).
+  return { ok: true, map: statusMap };
+}
+
+function hasPositivePrice(amount: string): boolean {
+  const n = Number(amount);
+  return Number.isFinite(n) && n > 0;
 }
 
 export function applyLiveStatus(
   products: ProductWithPrimaryCollection[],
-  statusMap: Map<string, { available: boolean; price: string; compareAtPrice?: string; currencyCode: string }>
+  liveStatus: LiveStatusResult
 ): ProductWithPrimaryCollection[] {
-  // Empty map = status fetch failed/timed out — keep DB rows rather than blanking the PLP.
-  if (statusMap.size === 0) return products;
+  // Timeout/error — keep DB rows rather than blanking the PLP (client hydration repairs ACTIVE).
+  if (!liveStatus.ok) return products;
 
-  // Drop products Shopify no longer returns (deleted Webkul ghosts still in Neon).
+  // Authoritative Storefront response: drop unpublished / missing / $0 products.
   return products.flatMap((product) => {
-    const live = statusMap.get(product.id);
-    if (!live) return [];
+    const live = liveStatus.map.get(product.id);
+    if (!live || !hasPositivePrice(live.price)) return [];
 
     return [{
       ...product,
@@ -312,6 +321,26 @@ export function applyLiveStatus(
         : undefined,
     }];
   });
+}
+
+/** Adjust Neon COUNT after dropping unpublished/$0 rows from the current page. */
+export function adjustTotalCountAfterLiveFilter(
+  neonTotal: number,
+  beforeCount: number,
+  afterCount: number,
+  liveOk: boolean,
+  options?: { offset?: number; unfiltered?: boolean }
+): number {
+  if (!liveOk) return neonTotal;
+  const dropped = Math.max(0, beforeCount - afterCount);
+  const offset = options?.offset ?? 0;
+  const unfiltered = options?.unfiltered !== false;
+  // Entire Neon match set was on this page and none are sellable in Storefront.
+  if (offset === 0 && unfiltered && afterCount === 0 && beforeCount >= neonTotal) {
+    return 0;
+  }
+  if (neonTotal === 0) return 0;
+  return Math.max(afterCount, neonTotal - dropped);
 }
 
 /**
@@ -483,8 +512,18 @@ export async function getProductsByCategoryFromDB(
     getCollectionFacetsFromDb(sizeWhereClause, colorWhereClause, brandWhereClause),
   ]);
   const products = applyLiveStatus(mappedProducts, liveStatus);
+  const unfiltered = !(
+    filters?.brands?.length || filters?.sizes?.length || filters?.colors?.length
+  );
+  const adjustedTotal = adjustTotalCountAfterLiveFilter(
+    totalCount,
+    mappedProducts.length,
+    products.length,
+    liveStatus.ok,
+    { offset, unfiltered }
+  );
 
-  const hasNextPage = offset + limit < totalCount;
+  const hasNextPage = offset + limit < adjustedTotal;
   const endCursor = hasNextPage ? `db:${offset + limit}` : null;
 
   return {
@@ -493,7 +532,7 @@ export async function getProductsByCategoryFromDB(
       hasNextPage,
       endCursor,
     },
-    totalCount,
+    totalCount: adjustedTotal,
     facets,
   };
 }

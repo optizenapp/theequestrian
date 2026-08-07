@@ -35,7 +35,8 @@ export const metadata: Metadata = {
 
 export default async function BrandsIndexPage() {
   const brands = await getAllPublishedBrandContent();
-  const sortedBrands = [...brands].sort((a, b) =>
+  const withProducts = brands.filter((b) => (b.products_count ?? 0) > 0);
+  const sortedBrands = [...withProducts].sort((a, b) =>
     getBrandIndexDisplayName(a).localeCompare(getBrandIndexDisplayName(b), undefined, {
       sensitivity: 'base',
     })

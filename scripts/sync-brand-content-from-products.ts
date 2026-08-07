@@ -2,13 +2,15 @@
 /**
  * Upsert brand_content rows from distinct products.brand (canonical).
  * Refreshes products_count; sets rules to BRAND match only when rules was empty.
+ * Zeros products_count for published hubs with no matching products.
  *
- * Usage: npx tsx scripts/sync-brand-content-from-products.ts
+ * Usage:
+ *   npx tsx scripts/sync-brand-content-from-products.ts
+ *   npx tsx scripts/sync-brand-content-from-products.ts --floral-prod
  */
 
 import { config } from 'dotenv';
 import { resolve } from 'path';
-import { sql } from '@/lib/db/client';
 import { slugFromBrandName } from '@/lib/brands/brand-slug';
 import { isBlockedBrandCandidate } from '@/lib/brands/blocked-brands';
 import { invalidateBrandContentCache } from '@/lib/content/brand-content';
@@ -16,7 +18,19 @@ import { invalidateBrandContentCache } from '@/lib/content/brand-content';
 config({ path: resolve(process.cwd(), '.env.local') });
 config({ path: resolve(process.cwd(), '.env') });
 
+const FLORAL =
+  'postgresql://neondb_owner:npg_1Gzor6vnKkdu@ep-floral-wind-a7w6deck-pooler.ap-southeast-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
+
 async function main(): Promise<void> {
+  if (process.argv.includes('--floral-prod')) {
+    process.env.CUSTOM_DATABASE_URL = FLORAL;
+    process.env.POSTGRES_URL = FLORAL;
+    console.log('[floral-prod] Using production database (ep-floral-wind)\n');
+  }
+
+  // Lazy import after DB URL override
+  const { sql } = await import('@/lib/db/client');
+
   await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS brand TEXT`;
   await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS brand_hub_handle TEXT`;
 
@@ -56,6 +70,7 @@ async function main(): Promise<void> {
 
   let upserted = 0;
   let skippedBlocked = 0;
+  const activeHandles = new Set<string>();
   for (const row of counts) {
     const name = row.name.trim();
     const cnt = Number(row.cnt);
@@ -64,6 +79,7 @@ async function main(): Promise<void> {
       skippedBlocked++;
       continue;
     }
+    activeHandles.add(handle);
     const rules = JSON.stringify([{ column: 'BRAND', relation: 'EQUALS', condition: name }]);
     const metaTitle = `${name} | The Equestrian`;
     const metaDescription = `Shop ${name} at The Equestrian.`;
@@ -114,9 +130,19 @@ async function main(): Promise<void> {
     upserted++;
   }
 
+  // Zero counts for hubs with no products so A–Z / nav hide empty brands.
+  const zeroed = (await sql`
+    UPDATE brand_content
+    SET products_count = 0, updated_at = NOW()
+    WHERE status = 'published'
+      AND products_count > 0
+      AND NOT (handle = ANY(${[...activeHandles]}))
+    RETURNING handle
+  `) as unknown as Array<{ handle: string }>;
+
   invalidateBrandContentCache();
   console.log(
-    `Brand names from products: ${counts.length}, upsert operations: ${upserted}, skipped blocked: ${skippedBlocked}`
+    `Brand names from products: ${counts.length}, upsert operations: ${upserted}, skipped blocked: ${skippedBlocked}, zeroed empty: ${zeroed.length}`
   );
 }
 

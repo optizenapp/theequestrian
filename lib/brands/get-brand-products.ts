@@ -2,6 +2,7 @@ import { sql } from '@/lib/db/client';
 import { ensureProductsBrandColumns } from '@/lib/db/ensure-products-brand-columns';
 import type { BrandContentRow } from '@/lib/content/brand-content';
 import {
+  adjustTotalCountAfterLiveFilter,
   applyLiveStatus,
   dbProductToShopifyFormat,
   getLiveStatusByProductIds,
@@ -49,7 +50,15 @@ const EMPTY_RESULT = {
     colors: [] as BrandFacets['colors'],
     price: PRICE_FACET_FALLBACK,
   } as BrandFacets,
+  /** True when Neon OOMed / connection killed — do not treat as a confirmed-empty brand. */
+  degraded: false,
 };
+
+function hasActiveBrandFilters(filters?: BrandFilters): boolean {
+  return Boolean(
+    filters?.brands?.length || filters?.sizes?.length || filters?.colors?.length
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Cursor / pagination
@@ -319,19 +328,27 @@ async function fetchBrandProductsFast(
   const liveStatus = await getLiveStatusByProductIds(productsWithVariants.map((p) => p.id));
   const facets = await getBrandFacetsFromDb(brandBase, filters);
   const products = applyLiveStatus(productsWithVariants, liveStatus);
+  const adjustedTotal = adjustTotalCountAfterLiveFilter(
+    totalCount,
+    productsWithVariants.length,
+    products.length,
+    liveStatus.ok,
+    { offset, unfiltered: !hasActiveBrandFilters(filters) }
+  );
 
   const productUrls = new Map<string, string>();
   for (const row of enrichedRows) {
     productUrls.set(row.id, row.canonical_path || `/products/${row.handle}`);
   }
 
-  const hasNextPage = offset + limit < totalCount;
+  const hasNextPage = offset + limit < adjustedTotal;
   return {
     products,
     productUrls,
-    totalCount,
+    totalCount: adjustedTotal,
     pageInfo: { hasNextPage, endCursor: hasNextPage ? `dbbrand:${offset + limit}` : null },
     facets,
+    degraded: false,
   };
 }
 
@@ -456,6 +473,13 @@ async function fetchBrandProductsInMemory(
 
   const liveStatus = await getLiveStatusByProductIds(pageProducts.map((p) => p.id));
   const products = applyLiveStatus(pageProducts, liveStatus);
+  const adjustedTotal = adjustTotalCountAfterLiveFilter(
+    totalCount,
+    pageProducts.length,
+    products.length,
+    liveStatus.ok,
+    { offset, unfiltered: !hasActiveBrandFilters(filters) }
+  );
   const facets = buildFacetsInMemory(allWithVariants, filters);
 
   const canonicalPaths = new Map<string, string>();
@@ -468,13 +492,14 @@ async function fetchBrandProductsInMemory(
     productUrls.set(p.id, canonicalPaths.get(p.id) || `/products/${p.handle}`);
   }
 
-  const hasNextPage = offset + limit < totalCount;
+  const hasNextPage = offset + limit < adjustedTotal;
   return {
     products,
     productUrls,
-    totalCount,
+    totalCount: adjustedTotal,
     pageInfo: { hasNextPage, endCursor: hasNextPage ? `dbbrand:${offset + limit}` : null },
     facets,
+    degraded: false,
   };
 }
 
@@ -517,11 +542,12 @@ export async function getBrandProductsFromDb(
   totalCount: number;
   pageInfo: { hasNextPage: boolean; endCursor: string | null };
   facets: BrandFacets;
+  degraded: boolean;
 }> {
   await ensureProductsBrandColumns();
 
   const brandBase = buildBrandBaseClause(brand);
-  if (!brandBase) return EMPTY_RESULT;
+  if (!brandBase) return { ...EMPTY_RESULT, degraded: false };
 
   const offset = parseOffset(after);
 
@@ -538,7 +564,7 @@ export async function getBrandProductsFromDb(
       console.error(
         `[getBrandProductsFromDb] Neon resource error for brand=${brand.handle} code=${neonErrorCode(error)}; returning empty grid`
       );
-      return EMPTY_RESULT;
+      return { ...EMPTY_RESULT, degraded: true };
     }
     throw error;
   }

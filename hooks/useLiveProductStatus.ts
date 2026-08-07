@@ -74,17 +74,12 @@ export function useLiveProductStatus(products: ShopifyProduct[]): {
         // Only update if component is still mounted
         if (!isMounted) return;
 
-        // Merge live data with cached products
-        const updatedProducts = products.map(product => {
+        // Drop products with no Storefront node or non-positive price ($0 drafts/ghosts).
+        const updatedProducts = products.flatMap((product) => {
           const liveStatus = statusMap[product.id];
+          if (!liveStatus || !(liveStatus.price > 0)) return [];
 
-          if (!liveStatus) {
-            // No live data available, return original
-            return product;
-          }
-
-          // Create updated product with live data
-          return {
+          return [{
             ...product,
             availableForSale: liveStatus.available,
             totalInventory: liveStatus.stock,
@@ -99,7 +94,6 @@ export function useLiveProductStatus(products: ShopifyProduct[]): {
                 currencyCode: product.priceRange.maxVariantPrice.currencyCode,
               },
             },
-            // Update compareAtPriceRange if available
             ...(liveStatus.compareAtPrice && {
               compareAtPriceRange: {
                 minVariantPrice: {
@@ -112,7 +106,7 @@ export function useLiveProductStatus(products: ShopifyProduct[]): {
                 },
               },
             }),
-          };
+          }];
         });
 
         setHydratedProducts(updatedProducts);
@@ -207,11 +201,11 @@ export function useLiveProductStatusOptimized(
 
         if (!isMounted) return;
 
-        const updatedProducts = currentProducts.map(product => {
+        const updatedProducts = currentProducts.flatMap((product) => {
           const liveStatus = statusMap[product.id];
-          if (!liveStatus) return product;
+          if (!liveStatus || !(liveStatus.price > 0)) return [];
 
-          return {
+          return [{
             ...product,
             availableForSale: liveStatus.available,
             totalInventory: liveStatus.stock,
@@ -238,7 +232,7 @@ export function useLiveProductStatusOptimized(
                 },
               },
             }),
-          };
+          }];
         });
 
         setHydratedProducts(updatedProducts);
