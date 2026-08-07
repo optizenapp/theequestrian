@@ -19,6 +19,7 @@ import { getBreadcrumbsForProduct } from '@/lib/mapping/collection-mapping';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
 import { StoreRatingBadge } from '@/components/reviews/StoreRatingBadge';
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
+import { sanitizeBulletBrandLines } from '@/lib/products/sanitize-bullet-brand';
 import { composeProductDescriptionHtml } from '@/lib/products/compose-product-description';
 import ProductIdentifierMetaRow from '@/components/product/ProductIdentifierMetaRow';
 import { getProductIdentifiers } from '@/lib/products/product-identifiers';
@@ -159,6 +160,10 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
     siteUrl
   );
 
+  // Resolve canonical brand + hub handle BEFORE schema so the Product schema's
+  // brand entity links to /brands/[hub] and uses a stable @id.
+  const { brand: canonicalBrand, brandHubHandle } = await getProductBrandForDisplay(resolvedProduct.handle);
+
   // Get product-specific bullet points
   let overrideBullets: string[] = [];
   if (Array.isArray(override?.bullet_points)) {
@@ -170,9 +175,13 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
       overrideBullets = [];
     }
   }
-  const featureHighlights = override?.use_headless_bullets && overrideBullets.length > 0
+  const rawHighlights = override?.use_headless_bullets && overrideBullets.length > 0
     ? overrideBullets
     : getProductBulletPoints(resolvedProduct.id);
+  const featureHighlights = sanitizeBulletBrandLines(rawHighlights, {
+    canonicalBrand,
+    vendor: resolvedProduct.vendor,
+  });
   const reviewStats = await getReviewStatsWithCache(resolvedProduct.handle);
   const reviewBadgeStats = reviewStats
     ? {
@@ -180,9 +189,6 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
         average_rating: reviewStats.averageRating,
       }
     : null;
-  // Resolve canonical brand + hub handle BEFORE schema so the Product schema's
-  // brand entity links to /brands/[hub] and uses a stable @id.
-  const { brand: canonicalBrand, brandHubHandle } = await getProductBrandForDisplay(resolvedProduct.handle);
 
   const shippingDisplay = await resolveProductShippingDisplay({
     vendor: resolvedProduct.vendor || '',

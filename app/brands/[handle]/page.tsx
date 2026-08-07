@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { getBrandContentByHandle, getBrandIndexDisplayName } from '@/lib/content/brand-content';
@@ -104,9 +104,9 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
     colors: filterColors,
   });
 
-  // Confirmed-empty hubs stay in brand_content but are hidden until sellable stock returns.
+  // Confirmed-empty hubs stay in brand_content; temp-redirect home until sellable stock returns.
   if (!degraded && !hasFilters && !afterCursor && totalProductCount === 0) {
-    notFound();
+    redirect('/');
   }
 
   const brandCategories = await getBrandCategories(brand, 12);

@@ -1,4 +1,6 @@
 import OpenAI from 'openai';
+import { isMarketplaceAggregatorVendor } from '@/lib/brands/marketplace-vendors';
+import { sanitizeBulletBrandLines } from '@/lib/products/sanitize-bullet-brand';
 import { seoEnrichmentConfig } from '@/lib/seo-enrichment/config';
 import {
   fetchCollectionForEnrichment,
@@ -13,6 +15,28 @@ import { buildCollectiveEnrichmentPayload, validateProductCollectiveAugmentPaylo
 import { findRelevantPages, getLinkableSitemap } from '@/lib/seo-enrichment/sitemap-cache';
 import { getProductByHandle } from '@/lib/shopify/products';
 import type { EnrichmentResult, ProductCollectiveEnrichmentPayload, QueueItem } from '@/lib/seo-enrichment/types';
+
+function sellableBrand(row: { brand?: string | null; vendor?: string | null }): string {
+  const brand = typeof row.brand === 'string' ? row.brand.trim() : '';
+  if (!brand || isMarketplaceAggregatorVendor(brand)) return '';
+  if (isMarketplaceAggregatorVendor(row.vendor) && brand.toLowerCase() === String(row.vendor || '').trim().toLowerCase()) {
+    return '';
+  }
+  return brand;
+}
+
+function withSanitizedBullets<T extends { bullet_points: string[] }>(
+  payload: T,
+  row: { brand?: string | null; vendor?: string | null }
+): T {
+  return {
+    ...payload,
+    bullet_points: sanitizeBulletBrandLines(payload.bullet_points, {
+      canonicalBrand: sellableBrand(row),
+      vendor: row.vendor,
+    }),
+  };
+}
 
 function parseJson(text: string): unknown {
   try {
@@ -106,17 +130,20 @@ export class EnrichmentEngine {
     };
 
     if (seoEnrichmentConfig.mode === 'dry-run' || !this.openai) {
-      const fallback = validateProductPayload({
-        meta_title: String(beforeContent.meta_title || `${row.title} | The Equestrian`).slice(0, 68),
-        meta_description: String(beforeContent.meta_description || `Shop ${row.title} at The Equestrian.`).slice(0, 158),
-        title_override: String(beforeContent.title_override || row.title || ''),
-        description_html: String(beforeContent.description_html || row.description || ''),
-        top_description_html: String(beforeContent.top_description_html || ''),
-        bottom_description_html: String(beforeContent.bottom_description_html || ''),
-        bullet_points: Array.isArray(beforeContent.bullet_points) ? beforeContent.bullet_points : [],
-        internal_link_suggestions: [],
-        reasoning: 'Dry-run fallback payload from existing values.',
-      });
+      const fallback = withSanitizedBullets(
+        validateProductPayload({
+          meta_title: String(beforeContent.meta_title || `${row.title} | The Equestrian`).slice(0, 68),
+          meta_description: String(beforeContent.meta_description || `Shop ${row.title} at The Equestrian.`).slice(0, 158),
+          title_override: String(beforeContent.title_override || row.title || ''),
+          description_html: String(beforeContent.description_html || row.description || ''),
+          top_description_html: String(beforeContent.top_description_html || ''),
+          bottom_description_html: String(beforeContent.bottom_description_html || ''),
+          bullet_points: Array.isArray(beforeContent.bullet_points) ? beforeContent.bullet_points : [],
+          internal_link_suggestions: [],
+          reasoning: 'Dry-run fallback payload from existing values.',
+        }),
+        row
+      );
       const compliance = evaluateKorayCompliance('product', fallback);
       return {
         pageType: 'product',
@@ -154,6 +181,7 @@ export class EnrichmentEngine {
         'CRITICAL: Your JSON response MUST include ALL these keys: meta_title, meta_description, title_override, description_html, top_description_html, bottom_description_html, bullet_points, internal_link_suggestions, reasoning.',
         'Meta title max 68 chars and meta description max 158 chars.',
         'bullet_points: array of plain strings in E-A-V format (e.g. "Material: Premium leather", "Size: 45cm"). Max 10 items, each under 180 chars.',
+        'Brand bullets: ONLY use product.brand. NEVER use product.vendor (marketplace seller) as Brand. If brand is empty, omit Brand bullets.',
         internalLinkInstructions,
         internalLinkEmbedding,
         'description_html, top_description_html, bottom_description_html: rich HTML with <h2>/<h3> headings (NOT <h1>) and extractive answers. MUST include contextual internal links embedded naturally in the content. Start directly with content, no redundant product name headings.',
@@ -168,6 +196,7 @@ export class EnrichmentEngine {
       serp_analysis: serpAnalysis,
       product: {
         title: row.title,
+        brand: sellableBrand(row),
         vendor: row.vendor,
         product_type: row.product_type,
         tags: row.tags,
@@ -194,7 +223,7 @@ export class EnrichmentEngine {
     const firstPass = await this.generateJsonResponse({ system: baseSystem, userPayload: baseUserPayload });
     totalPromptTokens += firstPass.promptTokens;
     totalCompletionTokens += firstPass.completionTokens;
-    let payload = validateProductPayload(firstPass.parsed);
+    let payload = withSanitizedBullets(validateProductPayload(firstPass.parsed), row);
     let compliance = evaluateKorayCompliance('product', payload);
 
     if (
@@ -208,12 +237,12 @@ export class EnrichmentEngine {
           previous_output: payload,
           compliance_feedback: compliance,
           instruction:
-            'Regenerate to fix failed compliance checks while preserving factual accuracy and intent alignment.',
+            'Regenerate to fix failed compliance checks while preserving factual accuracy and intent alignment. Never use vendor as Brand.',
         },
       });
       totalPromptTokens += secondPass.promptTokens;
       totalCompletionTokens += secondPass.completionTokens;
-      payload = validateProductPayload(secondPass.parsed);
+      payload = withSanitizedBullets(validateProductPayload(secondPass.parsed), row);
       compliance = evaluateKorayCompliance('product', payload);
     }
 
@@ -308,15 +337,16 @@ export class EnrichmentEngine {
         bullet_points: Array.isArray(beforeContent.bullet_points) && beforeContent.bullet_points.length >= 3
           ? beforeContent.bullet_points
           : [
-              `Brand: ${row.vendor || 'Quality equestrian brand'}`,
+              ...(sellableBrand(row) ? [`Brand: ${sellableBrand(row)}`] : []),
               `Type: ${row.product_type || 'Equestrian product'}`,
-              `Shipping rates vary by product — see checkout for your order total`,
+              'Use: Everyday equestrian use',
+              'Shipping rates vary by product — see checkout for your order total',
             ],
         reasoning: 'Dry-run Collective metadata fallback from existing values.',
       });
       const normalised = useNormalise ? normaliseVendorDescription(vendorDescriptionHtml) : null;
       const collective = buildCollectiveEnrichmentPayload({
-        metadata,
+        metadata: withSanitizedBullets(metadata, row),
         top_description_html: useAugment ? String(beforeContent.top_description_html || '') : '',
         bottom_description_html: useAugment ? String(beforeContent.bottom_description_html || '') : '',
         description_html: normalised?.changed ? normalised.html : '',
@@ -342,6 +372,7 @@ export class EnrichmentEngine {
         'meta_title (≤68 chars): win the SERP click — add qualifying context (use-case, material, audience). Must NOT duplicate title_override verbatim.',
         'meta_description (≤158 chars): compelling click-through copy with a differentiator. Australian English.',
         'bullet_points: 5–8 plain strings in Entity-Attribute-Value format ("Material: Goatskin leather"). Only state facts present in vendor_description. No markdown. No fluff like "premium quality".',
+        'Brand bullets: ONLY use product.brand. NEVER use product.vendor (marketplace seller names like Trailrace, Exclusively Equine, Toptac) as Brand. If product.brand is empty, omit Brand bullets entirely.',
         'Bullets should re-represent prose facts in structured form — same facts, different structure. Prioritise spec-style attributes over benefit claims.',
         'Use Australian spelling.',
       ]
@@ -356,6 +387,7 @@ export class EnrichmentEngine {
       serp_analysis: serpAnalysis,
       product: {
         title: row.title,
+        brand: sellableBrand(row),
         vendor: row.vendor,
         product_type: row.product_type,
         tags: row.tags,
@@ -376,7 +408,10 @@ export class EnrichmentEngine {
     const firstPass = await this.generateJsonResponse({ system: metadataSystem, userPayload: metadataUserPayload });
     totalPromptTokens += firstPass.promptTokens;
     totalCompletionTokens += firstPass.completionTokens;
-    let metadataPayload = validateProductMetadataPayload(firstPass.parsed);
+    let metadataPayload = withSanitizedBullets(
+      validateProductMetadataPayload(firstPass.parsed),
+      row
+    );
     let compliance = evaluateMetadataOnlyCompliance(metadataPayload, vendorDescription);
 
     if (
@@ -389,12 +424,15 @@ export class EnrichmentEngine {
           ...metadataUserPayload,
           previous_output: metadataPayload,
           compliance_feedback: compliance,
-          instruction: 'Regenerate metadata and bullets only. Fix compliance. H1 and meta_title must differ. Do not output HTML descriptions.',
+          instruction: 'Regenerate metadata and bullets only. Fix compliance. H1 and meta_title must differ. Do not output HTML descriptions. Never use vendor as Brand.',
         },
       });
       totalPromptTokens += secondPass.promptTokens;
       totalCompletionTokens += secondPass.completionTokens;
-      metadataPayload = validateProductMetadataPayload(secondPass.parsed);
+      metadataPayload = withSanitizedBullets(
+        validateProductMetadataPayload(secondPass.parsed),
+        row
+      );
       compliance = evaluateMetadataOnlyCompliance(metadataPayload, vendorDescription);
     }
 

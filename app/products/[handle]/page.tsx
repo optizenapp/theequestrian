@@ -24,6 +24,7 @@ import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBa
 import { StoreRatingBadge } from '@/components/reviews/StoreRatingBadge';
 import ProductIdentifierMetaRow from '@/components/product/ProductIdentifierMetaRow';
 import { getProductBulletPoints } from '@/lib/products/bullet-points';
+import { sanitizeBulletBrandLines } from '@/lib/products/sanitize-bullet-brand';
 import { composeProductDescriptionHtml } from '@/lib/products/compose-product-description';
 import { getProductIdentifiers } from '@/lib/products/product-identifiers';
 import { getProductBrandForDisplay } from '@/lib/db/product-brand';
@@ -192,9 +193,13 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
       overrideBullets = [];
     }
   }
-  const featureHighlights = override?.use_headless_bullets && overrideBullets.length > 0
+  const rawHighlights = override?.use_headless_bullets && overrideBullets.length > 0
     ? overrideBullets
     : getProductBulletPoints(product.id);
+  const featureHighlights = sanitizeBulletBrandLines(rawHighlights, {
+    canonicalBrand,
+    vendor: product.vendor,
+  });
   const identifiers = getProductIdentifiers(product, { canonicalBrand, brandHubHandle });
   const pdpCroVariant = getPdpCroVariant(product.handle, sp);
   const isCroTrialPdp = pdpCroVariant === 'cro1';

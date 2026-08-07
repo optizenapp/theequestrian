@@ -163,6 +163,7 @@ export const EnrichmentQueries = {
       p.title,
       p.description,
       p.vendor,
+      p.brand,
       p.product_type,
       p.tags,
       p.image_alt,
