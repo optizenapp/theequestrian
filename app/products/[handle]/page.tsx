@@ -1,4 +1,4 @@
-import { notFound, permanentRedirect, redirect } from 'next/navigation';
+import { permanentRedirect, redirect } from 'next/navigation';
 import {
   getProductByHandle,
   getProductCanonicalUrl,
@@ -35,7 +35,12 @@ import {
 } from '@/lib/products/pdp-cro-trial';
 import ProductPdpCroTrialMain from '@/components/product/ProductPdpCroTrialMain';
 import ProductPdpCroTwoMain from '@/components/product/ProductPdpCroTwoMain';
-import { createManualRedirect, getManualRedirect } from '@/lib/redirects/manual';
+import { createManualRedirect } from '@/lib/redirects/manual';
+import {
+  followManualRedirectUnlessProductRestored,
+  permanentRedirectMissingProduct,
+  redirectMissingProduct,
+} from '@/lib/redirects/missing-product-redirect';
 import { getProductOverrideByHandle, resolveProductHandleFromSlug } from '@/lib/content/product-overrides';
 import { buildProductSeoMetadata, resolveProductPageDescription, resolveProductPageTitle } from '@/lib/seo/product-metadata';
 import { cache } from 'react';
@@ -71,22 +76,20 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
   const { handle: rawHandle } = await params;
   const sp = await searchParams;
   const { resolvedHandle, product } = await getResolvedProduct(rawHandle);
-  const manualRedirect = await getManualRedirect(`/products/${rawHandle}`);
-  if (manualRedirect) {
-    if (manualRedirect.type === '301' || manualRedirect.type === '308') {
-      permanentRedirect(manualRedirect.to);
-    }
-    redirect(manualRedirect.to);
-  }
+  await followManualRedirectUnlessProductRestored({
+    pathname: `/products/${rawHandle}`,
+    handle: resolvedHandle,
+    productAvailable: !!(product && hasProductImage(product)),
+  });
   if (!product) {
-    notFound();
+    return permanentRedirectMissingProduct(`/products/${rawHandle}`, resolvedHandle);
   }
   if (!hasProductImage(product)) {
-    notFound();
+    return redirectMissingProduct(`/products/${rawHandle}`, resolvedHandle);
   }
   const override = await getProductOverrideByHandle(resolvedHandle);
   if (override?.is_published_headless === false) {
-    notFound();
+    return redirectMissingProduct(`/products/${rawHandle}`, resolvedHandle);
   }
   const displayTitle = override?.use_headless_title ? (override?.title_override || product.title) : product.title;
   const composedDescription = composeProductDescriptionHtml({
@@ -387,23 +390,18 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
 export async function generateMetadata({ params }: ProductPageProps) {
   const { handle: rawHandle } = await params;
   const { resolvedHandle, product } = await getResolvedProduct(rawHandle);
-  
+  const productPath = `/products/${rawHandle}`;
+
   if (!product) {
-    return {
-      title: 'Product Not Found',
-    };
+    return permanentRedirectMissingProduct(productPath, resolvedHandle);
   }
   if (!hasProductImage(product)) {
-    return {
-      title: 'Product Not Found',
-    };
+    return redirectMissingProduct(productPath, resolvedHandle);
   }
 
   const override = await getProductOverrideByHandle(resolvedHandle);
   if (override?.is_published_headless === false) {
-    return {
-      title: 'Product Not Found',
-    };
+    return redirectMissingProduct(productPath, resolvedHandle);
   }
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
   const canonicalPath = await getProductCanonicalUrl(product);

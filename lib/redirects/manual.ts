@@ -49,17 +49,20 @@ export async function getManualRedirect(pathname: string) {
   await ensureRedirectTable();
   const fromPath = normalizePath(pathname);
   const result = await sql`
-    SELECT to_path, redirect_type
+    SELECT to_path, redirect_type, source
     FROM manual_redirects
     WHERE from_path = ${fromPath}
       AND status IN ('active', 'override')
     LIMIT 1
   `;
-  const row = (Array.isArray(result) ? result[0] : undefined) as { to_path: string; redirect_type: string } | undefined;
+  const row = (Array.isArray(result) ? result[0] : undefined) as
+    | { to_path: string; redirect_type: string; source: string }
+    | undefined;
   if (!row) return null;
   return {
     to: row.to_path,
     type: row.redirect_type || '301',
+    source: row.source || 'manual',
   };
 }
 
@@ -80,11 +83,36 @@ export async function createManualRedirect(
     ON CONFLICT (from_path) DO UPDATE
     SET to_path = EXCLUDED.to_path,
         redirect_type = EXCLUDED.redirect_type,
+        source = EXCLUDED.source,
         status = 'active',
         conflict_target = NULL,
         updated_at = NOW()
   `;
   return { from: fromPath, to: toPath, type, source: sourceValue };
+}
+
+/**
+ * When a deleted product is recreated / reactivated with the same handle,
+ * deactivate auto redirects created by the product-delete webhook so the PDP works again.
+ */
+export async function deactivateProductDeleteRedirectsForHandle(handle: string) {
+  const normalizedHandle = (handle || '').trim();
+  if (!normalizedHandle) return 0;
+  await ensureRedirectTable();
+  const productsPath = normalizePath(`/products/${normalizedHandle}`);
+  const result = await sql`
+    UPDATE manual_redirects
+    SET status = 'inactive', updated_at = NOW()
+    WHERE source = 'product-delete'
+      AND status IN ('active', 'override')
+      AND (
+        from_path = ${productsPath}
+        OR from_path LIKE ${'%/' + normalizedHandle}
+      )
+    RETURNING id
+  `;
+  const rows = Array.isArray(result) ? result : [];
+  return rows.length;
 }
 
 export async function listManualRedirects(limit = 50, source?: string) {

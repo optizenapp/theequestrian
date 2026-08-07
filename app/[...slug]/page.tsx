@@ -1,4 +1,4 @@
-import { notFound, permanentRedirect, redirect } from 'next/navigation';
+import { permanentRedirect, redirect } from 'next/navigation';
 import {
   getProductByHandle,
   getProductById,
@@ -31,8 +31,12 @@ import {
 } from '@/lib/products/pdp-cro-trial';
 import ProductPdpCroTrialMain from '@/components/product/ProductPdpCroTrialMain';
 import ProductPdpCroTwoMain from '@/components/product/ProductPdpCroTwoMain';
-import { getManualRedirect } from '@/lib/redirects/manual';
 import { getEmptyCategoryRedirectTarget } from '@/lib/redirects/empty-category-redirect';
+import {
+  followManualRedirectUnlessProductRestored,
+  permanentRedirectMissingProduct,
+  redirectMissingProduct,
+} from '@/lib/redirects/missing-product-redirect';
 import { getProductOverrideByHandle, resolveProductHandleFromSlug } from '@/lib/content/product-overrides';
 import { getProductAllocationByHandle } from '@/lib/db/product-allocations';
 import ProductReviewSection from '@/components/reviews/ProductReviewSection';
@@ -72,19 +76,12 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
   const sp = await searchParams;
 
   const requestedPath = `/${slug.join('/')}`;
-  const manualRedirect = await getManualRedirect(requestedPath);
-  if (manualRedirect) {
-    if (manualRedirect.type === '301' || manualRedirect.type === '308') {
-      permanentRedirect(manualRedirect.to);
-    }
-    redirect(manualRedirect.to);
-  }
-  
+
   // Check for legacy cart permalink URLs (should be handled by middleware but catch here as backup)
   if (slug[0] === 'cart' && slug[1] === 'c') {
     redirect('/cart');
   }
-  
+
   // Last segment is the product handle
   const rawHandle = slug[slug.length - 1];
   const { handle, product } = await getResolvedProduct(rawHandle);
@@ -96,6 +93,12 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
   if (!resolvedProduct && allocationByHandle?.product_id) {
     resolvedProduct = await getProductById(allocationByHandle.product_id);
   }
+
+  await followManualRedirectUnlessProductRestored({
+    pathname: requestedPath,
+    handle,
+    productAvailable: !!(resolvedProduct && hasProductImage(resolvedProduct)),
+  });
   
   if (!resolvedProduct) {
     // When path has 4+ segments, may be an empty category (e.g. /pet/dog/accessories/dog-bandanas)
@@ -106,14 +109,15 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
         redirect(emptyRedirect);
       }
     }
-    notFound();
+    // Deleted / missing product → parent category
+    return permanentRedirectMissingProduct(requestedPath, handle);
   }
   if (!hasProductImage(resolvedProduct)) {
-    notFound();
+    return redirectMissingProduct(requestedPath, handle);
   }
   const override = await getProductOverrideByHandle(handle);
   if (override?.is_published_headless === false) {
-    notFound();
+    return redirectMissingProduct(requestedPath, handle);
   }
   const displayTitle = override?.use_headless_title ? (override?.title_override || resolvedProduct.title) : resolvedProduct.title;
   const descriptionHtml = composeProductDescriptionHtml({
@@ -392,29 +396,24 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
  */
 export async function generateMetadata({ params }: ProductCatchAllPageProps) {
   const { slug } = await params;
+  const requestedPath = `/${slug.join('/')}`;
   const rawHandle = slug[slug.length - 1];
   const { handle, product } = await getResolvedProduct(rawHandle);
-  
+
   if (!product) {
-    return {
-      title: 'Product Not Found',
-    };
+    return permanentRedirectMissingProduct(requestedPath, handle);
   }
   if (!hasProductImage(product)) {
-    return {
-      title: 'Product Not Found',
-    };
+    return redirectMissingProduct(requestedPath, handle);
   }
 
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
   const canonicalPath = await getProductCanonicalUrl(product);
   const canonicalUrl = `${siteUrl}${canonicalPath}`;
-  
+
   const override = await getProductOverrideByHandle(handle);
   if (override?.is_published_headless === false) {
-    return {
-      title: 'Product Not Found',
-    };
+    return redirectMissingProduct(requestedPath, handle);
   }
   const displayTitle = override?.use_headless_title ? (override?.title_override || product.title) : product.title;
   const title = override?.use_headless_meta_title

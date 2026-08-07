@@ -1,4 +1,4 @@
-import { notFound, permanentRedirect, redirect } from 'next/navigation';
+import { permanentRedirect, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { getProductsByCategoryForCollectionPage } from '@/lib/shopify/category-collection-fetch';
 import {
@@ -57,7 +57,11 @@ import ProductPdpCroTwoMain from '@/components/product/ProductPdpCroTwoMain';
 import ProductReviewSection from '@/components/reviews/ProductReviewSection';
 import type { Metadata } from 'next';
 import type { ShopifyBuyBoxProduct, ShopifyProduct } from '@/types/shopify';
-import { getManualRedirect } from '@/lib/redirects/manual';
+import {
+  followManualRedirectUnlessProductRestored,
+  permanentRedirectMissingProduct,
+  redirectMissingProduct,
+} from '@/lib/redirects/missing-product-redirect';
 import { getProductOverrideByHandle, resolveProductHandleFromSlug } from '@/lib/content/product-overrides';
 import { buildProductSeoMetadata, resolveProductPageDescription, resolveProductPageTitle } from '@/lib/seo/product-metadata';
 import { cache } from 'react';
@@ -101,17 +105,16 @@ export default async function Page({ params, searchParams }: PageProps) {
   const filterSizes = size ? (Array.isArray(size) ? size : size.split(',')) : undefined;
   const filterColors = color ? (Array.isArray(color) ? color : color.split(',')) : undefined;
 
-  const manualRedirect = await getManualRedirect(`/${category}/${subcategory}/${thirdSegment}`);
-  if (manualRedirect) {
-    if (manualRedirect.type === '301' || manualRedirect.type === '308') {
-      permanentRedirect(manualRedirect.to);
-    }
-    redirect(manualRedirect.to);
-  }
-
   const currentPath = `/${category}/${subcategory}/${thirdSegment}`;
   const { resolvedHandle: preResolvedHandle, product: productAtPath } =
     await getResolvedProductBySlug(thirdSegment);
+
+  await followManualRedirectUnlessProductRestored({
+    pathname: currentPath,
+    handle: preResolvedHandle,
+    productAvailable: !!(productAtPath && hasProductImage(productAtPath)),
+  });
+
   if (productAtPath && hasProductImage(productAtPath)) {
     const preOverride = await getProductOverrideByHandle(preResolvedHandle);
     if (preOverride?.is_published_headless !== false) {
@@ -162,14 +165,14 @@ export default async function Page({ params, searchParams }: PageProps) {
   const { resolvedHandle, product } = await getResolvedProductBySlug(thirdSegment);
 
   if (!product) {
-    notFound();
+    return permanentRedirectMissingProduct(currentPath, resolvedHandle);
   }
   if (!hasProductImage(product)) {
-    notFound();
+    return redirectMissingProduct(currentPath, resolvedHandle);
   }
   const productOverride = await getProductOverrideByHandle(resolvedHandle);
   if (productOverride?.is_published_headless === false) {
-    notFound();
+    return redirectMissingProduct(currentPath, resolvedHandle);
   }
 
   // Get the canonical URL for this product
@@ -192,12 +195,13 @@ async function renderProductPage(
   canonicalPath?: string,
   searchParams: PdpSearchParams = {}
 ) {
+  const productPath = canonicalPath || `/${product.handle}`;
   if (!hasProductImage(product)) {
-    notFound();
+    return redirectMissingProduct(productPath, product.handle);
   }
   const override = await getProductOverrideByHandle(product.handle);
   if (override?.is_published_headless === false) {
-    notFound();
+    return redirectMissingProduct(productPath, product.handle);
   }
   const displayTitle = override?.use_headless_title ? (override?.title_override || product.title) : product.title;
   const composedDescription = composeProductDescriptionHtml({
@@ -735,23 +739,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   // It's a product - fetch and generate full metadata
   const { resolvedHandle, product } = await getResolvedProductBySlug(thirdSegment);
-  
+  const productPath = `/${category}/${subcategory}/${thirdSegment}`;
+
   if (!product) {
-    return {
-      title: 'Product Not Found',
-    };
+    return permanentRedirectMissingProduct(productPath, resolvedHandle);
   }
   if (!hasProductImage(product)) {
-    return {
-      title: 'Product Not Found',
-    };
+    return redirectMissingProduct(productPath, resolvedHandle);
   }
 
   const override = await getProductOverrideByHandle(resolvedHandle);
   if (override?.is_published_headless === false) {
-    return {
-      title: 'Product Not Found',
-    };
+    return redirectMissingProduct(productPath, resolvedHandle);
   }
   const productCanonicalPath = await getProductCanonicalUrl(product);
   const canonicalUrl = `${siteUrl}${productCanonicalPath}`;

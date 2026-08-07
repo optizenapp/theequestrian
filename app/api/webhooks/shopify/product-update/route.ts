@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
 import { upsertProductVariantsFromWebhook } from '@/lib/db/product-variants';
+import { deactivateProductDeleteRedirectsForHandle } from '@/lib/redirects/manual';
 import crypto from 'crypto';
 import { revalidateShopifyProductCaches } from '@/lib/cache/shopify-revalidate';
 
@@ -110,11 +111,25 @@ export async function POST(request: NextRequest) {
       options: Array.isArray(product.options) ? product.options : [],
     });
 
+    // If this handle was previously deleted, clear auto parent-category redirects
+    // so the product page works again when the product returns.
+    let clearedDeleteRedirects = 0;
+    if (product.status === 'active' && typeof product.handle === 'string' && product.handle) {
+      clearedDeleteRedirects = await deactivateProductDeleteRedirectsForHandle(product.handle);
+      if (clearedDeleteRedirects > 0) {
+        console.log(
+          '[Webhook] Cleared product-delete redirects for restored handle:',
+          product.handle,
+          clearedDeleteRedirects
+        );
+      }
+    }
+
     await revalidateShopifyProductCaches(product.handle || null);
     
     console.log('[Webhook] ✅ Product synced:', productId);
     
-    return NextResponse.json({ ok: true, productId });
+    return NextResponse.json({ ok: true, productId, clearedDeleteRedirects });
   } catch (error) {
     console.error('[Webhook] Error:', error);
     return NextResponse.json(
