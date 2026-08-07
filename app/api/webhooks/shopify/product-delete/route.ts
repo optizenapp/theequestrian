@@ -47,11 +47,25 @@ export async function POST(request: NextRequest) {
     // Construct Shopify GID
     const productId = `gid://shopify/Product/${product.id}`;
     
-    // Delete from database
+    // Delete from database (product row + allocations/overrides so PLPs don't keep ghosts)
     await deleteProductVariantsByProductId(productId);
+    const handle = typeof product.handle === 'string' ? product.handle : null;
+    if (handle) {
+      await sql`
+        DELETE FROM product_content_overrides
+        WHERE product_id = ${productId} OR product_handle = ${handle}
+      `;
+      await sql`
+        DELETE FROM product_category_assignments
+        WHERE product_id = ${productId} OR product_handle = ${handle}
+      `;
+    } else {
+      await sql`DELETE FROM product_content_overrides WHERE product_id = ${productId}`;
+      await sql`DELETE FROM product_category_assignments WHERE product_id = ${productId}`;
+    }
     await sql`DELETE FROM products WHERE id = ${productId}`;
 
-    await revalidateShopifyProductCaches(product.handle || null);
+    await revalidateShopifyProductCaches(handle);
     
     console.log('[Webhook] ✅ Product deleted:', productId);
     

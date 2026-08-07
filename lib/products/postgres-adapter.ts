@@ -277,13 +277,15 @@ export function applyLiveStatus(
   products: ProductWithPrimaryCollection[],
   statusMap: Map<string, { available: boolean; price: string; compareAtPrice?: string; currencyCode: string }>
 ): ProductWithPrimaryCollection[] {
+  // Empty map = status fetch failed/timed out — keep DB rows rather than blanking the PLP.
   if (statusMap.size === 0) return products;
 
-  return products.map((product) => {
+  // Drop products Shopify no longer returns (deleted Webkul ghosts still in Neon).
+  return products.flatMap((product) => {
     const live = statusMap.get(product.id);
-    if (!live) return product;
+    if (!live) return [];
 
-    return {
+    return [{
       ...product,
       availableForSale: live.available,
       priceRange: {
@@ -308,7 +310,7 @@ export function applyLiveStatus(
             },
           }
         : undefined,
-    };
+    }];
   });
 }
 

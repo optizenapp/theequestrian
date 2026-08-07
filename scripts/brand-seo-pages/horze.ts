@@ -8,6 +8,8 @@ const content: BrandSEOContent = {
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Horze' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'horze-' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'horzebodz-' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'horzehood-' },
   ],
 
   meta_title: 'Horze Australia | Tall Boots, Breeches, Helmets & Horse Boots | The Equestrian',

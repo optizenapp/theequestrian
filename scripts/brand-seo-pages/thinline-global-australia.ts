@@ -7,7 +7,7 @@ const content: BrandSEOContent = {
   logo_url: '/brands/logos/thinline-global-australia.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'ThinLine Global Australia' },
-    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'thinline-global-australia-' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'thinline-' },
   ],
 
   meta_title: 'ThinLine Global Australia | Saddle Pads & Western Pads | The Equestrian',

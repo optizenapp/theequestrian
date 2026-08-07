@@ -112,8 +112,24 @@ export function buildCollectiveEnrichmentPayload(input: {
     normalisation_steps: input.normalisation_steps || [],
   };
 }
+function normalizeBulletPoints(value: unknown): string[] | unknown {
+  if (!Array.isArray(value)) return value;
+  return value
+    .filter((b): b is string => typeof b === 'string' && b.trim().length > 0)
+    .map((b) => b.trim().slice(0, 180))
+    .slice(0, 10);
+}
+
 export function validateProductMetadataPayload(input: unknown): ProductMetadataEnrichmentPayload {
-  const parsed = productMetadataSchema.parse(input);
+  // Truncate oversized bullet arrays before Zod — models occasionally return >10.
+  const normalized =
+    input && typeof input === 'object'
+      ? {
+          ...(input as Record<string, unknown>),
+          bullet_points: normalizeBulletPoints((input as { bullet_points?: unknown }).bullet_points),
+        }
+      : input;
+  const parsed = productMetadataSchema.parse(normalized);
   return {
     meta_title: parsed.meta_title.substring(0, 68),
     meta_description: parsed.meta_description.substring(0, 158),

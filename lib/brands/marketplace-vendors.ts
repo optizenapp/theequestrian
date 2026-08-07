@@ -4,6 +4,10 @@ const MARKETPLACE_VENDOR_KEYS = new Set([
   'trailraceequestrianoutfitters',
   'webkul',
   'equinemarketplace',
+  'exclusivelyequine',
+  'toptacinternational',
+  'littleequineco',
+  'cananimalcare',
 ]);
 
 function normalizeVendorKey(vendor: string): string {

@@ -7,6 +7,7 @@ const content: BrandSEOContent = {
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'PAW' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'paw-' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'pawk-' },
   ],
 
   meta_title: 'PAW Pet Care Products in Australia',
