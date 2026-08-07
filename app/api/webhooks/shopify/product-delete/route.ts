@@ -39,24 +39,23 @@ async function createDeletedProductRedirects(
     (handle ? await getProductAllocationByHandle(handle) : null) ||
     (await getProductAllocationByProductId(productId));
 
-  if (!allocation) return null;
-
   const parentCategory =
-    allocation.category_path?.trim() ||
-    (allocation.canonical_path ? parentPathFromProductUrl(allocation.canonical_path) : null);
-
-  if (!parentCategory || parentCategory === '/') return null;
+    allocation?.category_path?.trim() ||
+    (allocation?.canonical_path ? parentPathFromProductUrl(allocation.canonical_path) : null) ||
+    '/';
 
   const fromPaths = new Set<string>();
-  if (allocation.canonical_path) {
+  if (allocation?.canonical_path) {
     fromPaths.add(allocation.canonical_path);
   }
   if (handle) {
     fromPaths.add(`/products/${handle}`);
-    if (allocation.category_path) {
+    if (allocation?.category_path) {
       fromPaths.add(`${allocation.category_path.replace(/\/$/, '')}/${handle}`);
     }
   }
+
+  if (fromPaths.size === 0) return null;
 
   for (const from of fromPaths) {
     if (from === parentCategory) continue;

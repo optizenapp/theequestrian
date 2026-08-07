@@ -1,4 +1,4 @@
-import { notFound, permanentRedirect, redirect } from 'next/navigation';
+import { permanentRedirect, redirect } from 'next/navigation';
 import { getProductAllocationByHandle } from '@/lib/db/product-allocations';
 import {
   deactivateProductDeleteRedirectsForHandle,
@@ -23,17 +23,18 @@ export function parentPathFromProductUrl(path: string): string {
 /**
  * Resolve where a missing/unavailable product URL should send users.
  * Category-based URLs drop the product handle; /products/{handle} uses allocation when present.
+ * Falls back to home when no parent category is known.
  */
 export async function resolveMissingProductRedirectTarget(
   productPath: string,
   handle?: string
-): Promise<string | null> {
+): Promise<string> {
   const normalized = normalizePath(productPath);
   const segments = normalized.split('/').filter(Boolean);
 
   if (segments[0] === 'products' && segments.length === 2) {
     const productHandle = handle || segments[1];
-    if (!productHandle) return null;
+    if (!productHandle) return '/';
     const allocation = await getProductAllocationByHandle(productHandle);
     if (allocation?.category_path) {
       return normalizePath(allocation.category_path);
@@ -41,23 +42,20 @@ export async function resolveMissingProductRedirectTarget(
     if (allocation?.canonical_path) {
       return parentPathFromProductUrl(allocation.canonical_path);
     }
-    return null;
+    return '/';
   }
 
-  if (segments.length < 2) return null;
+  if (segments.length < 2) return '/';
   return parentPathFromProductUrl(normalized);
 }
 
-/** 301 to parent category for deleted / missing products. Falls back to 404 when unknown. */
+/** 301 to parent category for deleted / missing products. Falls back to home. */
 export async function permanentRedirectMissingProduct(
   productPath: string,
   handle?: string
 ): Promise<never> {
   const target = await resolveMissingProductRedirectTarget(productPath, handle);
-  if (target) {
-    permanentRedirect(target);
-  }
-  notFound();
+  permanentRedirect(target || '/');
 }
 
 /** Temporary redirect for unpublished / image-less products that may return later. */
@@ -66,10 +64,7 @@ export async function redirectMissingProduct(
   handle?: string
 ): Promise<never> {
   const target = await resolveMissingProductRedirectTarget(productPath, handle);
-  if (target) {
-    redirect(target);
-  }
-  notFound();
+  redirect(target || '/');
 }
 
 /**
