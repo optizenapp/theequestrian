@@ -18,12 +18,11 @@ export function HeaderTopBar() {
     <div className="bg-[#1DC4C6]/70 text-black text-center py-2.5 px-4 text-sm font-medium relative transition-all">
       <div className="container mx-auto flex items-center justify-center">
         <p className="flex items-center gap-1">
-          Australia-wide delivery — rates calculated at checkout per product.
           <Link
-            href="/shipping-delivery"
+            href="/rider/helmets/kask-star-lady-pure-shine-swarovski-frame-wg11"
             className="underline font-bold hover:text-black/80 transition-colors"
           >
-            Learn more
+            $175 OFF (10%) KASK Star Lady Pure Shine Swarovski Frame Helmet
           </Link>
         </p>
 
