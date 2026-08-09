@@ -73,6 +73,7 @@ async function loadBrandContent(): Promise<Map<string, BrandContentRow>> {
         breadcrumb_label,
         faq_json,
         quick_answer,
+        logo_url,
         status,
         updated_at
       FROM brand_content

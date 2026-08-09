@@ -4,6 +4,7 @@ const content: BrandSEOContent = {
   handle: 'living-horse-tails-by-monika',
   title: 'Living Horse Tails by Monika',
   breadcrumb_label: 'Living Horse Tails by Monika',
+  logo_url: '/brands/logos/living-horse-tails-by-monika.png',
   rules: [
     { column: 'VENDOR', relation: 'EQUALS', condition: 'Living Horse Tails Jewellery by Monika' },
     { column: 'VENDOR', relation: 'EQUALS', condition: 'Living Horse Tales Jewellery By Monika' },
