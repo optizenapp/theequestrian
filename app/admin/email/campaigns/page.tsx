@@ -265,7 +265,7 @@ export default function AdminEmailCampaignsPage() {
           price: p.price || '',
           compareAtPrice: p.compareAtPrice || '',
           savePercent: p.savePercent || '',
-          freeShippingBadge: p.freeShippingBadge !== false,
+          freeShippingBadge: p.freeShippingBadge === true,
         };
       })
     );
@@ -1475,7 +1475,7 @@ export default function AdminEmailCampaignsPage() {
                                   });
                                   const data = await res.json();
                                   const p = data.product || {};
-                                  updateCuratedProducts(block.id, [...block.products, { id: generateId(), handle, title: p.title || '', imageUrl: p.imageUrl || '', url: p.url || '', price: p.price || '', compareAtPrice: p.compareAtPrice || '', savePercent: p.savePercent || '', freeShippingBadge: p.freeShippingBadge !== false }]);
+                                  updateCuratedProducts(block.id, [...block.products, { id: generateId(), handle, title: p.title || '', imageUrl: p.imageUrl || '', url: p.url || '', price: p.price || '', compareAtPrice: p.compareAtPrice || '', savePercent: p.savePercent || '', freeShippingBadge: p.freeShippingBadge === true }]);
                                   setNewCuratedHandles((prev) => ({ ...prev, [block.id]: '' }));
                                 }}
                                 className="rounded border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 hover:border-action hover:text-action"

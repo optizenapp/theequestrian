@@ -6,6 +6,7 @@ import {
   renderTemplateContent,
 } from '@/lib/email-platform/templates';
 import { getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
+import { resolveProductFreeShipping } from '@/lib/shipping/free-shipping';
 
 function toMoney(value: string | number | undefined): string {
   const parsed = typeof value === 'number' ? value : Number(value || 0);
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
     let productSavePercent = '25%';
     let productCompareAtPriceStyle = '';
     let productSavePercentStyle = '';
-    let productFreeShippingStyle = '';
+    let productFreeShippingStyle = 'display:none;';
     if (handle) {
       const product = await getProductByHandle(handle);
       if (product) {
@@ -51,7 +52,12 @@ export async function POST(request: NextRequest) {
         productSavePercent = hasDiscount ? `${Math.round(((compareValue - priceValue) / compareValue) * 100)}%` : '';
         productCompareAtPriceStyle = hasDiscount ? '' : 'display:none;';
         productSavePercentStyle = hasDiscount ? '' : 'display:none;';
-        productFreeShippingStyle = '';
+        const hasFreeShipping = await resolveProductFreeShipping({
+          vendor: product.vendor || '',
+          tags: product.tags || [],
+          price: priceValue,
+        });
+        productFreeShippingStyle = hasFreeShipping ? '' : 'display:none;';
       }
     }
 

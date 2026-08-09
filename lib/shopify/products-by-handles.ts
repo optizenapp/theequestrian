@@ -43,6 +43,7 @@ export async function getProductsByHandlesAlt(handles: string[]): Promise<Shopif
               productType
               availableForSale
               vendor
+              tags
               priceRange {
                 minVariantPrice {
                   amount

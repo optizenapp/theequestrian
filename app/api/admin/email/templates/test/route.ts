@@ -8,6 +8,7 @@ import {
   proxyEmailImages,
 } from '@/lib/email-platform/templates';
 import { getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
+import { resolveProductFreeShipping } from '@/lib/shipping/free-shipping';
 import { sendSesEmail } from '@/lib/email-platform/ses-mailer';
 import { sql } from '@vercel/postgres';
 
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
     let productSavePercent = '25%';
     let productCompareAtPriceStyle = '';
     let productSavePercentStyle = '';
-    let productFreeShippingStyle = '';
+    let productFreeShippingStyle = 'display:none;';
     if (handle) {
       const product = await getProductByHandle(handle);
       if (product) {
@@ -68,7 +69,12 @@ export async function POST(request: NextRequest) {
         productSavePercent = hasDiscount ? `${Math.round(((compareValue - priceValue) / compareValue) * 100)}%` : '';
         productCompareAtPriceStyle = hasDiscount ? '' : 'display:none;';
         productSavePercentStyle = hasDiscount ? '' : 'display:none;';
-        productFreeShippingStyle = '';
+        const hasFreeShipping = await resolveProductFreeShipping({
+          vendor: product.vendor || '',
+          tags: product.tags || [],
+          price: priceValue,
+        });
+        productFreeShippingStyle = hasFreeShipping ? '' : 'display:none;';
       }
     }
 

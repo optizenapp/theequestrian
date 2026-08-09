@@ -3,6 +3,7 @@ import type { ShopifyProductCard } from '@/types/shopify';
 import { renderTemplateBlocksHtml } from '@/lib/email-platform/templates';
 import { getProductsByHandles } from '@/lib/shopify/products-by-handles';
 import { getProductCanonicalUrls } from '@/lib/shopify/products';
+import { resolveProductFreeShipping } from '@/lib/shipping/free-shipping';
 import { applyAlternatingProductLayout } from './product-layout';
 
 export type CampaignMetadataOverrides = {
@@ -17,14 +18,15 @@ function stripOuterQuotes(value: string): string {
   return value.trim().replace(/^["'“”]+/, '').replace(/["'“”]+$/, '').trim();
 }
 
-function shopifyProductToCuratedCard(
+async function shopifyProductToCuratedCard(
   p: ShopifyProductCard,
   siteUrl: string,
   canonicalPath: string
-): CuratedProductCard {
+): Promise<CuratedProductCard> {
   const base = siteUrl.replace(/\/$/, '');
   const path = canonicalPath.startsWith('/') ? canonicalPath : `/${canonicalPath}`;
   const price = p.priceRange?.minVariantPrice?.amount ?? '';
+  const priceValue = price ? parseFloat(price) : NaN;
   const compareAt = p.compareAtPriceRange?.minVariantPrice?.amount;
   let savePercent = '';
   if (compareAt && price && parseFloat(compareAt) > parseFloat(price)) {
@@ -32,6 +34,11 @@ function shopifyProductToCuratedCard(
     savePercent = `${pct}%`;
   }
   const imageUrl = p.images?.edges?.[0]?.node?.url ?? null;
+  const freeShippingBadge = await resolveProductFreeShipping({
+    vendor: p.vendor || '',
+    tags: p.tags || [],
+    price: Number.isFinite(priceValue) ? priceValue : undefined,
+  });
   return {
     id: p.id,
     handle: p.handle,
@@ -41,7 +48,7 @@ function shopifyProductToCuratedCard(
     price: price ? `$${parseFloat(price).toFixed(2)}` : '',
     compareAtPrice: compareAt ? `$${parseFloat(compareAt).toFixed(2)}` : undefined,
     savePercent: savePercent || undefined,
-    freeShippingBadge: false,
+    freeShippingBadge,
   };
 }
 
@@ -121,8 +128,10 @@ export async function buildCampaignHtmlWithOverrides(input: {
   ) {
     const products = await getProductsByHandles(overrides.productHandles);
     const urlById = await getProductCanonicalUrls(products);
-    const cards: CuratedProductCard[] = products.map((p) =>
-      shopifyProductToCuratedCard(p, siteUrl, urlById.get(p.id) ?? `/products/${p.handle}`)
+    const cards: CuratedProductCard[] = await Promise.all(
+      products.map((p) =>
+        shopifyProductToCuratedCard(p, siteUrl, urlById.get(p.id) ?? `/products/${p.handle}`)
+      )
     );
     const introText = typeof overrides.introText === 'string' ? overrides.introText : '';
     mergedBlocks.splice(0, mergedBlocks.length, ...applyAlternatingProductLayout(mergedBlocks, cards, introText));

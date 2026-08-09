@@ -360,7 +360,7 @@ export default function AdminEmailTemplatesPage() {
               price: payload.product?.price || item.price || '',
               compareAtPrice: payload.product?.compareAtPrice || item.compareAtPrice || '',
               savePercent: payload.product?.savePercent || item.savePercent || '',
-              freeShippingBadge: payload.product?.freeShippingBadge !== false,
+              freeShippingBadge: payload.product?.freeShippingBadge === true,
             }
           : item
       );
@@ -399,7 +399,7 @@ export default function AdminEmailTemplatesPage() {
         price: payload.product?.price || '',
         compareAtPrice: payload.product?.compareAtPrice || '',
         savePercent: payload.product?.savePercent || '',
-        freeShippingBadge: payload.product?.freeShippingBadge !== false,
+        freeShippingBadge: payload.product?.freeShippingBadge === true,
       };
       updateCuratedProducts(blockId, [...block.products, nextProduct]);
       setNewCuratedHandles((prev) => ({ ...prev, [blockId]: '' }));
@@ -1305,7 +1305,7 @@ export default function AdminEmailTemplatesPage() {
                             <label className="flex items-center gap-2 rounded border border-gray-300 px-3 py-2 text-xs font-medium text-gray-700">
                               <input
                                 type="checkbox"
-                                checked={product.freeShippingBadge !== false}
+                                checked={product.freeShippingBadge === true}
                                 onChange={(e) =>
                                   updateCuratedProducts(
                                     block.id,
@@ -1318,7 +1318,7 @@ export default function AdminEmailTemplatesPage() {
                                 }
                                 className="h-4 w-4 rounded border-gray-300 text-action focus:ring-action"
                               />
-                              Show FREE SHIPPING badge
+                              Show FREE SHIPPING badge (from vendor shipping)
                             </label>
                           </div>
                         </div>

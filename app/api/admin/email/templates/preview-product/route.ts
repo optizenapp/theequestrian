@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
+import { resolveProductFreeShipping } from '@/lib/shipping/free-shipping';
 
 function toMoney(value: string | number | undefined): string {
   const parsed = typeof value === 'number' ? value : Number(value || 0);
@@ -26,6 +27,12 @@ export async function POST(request: NextRequest) {
     const compareValue = Number(product.compareAtPriceRange?.minVariantPrice?.amount || 0);
     const hasDiscount = compareValue > priceValue && priceValue > 0;
     const savePercent = hasDiscount ? `${Math.round(((compareValue - priceValue) / compareValue) * 100)}%` : '';
+    const freeShippingBadge = await resolveProductFreeShipping({
+      vendor: product.vendor || '',
+      tags: product.tags || [],
+      price: priceValue,
+    });
+
     return NextResponse.json({
       product: {
         title: product.title,
@@ -34,7 +41,7 @@ export async function POST(request: NextRequest) {
         price: toMoney(priceValue),
         compareAtPrice: hasDiscount ? toMoney(compareValue) : '',
         savePercent,
-        freeShippingBadge: true,
+        freeShippingBadge,
       },
     });
   } catch (error) {

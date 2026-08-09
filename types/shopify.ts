@@ -93,6 +93,7 @@ export type ShopifyProductCard = Pick<
   | 'productType'
   | 'availableForSale'
   | 'vendor'
+  | 'tags'
   | 'priceRange'
   | 'compareAtPriceRange'
   | 'images'
