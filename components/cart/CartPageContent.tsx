@@ -8,13 +8,21 @@ import { useEffect, useRef, useState } from 'react';
 import { FaCcVisa, FaCcMastercard, FaCcPaypal } from 'react-icons/fa';
 import { SiAfterpay, SiShopify } from 'react-icons/si';
 import { BnplMessaging } from '@/components/product/BnplMessaging';
-import { EXPRESS_SHIPPING_CHECKOUT_NOTE, MULTI_ORIGIN_SHIPPING_CHECKOUT_NOTE } from '@/lib/shipping/messaging';
+import {
+  EXPRESS_SHIPPING_CHECKOUT_NOTE,
+  freeShippingNudgeCopy,
+  multiParcelOrderBanner,
+  singleParcelArrivesCopy,
+} from '@/lib/shipping/messaging';
 import { ShopifyProduct } from '@/types/shopify';
 import { normalizeCheckoutUrl } from '@/lib/shopify/cart-utils';
 import { trackGaEvent } from '@/lib/analytics/ga4';
 import {
   bindDecoratedCheckoutLink,
 } from '@/lib/analytics/ga4-linker';
+import { useCartParcelEstimate } from '@/components/cart/useCartParcelEstimate';
+import { CartShippingSummary } from '@/components/cart/CartShippingSummary';
+import { formatShippingMoney } from '@/components/cart/format-shipping-money';
 
 interface CartPageContentProps {
   recommendedProducts?: ShopifyProduct[];
@@ -31,10 +39,12 @@ export function CartPageContent({
   const [showAllRecommendations, setShowAllRecommendations] = useState(false);
   const [addingToCartId, setAddingToCartId] = useState<string | null>(null);
   const checkoutLinkRef = useRef<HTMLAnchorElement | null>(null);
+  const estimate = useCartParcelEstimate(cart);
+  const viewedKeyRef = useRef('');
 
   const itemCount = cart?.totalQuantity || 0;
   
-  // Subtotal from cart line prices; shipping is calculated at Shopify checkout.
+  // Subtotal from cart line prices; shipping estimates shown separately per parcel.
   const subtotal = cart?.lines.edges.reduce((total, { node: line }) => {
     const price = parseFloat(line.merchandise.price.amount);
     return total + (price * line.quantity);
@@ -43,18 +53,24 @@ export function CartPageContent({
   const currencyCode = cart?.cost.subtotalAmount.currencyCode || 'AUD';
   const total = subtotal;
 
-  // Date for delivery estimate (e.g., 3-5 days from now)
-  const deliveryDateStart = new Date();
-  deliveryDateStart.setDate(deliveryDateStart.getDate() + 3);
-  const deliveryDateEnd = new Date();
-  deliveryDateEnd.setDate(deliveryDateEnd.getDate() + 5);
-  const deliveryOptions = { month: 'short', day: 'numeric' } as const;
-  const deliveryString = `${deliveryDateStart.toLocaleDateString('en-US', deliveryOptions)} - ${deliveryDateEnd.toLocaleDateString('en-US', deliveryOptions)}`;
-
   const checkoutHref =
     cart && cart.lines.edges.length > 0
       ? normalizeCheckoutUrl(cart.checkoutUrl)
       : '';
+
+  useEffect(() => {
+    if (!cart || estimate.parcelCount < 1) return;
+    const key = `${cart.id}:${estimate.parcelCount}:${cart.totalQuantity}`;
+    if (viewedKeyRef.current === key) return;
+    viewedKeyRef.current = key;
+    trackGaEvent('view_cart', {
+      currency: currencyCode,
+      value: total,
+      item_count: cart.totalQuantity,
+      parcel_count: estimate.parcelCount,
+      source: 'cart_page',
+    });
+  }, [cart, estimate.parcelCount, currencyCode, total]);
 
   useEffect(() => {
     const link = checkoutLinkRef.current;
@@ -68,10 +84,11 @@ export function CartPageContent({
           currency: cart.cost.totalAmount.currencyCode,
           value: total,
           item_count: cart.totalQuantity,
+          parcel_count: estimate.parcelCount,
           source: 'cart_page',
         }),
     });
-  }, [cart, checkoutHref, total]);
+  }, [cart, checkoutHref, total, estimate.parcelCount]);
 
   const handleAddRecommendation = async (product: ShopifyProduct) => {
     // Get the first variant ID
@@ -107,103 +124,183 @@ export function CartPageContent({
           <div className="lg:grid lg:grid-cols-12 lg:gap-8">
             {/* Left Column: Cart Items & Recommendations */}
             <div className="lg:col-span-8 space-y-8">
-              
-              {/* Cart Items List */}
-              <div className="space-y-4">
-                {cart.lines.edges.map(({ node: line }) => {
-                  const product = line.merchandise.product;
-                  const image = product?.images.edges[0]?.node;
-                  const price = parseFloat(line.merchandise.price.amount);
-                  const compareAtRaw = line.merchandise.compareAtPrice?.amount;
-                  const compareAtPrice = compareAtRaw ? parseFloat(compareAtRaw) : null;
-                  const savings = compareAtPrice !== null && compareAtPrice > price ? compareAtPrice - price : 0;
+              {estimate.parcelCount > 1 && (
+                <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+                  <p className="font-bold text-gray-900">
+                    {multiParcelOrderBanner(estimate.parcelCount).title}
+                  </p>
+                  <p className="mt-2 text-sm text-gray-600 leading-relaxed">
+                    {multiParcelOrderBanner(estimate.parcelCount).body}
+                  </p>
+                </div>
+              )}
+              {estimate.parcelCount === 1 && estimate.parcels[0] && (
+                <p className="text-sm text-gray-700">
+                  <span className="font-semibold text-gray-900">
+                    {singleParcelArrivesCopy(
+                      estimate.parcels[0].locationLabel,
+                      estimate.parcels[0].locationMapped
+                    )}
+                  </span>
+                </p>
+              )}
 
+              {/* Cart Items List — grouped by parcel when estimates available */}
+              <div className="space-y-6">
+                {(estimate.parcels.length > 0
+                  ? estimate.parcels
+                  : [
+                      {
+                        index: 1,
+                        locationLabel: '',
+                        locationMapped: false,
+                        shippingEstimate: null as number | null,
+                        freeShippingThreshold: null as number | null,
+                        amountToFreeShipping: null as number | null,
+                        lineIds: cart.lines.edges.map((e) => e.node.id),
+                        merchandiseTotal: 0,
+                      },
+                    ]
+                ).map((parcel) => {
+                  const multi = estimate.parcelCount > 1;
                   return (
-                    <div key={line.id} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                      <div className="flex flex-col sm:flex-row gap-6">
-                        {/* Image Section */}
-                        <div className="relative w-full sm:w-32 h-32 flex-shrink-0">
-                          {image && (
-                            <div className="relative w-full h-full bg-gray-50 rounded-xl overflow-hidden border border-gray-100">
-                              <Image
-                                src={image.url}
-                                alt={image.altText || product.title}
-                                fill
-                                className="object-contain p-2"
-                              />
-                            </div>
+                    <div key={parcel.lineIds.join('-') || String(parcel.index)} className="space-y-3">
+                      {multi && (
+                        <div className="px-1">
+                          <h2 className="text-lg font-bold text-gray-900">
+                            Parcel {parcel.index} of {estimate.parcelCount}
+                          </h2>
+                          <p className="text-sm text-gray-600">
+                            Ships from <strong className="text-gray-900">{parcel.locationLabel}</strong>
+                            {' · '}Estimated delivery <strong className="text-gray-900">1–2 business days</strong>
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            Shipping for this parcel:{' '}
+                            <strong className="text-gray-900">
+                              {formatShippingMoney(parcel.shippingEstimate)}
+                            </strong>
+                            {parcel.freeShippingThreshold != null && (
+                              <>
+                                {' · '}Free over ${parcel.freeShippingThreshold.toFixed(0)}
+                              </>
+                            )}
+                          </p>
+                          {parcel.amountToFreeShipping != null && parcel.amountToFreeShipping > 0 && (
+                            <p className="text-sm text-action">
+                              {freeShippingNudgeCopy(parcel.amountToFreeShipping)}
+                            </p>
                           )}
                         </div>
+                      )}
+                      <div className="space-y-4">
+                        {parcel.lineIds.map((lineId) => {
+                          const edge = cart.lines.edges.find((e) => e.node.id === lineId);
+                          if (!edge) return null;
+                          const line = edge.node;
+                          const product = line.merchandise.product;
+                          const image = product?.images.edges[0]?.node;
+                          const price = parseFloat(line.merchandise.price.amount);
+                          const compareAtRaw = line.merchandise.compareAtPrice?.amount;
+                          const compareAtPrice = compareAtRaw ? parseFloat(compareAtRaw) : null;
+                          const savings =
+                            compareAtPrice !== null && compareAtPrice > price
+                              ? compareAtPrice - price
+                              : 0;
 
-                        {/* Content Section */}
-                        <div className="flex-1 flex flex-col justify-between">
-                          <div className="flex justify-between items-start gap-4">
-                            <div className="space-y-2">
-                              
-                              <h3 className="text-base font-bold text-gray-900 leading-tight">
-                                {product && (
-                                  <Link href={hrefFor(product.handle)} className="hover:underline">
-                                    {product.title}
-                                  </Link>
-                                )}
-                                {!product && <span className="text-gray-900">{line.merchandise.title}</span>}
-                              </h3>
-                              
-                              <div className="text-sm text-gray-500">
-                                {line.merchandise.title !== 'Default Title' && (
-                                  <p className="mb-1">{line.merchandise.title}</p>
-                                )}
-                              </div>
-
-                            </div>
-
-                            {/* Price Section */}
-                            <div className="text-right space-y-1">
-                              <p className="text-xl font-bold text-gray-900">
-                                ${price.toFixed(2)}
-                              </p>
-                              {savings > 0 && compareAtPrice !== null && (
-                                <>
-                                  <p className="text-xs text-gray-400 line-through">
-                                    ${compareAtPrice.toFixed(2)}
-                                  </p>
-                                  <div className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-1.5 py-0.5 rounded text-xs font-medium">
-                                    <span>Save ${savings.toFixed(2)}</span>
-                                  </div>
-                                </>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Controls */}
-                          <div className="mt-6 flex flex-col items-start gap-2">
-                            <div className="flex items-center bg-gray-50 rounded-full p-1 border border-gray-200">
-                              <button
-                                onClick={() => {
-                                  if (line.quantity > 1) updateCartItem(line.id, line.quantity - 1);
-                                }}
-                                disabled={line.quantity <= 1}
-                                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white hover:shadow-sm transition-all disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:shadow-none text-gray-600"
-                              >
-                                −
-                              </button>
-                              <span className="w-8 text-center font-semibold text-sm">{line.quantity}</span>
-                              <button
-                                onClick={() => updateCartItem(line.id, line.quantity + 1)}
-                                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white hover:shadow-sm transition-all text-gray-600"
-                              >
-                                +
-                              </button>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => removeCartItem(line.id)}
-                              className="text-sm text-gray-500 hover:text-gray-900 hover:underline transition-colors"
+                          return (
+                            <div
+                              key={line.id}
+                              className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
                             >
-                              Remove
-                            </button>
-                          </div>
-                        </div>
+                              <div className="flex flex-col sm:flex-row gap-6">
+                                <div className="relative w-full sm:w-32 h-32 flex-shrink-0">
+                                  {image && product && (
+                                    <div className="relative w-full h-full bg-gray-50 rounded-xl overflow-hidden border border-gray-100">
+                                      <Image
+                                        src={image.url}
+                                        alt={image.altText || product.title}
+                                        fill
+                                        className="object-contain p-2"
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="flex-1 flex flex-col justify-between">
+                                  <div className="flex justify-between items-start gap-4">
+                                    <div className="space-y-2">
+                                      <h3 className="text-base font-bold text-gray-900 leading-tight">
+                                        {product && (
+                                          <Link
+                                            href={hrefFor(product.handle)}
+                                            className="hover:underline"
+                                          >
+                                            {product.title}
+                                          </Link>
+                                        )}
+                                        {!product && (
+                                          <span className="text-gray-900">
+                                            {line.merchandise.title}
+                                          </span>
+                                        )}
+                                      </h3>
+                                      <div className="text-sm text-gray-500">
+                                        {line.merchandise.title !== 'Default Title' && (
+                                          <p className="mb-1">{line.merchandise.title}</p>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="text-right space-y-1">
+                                      <p className="text-xl font-bold text-gray-900">
+                                        ${price.toFixed(2)}
+                                      </p>
+                                      {savings > 0 && compareAtPrice !== null && (
+                                        <>
+                                          <p className="text-xs text-gray-400 line-through">
+                                            ${compareAtPrice.toFixed(2)}
+                                          </p>
+                                          <div className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-1.5 py-0.5 rounded text-xs font-medium">
+                                            <span>Save ${savings.toFixed(2)}</span>
+                                          </div>
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="mt-6 flex flex-col items-start gap-2">
+                                    <div className="flex items-center bg-gray-50 rounded-full p-1 border border-gray-200">
+                                      <button
+                                        onClick={() => {
+                                          if (line.quantity > 1) {
+                                            updateCartItem(line.id, line.quantity - 1);
+                                          }
+                                        }}
+                                        disabled={line.quantity <= 1}
+                                        className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white hover:shadow-sm transition-all disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:shadow-none text-gray-600"
+                                      >
+                                        −
+                                      </button>
+                                      <span className="w-8 text-center font-semibold text-sm">
+                                        {line.quantity}
+                                      </span>
+                                      <button
+                                        onClick={() => updateCartItem(line.id, line.quantity + 1)}
+                                        className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white hover:shadow-sm transition-all text-gray-600"
+                                      >
+                                        +
+                                      </button>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => removeCartItem(line.id)}
+                                      className="text-sm text-gray-500 hover:text-gray-900 hover:underline transition-colors"
+                                    >
+                                      Remove
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   );
@@ -325,13 +422,11 @@ if (isInCart) return null;
                     <span>Subtotal</span>
                     <span>${subtotal.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Shipping</span>
-                    <span className="text-gray-700 font-medium">Calculated at checkout</span>
-                  </div>
-                  <p className="text-xs text-gray-500 leading-relaxed">
-                    {MULTI_ORIGIN_SHIPPING_CHECKOUT_NOTE}
-                  </p>
+                  <CartShippingSummary
+                    parcels={estimate.parcels}
+                    parcelCount={estimate.parcelCount}
+                    totalShippingEstimate={estimate.totalShippingEstimate}
+                  />
                 </div>
 
                 {/* Total */}

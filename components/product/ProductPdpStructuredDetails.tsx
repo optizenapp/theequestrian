@@ -110,14 +110,15 @@ export default function ProductPdpStructuredDetails({
     <DetailBlock key="shipping" id="pdp-shipping" title="Shipping & returns">
       <ul className="list-disc pl-5 space-y-2 m-0">
         <li>
-          Shipping rates vary by product and seller. Eligible items may show a free
-          shipping badge on the product page.
+          Each item ships direct from the warehouse that stocks it. Items from different
+          warehouses arrive as separate parcels, each with its own shipping rate — itemised
+          in your cart before you pay.
         </li>
         <li>
           <Link href="/shipping-delivery" className="text-action font-medium hover:text-action-hover">
             Shipping & delivery
           </Link>{' '}
-          — timeframes, coverage, and how rates are calculated at checkout.
+          — why multi-parcel shipping works this way, delivery times, and tracking.
         </li>
         <li>
           <Link href="/returns-refunds" className="text-action font-medium hover:text-action-hover">

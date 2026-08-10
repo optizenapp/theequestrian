@@ -307,6 +307,7 @@ export const GET_ALL_PRODUCTS = `
           description
           descriptionHtml
           availableForSale
+          vendor
           productType
           tags
           priceRange {
@@ -602,6 +603,9 @@ export const CREATE_CART = `
                   product {
                     handle
                     title
+                    productType
+                    vendor
+                    tags
                     images(first: 1) {
                       edges {
                         node {
@@ -658,6 +662,9 @@ export const ADD_TO_CART = `
                   product {
                     handle
                     title
+                    productType
+                    vendor
+                    tags
                     images(first: 1) {
                       edges {
                         node {
@@ -714,6 +721,9 @@ export const UPDATE_CART = `
                   product {
                     handle
                     title
+                    productType
+                    vendor
+                    tags
                     images(first: 1) {
                       edges {
                         node {
@@ -770,6 +780,9 @@ export const REMOVE_FROM_CART = `
                   product {
                     handle
                     title
+                    productType
+                    vendor
+                    tags
                     images(first: 1) {
                       edges {
                         node {
@@ -842,6 +855,7 @@ export const GET_CART = `
                   title
                   productType
                   vendor
+                  tags
                   images(first: 1) {
                     edges {
                       node {
