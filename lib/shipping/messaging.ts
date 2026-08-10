@@ -7,11 +7,6 @@ export const SHIPPING_PRODUCT_FREE_MESSAGE = 'Free shipping on this item.';
 /** Collective / vendor-offset model — shipping absorbed into listed price. */
 export const SHIPPING_INCLUDED_MESSAGE = 'Shipping included in price.';
 
-export function shippingThresholdMessage(threshold: number): string {
-  const formatted = Number.isInteger(threshold) ? `$${threshold}` : `$${threshold.toFixed(2)}`;
-  return `Free shipping on orders over ${formatted} from this warehouse.`;
-}
-
 function formatShippingRate(rate: number): string {
   return Number.isInteger(rate) ? `$${rate}` : `$${rate.toFixed(2)}`;
 }
@@ -73,12 +68,8 @@ export function multiParcelDrawerNote(parcelCount: number): { title: string; bod
   };
 }
 
-export function freeShippingNudgeCopy(amountRemaining: number): string {
-  const formatted =
-    Number.isInteger(amountRemaining)
-      ? `$${amountRemaining}`
-      : `$${amountRemaining.toFixed(2)}`;
-  return `Add ${formatted} more from this warehouse for free shipping on this parcel.`;
+export function shopWarehouseLabel(locationLabel: string): string {
+  return `Shop ${locationLabel} warehouse →`;
 }
 
 export function whyMultipleRatesTitle(parcelCount: number): string {

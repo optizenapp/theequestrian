@@ -4,11 +4,9 @@ import {
   SHIPPING_DISPATCH_LINE,
   SHIPPING_PRODUCT_FREE_MESSAGE,
   shipsFromWarehouseHeadline,
-  shippingThresholdMessage,
   vendorShippingCheckoutMessage,
 } from '@/lib/shipping/messaging';
 import {
-  getVendorFreeShippingThreshold,
   loadShippingRates,
   resolveShippingOffset,
   type ShippingRates,
@@ -17,6 +15,8 @@ import {
   isMappedWarehouse,
   resolveWarehouseLabel,
 } from '@/lib/shipping/vendor-warehouse-locations';
+import { getCollectiveShippingRateByProductId } from '@/lib/db/collective-shipping-rates';
+import { getWarehouseSlugForVendor } from '@/lib/warehouses/registry';
 
 export type ProductShippingDisplay = {
   shortMessage: string;
@@ -29,6 +29,7 @@ export type ProductShippingDisplay = {
   originHeadline: string;
   dispatchLine: string;
   locationMapped: boolean;
+  warehouseSlug: string | null;
 };
 
 const genericLabel = resolveWarehouseLabel(null);
@@ -41,6 +42,7 @@ export const SHIPPING_DISPLAY_FALLBACK: ProductShippingDisplay = {
   originHeadline: shipsFromWarehouseHeadline(genericLabel, false),
   dispatchLine: SHIPPING_DISPATCH_LINE,
   locationMapped: false,
+  warehouseSlug: null,
 };
 
 function freeShippingDisplay(origin: ProductShippingDisplay): ProductShippingDisplay {
@@ -55,7 +57,7 @@ function freeShippingDisplay(origin: ProductShippingDisplay): ProductShippingDis
 
 function withOrigin(vendor: string): Pick<
   ProductShippingDisplay,
-  'shipsFromLabel' | 'originHeadline' | 'dispatchLine' | 'locationMapped'
+  'shipsFromLabel' | 'originHeadline' | 'dispatchLine' | 'locationMapped' | 'warehouseSlug'
 > {
   const shipsFromLabel = resolveWarehouseLabel(vendor);
   const locationMapped = isMappedWarehouse(vendor);
@@ -64,6 +66,7 @@ function withOrigin(vendor: string): Pick<
     originHeadline: shipsFromWarehouseHeadline(shipsFromLabel, locationMapped),
     dispatchLine: SHIPPING_DISPATCH_LINE,
     locationMapped,
+    warehouseSlug: getWarehouseSlugForVendor(vendor),
   };
 }
 
@@ -79,34 +82,16 @@ export function resolveProductShippingDisplaySync(input: {
     return freeShippingDisplay({ ...SHIPPING_DISPLAY_FALLBACK, ...origin });
   }
 
-  const price = input.price;
   const { shippingOffset } = resolveShippingOffset(
     input.vendor,
     input.tags,
     input.rates,
     undefined,
-    price
+    input.price
   );
 
   if (shippingOffset === 0) {
     return freeShippingDisplay({ ...SHIPPING_DISPLAY_FALLBACK, ...origin });
-  }
-
-  const threshold = getVendorFreeShippingThreshold(input.vendor, input.rates);
-  if (
-    threshold != null &&
-    price != null &&
-    Number.isFinite(price) &&
-    price < threshold &&
-    shippingOffset != null &&
-    shippingOffset > 0
-  ) {
-    return {
-      ...origin,
-      shortMessage: shippingThresholdMessage(threshold),
-      isShippingIncluded: false,
-      hasFreeShipping: false,
-    };
   }
 
   if (shippingOffset != null && shippingOffset > 0) {
@@ -125,8 +110,26 @@ export async function resolveProductShippingDisplay(input: {
   vendor: string;
   tags: string[];
   price?: number;
+  /** Shopify product GID or numeric id — used for Collective rate cache */
+  productId?: string | null;
 }): Promise<ProductShippingDisplay> {
   try {
+    if (input.productId) {
+      const collective = await getCollectiveShippingRateByProductId(input.productId);
+      if (collective) {
+        const origin = withOrigin(input.vendor);
+        if (tagsIndicateFreeShipping(input.tags) || Number(collective.standard_rate_aud) === 0) {
+          return freeShippingDisplay({ ...SHIPPING_DISPLAY_FALLBACK, ...origin });
+        }
+        return {
+          ...origin,
+          shortMessage: vendorShippingCheckoutMessage(Number(collective.standard_rate_aud)),
+          isShippingIncluded: false,
+          hasFreeShipping: false,
+        };
+      }
+    }
+
     const rates = await loadShippingRates();
     return resolveProductShippingDisplaySync({ ...input, rates });
   } catch (error) {

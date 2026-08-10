@@ -198,6 +198,7 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
     vendor: resolvedProduct.vendor || '',
     tags: resolvedProduct.tags || [],
     price: parseFloat(resolvedProduct.priceRange.minVariantPrice.amount),
+    productId: resolvedProduct.id,
   });
   const storeReviewStats = await getStoreReviewStats();
 

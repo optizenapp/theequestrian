@@ -9,6 +9,10 @@
       "schedule": "0 3 * * *"
     },
     {
+      "path": "/api/cron/collective-shipping",
+      "schedule": "15 */2 * * *"
+    },
+    {
       "path": "/api/cron/ga4-sync",
       "schedule": "*/15 * * * *"
     },

@@ -7,10 +7,9 @@ export type ParcelEstimateRow = {
   index: number;
   locationLabel: string;
   locationMapped: boolean;
+  warehouseSlug: string | null;
   merchandiseTotal: number;
   shippingEstimate: number | null;
-  freeShippingThreshold: number | null;
-  amountToFreeShipping: number | null;
   lineIds: string[];
 };
 
@@ -36,7 +35,8 @@ function linesPayloadKey(cart: ShopifyCart | null): string {
       const tags = (line.merchandise.product?.tags ?? []).join(',');
       const unit = parseFloat(line.merchandise.price.amount);
       const total = (Number.isFinite(unit) ? unit : 0) * line.quantity;
-      return `${line.id}:${vendor}:${tags}:${total}:${line.quantity}`;
+      const variantId = line.merchandise.id;
+      return `${line.id}:${variantId}:${vendor}:${tags}:${total}:${line.quantity}`;
     })
     .join('|');
 }
@@ -62,6 +62,7 @@ export function useCartParcelEstimate(cart: ShopifyCart | null): CartParcelEstim
         tags: line.merchandise.product?.tags ?? [],
         lineTotal: (Number.isFinite(unit) ? unit : 0) * line.quantity,
         quantity: line.quantity,
+        variantId: line.merchandise.id,
       };
     });
 

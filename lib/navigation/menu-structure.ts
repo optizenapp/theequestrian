@@ -60,7 +60,7 @@ export const SHOP_MENU: TopLevelMenuItem[] = [
   },
 ];
 
-/** Sale + Brands — grouped after categories */
+/** Sale + Brands + Warehouses — grouped after categories */
 export const UTILITY_MENU: TopLevelMenuItem[] = [
   {
     label: 'Sale',
@@ -74,6 +74,13 @@ export const UTILITY_MENU: TopLevelMenuItem[] = [
     handle: 'brands',
     href: '/brands',
     group: 'utility',
+  },
+  {
+    label: 'Search our warehouses',
+    handle: 'warehouses',
+    href: '/warehouses',
+    group: 'utility',
+    showChevron: true,
   },
 ];
 
@@ -96,12 +103,19 @@ export function getShopifyCollectionHandle(menuLabel: string): string | null {
 }
 
 export function shouldShowMegaMenu(menuLabel: string): boolean {
-  return !!findMenuItem(menuLabel)?.shopifyCollectionHandle;
+  const item = findMenuItem(menuLabel);
+  if (!item) return false;
+  if (item.handle === 'warehouses') return true;
+  return !!item.shopifyCollectionHandle;
 }
 
-/** API fetch key for mega menu prefetch / wrapper */
+/** API fetch key for mega menu prefetch / wrapper (category menus only) */
 export function getMegaMenuFetchKey(menuLabel: string): string | null {
   return findMenuItem(menuLabel)?.shopifyCollectionHandle ?? null;
+}
+
+export function isWarehousesNavItem(menuLabel: string): boolean {
+  return findMenuItem(menuLabel)?.handle === 'warehouses';
 }
 
 /** Whether a pathname is under this nav item */
@@ -111,6 +125,9 @@ export function isNavItemActive(pathname: string, item: TopLevelMenuItem): boole
   }
   if (item.handle === 'brands') {
     return pathname === '/brands' || pathname.startsWith('/brands/');
+  }
+  if (item.handle === 'warehouses') {
+    return pathname === '/warehouses' || pathname.startsWith('/warehouses/');
   }
   const base = `/${item.handle}`;
   return pathname === base || pathname.startsWith(`${base}/`);

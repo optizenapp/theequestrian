@@ -10,7 +10,6 @@ import { SiAfterpay, SiShopify } from 'react-icons/si';
 import { BnplMessaging } from '@/components/product/BnplMessaging';
 import {
   EXPRESS_SHIPPING_CHECKOUT_NOTE,
-  freeShippingNudgeCopy,
   multiParcelOrderBanner,
   singleParcelArrivesCopy,
 } from '@/lib/shipping/messaging';
@@ -135,14 +134,16 @@ export function CartPageContent({
                 </div>
               )}
               {estimate.parcelCount === 1 && estimate.parcels[0] && (
-                <p className="text-sm text-gray-700">
-                  <span className="font-semibold text-gray-900">
-                    {singleParcelArrivesCopy(
-                      estimate.parcels[0].locationLabel,
-                      estimate.parcels[0].locationMapped
-                    )}
-                  </span>
-                </p>
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-700">
+                    <span className="font-semibold text-gray-900">
+                      {singleParcelArrivesCopy(
+                        estimate.parcels[0].locationLabel,
+                        estimate.parcels[0].locationMapped
+                      )}
+                    </span>
+                  </p>
+                </div>
               )}
 
               {/* Cart Items List — grouped by parcel when estimates available */}
@@ -155,8 +156,7 @@ export function CartPageContent({
                         locationLabel: '',
                         locationMapped: false,
                         shippingEstimate: null as number | null,
-                        freeShippingThreshold: null as number | null,
-                        amountToFreeShipping: null as number | null,
+                        warehouseSlug: null as string | null,
                         lineIds: cart.lines.edges.map((e) => e.node.id),
                         merchandiseTotal: 0,
                       },
@@ -179,17 +179,7 @@ export function CartPageContent({
                             <strong className="text-gray-900">
                               {formatShippingMoney(parcel.shippingEstimate)}
                             </strong>
-                            {parcel.freeShippingThreshold != null && (
-                              <>
-                                {' · '}Free over ${parcel.freeShippingThreshold.toFixed(0)}
-                              </>
-                            )}
                           </p>
-                          {parcel.amountToFreeShipping != null && parcel.amountToFreeShipping > 0 && (
-                            <p className="text-sm text-action">
-                              {freeShippingNudgeCopy(parcel.amountToFreeShipping)}
-                            </p>
-                          )}
                         </div>
                       )}
                       <div className="space-y-4">

@@ -256,6 +256,7 @@ async function renderProductPage(
     vendor: product.vendor || '',
     tags: product.tags || [],
     price: parseFloat(product.priceRange.minVariantPrice.amount),
+    productId: product.id,
   });
   const storeReviewStats = await getStoreReviewStats();
 

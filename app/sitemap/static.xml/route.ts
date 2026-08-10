@@ -82,6 +82,27 @@ export async function GET() {
       priority: 0.7,
     },
     {
+      url: `${SITE_URL}/warehouses`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
+    ...[
+      'tuggerah',
+      'goulburn',
+      'heatherbrae',
+      'north-west-victoria',
+      'cambooya',
+      'macclesfield',
+      'nsw',
+      'adelaide-hills',
+    ].map((slug) => ({
+      url: `${SITE_URL}/warehouses/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.6,
+    })),
+    {
       url: `${SITE_URL}/entitymap.html`,
       lastModified: new Date(),
       changeFrequency: 'weekly',

@@ -1,13 +1,8 @@
-import { tagsIndicateFreeShipping } from '@/lib/shipping/free-shipping';
-import {
-  getVendorFreeShippingThreshold,
-  resolveShippingOffset,
-  type ShippingRates,
-} from '@/lib/shipping/rates';
 import {
   isMappedWarehouse,
   resolveWarehouseLabel,
 } from '@/lib/shipping/vendor-warehouse-locations';
+import { getWarehouseSlugForVendor } from '@/lib/warehouses/registry';
 
 export type CartParcelLineInput = {
   lineId: string;
@@ -22,10 +17,9 @@ export type CartParcelEstimate = {
   index: number;
   locationLabel: string;
   locationMapped: boolean;
+  warehouseSlug: string | null;
   merchandiseTotal: number;
   shippingEstimate: number | null;
-  freeShippingThreshold: number | null;
-  amountToFreeShipping: number | null;
   lineIds: string[];
 };
 
@@ -40,14 +34,11 @@ function vendorKey(vendor: string): string {
   return trimmed.length > 0 ? trimmed : 'Unknown';
 }
 
-/** One shipping rate per vendor group (parcel), using parcel merchandise for thresholds. */
-export function estimateCartParcels(
-  lines: CartParcelLineInput[],
-  rates: ShippingRates
-): CartParcelsResult {
+/** Group cart lines into warehouse parcels (rates come from Collective API/cache). */
+export function groupCartParcels(lines: CartParcelLineInput[]): CartParcelsResult {
   const groups = new Map<
     string,
-    { vendor: string; tags: Set<string>; merchandiseTotal: number; lineIds: string[] }
+    { vendor: string; merchandiseTotal: number; lineIds: string[] }
   >();
 
   for (const line of lines) {
@@ -56,11 +47,9 @@ export function estimateCartParcels(
     if (existing) {
       existing.merchandiseTotal += line.lineTotal;
       existing.lineIds.push(line.lineId);
-      for (const tag of line.tags) existing.tags.add(tag);
     } else {
       groups.set(key, {
         vendor: key,
-        tags: new Set(line.tags),
         merchandiseTotal: line.lineTotal,
         lineIds: [line.lineId],
       });
@@ -69,52 +58,17 @@ export function estimateCartParcels(
 
   const parcels: CartParcelEstimate[] = [];
   let index = 0;
-  let knownTotal = 0;
-  let allKnown = true;
 
   for (const group of groups.values()) {
     index += 1;
-    const tags = [...group.tags];
-    const locationLabel = resolveWarehouseLabel(group.vendor);
-    const locationMapped = isMappedWarehouse(group.vendor);
-    const threshold = getVendorFreeShippingThreshold(group.vendor, rates);
-
-    let shippingEstimate: number | null = null;
-    if (tagsIndicateFreeShipping(tags)) {
-      shippingEstimate = 0;
-    } else {
-      const { shippingOffset } = resolveShippingOffset(
-        group.vendor,
-        tags,
-        rates,
-        undefined,
-        group.merchandiseTotal
-      );
-      shippingEstimate = shippingOffset;
-    }
-
-    let amountToFreeShipping: number | null = null;
-    if (
-      threshold != null &&
-      shippingEstimate != null &&
-      shippingEstimate > 0 &&
-      group.merchandiseTotal < threshold
-    ) {
-      amountToFreeShipping = Math.round((threshold - group.merchandiseTotal) * 100) / 100;
-    }
-
-    if (shippingEstimate == null) allKnown = false;
-    else knownTotal += shippingEstimate;
-
     parcels.push({
       key: group.vendor,
       index,
-      locationLabel,
-      locationMapped,
+      locationLabel: resolveWarehouseLabel(group.vendor),
+      locationMapped: isMappedWarehouse(group.vendor),
+      warehouseSlug: getWarehouseSlugForVendor(group.vendor),
       merchandiseTotal: group.merchandiseTotal,
-      shippingEstimate,
-      freeShippingThreshold: threshold,
-      amountToFreeShipping,
+      shippingEstimate: null,
       lineIds: group.lineIds,
     });
   }
@@ -122,6 +76,14 @@ export function estimateCartParcels(
   return {
     parcels,
     parcelCount: parcels.length,
-    totalShippingEstimate: allKnown ? knownTotal : null,
+    totalShippingEstimate: null,
   };
+}
+
+/** @deprecated Use groupCartParcels — rates come from Collective, not Postgres offsets. */
+export function estimateCartParcels(
+  lines: CartParcelLineInput[],
+  _rates?: unknown
+): CartParcelsResult {
+  return groupCartParcels(lines);
 }

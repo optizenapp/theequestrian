@@ -8,7 +8,6 @@ import { normalizeCheckoutUrl } from '@/lib/shopify/cart-utils';
 import { trackGaEvent } from '@/lib/analytics/ga4';
 import { bindDecoratedCheckoutLink } from '@/lib/analytics/ga4-linker';
 import {
-  freeShippingNudgeCopy,
   multiParcelDrawerNote,
   SHIPPING_ESTIMATE_CHECKOUT_NOTE,
   singleParcelArrivesCopy,
@@ -140,7 +139,7 @@ export function CartDrawer() {
                   </span>
                 </p>
               )}
-              {(estimate.parcels.length > 0 ? estimate.parcels : [{ index: 1, locationLabel: '', locationMapped: false, shippingEstimate: null, amountToFreeShipping: null, lineIds: cart.lines.edges.map((e) => e.node.id), merchandiseTotal: 0, freeShippingThreshold: null }]).map((parcel) => (
+              {(estimate.parcels.length > 0 ? estimate.parcels : [{ index: 1, locationLabel: '', locationMapped: false, warehouseSlug: null, shippingEstimate: null, lineIds: cart.lines.edges.map((e) => e.node.id), merchandiseTotal: 0 }]).map((parcel) => (
                 <div key={parcel.lineIds.join('-') || String(parcel.index)} className="space-y-1">
                   {multi && (
                     <div className="mb-2 border-b border-gray-100 pb-2">
@@ -150,9 +149,6 @@ export function CartDrawer() {
                       <p className="text-xs text-gray-600">
                         Shipping: <span className="font-semibold">{formatShippingMoney(parcel.shippingEstimate)}</span>
                       </p>
-                      {parcel.amountToFreeShipping != null && parcel.amountToFreeShipping > 0 && (
-                        <p className="mt-1 text-xs text-action">{freeShippingNudgeCopy(parcel.amountToFreeShipping)}</p>
-                      )}
                     </div>
                   )}
                   <ul className="divide-y divide-gray-100">
@@ -198,9 +194,6 @@ export function CartDrawer() {
                       );
                     })}
                   </ul>
-                  {!multi && single?.amountToFreeShipping != null && single.amountToFreeShipping > 0 && (
-                    <p className="text-xs text-action">{freeShippingNudgeCopy(single.amountToFreeShipping)}</p>
-                  )}
                 </div>
               ))}
             </div>

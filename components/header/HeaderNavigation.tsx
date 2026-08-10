@@ -4,10 +4,13 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { MegaMenuWrapper, prefetchMegaMenuData } from './MegaMenuWrapper';
+import { WarehousesNavMenu } from './WarehousesNavMenu';
 import {
   TOP_LEVEL_MENU,
   shouldShowMegaMenu,
   isNavItemActive,
+  isWarehousesNavItem,
+  getMegaMenuFetchKey,
 } from '@/lib/navigation/menu-structure';
 import type { TopLevelMenuItem } from '@/lib/navigation/menu-structure';
 
@@ -52,7 +55,7 @@ export function HeaderNavigation() {
     }
     isHoveringRef.current = true;
 
-    if (shouldShowMegaMenu(label)) {
+    if (getMegaMenuFetchKey(label)) {
       void prefetchMegaMenuData(label);
     }
 
@@ -75,7 +78,7 @@ export function HeaderNavigation() {
   useEffect(() => {
     const prefetchAll = async () => {
       for (const item of TOP_LEVEL_MENU) {
-        if (shouldShowMegaMenu(item.label)) {
+        if (getMegaMenuFetchKey(item.label)) {
           await prefetchMegaMenuData(item.label);
         }
       }
@@ -118,13 +121,16 @@ export function HeaderNavigation() {
     );
   };
 
+  const showPanel = Boolean(activeMenu && shouldShowMegaMenu(activeMenu));
+  const warehousesOpen = activeMenu ? isWarehousesNavItem(activeMenu) : false;
+
   return (
     <div className="relative">
       <nav className="flex items-center justify-center gap-0.5" aria-label="Main navigation">
         {TOP_LEVEL_MENU.map(renderNavItem)}
       </nav>
 
-      {activeMenu && shouldShowMegaMenu(activeMenu) && (
+      {showPanel && activeMenu && (
         <div
           className="absolute left-1/2 -translate-x-1/2 top-full pt-2 z-[100]"
           onMouseEnter={() => {
@@ -136,9 +142,13 @@ export function HeaderNavigation() {
           }}
           onMouseLeave={handleMouseLeave}
         >
-          <div className="w-[calc(100vw-2rem)] max-w-6xl">
-            <MegaMenuWrapper categoryLabel={activeMenu} onClose={() => setActiveMenu(null)} />
-          </div>
+          {warehousesOpen ? (
+            <WarehousesNavMenu onClose={() => setActiveMenu(null)} />
+          ) : (
+            <div className="w-[calc(100vw-2rem)] max-w-6xl">
+              <MegaMenuWrapper categoryLabel={activeMenu} onClose={() => setActiveMenu(null)} />
+            </div>
+          )}
         </div>
       )}
     </div>

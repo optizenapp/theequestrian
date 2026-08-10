@@ -11,6 +11,7 @@ import {
   isNavItemActive,
 } from '@/lib/navigation/menu-structure';
 import type { TopLevelMenuItem } from '@/lib/navigation/menu-structure';
+import { listWarehouses, warehouseHref } from '@/lib/warehouses/registry';
 
 interface SubcategoryItem {
   handle: string;
@@ -45,7 +46,8 @@ function MobileNavLink({
 }) {
   const pathname = usePathname();
   const isActive = isNavItemActive(pathname, item);
-  const hasSubmenu = !!item.shopifyCollectionHandle;
+  const isWarehouses = item.handle === 'warehouses';
+  const hasSubmenu = !!item.shopifyCollectionHandle || isWarehouses;
   const [expanded, setExpanded] = useState(false);
   const [subcategories, setSubcategories] = useState<SubcategoryItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -55,6 +57,8 @@ function MobileNavLink({
 
     const next = !expanded;
     setExpanded(next);
+
+    if (isWarehouses) return;
 
     if (next && subcategories.length === 0 && item.shopifyCollectionHandle) {
       setLoading(true);
@@ -115,23 +119,39 @@ function MobileNavLink({
       </div>
       {expanded && (
         <ul className="ml-4 mt-1 mb-2 space-y-1 border-l border-gray-100 pl-2">
-          {loading && (
-            <li className="px-4 py-2 text-sm text-gray-400">Loading…</li>
-          )}
-          {!loading &&
-            subcategories.map((sub) => (
-              <li key={sub.handle}>
+          {isWarehouses ? (
+            listWarehouses().map((wh) => (
+              <li key={wh.slug}>
                 <Link
-                  href={`${item.href}/${sub.handle}`}
+                  href={warehouseHref(wh.slug)}
                   onClick={onNavigate}
                   className="block px-4 py-2 text-sm text-gray-600 hover:text-action rounded-md"
                 >
-                  {sub.label}
+                  {wh.displayName}
                 </Link>
               </li>
-            ))}
-          {!loading && subcategories.length === 0 && (
-            <li className="px-4 py-2 text-sm text-gray-400">No subcategories</li>
+            ))
+          ) : (
+            <>
+              {loading && (
+                <li className="px-4 py-2 text-sm text-gray-400">Loading…</li>
+              )}
+              {!loading &&
+                subcategories.map((sub) => (
+                  <li key={sub.handle}>
+                    <Link
+                      href={`${item.href}/${sub.handle}`}
+                      onClick={onNavigate}
+                      className="block px-4 py-2 text-sm text-gray-600 hover:text-action rounded-md"
+                    >
+                      {sub.label}
+                    </Link>
+                  </li>
+                ))}
+              {!loading && subcategories.length === 0 && (
+                <li className="px-4 py-2 text-sm text-gray-400">No subcategories</li>
+              )}
+            </>
           )}
         </ul>
       )}

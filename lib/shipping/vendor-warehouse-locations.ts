@@ -1,23 +1,15 @@
 /** Internal vendor keys → customer-facing warehouse location. Never expose keys in UI. */
 
+import { getWarehouseSlugForVendor, listWarehouses } from '@/lib/warehouses/registry';
+
 const GENERIC_AU_WAREHOUSE = 'an Australian warehouse';
 
-const VENDOR_LOCATIONS: Record<string, string> = {
-  'trailrace equestrian outfitters': 'Tuggerah, NSW',
-  trailrace: 'Tuggerah, NSW',
-  'living horse tails jewellery by monika': 'Goulburn, NSW',
-  'living horse tales jewellery by monika': 'Goulburn, NSW',
-  'toptac international': 'Heatherbrae, NSW',
-  toptac: 'Heatherbrae, NSW',
-  'jnk collective': 'rural north-west Victoria',
-  jnk: 'rural north-west Victoria',
-  'exclusively equine': 'Cambooya, QLD',
-  'little equine co': 'Macclesfield, SA',
-  'little equine co.': 'Macclesfield, SA',
-  'little equine': 'Macclesfield, SA',
-  'can animal care': 'NSW',
-  'qj riding wear': 'Adelaide Hills, SA',
-};
+const VENDOR_LOCATIONS: Record<string, string> = {};
+for (const wh of listWarehouses()) {
+  for (const name of wh.vendorNames) {
+    VENDOR_LOCATIONS[name.trim().toLowerCase().replace(/\s+/g, ' ')] = wh.displayName;
+  }
+}
 
 function normalizeVendorKey(vendor: string): string {
   return vendor.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -38,4 +30,4 @@ export function isMappedWarehouse(vendor: string | null | undefined): boolean {
   return resolveWarehouseLocation(vendor) != null;
 }
 
-export { GENERIC_AU_WAREHOUSE };
+export { GENERIC_AU_WAREHOUSE, getWarehouseSlugForVendor };

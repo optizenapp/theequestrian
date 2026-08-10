@@ -6,7 +6,9 @@ import {
   HOW_SHIPPING_WORKS_BODY,
   HOW_SHIPPING_WORKS_SUMMARY,
   shipsFromWarehouseCompact,
+  shopWarehouseLabel,
 } from '@/lib/shipping/messaging';
+import { warehouseHref } from '@/lib/warehouses/registry';
 
 type Props = {
   shippingDisplay: ProductShippingDisplay;
@@ -18,11 +20,23 @@ export function ProductShippingOrigin({ shippingDisplay, compact }: Props) {
     shippingDisplay.shipsFromLabel,
     shippingDisplay.locationMapped
   );
+  const shopHref = shippingDisplay.warehouseSlug
+    ? warehouseHref(shippingDisplay.warehouseSlug)
+    : null;
 
   if (compact) {
     return (
       <p className="text-sm text-gray-600">
-        {compactLine} ·{' '}
+        {compactLine}
+        {shopHref && (
+          <>
+            {' · '}
+            <Link href={shopHref} className="font-medium text-action hover:underline">
+              Shop this warehouse
+            </Link>
+          </>
+        )}
+        {' · '}
         <Link href="/shipping-delivery" className="font-medium text-action hover:underline">
           See how multi-parcel shipping works
         </Link>
@@ -39,6 +53,13 @@ export function ProductShippingOrigin({ shippingDisplay, compact }: Props) {
         <div>
           <p className="font-semibold text-gray-900">{shippingDisplay.originHeadline}</p>
           <p className="text-gray-600">{shippingDisplay.dispatchLine}</p>
+          {shopHref && (
+            <p className="mt-1">
+              <Link href={shopHref} className="font-medium text-action hover:underline">
+                {shopWarehouseLabel(shippingDisplay.shipsFromLabel)}
+              </Link>
+            </p>
+          )}
         </div>
       </div>
       <details className="group text-sm">
