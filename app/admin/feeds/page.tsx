@@ -30,6 +30,7 @@ export default function AdminFeedsPage() {
   const [isCreatingFeed, setIsCreatingFeed] = useState(false);
   const [isSyncingShipping, setIsSyncingShipping] = useState(false);
   const [shippingMessage, setShippingMessage] = useState<string | null>(null);
+  const [oauthMessage, setOauthMessage] = useState<string | null>(null);
 
   const refreshStatus = async () => {
     setIsLoading(true);
@@ -48,6 +49,14 @@ export default function AdminFeedsPage() {
 
   useEffect(() => {
     void refreshStatus();
+    const params = new URLSearchParams(window.location.search);
+    const gmc = params.get('gmc');
+    const reason = params.get('reason');
+    if (gmc === 'connected') {
+      setOauthMessage('GMC connected — tokens saved.');
+    } else if (gmc === 'error') {
+      setOauthMessage(`GMC connect failed: ${reason || 'unknown error'}`);
+    }
   }, []);
 
   const gmcFeed = useMemo(() => feedStatus?.feeds?.find((feed) => feed.id === 'gmc'), [feedStatus]);
@@ -171,6 +180,9 @@ export default function AdminFeedsPage() {
             <p className="mt-2 text-sm text-gray-600">
               Status: {gmcFeed?.status === 'connected' ? 'Connected' : 'Not connected'}
             </p>
+            {oauthMessage ? (
+              <p className="mt-2 text-xs text-gray-600">{oauthMessage}</p>
+            ) : null}
             <div className="mt-3 flex flex-wrap gap-3">
               <button
                 type="button"

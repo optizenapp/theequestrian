@@ -14,7 +14,8 @@ export async function GET() {
   response.cookies.set('gmc-oauth-state', state, {
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: true,
+    path: '/',
     maxAge: 10 * 60,
   });
   return response;

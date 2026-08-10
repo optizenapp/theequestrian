@@ -14,7 +14,11 @@ export async function GET() {
     getDatabaseStats(),
   ]);
 
-  const hasTokens = Boolean(integration?.access_token && integration?.refresh_token);
+  const tokenExpiryMs = integration?.token_expiry
+    ? new Date(integration.token_expiry).getTime()
+    : 0;
+  const tokenFresh = tokenExpiryMs > Date.now();
+  const hasTokens = Boolean(integration?.access_token && integration?.refresh_token && tokenFresh);
   const feedUrl = (() => {
     try {
       const configured = getConfiguredGmcFeedUrl();
