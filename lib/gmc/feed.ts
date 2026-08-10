@@ -11,6 +11,7 @@ import {
   resolveGmcShippingFromCollectiveRate,
   type CollectiveShippingLookups,
 } from '@/lib/gmc/feed-shipping';
+import { loadProductBrandMapByHandles } from '@/lib/db/product-brand';
 import type { ProductWithPrimaryCollection, ShopifyVariant } from '@/types/shopify';
 
 function escapeXml(value: string) {
@@ -289,6 +290,7 @@ function buildVariantItem({
   canonicalPath,
   googleCategory,
   collectiveLookups,
+  brand,
 }: {
   product: ProductWithPrimaryCollection;
   variant: ShopifyVariant;
@@ -296,6 +298,8 @@ function buildVariantItem({
   canonicalPath: string;
   googleCategory: string | null;
   collectiveLookups: CollectiveShippingLookups;
+  /** Postgres products.brand — never Shopify Collective vendor */
+  brand: string | null;
 }): { xml: string; variantId: string } | null {
   const productUrl = `${baseUrl}${canonicalPath}`;
   const productImageUrl = product.images.edges[0]?.node.url;
@@ -309,7 +313,6 @@ function buildVariantItem({
   const pattern = extractPattern(product.tags);
   const gender = extractGender(product.tags, product.productType);
   const ageGroup = extractAgeGroup(product.tags, product.productType);
-  const brand = product.vendor?.trim() || null;
   const variantImageUrl = variant.image?.url || null;
   const colorFallback = findColorSpecificImage(product.images.edges, color);
   const imageUrl = variantImageUrl || colorFallback || productImageUrl || null;
@@ -384,20 +387,27 @@ export async function buildGmcFeedXml() {
     product.variants.edges.map(({ node }) => stripGid(node.id))
   );
   const allProductIds = products.map((product) => stripGid(product.id));
-  const [urlMap, collectiveLookups] = await Promise.all([
+  const allHandles = products.map((product) => product.handle);
+  const [urlMap, collectiveLookups, brandMap] = await Promise.all([
     getProductCanonicalUrls(products),
     loadCollectiveShippingLookups({
       variantIds: allVariantIds,
       productIds: allProductIds,
     }),
+    loadProductBrandMapByHandles(allHandles),
   ]);
+  const missingBrandCount = products.filter((product) => !brandMap.has(product.handle)).length;
   console.log(
     `[gmc:feed] Collective shipping cache: ${collectiveLookups.byVariant.size} variant rows, ${collectiveLookups.byProduct.size} products (${allVariantIds.length} feed variants)`
+  );
+  console.log(
+    `[gmc:feed] DB brands: ${brandMap.size}/${products.length} products (${missingBrandCount} missing → omit g:brand / title prefix)`
   );
 
   const built = products.flatMap((product) => {
     const canonicalPath = urlMap.get(product.id) ?? `/products/${product.handle}`;
     const googleCategory = getGoogleProductCategory(product.productType, canonicalPath);
+    const brand = brandMap.get(product.handle) ?? null;
 
     return product.variants.edges
       .map(({ node: variant }) =>
@@ -408,6 +418,7 @@ export async function buildGmcFeedXml() {
           canonicalPath,
           googleCategory,
           collectiveLookups,
+          brand,
         })
       )
       .filter((item): item is { xml: string; variantId: string } => item !== null);

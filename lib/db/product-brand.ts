@@ -57,3 +57,32 @@ export async function getProductBrandByHandle(handle: string): Promise<string | 
   const d = await getProductBrandForDisplay(handle);
   return d.brand;
 }
+
+/**
+ * Batch-load stored `products.brand` only (no vendor inference).
+ * Used by GMC primary feed — missing brands are left blank for supplemental fill.
+ */
+export async function loadProductBrandMapByHandles(
+  handles: string[]
+): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  const unique = [...new Set(handles.map((h) => h.trim()).filter(Boolean))];
+  if (unique.length === 0) return map;
+
+  await ensureProductsBrandColumns();
+  const chunkSize = 500;
+  for (let i = 0; i < unique.length; i += chunkSize) {
+    const chunk = unique.slice(i, i + chunkSize);
+    const rows = (await sql`
+      SELECT handle, brand
+      FROM products
+      WHERE handle = ANY(${chunk})
+        AND COALESCE(TRIM(brand), '') <> ''
+    `) as Array<{ handle: string; brand: string }>;
+    for (const row of rows) {
+      const brand = row.brand.trim();
+      if (brand) map.set(row.handle, brand);
+    }
+  }
+  return map;
+}
