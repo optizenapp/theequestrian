@@ -245,7 +245,8 @@ function getPriceTier(amount: string): string {
   if (!Number.isFinite(price)) return 'unknown';
   if (price < 50) return 'under_50';
   if (price <= 100) return '50_to_100';
-  return 'over_100';
+  if (price <= 300) return '100_to_300';
+  return '300_plus';
 }
 
 function normalizeDigits(value: string | null | undefined): string {
