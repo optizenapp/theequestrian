@@ -100,14 +100,24 @@ export async function cleanupStaleGmcOffers(input: {
   const chunkSize = 100;
   for (let i = 0; i < stale.length; i += chunkSize) {
     const chunk = stale.slice(i, i + chunkSize);
-    const entries = chunk.map((product, index) => ({
-      batchId: i + index,
-      merchantId,
-      method: 'delete',
-      productId: product.id,
-    }));
+    const entries = chunk.map((product, index) => {
+      const productId =
+        product.id ||
+        [
+          product.channel || 'online',
+          product.contentLanguage || 'en',
+          product.targetCountry || 'AU',
+          product.offerId,
+        ].join(':');
+      return {
+        batchId: i + index + 1,
+        merchantId: Number(merchantId),
+        method: 'delete' as const,
+        productId,
+      };
+    });
 
-    const batchResponse = await fetch(`${CONTENT_API_BASE}/${merchantId}/products/custombatch`, {
+    const batchResponse = await fetch(`${CONTENT_API_BASE}/products/batch`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${accessToken}`,
