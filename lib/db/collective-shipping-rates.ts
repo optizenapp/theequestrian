@@ -166,3 +166,37 @@ export async function getCollectiveShippingRateByProductId(
   `) as CollectiveShippingRateRow[];
   return rows[0] ?? null;
 }
+
+/** One rate row per product (newest fetched_at wins). */
+export async function getCollectiveShippingRatesByProductIds(
+  productIds: string[]
+): Promise<Map<string, CollectiveShippingRateRow>> {
+  await ensureCollectiveShippingRatesTable();
+  const ids = [...new Set(productIds.map(stripGid).filter(Boolean))];
+  const map = new Map<string, CollectiveShippingRateRow>();
+  if (ids.length === 0) return map;
+
+  const chunkSize = 500;
+  for (let i = 0; i < ids.length; i += chunkSize) {
+    const chunk = ids.slice(i, i + chunkSize);
+    const rows = (await sql`
+      SELECT DISTINCT ON (product_id)
+        product_id,
+        variant_id,
+        vendor,
+        handle,
+        standard_rate_aud::float8 AS standard_rate_aud,
+        express_rate_aud::float8 AS express_rate_aud,
+        currency,
+        sample_price_aud::float8 AS sample_price_aud,
+        fetched_at::text
+      FROM collective_shipping_rates
+      WHERE product_id = ANY(${chunk})
+      ORDER BY product_id, fetched_at DESC
+    `) as CollectiveShippingRateRow[];
+    for (const row of rows) {
+      map.set(row.product_id, row);
+    }
+  }
+  return map;
+}

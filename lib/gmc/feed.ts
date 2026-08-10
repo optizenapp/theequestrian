@@ -1,6 +1,16 @@
-import { getAllProducts, getProductCanonicalUrls } from '@/lib/shopify/products';
+import {
+  filterPublishedForHeadless,
+  getAllProducts,
+  getProductCanonicalUrls,
+} from '@/lib/shopify/products';
 import { getGmcBaseUrl } from '@/lib/gmc/content';
 import { getGoogleProductCategory } from '@/lib/gmc/category-mapping';
+import {
+  loadCollectiveShippingLookups,
+  pickCollectiveRateForVariant,
+  resolveGmcShippingFromCollectiveRate,
+  type CollectiveShippingLookups,
+} from '@/lib/gmc/feed-shipping';
 import type { ProductWithPrimaryCollection, ShopifyVariant } from '@/types/shopify';
 
 function escapeXml(value: string) {
@@ -278,13 +288,15 @@ function buildVariantItem({
   baseUrl,
   canonicalPath,
   googleCategory,
+  collectiveLookups,
 }: {
   product: ProductWithPrimaryCollection;
   variant: ShopifyVariant;
   baseUrl: string;
   canonicalPath: string;
   googleCategory: string | null;
-}) {
+  collectiveLookups: CollectiveShippingLookups;
+}): { xml: string; variantId: string } | null {
   const productUrl = `${baseUrl}${canonicalPath}`;
   const productImageUrl = product.images.edges[0]?.node.url;
   const description = stripHtml(product.description || product.descriptionHtml || product.title);
@@ -311,10 +323,18 @@ function buildVariantItem({
   const gtin = extractGtin(variant.barcode);
   const mpn = extractMpn(variant.sku);
   const identifierExists = Boolean(gtin || mpn);
-  const variantLink = productUrl;
+  const variantLink = `${productUrl}?variant=${variantId}`;
+  const shipping = resolveGmcShippingFromCollectiveRate({
+    tags: product.tags,
+    collectiveRate: pickCollectiveRateForVariant({
+      lookups: collectiveLookups,
+      variantId,
+      productId,
+    }),
+  });
 
   if (!imageUrl) {
-    return '';
+    return null;
   }
 
   const tags = [
@@ -339,6 +359,7 @@ function buildVariantItem({
     ageGroup ? `<g:age_group>${escapeXml(ageGroup)}</g:age_group>` : '',
     material ? `<g:material>${escapeXml(material)}</g:material>` : '',
     pattern ? `<g:pattern>${escapeXml(pattern)}</g:pattern>` : '',
+    shipping.shippingXml,
     `<g:custom_label_0>${escapeXml(priceTier)}</g:custom_label_0>`,
     `<g:custom_label_1>${escapeXml(marginTier)}</g:custom_label_1>`,
     `<g:custom_label_2>${escapeXml(commissionTier)}</g:custom_label_2>`,
@@ -346,30 +367,54 @@ function buildVariantItem({
     `<g:custom_label_4>${escapeXml(performanceBucket)}</g:custom_label_4>`,
   ].filter(Boolean);
 
-  return `<item>${tags.join('')}</item>`;
+  return { xml: `<item>${tags.join('')}</item>`, variantId };
 }
 
 export async function buildGmcFeedXml() {
   const baseUrl = getGmcBaseUrl();
-  const products = await getAllProducts();
-  const urlMap = await getProductCanonicalUrls(products);
+  const allProducts = await getAllProducts();
+  const products = await filterPublishedForHeadless(allProducts);
+  if (products.length !== allProducts.length) {
+    console.log(
+      `[gmc:feed] Headless visibility filter: ${allProducts.length} → ${products.length} products`
+    );
+  }
 
-  const items = products.flatMap((product) => {
+  const allVariantIds = products.flatMap((product) =>
+    product.variants.edges.map(({ node }) => stripGid(node.id))
+  );
+  const allProductIds = products.map((product) => stripGid(product.id));
+  const [urlMap, collectiveLookups] = await Promise.all([
+    getProductCanonicalUrls(products),
+    loadCollectiveShippingLookups({
+      variantIds: allVariantIds,
+      productIds: allProductIds,
+    }),
+  ]);
+  console.log(
+    `[gmc:feed] Collective shipping cache: ${collectiveLookups.byVariant.size} variant rows, ${collectiveLookups.byProduct.size} products (${allVariantIds.length} feed variants)`
+  );
+
+  const built = products.flatMap((product) => {
     const canonicalPath = urlMap.get(product.id) ?? `/products/${product.handle}`;
     const googleCategory = getGoogleProductCategory(product.productType, canonicalPath);
 
-    return product.variants.edges.map(({ node: variant }) =>
-      buildVariantItem({
-        product,
-        variant,
-        baseUrl,
-        canonicalPath,
-        googleCategory,
-      })
-    );
+    return product.variants.edges
+      .map(({ node: variant }) =>
+        buildVariantItem({
+          product,
+          variant,
+          baseUrl,
+          canonicalPath,
+          googleCategory,
+          collectiveLookups,
+        })
+      )
+      .filter((item): item is { xml: string; variantId: string } => item !== null);
   });
 
-  const validItems = items.filter(Boolean);
+  const validItems = built.map((item) => item.xml);
+  const variantIds = built.map((item) => item.variantId);
   const xml = [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">',
@@ -382,5 +427,5 @@ export async function buildGmcFeedXml() {
     '</rss>',
   ].join('');
 
-  return { xml, itemCount: validItems.length };
+  return { xml, itemCount: validItems.length, variantIds };
 }

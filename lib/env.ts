@@ -46,6 +46,8 @@ const envSchema = z.object({
   YOUTUBE_COPY_MODEL: z.string().optional(),
   GMC_MERCHANT_ID: z.string().optional(),
   GMC_BASE_URL: z.string().url().optional(),
+  GMC_FEED_URL: z.string().url().optional(),
+  GMC_DEFAULT_SHIPPING_AUD: z.string().optional(),
   GOOGLE_SHEETS_CUSTOMER_SHEET_ID: z.string().optional(),
   GOOGLE_SHEETS_CUSTOMER_TAB: z.string().optional(),
   GOOGLE_SHEETS_SERVICE_ACCOUNT_EMAIL: z.string().optional(),

@@ -5,6 +5,7 @@
 
 import { sql } from '@/lib/db/client';
 import { ensureVendorShippingColumns } from '@/lib/db/ensure-vendor-shipping-columns';
+import { getVendorAliasKeys, normalizeVendorKey } from '@/lib/shipping/vendor-aliases';
 
 export interface VendorRate {
   vendor: string;
@@ -17,7 +18,10 @@ export interface VendorRate {
 }
 
 export interface ShippingRates {
+  /** Original vendor_name → rate */
   vendorRates: Map<string, VendorRate>;
+  /** Lowercase/normalized vendor key → rate (includes lookup via aliases) */
+  vendorRatesByKey: Map<string, VendorRate>;
   tagRates: Map<string, number>;
 }
 
@@ -79,10 +83,39 @@ export async function loadShippingRates(): Promise<ShippingRates> {
     tagRates.set(row.tag, parseFloat(String(row.rate)));
   }
 
-  cachedRates = { vendorRates, tagRates };
+  const vendorRatesByKey = buildVendorRateKeyIndex(vendorRates);
+  cachedRates = { vendorRates, vendorRatesByKey, tagRates };
   cacheTimestamp = now;
 
   return cachedRates;
+}
+
+function buildVendorRateKeyIndex(vendorRates: Map<string, VendorRate>): Map<string, VendorRate> {
+  const byKey = new Map<string, VendorRate>();
+  for (const [vendorName, rate] of vendorRates.entries()) {
+    for (const aliasKey of getVendorAliasKeys(vendorName)) {
+      if (!byKey.has(aliasKey)) {
+        byKey.set(aliasKey, rate);
+      }
+    }
+    const selfKey = normalizeVendorKey(vendorName);
+    if (!byKey.has(selfKey)) {
+      byKey.set(selfKey, rate);
+    }
+  }
+  return byKey;
+}
+
+export function findVendorRate(
+  vendor: string,
+  rates: ShippingRates
+): VendorRate | undefined {
+  if (!vendor.trim()) return undefined;
+  for (const aliasKey of getVendorAliasKeys(vendor)) {
+    const match = rates.vendorRatesByKey.get(aliasKey);
+    if (match) return match;
+  }
+  return rates.vendorRatesByKey.get(normalizeVendorKey(vendor));
 }
 
 function appendVendorRates(vendorRates: Map<string, VendorRate>, vendors: unknown): void {
@@ -140,16 +173,7 @@ export function resolveShippingOffset(
   price?: number
 ): { shippingOffset: number | null; tagMatch: string | null } {
   const normalizedTags = normalizeTags(tags);
-  const vendorLower = vendor.toLowerCase().trim();
-
-  // Find vendor match (case-insensitive)
-  let vendorMatch: VendorRate | undefined;
-  for (const [vendorName, rate] of rates.vendorRates.entries()) {
-    if (vendorName.toLowerCase() === vendorLower) {
-      vendorMatch = rate;
-      break;
-    }
-  }
+  const vendorMatch = findVendorRate(vendor, rates);
 
   if (vendorMatch) {
     // Priority 0: Free-shipping threshold. Items at/above the threshold ship
@@ -226,11 +250,5 @@ export function getVendorFreeShippingThreshold(
   vendor: string,
   rates: ShippingRates
 ): number | null {
-  const vendorLower = vendor.toLowerCase().trim();
-  for (const [vendorName, rate] of rates.vendorRates.entries()) {
-    if (vendorName.toLowerCase() === vendorLower) {
-      return rate.freeShippingThreshold ?? null;
-    }
-  }
-  return null;
+  return findVendorRate(vendor, rates)?.freeShippingThreshold ?? null;
 }

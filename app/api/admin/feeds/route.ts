@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { isAdminRequest } from '@/lib/admin/auth';
 import { getGmcIntegration } from '@/lib/db/gmc';
 import { getDatabaseStats } from '@/lib/db/client';
-import { getGmcBaseUrl } from '@/lib/gmc/content';
+import { getConfiguredGmcFeedUrl } from '@/lib/gmc/content';
 
 export async function GET() {
   if (!(await isAdminRequest())) {
@@ -17,9 +17,15 @@ export async function GET() {
   const hasTokens = Boolean(integration?.access_token && integration?.refresh_token);
   const feedUrl = (() => {
     try {
-      return `${getGmcBaseUrl()}/api/feeds/gmc`;
+      const configured = getConfiguredGmcFeedUrl();
+      const stored = integration?.feed_fetch_url?.trim() || null;
+      // Prefer live S3 config over a stale DB value (e.g. legacy /api/feeds/gmc).
+      if (!stored || stored.includes('/api/feeds/gmc')) {
+        return configured;
+      }
+      return stored;
     } catch {
-      return null;
+      return integration?.feed_fetch_url ?? null;
     }
   })();
 
@@ -36,7 +42,7 @@ export async function GET() {
         lastSync: integration?.updated_at ?? null,
         merchantId: integration?.merchant_id ?? null,
         feedId: integration?.feed_id ?? null,
-        feedFetchUrl: integration?.feed_fetch_url ?? null,
+        feedFetchUrl: integration?.feed_fetch_url ?? feedUrl,
       },
       { id: 'facebook', name: 'Facebook Catalog', status: 'pending', lastSync: null },
       { id: 'pixel', name: 'Pixel tracking', status: 'pending', lastSync: null },

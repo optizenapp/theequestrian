@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/cron/gmc-feed",
-      "schedule": "0 3 * * *"
+      "schedule": "0 */4 * * *"
     },
     {
       "path": "/api/cron/collective-shipping",

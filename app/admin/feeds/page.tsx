@@ -28,6 +28,8 @@ export default function AdminFeedsPage() {
   const [isSavingMerchant, setIsSavingMerchant] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [isCreatingFeed, setIsCreatingFeed] = useState(false);
+  const [isSyncingShipping, setIsSyncingShipping] = useState(false);
+  const [shippingMessage, setShippingMessage] = useState<string | null>(null);
 
   const refreshStatus = async () => {
     setIsLoading(true);
@@ -97,8 +99,24 @@ export default function AdminFeedsPage() {
 
   const handleCreateFeed = async () => {
     setIsCreatingFeed(true);
+    setShippingMessage(null);
     try {
-      await fetch('/api/admin/gmc/datafeed', { method: 'POST' });
+      const response = await fetch('/api/admin/gmc/datafeed', { method: 'POST' });
+      const data = (await response.json()) as {
+        error?: string;
+        feedUrl?: string;
+        feedId?: string;
+        alreadyExists?: boolean;
+      };
+      if (!response.ok) {
+        setShippingMessage(data.error || 'Create / sync GMC feed failed');
+        return;
+      }
+      setShippingMessage(
+        data.feedUrl
+          ? `Feed ${data.alreadyExists ? 'updated' : 'created'}: ${data.feedUrl}`
+          : 'Feed synced'
+      );
       await refreshStatus();
     } finally {
       setIsCreatingFeed(false);
@@ -108,6 +126,28 @@ export default function AdminFeedsPage() {
   const handleCopyFeedUrl = async () => {
     if (!feedStatus?.feedUrl) return;
     await navigator.clipboard.writeText(feedStatus.feedUrl);
+  };
+
+  const handleSyncShipping = async () => {
+    setIsSyncingShipping(true);
+    setShippingMessage(null);
+    try {
+      const response = await fetch('/api/admin/gmc/shipping', { method: 'POST' });
+      const data = (await response.json()) as {
+        error?: string;
+        rateGroupCount?: number;
+        defaultRateAud?: number;
+      };
+      if (!response.ok) {
+        setShippingMessage(data.error || 'Shipping sync failed');
+        return;
+      }
+      setShippingMessage(
+        `Synced ${data.rateGroupCount ?? 0} rate groups (default $${data.defaultRateAud ?? 0} AUD)`
+      );
+    } finally {
+      setIsSyncingShipping(false);
+    }
   };
 
   return (
@@ -173,9 +213,13 @@ export default function AdminFeedsPage() {
         </div>
 
         <div className="mt-4 rounded-xl border border-gray-200 p-4">
-          <p className="text-sm font-semibold text-gray-900">Feed URL</p>
+          <p className="text-sm font-semibold text-gray-900">S3 feed URL</p>
           <p className="mt-2 text-sm text-gray-600">
-            {feedStatus?.feedUrl ?? 'Configure GMC_BASE_URL or NEXT_PUBLIC_SITE_URL to generate the feed URL.'}
+            Merchant Center must fetch the S3 primary feed (headless product URLs). Not the Shopify channel feed.
+          </p>
+          <p className="mt-2 break-all text-sm text-gray-800">
+            {feedStatus?.feedUrl ??
+              'Set GMC_FEED_URL or GMC_S3_BUCKET so the S3 feed URL can be resolved.'}
           </p>
           <div className="mt-3 flex flex-wrap gap-3">
             <button
@@ -184,7 +228,7 @@ export default function AdminFeedsPage() {
               disabled={!feedStatus?.feedUrl}
               className="rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:border-gray-400 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Copy feed URL
+              Copy S3 feed URL
             </button>
             <button
               type="button"
@@ -192,11 +236,22 @@ export default function AdminFeedsPage() {
               disabled={isCreatingFeed}
               className="rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isCreatingFeed ? 'Creating feed...' : 'Create GMC feed'}
+              {isCreatingFeed ? 'Creating feed...' : 'Create / sync GMC feed'}
+            </button>
+            <button
+              type="button"
+              onClick={handleSyncShipping}
+              disabled={isSyncingShipping}
+              className="rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:border-gray-400 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isSyncingShipping ? 'Syncing shipping...' : 'Sync shipping settings'}
             </button>
           </div>
           {gmcFeed?.feedId ? (
             <p className="mt-2 text-xs text-gray-500">Registered feed ID: {gmcFeed.feedId}</p>
+          ) : null}
+          {shippingMessage ? (
+            <p className="mt-2 text-xs text-gray-600">{shippingMessage}</p>
           ) : null}
         </div>
       </div>

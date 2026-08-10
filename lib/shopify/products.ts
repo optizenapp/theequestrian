@@ -200,7 +200,7 @@ export function hasProductImage(product: Pick<ShopifyProduct, 'images'> | null |
   return typeof primaryImage?.url === 'string' && primaryImage.url.trim().length > 0;
 }
 
-async function filterPublishedForHeadless<T extends { handle: string }>(products: T[]): Promise<T[]> {
+export async function filterPublishedForHeadless<T extends { handle: string }>(products: T[]): Promise<T[]> {
   if (products.length === 0) return products;
   const overrideMap = await getProductOverridesByHandles(products.map((product) => product.handle));
   return products.filter((product) => overrideMap.get(product.handle)?.is_published_headless !== false);
