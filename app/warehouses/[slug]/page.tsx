@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
@@ -9,6 +9,11 @@ import {
   listWarehouses,
   warehouseHref,
 } from '@/lib/warehouses/registry';
+
+/** Old slug before Sydney location was named precisely */
+const WAREHOUSE_SLUG_ALIASES: Record<string, string> = {
+  nsw: 'sydney',
+};
 
 export const revalidate = 3600;
 
@@ -22,7 +27,12 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: WarehousePageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug =
+    WAREHOUSE_SLUG_ALIASES[rawSlug.trim().toLowerCase()] ?? rawSlug.trim().toLowerCase();
+  if (slug !== rawSlug.trim().toLowerCase()) {
+    permanentRedirect(warehouseHref(slug));
+  }
   const warehouse = getWarehouseBySlug(slug);
   if (!warehouse) {
     return { title: 'Warehouse Not Found', robots: { index: false, follow: false } };
@@ -51,7 +61,12 @@ export async function generateMetadata({ params }: WarehousePageProps): Promise<
 }
 
 export default async function WarehousePage({ params, searchParams }: WarehousePageProps) {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug =
+    WAREHOUSE_SLUG_ALIASES[rawSlug.trim().toLowerCase()] ?? rawSlug.trim().toLowerCase();
+  if (slug !== rawSlug.trim().toLowerCase()) {
+    permanentRedirect(warehouseHref(slug));
+  }
   const warehouse = getWarehouseBySlug(slug);
   if (!warehouse) notFound();
 

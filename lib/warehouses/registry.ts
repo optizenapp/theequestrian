@@ -18,14 +18,14 @@ export const WAREHOUSE_REGISTRY: WarehouseDefinition[] = [
     slug: 'tuggerah',
     displayName: 'Tuggerah, NSW',
     shortDescription:
-      'Shop gear dispatched from our Tuggerah, NSW warehouse. Add enough from this warehouse for free shipping on this parcel.',
+      'Shop gear dispatched from our Tuggerah, NSW warehouse.',
     vendorNames: ['Trailrace Equestrian Outfitters', 'Trailrace'],
   },
   {
     slug: 'goulburn',
     displayName: 'Goulburn, NSW',
     shortDescription:
-      'Shop gear dispatched from our Goulburn, NSW warehouse. Add enough from this warehouse for free shipping on this parcel.',
+      'Shop gear dispatched from our Goulburn, NSW warehouse.',
     vendorNames: [
       'Living Horse Tails Jewellery By Monika',
       'Living Horse Tails Jewellery by Monika',
@@ -36,42 +36,42 @@ export const WAREHOUSE_REGISTRY: WarehouseDefinition[] = [
     slug: 'heatherbrae',
     displayName: 'Heatherbrae, NSW',
     shortDescription:
-      'Shop gear dispatched from our Heatherbrae, NSW warehouse. Add enough from this warehouse for free shipping on this parcel.',
+      'Shop gear dispatched from our Heatherbrae, NSW warehouse.',
     vendorNames: ['Toptac International', 'Toptac'],
   },
   {
     slug: 'north-west-victoria',
     displayName: 'Rural north-west Victoria',
     shortDescription:
-      'Shop gear dispatched from our rural north-west Victoria warehouse. Add enough from this warehouse for free shipping on this parcel.',
+      'Shop gear dispatched from our rural north-west Victoria warehouse.',
     vendorNames: ['JNK Collective', 'JNK'],
   },
   {
     slug: 'cambooya',
     displayName: 'Cambooya, QLD',
     shortDescription:
-      'Shop gear dispatched from our Cambooya, QLD warehouse. Add enough from this warehouse for free shipping on this parcel.',
+      'Shop gear dispatched from our Cambooya, QLD warehouse.',
     vendorNames: ['Exclusively Equine'],
   },
   {
     slug: 'macclesfield',
     displayName: 'Macclesfield, SA',
     shortDescription:
-      'Shop gear dispatched from our Macclesfield, SA warehouse. Add enough from this warehouse for free shipping on this parcel.',
+      'Shop gear dispatched from our Macclesfield, SA warehouse.',
     vendorNames: ['Little Equine Co', 'Little Equine Co.', 'Little Equine'],
   },
   {
-    slug: 'nsw',
-    displayName: 'NSW',
+    slug: 'sydney',
+    displayName: 'Sydney, NSW',
     shortDescription:
-      'Shop gear dispatched from our NSW warehouse. Add enough from this warehouse for free shipping on this parcel.',
+      'Shop gear dispatched from our Sydney, NSW warehouse.',
     vendorNames: ['CAN Animal Care'],
   },
   {
     slug: 'adelaide-hills',
     displayName: 'Adelaide Hills, SA',
     shortDescription:
-      'Shop gear dispatched from our Adelaide Hills, SA warehouse. Add enough from this warehouse for free shipping on this parcel.',
+      'Shop gear dispatched from our Adelaide Hills, SA warehouse.',
     vendorNames: ['QJ Riding Wear'],
   },
 ];

@@ -94,7 +94,7 @@ export async function GET() {
       'north-west-victoria',
       'cambooya',
       'macclesfield',
-      'nsw',
+      'sydney',
       'adelaide-hills',
     ].map((slug) => ({
       url: `${SITE_URL}/warehouses/${slug}`,
