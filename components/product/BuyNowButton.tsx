@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useCart } from '@/components/cart/cart-context';
 import { normalizeCheckoutUrl } from '@/lib/shopify/cart-utils';
 import { trackGaEvent } from '@/lib/analytics/ga4';
-import { redirectToDecoratedCheckout } from '@/lib/analytics/ga4-linker';
+import { prepareCheckoutRedirect } from '@/lib/analytics/ga4-linker';
 import type { Ga4EcommerceItem } from '@/lib/analytics/ga4-ecommerce';
 
 interface BuyNowButtonProps {
@@ -67,7 +67,10 @@ export function BuyNowButton({
         throw new Error('Invalid checkout URL');
       }
       
-      redirectToDecoratedCheckout(normalizedUrl);
+      await prepareCheckoutRedirect(normalizedUrl, {
+        source: 'buy_now',
+        cartId: cart.id,
+      });
     } catch (error) {
       console.error('Failed to process buy now:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to process purchase';

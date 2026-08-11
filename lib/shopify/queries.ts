@@ -568,11 +568,15 @@ export const GET_ALL_COLLECTIONS = `
 `;
 
 export const CREATE_CART = `
-  mutation CreateCart($lineItems: [CartLineInput!]) {
-    cartCreate(input: { lines: $lineItems }) {
+  mutation CreateCart($lineItems: [CartLineInput!], $attributes: [AttributeInput!] = []) {
+    cartCreate(input: { lines: $lineItems, attributes: $attributes }) {
       cart {
         id
         checkoutUrl
+        attributes {
+          key
+          value
+        }
         cost {
           subtotalAmount {
             amount
@@ -809,6 +813,10 @@ export const UPDATE_CART_ATTRIBUTES = `
       cart {
         id
         checkoutUrl
+        attributes {
+          key
+          value
+        }
       }
       userErrors {
         field
@@ -823,6 +831,10 @@ export const GET_CART = `
     cart(id: $cartId) {
       id
       checkoutUrl
+      attributes {
+        key
+        value
+      }
       cost {
         subtotalAmount {
           amount

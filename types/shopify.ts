@@ -194,6 +194,10 @@ export interface ShopifyCollection {
 export interface ShopifyCart {
   id: string;
   checkoutUrl: string;
+  attributes?: Array<{
+    key: string;
+    value: string;
+  }>;
   cost: {
     subtotalAmount: {
       amount: string;

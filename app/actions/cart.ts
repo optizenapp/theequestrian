@@ -44,7 +44,7 @@ interface GetCartResponse {
 
 interface CartAttributesUpdateResponse {
   cartAttributesUpdate: {
-    cart: Pick<ShopifyCart, 'id' | 'checkoutUrl'>;
+    cart: Pick<ShopifyCart, 'id' | 'checkoutUrl' | 'attributes'>;
     userErrors: Array<{ field: string[] | null; message: string }>;
   };
 }
@@ -80,12 +80,16 @@ export async function removeCartCookie() {
   cookieStore.delete(CART_COOKIE_NAME);
 }
 
-export async function createCart(lineItems?: Array<{ merchandiseId: string; quantity: number }>) {
+export async function createCart(
+  lineItems?: Array<{ merchandiseId: string; quantity: number }>,
+  attributes?: Array<{ key: string; value: string }>
+) {
   try {
     const response = await shopifyFetch<CartCreateResponse>({
       query: CREATE_CART,
       variables: {
         lineItems: lineItems || [],
+        attributes: attributes || [],
       },
       ...CART_FETCH_OPTIONS,
     });

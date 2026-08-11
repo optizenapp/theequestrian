@@ -18,6 +18,9 @@ export function readSdAttrPayload(): string | null {
   try {
     const api = getSdAttribution();
     if (api?.getIdentity) {
+      // Prefer full cookie-shaped payload from localStorage when present
+      const stored = localStorage.getItem('sd_attr');
+      if (stored) return stored;
       return JSON.stringify(api.getIdentity());
     }
   } catch {

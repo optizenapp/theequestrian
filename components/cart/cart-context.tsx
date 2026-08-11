@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { useRouter } from 'next/navigation';
 import { ShopifyCart } from '@/types/shopify';
 import { createCart, addToCart, updateCart, removeFromCart, getCart, setCartCookie } from '@/app/actions/cart';
-import { syncPerformCartAttribute } from '@/lib/analytics/perform';
+import { readSdAttrPayload, syncPerformCartAttribute } from '@/lib/analytics/perform';
 
 interface CartContextType {
   cart: ShopifyCart | null;
@@ -57,8 +57,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
         // Add to existing cart
         updatedCart = await addToCart(cart.id, [{ merchandiseId: variantId, quantity }]);
       } else {
-        // Create new cart
-        updatedCart = await createCart([{ merchandiseId: variantId, quantity }]);
+        // Create new cart with Perform attribution when available
+        const sdAttr = readSdAttrPayload();
+        const attributes = sdAttr ? [{ key: '_sd_attr', value: sdAttr }] : undefined;
+        updatedCart = await createCart([{ merchandiseId: variantId, quantity }], attributes);
         localStorage.setItem('cartId', updatedCart.id);
         // Cookie is already set by createCart server action
       }
