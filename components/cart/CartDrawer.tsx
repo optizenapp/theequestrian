@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { normalizeCheckoutUrl } from '@/lib/shopify/cart-utils';
 import { trackGaEvent } from '@/lib/analytics/ga4';
-import { bindDecoratedCheckoutLink } from '@/lib/analytics/ga4-linker';
+import { prepareCheckoutRedirect } from '@/lib/analytics/ga4-linker';
 import {
   multiParcelDrawerNote,
   SHIPPING_ESTIMATE_CHECKOUT_NOTE,
@@ -18,7 +18,7 @@ import { useCartParcelEstimate } from '@/components/cart/useCartParcelEstimate';
 export function CartDrawer() {
   const { cart, isOpen, closeCart, updateCartItem, removeCartItem } = useCart();
   const [productHrefByHandle, setProductHrefByHandle] = useState<Record<string, string>>({});
-  const checkoutLinkRef = useRef<HTMLAnchorElement | null>(null);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
   const estimate = useCartParcelEstimate(isOpen ? cart : null);
   const viewedKeyRef = useRef('');
 
@@ -77,24 +77,28 @@ export function CartDrawer() {
     });
   }, [isOpen, cart, estimate.parcelCount, currencyCode, subtotal, itemCount]);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const link = checkoutLinkRef.current;
-    if (!link || !checkoutHref) return;
+  const handleCheckout = async () => {
+    if (!cart?.id || !checkoutHref || isCheckingOut) return;
 
-    return bindDecoratedCheckoutLink(link, {
+    setIsCheckingOut(true);
+    trackGaEvent('begin_checkout', {
+      currency: currencyCode,
+      value: parseFloat(subtotal),
+      item_count: itemCount,
+      parcel_count: estimate.parcelCount,
       source: 'cart_drawer',
-      cartId: cart?.id,
-      onPlainLeftClick: () =>
-        trackGaEvent('begin_checkout', {
-          currency: currencyCode,
-          value: parseFloat(subtotal),
-          item_count: itemCount,
-          parcel_count: estimate.parcelCount,
-          source: 'cart_drawer',
-        }),
     });
-  }, [isOpen, checkoutHref, currencyCode, itemCount, subtotal, cart?.id, estimate.parcelCount]);
+
+    try {
+      await prepareCheckoutRedirect(checkoutHref, {
+        source: 'cart_drawer',
+        cartId: cart.id,
+      });
+    } catch (err) {
+      console.error('[CartDrawer] checkout failed', err);
+      setIsCheckingOut(false);
+    }
+  };
 
   const hrefFor = (handle: string) => productHrefByHandle[handle] ?? `/products/${handle}`;
   const lineById = useMemo(() => {
@@ -232,7 +236,16 @@ export function CartDrawer() {
               <span className="text-base font-bold text-gray-900">${parseFloat(subtotal).toFixed(2)} {currencyCode}</span>
             </div>
             <p className="mb-3 text-xs leading-relaxed text-gray-500">{SHIPPING_ESTIMATE_CHECKOUT_NOTE} Taxes calculated at checkout.</p>
-            <a ref={checkoutLinkRef} href={checkoutHref} className="block w-full rounded-full bg-action py-2.5 text-center text-sm font-semibold text-white hover:bg-action-hover transition-colors">Checkout</a>
+            <button
+              type="button"
+              onClick={() => {
+                void handleCheckout();
+              }}
+              disabled={isCheckingOut || !checkoutHref}
+              className="block w-full rounded-full bg-action py-2.5 text-center text-sm font-semibold text-white hover:bg-action-hover transition-colors disabled:opacity-60"
+            >
+              {isCheckingOut ? 'Preparing checkout…' : 'Checkout'}
+            </button>
             <Link href="/cart" onClick={closeCart} className="mt-2 block text-center text-xs font-medium text-gray-600 hover:text-action hover:underline">View full cart</Link>
           </div>
         )}

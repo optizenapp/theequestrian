@@ -4,8 +4,7 @@
  */
 
 import {
-  flushPerformBeforeCheckout,
-  syncPerformCartAttribute,
+  ensurePerformCartAttribute,
 } from '@/lib/analytics/perform';
 
 const FALLBACK_MS = 1000;
@@ -55,14 +54,8 @@ export async function prepareCheckoutRedirect(
   url: string,
   options: { source?: string; cartId?: string } = {}
 ): Promise<void> {
-  flushPerformBeforeCheckout();
-
   if (options.cartId) {
-    try {
-      await syncPerformCartAttribute(options.cartId);
-    } catch (err) {
-      console.error('[perform] cart attribute sync failed', err);
-    }
+    await ensurePerformCartAttribute(options.cartId);
   }
 
   redirectToDecoratedCheckout(url, options.source ?? 'unknown');

@@ -17,7 +17,7 @@ import { ShopifyProduct } from '@/types/shopify';
 import { normalizeCheckoutUrl } from '@/lib/shopify/cart-utils';
 import { trackGaEvent } from '@/lib/analytics/ga4';
 import {
-  bindDecoratedCheckoutLink,
+  prepareCheckoutRedirect,
 } from '@/lib/analytics/ga4-linker';
 import { useCartParcelEstimate } from '@/components/cart/useCartParcelEstimate';
 import { CartShippingSummary } from '@/components/cart/CartShippingSummary';
@@ -37,7 +37,7 @@ export function CartPageContent({
   const { cart, addCartItem, updateCartItem, removeCartItem } = useCart();
   const [showAllRecommendations, setShowAllRecommendations] = useState(false);
   const [addingToCartId, setAddingToCartId] = useState<string | null>(null);
-  const checkoutLinkRef = useRef<HTMLAnchorElement | null>(null);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
   const estimate = useCartParcelEstimate(cart);
   const viewedKeyRef = useRef('');
 
@@ -71,23 +71,28 @@ export function CartPageContent({
     });
   }, [cart, estimate.parcelCount, currencyCode, total]);
 
-  useEffect(() => {
-    const link = checkoutLinkRef.current;
-    if (!link || !checkoutHref || !cart) return;
+  const handleCheckout = async () => {
+    if (!cart?.id || !checkoutHref || isCheckingOut) return;
 
-    return bindDecoratedCheckoutLink(link, {
+    setIsCheckingOut(true);
+    trackGaEvent('begin_checkout', {
+      currency: cart.cost.totalAmount.currencyCode,
+      value: total,
+      item_count: cart.totalQuantity,
+      parcel_count: estimate.parcelCount,
       source: 'cart_page',
-      cartId: cart.id,
-      onPlainLeftClick: () =>
-        trackGaEvent('begin_checkout', {
-          currency: cart.cost.totalAmount.currencyCode,
-          value: total,
-          item_count: cart.totalQuantity,
-          parcel_count: estimate.parcelCount,
-          source: 'cart_page',
-        }),
     });
-  }, [cart, checkoutHref, total, estimate.parcelCount]);
+
+    try {
+      await prepareCheckoutRedirect(checkoutHref, {
+        source: 'cart_page',
+        cartId: cart.id,
+      });
+    } catch (err) {
+      console.error('[CartPage] checkout failed', err);
+      setIsCheckingOut(false);
+    }
+  };
 
   const handleAddRecommendation = async (product: ShopifyProduct) => {
     // Get the first variant ID
@@ -435,13 +440,16 @@ if (isInCart) return null;
                 />
 
                 {/* Checkout Button - Standard Shopify Checkout */}
-                <a
-                  ref={checkoutLinkRef}
-                  href={checkoutHref}
-                  className="block w-full bg-action text-white text-center py-4 rounded-full font-bold text-lg hover:bg-action-hover hover:shadow-lg transition-all mb-4 transform active:scale-[0.99]"
+                <button
+                  type="button"
+                  onClick={() => {
+                    void handleCheckout();
+                  }}
+                  disabled={isCheckingOut || !checkoutHref}
+                  className="block w-full bg-action text-white text-center py-4 rounded-full font-bold text-lg hover:bg-action-hover hover:shadow-lg transition-all mb-4 transform active:scale-[0.99] disabled:opacity-60"
                 >
-                  Checkout
-                </a>
+                  {isCheckingOut ? 'Preparing checkout…' : 'Checkout'}
+                </button>
 
                 <p className="text-xs text-gray-500 text-center mb-4">{EXPRESS_SHIPPING_CHECKOUT_NOTE}</p>
 

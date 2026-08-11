@@ -1,7 +1,5 @@
 'use client';
 
-import { updateCartAttributes } from '@/app/actions/cart';
-
 type SdAttributionApi = {
   getIdentity?: () => unknown;
   flushOrderAttribution?: (force?: boolean) => void;
@@ -43,9 +41,53 @@ export function flushPerformBeforeCheckout(): void {
   getSdAttribution()?.flushOrderAttribution?.(true);
 }
 
+async function writeSdAttrToCart(cartId: string, payload: string): Promise<void> {
+  const response = await fetch('/api/cart/attributes', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      cartId,
+      attributes: [{ key: '_sd_attr', value: payload }],
+    }),
+  });
+
+  const text = await response.text();
+  let data: { message?: string; userErrors?: Array<{ message: string }> } = {};
+  if (text) {
+    try {
+      data = JSON.parse(text) as typeof data;
+    } catch {
+      // non-JSON body
+    }
+  }
+
+  if (!response.ok) {
+    throw new Error(data.message || `Cart attribute update failed (${response.status})`);
+  }
+
+  if (data.userErrors && data.userErrors.length > 0) {
+    throw new Error(data.userErrors.map((e) => e.message).join(', '));
+  }
+}
+
+/** Write `_sd_attr` after cart mutations (no flush). */
 export async function syncPerformCartAttribute(cartId: string): Promise<void> {
-  const payload = readSdAttrPayload();
+  const payload = localStorage.getItem('sd_attr') || readSdAttrPayload();
+  if (!payload) return;
+  await writeSdAttrToCart(cartId, payload);
+}
+
+/**
+ * Flush Perform identity, then await cart attribute write before checkout.
+ * Network: POST /api/cart/attributes with body containing `_sd_attr`.
+ */
+export async function ensurePerformCartAttribute(cartId: string): Promise<void> {
+  if (typeof window === 'undefined') return;
+
+  flushPerformBeforeCheckout();
+
+  const payload = localStorage.getItem('sd_attr');
   if (!payload) return;
 
-  await updateCartAttributes(cartId, payload);
+  await writeSdAttrToCart(cartId, payload);
 }
