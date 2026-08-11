@@ -99,7 +99,12 @@ export function MegaMenu({
     }
 
     const byTitle = subcategories.find((sub) => normalizeKey(sub.label) === normalizeKey(title));
-    return byTitle?.image?.url || '';
+    if (byTitle?.image?.url) {
+      return byTitle.image.url;
+    }
+
+    // Last resort: any live subcategory thumb in this menu (avoids broken CMS URLs)
+    return subcategories.find((sub) => sub.image?.url)?.image?.url || '';
   };
 
   const handleImageLoadError = (

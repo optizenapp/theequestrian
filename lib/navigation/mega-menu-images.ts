@@ -16,6 +16,17 @@ const SUBCATEGORY_IMAGE_TYPE_FALLBACKS: Record<string, string[]> = {
   'stock-western': ['Western & Accessories', 'Western Pads'],
 };
 
+/**
+ * Hard overrides for mega-menu cards whose CMS/CDN assets 404.
+ * Used when Storefront cannot resolve a live subcategory product image.
+ */
+const MENU_CARD_IMAGE_BY_PATH: Record<string, string> = {
+  '/pet/cat':
+    'https://cdn.shopify.com/s/files/1/0562/0963/7457/files/CuraPet_RemedeazCoatConditioner_2048x_0c9d7711-7372-4c20-88e6-02cafce0883b.webp?v=1783319389',
+  '/horse/stock-western':
+    'https://cdn.shopify.com/s/files/1/0562/0963/7457/files/9012-ah-steer.png?v=1786001081',
+};
+
 export function extractSubcategoryHandleFromLink(
   link: string,
   categoryHandle: string
@@ -35,6 +46,12 @@ export function extractSubcategoryHandleFromLink(
 
 function normalizeLabel(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+function normalizeMenuPath(link: string): string {
+  const path = link.replace(/^https?:\/\/[^/]+/i, '').split('?')[0] || '/';
+  if (path.length > 1 && path.endsWith('/')) return path.slice(0, -1);
+  return path.startsWith('/') ? path : `/${path}`;
 }
 
 export function buildProductTypeImageQuery(productTypes: string[]): string {
@@ -75,6 +92,17 @@ export function firstSubcategoryImageUrl(subcategories: MegaMenuSubcategory[]): 
   return subcategories.find((sub) => sub.image?.url)?.image?.url ?? null;
 }
 
+export function resolveMenuCardImageUrl(
+  link: string,
+  liveUrl: string | null,
+  customUrl: string
+): string {
+  if (liveUrl) return liveUrl;
+  const override = MENU_CARD_IMAGE_BY_PATH[normalizeMenuPath(link)];
+  if (override) return override;
+  return customUrl;
+}
+
 export function enrichMenuImageItems<
   T extends { title: string; imageUrl: string; link: string },
 >(items: T[] | null | undefined, subcategories: MegaMenuSubcategory[], categoryHandle: string): T[] | null {
@@ -83,7 +111,7 @@ export function enrichMenuImageItems<
     const liveUrl = findSubcategoryImageUrl(subcategories, item.link, item.title, categoryHandle);
     return {
       ...item,
-      imageUrl: liveUrl ?? item.imageUrl,
+      imageUrl: resolveMenuCardImageUrl(item.link, liveUrl, item.imageUrl),
     };
   });
 }
