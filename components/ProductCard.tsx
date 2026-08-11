@@ -78,8 +78,8 @@ export function ProductCard({
                 alt={image.altText || product.title}
                 fill
                 className="object-contain object-center transition-transform duration-300 group-hover:scale-105"
-                sizes="(max-width: 640px) 92vw, (max-width: 1024px) 46vw, (max-width: 1536px) 31vw, 380px"
-                quality={72}
+                sizes="(max-width: 639px) 88vw, (max-width: 1023px) 45vw, (max-width: 1535px) 30vw, 360px"
+                quality={65}
                 priority={priority}
                 loading={priority ? 'eager' : 'lazy'}
                 fetchPriority={priority ? 'high' : 'auto'}

@@ -2,6 +2,7 @@
 
 /**
  * Afterpay + Zip on-site messaging (product + cart).
+ * Scripts load only when the widget is near the viewport (or on first interaction).
  *
  * Env:
  *   NEXT_PUBLIC_AFTERPAY_MP_ID
@@ -10,6 +11,7 @@
  *   NEXT_PUBLIC_ZIP_MERCHANT_KEY
  */
 import Script from 'next/script';
+import { useDeferredBnplLoad, useZipAltFix } from '@/components/product/bnpl-defer';
 
 const AFTERPAY_SCRIPT = 'https://js.squarecdn.com/square-marketplace.js';
 const ZIP_SCRIPT = 'https://static.zip.co/lib/js/zm-widget-js/dist/zip-widget.min.js';
@@ -43,17 +45,24 @@ export function BnplMessaging({
   const placementId = afterpayPlacementId(pageType);
   const showAfterpay = Boolean(afterpayMpId && placementId);
   const showZip = Boolean(zipMerchantKey);
-
-  if (!showAfterpay && !showZip) return null;
+  const enabled = showAfterpay || showZip;
+  const { hostRef, shouldLoad } = useDeferredBnplLoad(enabled);
 
   const amountStr = amount.toFixed(2);
   const zipId = pageType === 'cart' ? 'zip-cart-widget' : 'zip-product-widget';
+  useZipAltFix(shouldLoad && showZip, zipId);
+
+  if (!enabled) return null;
 
   return (
-    <div className={`space-y-2 text-sm text-gray-600 ${className}`.trim()}>
-      {showAfterpay ? (
+    <div
+      ref={hostRef}
+      className={`space-y-2 text-sm text-gray-600 ${className}`.trim()}
+      aria-label="Buy now pay later options"
+    >
+      {shouldLoad && showAfterpay ? (
         <>
-          <Script src={AFTERPAY_SCRIPT} strategy="lazyOnload" />
+          <Script src={AFTERPAY_SCRIPT} strategy="afterInteractive" />
           <square-placement
             key={`afterpay-${pageType}-${amountStr}`}
             data-mpid={afterpayMpId}
@@ -67,9 +76,9 @@ export function BnplMessaging({
           />
         </>
       ) : null}
-      {showZip ? (
+      {shouldLoad && showZip ? (
         <>
-          <Script src={ZIP_SCRIPT} strategy="lazyOnload" />
+          <Script src={ZIP_SCRIPT} strategy="afterInteractive" />
           <div
             key={`zip-${pageType}-${amountStr}`}
             id={zipId}
@@ -82,6 +91,9 @@ export function BnplMessaging({
             data-zm-popup-asset="termsdialog"
           />
         </>
+      ) : null}
+      {!shouldLoad ? (
+        <div className="h-6 w-40 animate-pulse rounded bg-gray-100" aria-hidden="true" />
       ) : null}
     </div>
   );

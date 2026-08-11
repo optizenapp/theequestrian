@@ -117,6 +117,27 @@ export interface HeroSlide {
   secondary_cta_link?: string;
 }
 
+/** Optimized local hero assets (DB/CSV may still reference legacy .png paths). */
+const HERO_ASSET_REMAP: Record<string, string> = {
+  '/hero-samshield.png': '/hero-samshield.jpg',
+  '/hero-trolle.png': '/hero-trolle.jpg',
+};
+
+function remapHeroAsset(path: string | undefined): string | undefined {
+  if (!path) return path;
+  return HERO_ASSET_REMAP[path] ?? path;
+}
+
+function normalizeHeroSlide(slide: HeroSlide): HeroSlide {
+  return {
+    ...slide,
+    src: remapHeroAsset(slide.src) ?? slide.src,
+    poster: remapHeroAsset(slide.poster),
+    cta_link: rewriteBrandCollectionPath(slide.cta_link),
+    secondary_cta_link: rewriteBrandCollectionPath(slide.secondary_cta_link),
+  };
+}
+
 export interface HomeSection {
   key: string;
   type: HomeSectionType;
@@ -297,7 +318,7 @@ function parseRows(records: CsvRow[]): HomeSection[] {
       cta_link: safeTrim(row.cta_link),
       secondary_cta_text: safeTrim(row.secondary_cta_text),
       secondary_cta_link: safeTrim(row.secondary_cta_link),
-      image_url: safeTrim(row.image_url),
+      image_url: remapHeroAsset(safeTrim(row.image_url)),
       image_alt: safeTrim(row.image_alt),
       image_link: safeTrim(row.image_link),
     };
@@ -333,14 +354,10 @@ function parseRows(records: CsvRow[]): HomeSection[] {
     if (type === 'hero') {
       const slides = safeJsonParse<HeroSlide[]>(row.items_json, []);
       if (Array.isArray(slides) && slides.length > 0) {
-        section.hero_slides = slides.map((slide) => ({
-          ...slide,
-          cta_link: rewriteBrandCollectionPath(slide.cta_link),
-          secondary_cta_link: rewriteBrandCollectionPath(slide.secondary_cta_link),
-        }));
+        section.hero_slides = slides.map(normalizeHeroSlide);
       } else if (section.image_url) {
         section.hero_slides = [
-          {
+          normalizeHeroSlide({
             media_type: 'image',
             src: section.image_url,
             alt: section.image_alt,
@@ -348,7 +365,7 @@ function parseRows(records: CsvRow[]): HomeSection[] {
             cta_link: section.cta_link,
             secondary_cta_text: section.secondary_cta_text,
             secondary_cta_link: section.secondary_cta_link,
-          },
+          }),
         ];
       }
     }

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { getShopifyImageUrl } from '@/lib/shopify/image-url';
 
 interface SubcategoryItem {
   handle: string;
@@ -46,16 +47,14 @@ interface MegaMenuProps {
   onClose?: () => void;
 }
 
-/**
- * Mega Menu Component
- * 
- * Modern ecommerce mega menu inspired by Back Market
- * Features:
- * - Full-width dropdown
- * - Grid layout with subcategories from mapping
- * - Clean, professional design
- * - Smooth animations
- */
+const THUMB_WIDTH = 112;
+const FEATURED_WIDTH = 800;
+
+function sized(url: string | undefined, width: number): string {
+  if (!url) return '';
+  return getShopifyImageUrl(url, width);
+}
+
 export function MegaMenu({
   categoryLabel,
   subcategories,
@@ -103,7 +102,6 @@ export function MegaMenu({
       return byTitle.image.url;
     }
 
-    // Last resort: any live subcategory thumb in this menu (avoids broken CMS URLs)
     return subcategories.find((sub) => sub.image?.url)?.image?.url || '';
   };
 
@@ -112,14 +110,14 @@ export function MegaMenu({
     fallbackUrl: string
   ) => {
     if (!fallbackUrl) return;
-    if (event.currentTarget.src === fallbackUrl) return;
-    event.currentTarget.src = fallbackUrl;
+    const sizedFallback = sized(fallbackUrl, THUMB_WIDTH);
+    if (event.currentTarget.src === sizedFallback || event.currentTarget.src === fallbackUrl) return;
+    event.currentTarget.src = sizedFallback || fallbackUrl;
   };
 
   const categoryHeroFallback =
     featuredImage?.fallbackUrl || subcategories.find((sub) => sub.image?.url)?.image?.url || '';
-  
-  // Use custom subcategory cards if provided, otherwise use auto-generated from mapping
+
   const cardsToShow: Array<{
     title: string;
     imageUrl: string;
@@ -131,19 +129,20 @@ export function MegaMenu({
         imageUrl: card.imageUrl || getSubcategoryImageFallback(card.link, card.title),
         link: normalizeMenuHref(card.link, `/${categoryHandle}`),
       }))
-    : subcategories.slice(0, 6).map(sub => ({
+    : subcategories.slice(0, 6).map((sub) => ({
         title: sub.label,
         imageUrl: sub.image?.url || '',
         link: normalizeMenuHref(`/${categoryHandle}/${sub.handle}`, `/${categoryHandle}`),
-        count: sub.count
+        count: sub.count,
       }));
-  
-  // Use custom quick links if available, otherwise use first 2 from cards
-  const quickLinksToShow = customQuickLinks || cardsToShow.slice(0, 2).map(card => ({
-    title: card.title,
-    imageUrl: card.imageUrl,
-    link: normalizeMenuHref(card.link, `/${categoryHandle}`)
-  }));
+
+  const quickLinksToShow =
+    customQuickLinks ||
+    cardsToShow.slice(0, 2).map((card) => ({
+      title: card.title,
+      imageUrl: card.imageUrl,
+      link: normalizeMenuHref(card.link, `/${categoryHandle}`),
+    }));
 
   if (cardsToShow.length === 0) {
     return null;
@@ -151,8 +150,7 @@ export function MegaMenu({
 
   return (
     <div className="w-full bg-surface border border-gray-100 rounded-3xl shadow-2xl overflow-hidden relative">
-      {/* Close Button */}
-      <button 
+      <button
         onClick={onClose}
         className="absolute top-4 right-4 p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors z-10 text-gray-600"
         aria-label="Close menu"
@@ -166,9 +164,7 @@ export function MegaMenu({
         <div className="flex items-center justify-between mb-6 border-b border-gray-100 pb-4">
           <div>
             <p className="text-sm uppercase tracking-[0.3em] text-gray-400 mb-1">Featured</p>
-            <h3 className="text-2xl font-semibold text-gray-900">
-              {categoryLabel}
-            </h3>
+            <h3 className="text-2xl font-semibold text-gray-900">{categoryLabel}</h3>
           </div>
           <Link
             href={`/${categoryHandle}`}
@@ -180,7 +176,6 @@ export function MegaMenu({
         </div>
 
         <div className="grid gap-4 sm:gap-6 lg:grid-cols-2 lg:items-end">
-          {/* Featured hero image - Hidden on small screens */}
           <div className="hidden lg:flex lg:flex-col space-y-4">
             {featuredImage ? (
               <Link
@@ -189,7 +184,7 @@ export function MegaMenu({
                 onClick={onClose}
               >
                 <img
-                  src={featuredImage.url}
+                  src={sized(featuredImage.url, FEATURED_WIDTH)}
                   alt={featuredImage.altText}
                   className="w-full h-full object-cover transition-transform group-hover:scale-105"
                   loading="eager"
@@ -212,8 +207,7 @@ export function MegaMenu({
                 </div>
               </div>
             )}
-            
-            {/* Quick links - custom or auto-generated */}
+
             <div className="grid gap-4 sm:grid-cols-2">
               {quickLinksToShow.map((quickLink, index) => (
                 <Link
@@ -225,10 +219,10 @@ export function MegaMenu({
                   {quickLink.imageUrl ? (
                     <div className="h-14 w-14 rounded-2xl overflow-hidden bg-gray-50 flex-shrink-0">
                       <img
-                        src={quickLink.imageUrl}
+                        src={sized(quickLink.imageUrl, THUMB_WIDTH)}
                         alt={quickLink.title}
                         className="w-full h-full object-cover"
-                        loading="eager"
+                        loading="lazy"
                         decoding="async"
                         onError={(event) =>
                           handleImageLoadError(
@@ -252,9 +246,10 @@ export function MegaMenu({
             </div>
           </div>
 
-          {/* Subcategory list - 6 items in 2 columns (3 rows) - Rectangular cards like quick links */}
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
             {cardsToShow.map((card, index) => {
+              const fallbackUrl = getSubcategoryImageFallback(card.link, card.title);
+              const thumbSrc = sized(card.imageUrl || fallbackUrl, THUMB_WIDTH);
               return (
                 <Link
                   key={card.link || index}
@@ -262,30 +257,23 @@ export function MegaMenu({
                   className="group rounded-2xl border border-gray-100 bg-white shadow-sm p-4 flex items-center gap-3 hover:shadow-md transition-shadow"
                   onClick={onClose}
                 >
-                  {/* Product Image */}
-                  {(card.imageUrl || getSubcategoryImageFallback(card.link, card.title)) ? (
+                  {thumbSrc ? (
                     <div className="h-14 w-14 rounded-2xl overflow-hidden bg-gray-50 flex-shrink-0">
-                      {(() => {
-                        const fallbackUrl = getSubcategoryImageFallback(card.link, card.title);
-                        return (
                       <img
-                        src={card.imageUrl || fallbackUrl}
+                        src={thumbSrc}
                         alt={card.title}
                         className="w-full h-full object-cover"
-                        loading="eager"
+                        loading="lazy"
                         decoding="async"
                         onError={(event) => handleImageLoadError(event, fallbackUrl)}
                       />
-                        );
-                      })()}
                     </div>
                   ) : (
                     <div className="h-14 w-14 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-400 text-xs uppercase tracking-widest flex-shrink-0">
                       {card.title.substring(0, 2)}
                     </div>
                   )}
-                  
-                  {/* Content */}
+
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900 truncate">{card.title}</p>
                     <p className="text-xs text-gray-500">

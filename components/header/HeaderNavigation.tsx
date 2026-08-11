@@ -56,7 +56,7 @@ export function HeaderNavigation() {
     isHoveringRef.current = true;
 
     if (getMegaMenuFetchKey(label)) {
-      void prefetchMegaMenuData(label);
+      void prefetchMegaMenuData(label, { preloadImages: true });
     }
 
     timeoutRef.current = setTimeout(() => {
@@ -76,20 +76,31 @@ export function HeaderNavigation() {
   };
 
   useEffect(() => {
+    // Warm JSON caches only — do not preload full-res mega-menu images on every page.
     const prefetchAll = async () => {
       for (const item of TOP_LEVEL_MENU) {
         if (getMegaMenuFetchKey(item.label)) {
-          await prefetchMegaMenuData(item.label);
+          await prefetchMegaMenuData(item.label, { preloadImages: false });
         }
       }
     };
 
-    const timer = setTimeout(() => {
-      void prefetchAll();
-    }, 100);
+    let idleId: number | undefined;
+    const timer = window.setTimeout(() => {
+      if ('requestIdleCallback' in window) {
+        idleId = window.requestIdleCallback(() => {
+          void prefetchAll();
+        });
+      } else {
+        void prefetchAll();
+      }
+    }, 2500);
 
     return () => {
-      clearTimeout(timer);
+      window.clearTimeout(timer);
+      if (idleId != null && 'cancelIdleCallback' in window) {
+        window.cancelIdleCallback(idleId);
+      }
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }

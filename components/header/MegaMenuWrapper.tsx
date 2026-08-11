@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { getMegaMenuFetchKey } from '@/lib/navigation/menu-structure';
+import { getShopifyImageUrl } from '@/lib/shopify/image-url';
 import { MegaMenu } from './MegaMenu';
 import { MegaMenuLoader } from './MegaMenuLoader';
 
@@ -52,17 +53,18 @@ interface MegaMenuData {
   customSubcategoryCards: CustomSubcategoryCard[] | null;
 }
 
-// Cache for mega menu data to avoid refetching
 const menuCache = new Map<string, MegaMenuData>();
+const THUMB_WIDTH = 112;
+const FEATURED_WIDTH = 800;
 
-/**
- * Preload an image by creating a new Image object
- * This tells the browser to fetch and cache the image
- */
+function sizedUrl(url: string | undefined, width: number): string {
+  if (!url) return '';
+  return getShopifyImageUrl(url, width);
+}
+
 function preloadImage(url: string) {
-  if (typeof window === 'undefined') return;
-  
-  // Use link preload for better browser support
+  if (typeof window === 'undefined' || !url) return;
+
   const link = document.createElement('link');
   link.rel = 'preload';
   link.as = 'image';
@@ -70,85 +72,73 @@ function preloadImage(url: string) {
   document.head.appendChild(link);
 }
 
-/**
- * Prefetch mega menu data for a category
- * Call this on hover to load data before menu opens
- */
-export async function prefetchMegaMenuData(categoryLabel: string) {
-  const categoryHandle = getMegaMenuFetchKey(categoryLabel);
-  if (!categoryHandle) {
-    return;
+function preloadMenuImages(data: MegaMenuData) {
+  if (data.featuredImage?.url) {
+    preloadImage(sizedUrl(data.featuredImage.url, FEATURED_WIDTH));
   }
-  
-  // Don't prefetch if already cached
-  if (menuCache.has(categoryHandle)) {
+
+  const thumbSources = [
+    ...(data.subcategories || []).map((sub) => sub.image?.url),
+    ...(data.customQuickLinks || []).map((link) => link.imageUrl),
+    ...(data.customSubcategoryCards || []).map((card) => card.imageUrl),
+  ].filter(Boolean) as string[];
+
+  // Cap preloads — menu shows ~6–8 thumbs; avoid flooding the network
+  for (const url of thumbSources.slice(0, 8)) {
+    preloadImage(sizedUrl(url, THUMB_WIDTH));
+  }
+}
+
+export type PrefetchMegaMenuOptions = {
+  /** When false, only warm the JSON cache (default). */
+  preloadImages?: boolean;
+};
+
+/**
+ * Prefetch mega menu data for a category.
+ * Call on hover to warm cache; optionally preload sized images.
+ */
+export async function prefetchMegaMenuData(
+  categoryLabel: string,
+  options: PrefetchMegaMenuOptions = {}
+) {
+  const { preloadImages = false } = options;
+  const categoryHandle = getMegaMenuFetchKey(categoryLabel);
+  if (!categoryHandle) return;
+
+  const cached = menuCache.get(categoryHandle);
+  if (cached) {
+    if (preloadImages) preloadMenuImages(cached);
     return;
   }
 
   try {
     const endpoint = `/api/mapping/subcategories-with-images?category=${categoryHandle}`;
     const response = await fetch(endpoint);
-    
-    if (!response.ok) {
-      return;
-    }
-    
+    if (!response.ok) return;
+
     const data = await response.json();
-    
-    // Cache the data
-    menuCache.set(categoryHandle, {
+    const menuData: MegaMenuData = {
       subcategories: data.subcategories || [],
       featuredImage: data.featuredImage || null,
       customQuickLinks: data.customQuickLinks || null,
       customSubcategoryCards: data.customSubcategoryCards || null,
-    });
-    
-    // Preload featured image for instant display
-    if (data.featuredImage?.url) {
-      preloadImage(data.featuredImage.url);
-    }
-    
-    // Preload subcategory images
-    if (data.subcategories) {
-      data.subcategories.forEach((sub: any) => {
-        if (sub.image?.url) {
-          preloadImage(sub.image.url);
-        }
-      });
-    }
-    
-    // Preload custom quick link images
-    if (data.customQuickLinks) {
-      data.customQuickLinks.forEach((link: any) => {
-        if (link.imageUrl) {
-          preloadImage(link.imageUrl);
-        }
-      });
-    }
-    
-    // Preload custom subcategory card images
-    if (data.customSubcategoryCards) {
-      data.customSubcategoryCards.forEach((card: any) => {
-        if (card.imageUrl) {
-          preloadImage(card.imageUrl);
-        }
-      });
-    }
+    };
+
+    menuCache.set(categoryHandle, menuData);
+    if (preloadImages) preloadMenuImages(menuData);
   } catch (err) {
-    // Silently fail - prefetch is optional
     console.debug('Prefetch failed for', categoryLabel, err);
   }
 }
 
-/**
- * Client wrapper that fetches mega menu subcategories from mapping
- * Uses caching for instant display on subsequent hovers
- */
 export function MegaMenuWrapper({ categoryLabel, onClose }: MegaMenuWrapperProps) {
   const [subcategories, setSubcategories] = useState<SubcategoryItem[]>([]);
   const [featuredImage, setFeaturedImage] = useState<FeaturedImage | null>(null);
   const [customQuickLinks, setCustomQuickLinks] = useState<CustomQuickLink[] | null>(null);
-  const [customSubcategoryCards, setCustomSubcategoryCards] = useState<CustomSubcategoryCard[] | null>(null);
+  const [customSubcategoryCards, setCustomSubcategoryCards] = useState<CustomSubcategoryCard[] | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -160,8 +150,7 @@ export function MegaMenuWrapper({ categoryLabel, onClose }: MegaMenuWrapperProps
           setIsLoading(false);
           return;
         }
-        
-        // Check cache first for instant display
+
         const cached = menuCache.get(categoryHandle);
         if (cached) {
           setSubcategories(cached.subcategories);
@@ -177,25 +166,24 @@ export function MegaMenuWrapper({ categoryLabel, onClose }: MegaMenuWrapperProps
 
         const endpoint = `/api/mapping/subcategories-with-images?category=${categoryHandle}`;
         const response = await fetch(endpoint);
-        
+
         if (!response.ok) {
           throw new Error('Failed to fetch subcategories');
         }
-        
+
         const data = await response.json();
-        
-        // Cache the data for instant display next time
-        menuCache.set(categoryHandle, {
+        const menuData: MegaMenuData = {
           subcategories: data.subcategories || [],
           featuredImage: data.featuredImage || null,
           customQuickLinks: data.customQuickLinks || null,
           customSubcategoryCards: data.customSubcategoryCards || null,
-        });
-        
-        setSubcategories(data.subcategories || []);
-        setFeaturedImage(data.featuredImage || null);
-        setCustomQuickLinks(data.customQuickLinks || null);
-        setCustomSubcategoryCards(data.customSubcategoryCards || null);
+        };
+
+        menuCache.set(categoryHandle, menuData);
+        setSubcategories(menuData.subcategories);
+        setFeaturedImage(menuData.featuredImage);
+        setCustomQuickLinks(menuData.customQuickLinks);
+        setCustomSubcategoryCards(menuData.customSubcategoryCards);
       } catch (err) {
         console.error('Error fetching mega menu data:', err);
         setError(err instanceof Error ? err.message : 'Failed to load menu');
@@ -204,7 +192,7 @@ export function MegaMenuWrapper({ categoryLabel, onClose }: MegaMenuWrapperProps
       }
     };
 
-    fetchData();
+    void fetchData();
   }, [categoryLabel]);
 
   if (isLoading) {
@@ -212,7 +200,7 @@ export function MegaMenuWrapper({ categoryLabel, onClose }: MegaMenuWrapperProps
   }
 
   if (error || subcategories.length === 0) {
-    return null; // Silently fail - don't show error in mega menu
+    return null;
   }
 
   return (

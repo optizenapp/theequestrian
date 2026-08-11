@@ -14,33 +14,11 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import type { ShopifyImage } from '@/types/shopify';
+import { getShopifyImageUrl } from '@/lib/shopify/image-url';
 
 interface ProductImageGalleryProps {
   images: ShopifyImage[];
   productTitle: string;
-}
-
-/**
- * Resize Shopify CDN images using their image transformation API
- * @param url - Original Shopify CDN URL
- * @param size - Desired size (e.g., '160x160', '800x800')
- * @returns Optimized image URL
- */
-function getShopifyImageUrl(url: string, size: string): string {
-  if (!url) return url;
-  
-  // Shopify CDN URLs can be resized by adding _${size} before the file extension
-  // Example: image.jpg?v=123 -> image_160x160.jpg?v=123
-  
-  // Handle URLs with query parameters
-  const [baseUrl, queryString] = url.split('?');
-  const lastDotIndex = baseUrl.lastIndexOf('.');
-  
-  if (lastDotIndex === -1) return url; // No extension found
-  
-  const resizedUrl = `${baseUrl.substring(0, lastDotIndex)}_${size}${baseUrl.substring(lastDotIndex)}`;
-  
-  return queryString ? `${resizedUrl}?${queryString}` : resizedUrl;
 }
 
 export function ProductImageGallery({ images, productTitle }: ProductImageGalleryProps) {
@@ -85,7 +63,7 @@ export function ProductImageGallery({ images, productTitle }: ProductImageGaller
               }`}
             >
               <Image
-                src={getShopifyImageUrl(image.url, '160x160')}
+                src={getShopifyImageUrl(image.url, 160)}
                 alt={image.altText || `${productTitle} - Image ${index + 1}`}
                 fill
                 className="w-full h-full object-cover"
