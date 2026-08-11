@@ -4,6 +4,18 @@ export type MegaMenuSubcategory = {
   image?: { url: string } | null;
 };
 
+export type MegaMenuThumbImage = {
+  url: string;
+  altText: string;
+  width: number;
+  height: number;
+};
+
+/** Extra Storefront search types when mapped product_type queries return nothing. */
+const SUBCATEGORY_IMAGE_TYPE_FALLBACKS: Record<string, string[]> = {
+  'stock-western': ['Western & Accessories', 'Western Pads'],
+};
+
 export function extractSubcategoryHandleFromLink(
   link: string,
   categoryHandle: string
@@ -23,6 +35,21 @@ export function extractSubcategoryHandleFromLink(
 
 function normalizeLabel(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+export function buildProductTypeImageQuery(productTypes: string[]): string {
+  return productTypes
+    .slice(0, 5)
+    .map((type) => `product_type:"${type.replace(/"/g, '\\"')}"`)
+    .join(' OR ');
+}
+
+export function productTypesForMegaMenuThumb(
+  handle: string,
+  mappedTypes: string[]
+): string[] {
+  const fallbacks = SUBCATEGORY_IMAGE_TYPE_FALLBACKS[handle] ?? [];
+  return [...new Set([...mappedTypes, ...fallbacks])].filter(Boolean);
 }
 
 /** Prefer a live Shopify thumbnail matched by menu link/title. */

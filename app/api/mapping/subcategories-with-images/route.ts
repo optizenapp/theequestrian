@@ -4,9 +4,52 @@ import { getProductTypesForCollection } from '@/lib/mapping/collection-mapping';
 import { getMegaMenuContent } from '@/lib/content/mega-menu-content';
 import { shopifyFetch } from '@/lib/shopify/client';
 import {
+  buildProductTypeImageQuery,
   enrichMenuImageItems,
   firstSubcategoryImageUrl,
+  productTypesForMegaMenuThumb,
+  type MegaMenuThumbImage,
 } from '@/lib/navigation/mega-menu-images';
+
+type ImageNode = { url: string; altText: string | null; width: number; height: number };
+type ProductNode = { images: { edges: Array<{ node: ImageNode }> }; availableForSale: boolean };
+type QueryResult = { products: { edges: Array<{ node: ProductNode }> } };
+
+async function fetchThumbForTypes(
+  productTypes: string[],
+  label: string
+): Promise<MegaMenuThumbImage | null> {
+  if (productTypes.length === 0) return null;
+
+  const data = await shopifyFetch<QueryResult>({
+    query: `query MegaMenuThumb($q: String!) {
+      products(first: 5, query: $q) {
+        edges {
+          node {
+            availableForSale
+            images(first: 1) {
+              edges { node { url altText width height } }
+            }
+          }
+        }
+      }
+    }`,
+    variables: { q: buildProductTypeImageQuery(productTypes) },
+    cache: 'force-cache',
+  });
+
+  const nodes = (data.products?.edges ?? []).map((e) => e.node);
+  const picked = nodes.find((n) => n.availableForSale) ?? nodes[0];
+  const image = picked?.images?.edges?.[0]?.node;
+  if (!image?.url) return null;
+
+  return {
+    url: image.url,
+    altText: image.altText || label,
+    width: image.width,
+    height: image.height,
+  };
+}
 
 /**
  * API Route: Get subcategories with sample product images + featured hero image
@@ -24,19 +67,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get subcategories from mapping
     const subcategories = await getSubcategoriesForCollection(category);
-
-    // Check for custom content from database
     const customContent = await getMegaMenuContent(category);
-    
-    // Featured image (from CSV or fallback to auto-generated)
+
     let featuredImage = null;
     let customQuickLinks = null;
     let customSubcategoryCards = null;
-    
+
     if (customContent?.featuredImage) {
-      // Use custom featured image from CSV
       featuredImage = {
         url: customContent.featuredImage.url,
         altText: customContent.featuredImage.title,
@@ -47,67 +85,22 @@ export async function GET(request: NextRequest) {
         link: customContent.featuredImage.link,
       };
     }
-    
+
     if (customContent?.quickLinks) {
-      // Use custom quick links from CSV
       customQuickLinks = customContent.quickLinks;
     }
-    
+
     if (customContent?.subcategoryCards) {
-      // Use custom subcategory cards from CSV (overrides auto-generated)
       customSubcategoryCards = customContent.subcategoryCards;
     }
 
-    // Fetch a sample product image for each subcategory using a lightweight
-    // direct query — avoids the heavy getProductsByTypes (facets + filters)
-    // which can return 0 results when metafields aren't perfectly set.
     const subcategoriesWithImages = await Promise.all(
       subcategories.map(async (subcategory) => {
         try {
-          const productTypes = await getProductTypesForCollection(category, subcategory.handle);
-
-          if (productTypes.length === 0) {
-            return { ...subcategory, image: null };
-          }
-
-          // Build a minimal Shopify product_type query for just 1 product image.
-          const typeQuery = productTypes
-            .slice(0, 5)
-            .map((t) => `product_type:"${t}"`)
-            .join(' OR ');
-
-          type ImageNode = { url: string; altText: string | null; width: number; height: number };
-          type ProductNode = { images: { edges: Array<{ node: ImageNode }> }; availableForSale: boolean };
-          type QueryResult = { products: { edges: Array<{ node: ProductNode }> } };
-
-          const data = await shopifyFetch<QueryResult>({
-            query: `query MegaMenuThumb($q: String!) {
-              products(first: 5, query: $q) {
-                edges {
-                  node {
-                    availableForSale
-                    images(first: 1) {
-                      edges { node { url altText width height } }
-                    }
-                  }
-                }
-              }
-            }`,
-            variables: { q: typeQuery },
-            cache: 'force-cache',
-          });
-
-          // Prefer an in-stock product for the thumbnail
-          const nodes = (data.products?.edges ?? []).map((e) => e.node);
-          const picked = nodes.find((n) => n.availableForSale) ?? nodes[0];
-          const image = picked?.images?.edges?.[0]?.node;
-
-          return {
-            ...subcategory,
-            image: image
-              ? { url: image.url, altText: image.altText || subcategory.label, width: image.width, height: image.height }
-              : null,
-          };
+          const mappedTypes = await getProductTypesForCollection(category, subcategory.handle);
+          const productTypes = productTypesForMegaMenuThumb(subcategory.handle, mappedTypes);
+          const image = await fetchThumbForTypes(productTypes, subcategory.label);
+          return { ...subcategory, image };
         } catch (error) {
           console.error(`Error fetching image for ${subcategory.handle}:`, error);
           return { ...subcategory, image: null };
@@ -116,7 +109,11 @@ export async function GET(request: NextRequest) {
     );
 
     customQuickLinks = enrichMenuImageItems(customQuickLinks, subcategoriesWithImages, category);
-    customSubcategoryCards = enrichMenuImageItems(customSubcategoryCards, subcategoriesWithImages, category);
+    customSubcategoryCards = enrichMenuImageItems(
+      customSubcategoryCards,
+      subcategoriesWithImages,
+      category
+    );
 
     const featuredFallbackUrl = firstSubcategoryImageUrl(subcategoriesWithImages);
     if (featuredImage && featuredFallbackUrl) {
@@ -148,4 +145,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-

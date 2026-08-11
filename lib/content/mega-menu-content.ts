@@ -34,6 +34,12 @@ let cachedContent: Map<string, MegaMenuContent> | null = null;
 let cacheTimestamp: number = 0;
 const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 
+/** Bust in-memory mega menu content cache after admin/content updates. */
+export function clearMegaMenuContentCache(): void {
+  cachedContent = null;
+  cacheTimestamp = 0;
+}
+
 /**
  * Load mega menu content from PostgreSQL database
  */

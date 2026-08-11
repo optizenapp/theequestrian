@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
+import { clearMegaMenuContentCache } from '@/lib/content/mega-menu-content';
 
 /**
  * GET /api/admin/mega-menu
@@ -68,6 +69,7 @@ export async function PUT(request: Request) {
         updated_at = NOW()
     `;
     
+    clearMegaMenuContentCache();
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error updating mega menu content:', error);
