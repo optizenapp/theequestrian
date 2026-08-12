@@ -125,7 +125,10 @@ function assertGoogleCrawlerAllowsVariant(userAgent: string): GuardrailResult {
     };
   }
   const blocked = matching.some((rule) => ruleDisallows(rule).includes('/*?*variant=*'));
-  const explicitlyAllowed = matching.some((rule) => ruleAllows(rule).includes('/*?*variant=*'));
+  const explicitlyAllowed = matching.some((rule) => {
+    const allow = ruleAllows(rule);
+    return allow.includes('/*?*variant=*') || allow.includes('/');
+  });
   const passed = !blocked && explicitlyAllowed;
   return {
     name: `${userAgent} allows variant params`,
