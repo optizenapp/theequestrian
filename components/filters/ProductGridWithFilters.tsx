@@ -282,23 +282,24 @@ export function ProductGridWithFilters({
     }
   }, [filters]);
 
-  const handleNextPage = () => {
-    if (pageInfo?.endCursor) {
-      const params = new URLSearchParams(searchParams.toString());
-      params.set('cursor', pageInfo.endCursor);
-      router.push(`?${params.toString()}`);
-    }
-  };
+  const currentCursor = searchParams.get('cursor');
 
-  const handlePreviousPage = () => {
-    // Remove cursor to go back to first page
-    // In a more sophisticated implementation, you'd track cursor history
+  /** Crawlable PLP pagination — real hrefs so Googlebot can walk page 2+. */
+  const previousPageHref = useMemo(() => {
+    if (!currentCursor) return null;
     const params = new URLSearchParams(searchParams.toString());
     params.delete('cursor');
-    const queryString = params.toString();
-    router.push(queryString ? `?${queryString}` : window.location.pathname);
-  };
-  
+    const query = params.toString();
+    return query ? `?${query}` : `/${currentCategory}${currentSubcategory ? `/${currentSubcategory}` : ''}`;
+  }, [currentCursor, searchParams, currentCategory, currentSubcategory]);
+
+  const nextPageHref = useMemo(() => {
+    if (!pageInfo?.hasNextPage || !pageInfo.endCursor) return null;
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('cursor', pageInfo.endCursor);
+    return `?${params.toString()}`;
+  }, [pageInfo?.hasNextPage, pageInfo?.endCursor, searchParams]);
+
   const handleSortChange = (newSort: string) => {
     const params = new URLSearchParams(searchParams.toString());
     if (newSort === 'featured') {
@@ -313,8 +314,6 @@ export function ProductGridWithFilters({
     setIsSortDropdownOpen(false);
   };
 
-  const currentCursor = searchParams.get('cursor');
-  
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -521,26 +520,28 @@ export function ProductGridWithFilters({
                 ))}
               </ul>
 
-              {/* Pagination Controls */}
-              {(currentCursor || pageInfo?.hasNextPage) && (
-                <div className="mt-8 flex justify-center gap-4">
-                  {currentCursor && (
-                    <button
-                      onClick={handlePreviousPage}
+              {/* Pagination — <Link> so SSR HTML exposes crawlable next/prev hrefs */}
+              {(previousPageHref || nextPageHref) && (
+                <nav className="mt-8 flex justify-center gap-4" aria-label="Product list pagination">
+                  {previousPageHref && (
+                    <Link
+                      href={previousPageHref}
                       className="px-6 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 font-medium hover:bg-gray-50 transition-colors"
+                      rel="prev"
                     >
                       &larr; Previous Page
-                    </button>
+                    </Link>
                   )}
-                  {pageInfo?.hasNextPage && (
-                    <button
-                      onClick={handleNextPage}
+                  {nextPageHref && (
+                    <Link
+                      href={nextPageHref}
                       className="px-6 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 font-medium hover:bg-gray-50 transition-colors"
+                      rel="next"
                     >
                       Next Page &rarr;
-                    </button>
+                    </Link>
                   )}
-                </div>
+                </nav>
               )}
             </>
           )}
