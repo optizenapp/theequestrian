@@ -146,6 +146,7 @@ const results: GuardrailResult[] = [
   assertGoogleCrawlerAllowsVariant('Googlebot-Image'),
   assertGoogleCrawlerAllowsVariant('AdsBot-Google'),
   assertGoogleCrawlerAllowsVariant('AdsBot-Google-Mobile'),
+  assertGoogleCrawlerAllowsVariant('Google-InspectionTool'),
   assertRobotsDisallow('robots blocks page params', '/*?*page=*'),
   assertRobotsDisallow('robots blocks sort params', '/*?*sort_by=*'),
   assertRobotsDisallow('robots blocks filter params', '/*?filter*'),

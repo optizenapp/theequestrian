@@ -54,7 +54,13 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       {
-        userAgent: ['Googlebot', 'Googlebot-Image', 'AdsBot-Google', 'AdsBot-Google-Mobile'],
+        userAgent: [
+          'Googlebot',
+          'Googlebot-Image',
+          'AdsBot-Google',
+          'AdsBot-Google-Mobile',
+          'Google-InspectionTool',
+        ],
         allow: [...GOOGLE_CRAWLER_ALLOW],
         disallow: [...GOOGLE_CRAWLER_DISALLOW],
       },
