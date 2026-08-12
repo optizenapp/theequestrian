@@ -8,6 +8,7 @@ import {
   enrichMenuImageItems,
   firstSubcategoryImageUrl,
   productTypesForMegaMenuThumb,
+  resolveFeaturedImageUrl,
   type MegaMenuThumbImage,
 } from '@/lib/navigation/mega-menu-images';
 
@@ -76,7 +77,9 @@ export async function GET(request: NextRequest) {
 
     if (customContent?.featuredImage) {
       featuredImage = {
-        url: customContent.featuredImage.url,
+        url:
+          resolveFeaturedImageUrl(category, customContent.featuredImage.url) ||
+          customContent.featuredImage.url,
         altText: customContent.featuredImage.title,
         width: 1200,
         height: 800,
@@ -84,6 +87,19 @@ export async function GET(request: NextRequest) {
         subtitle: customContent.featuredImage.subtitle,
         link: customContent.featuredImage.link,
       };
+    } else {
+      const hardcodedFeatured = resolveFeaturedImageUrl(category, null);
+      if (hardcodedFeatured) {
+        featuredImage = {
+          url: hardcodedFeatured,
+          altText: category.charAt(0).toUpperCase() + category.slice(1),
+          width: 1200,
+          height: 800,
+          productTitle: category.charAt(0).toUpperCase() + category.slice(1),
+          subtitle: `Shop ${category}`,
+          link: `/${category}`,
+        };
+      }
     }
 
     if (customContent?.quickLinks) {

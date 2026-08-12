@@ -23,9 +23,31 @@ const SUBCATEGORY_IMAGE_TYPE_FALLBACKS: Record<string, string[]> = {
 const MENU_CARD_IMAGE_BY_PATH: Record<string, string> = {
   '/pet/cat':
     'https://cdn.shopify.com/s/files/1/0562/0963/7457/files/CuraPet_RemedeazCoatConditioner_2048x_0c9d7711-7372-4c20-88e6-02cafce0883b.webp?v=1783319389',
+  '/pet/dog/collars-and-leads':
+    'https://cdn.shopify.com/s/files/1/0562/0963/7457/files/C4_Dog_Collar_Pink_Rescue.webp?v=1785900747',
+  '/clothing/womens/tops':
+    'https://cdn.shopify.com/s/files/1/0562/0963/7457/files/A005122_V_8Q_01_1920x1920_9df6a614-2260-4c75-addc-42cba2ff45aa.webp?v=1785819201',
+  '/clothing/womens/breeches':
+    'https://cdn.shopify.com/s/files/1/0562/0963/7457/files/QJ2023Sep33.jpg?v=1783390768',
+  '/clothing/mens/breeches':
+    'https://cdn.shopify.com/s/files/1/0562/0963/7457/files/EDOUARD-ASFALTO-01.jpg?v=1783317932',
   '/horse/stock-western':
     'https://cdn.shopify.com/s/files/1/0562/0963/7457/files/9012-ah-steer.png?v=1786001081',
 };
+
+/** Hardcoded featured heroes — always win over CMS/CDN (served from /public/mega-menu). */
+export const FEATURED_IMAGE_BY_CATEGORY: Record<string, string> = {
+  rider: '/mega-menu/rider.png',
+  clothing: '/mega-menu/clothing.png',
+  pet: '/mega-menu/pet.png',
+};
+
+export function resolveFeaturedImageUrl(categoryHandle: string, cmsUrl?: string | null): string | null {
+  const hardcoded = FEATURED_IMAGE_BY_CATEGORY[categoryHandle];
+  if (hardcoded) return hardcoded;
+  const trimmed = cmsUrl?.trim();
+  return trimmed || null;
+}
 
 export function extractSubcategoryHandleFromLink(
   link: string,
