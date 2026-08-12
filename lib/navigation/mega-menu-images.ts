@@ -92,15 +92,30 @@ export function firstSubcategoryImageUrl(subcategories: MegaMenuSubcategory[]): 
   return subcategories.find((sub) => sub.image?.url)?.image?.url ?? null;
 }
 
+/** True for links deeper than /{category}/{subcategory} (e.g. /clothing/womens/tops). */
+export function isNestedCategoryLink(link: string, categoryHandle: string): boolean {
+  const parts = normalizeMenuPath(link).split('/').filter(Boolean);
+  return parts[0] === categoryHandle && parts.length > 2;
+}
+
 export function resolveMenuCardImageUrl(
   link: string,
   liveUrl: string | null,
-  customUrl: string
+  customUrl: string,
+  categoryHandle?: string
 ): string {
-  if (liveUrl) return liveUrl;
   const override = MENU_CARD_IMAGE_BY_PATH[normalizeMenuPath(link)];
   if (override) return override;
-  return customUrl;
+
+  // Nested CMS links keep curated images — live thumbs only key on the first
+  // subcategory segment (e.g. both /womens/tops and /womens/breeches → "womens").
+  const trimmedCustom = customUrl?.trim() ?? '';
+  if (categoryHandle && isNestedCategoryLink(link, categoryHandle) && trimmedCustom) {
+    return trimmedCustom;
+  }
+
+  if (liveUrl) return liveUrl;
+  return trimmedCustom;
 }
 
 export function enrichMenuImageItems<
@@ -111,7 +126,7 @@ export function enrichMenuImageItems<
     const liveUrl = findSubcategoryImageUrl(subcategories, item.link, item.title, categoryHandle);
     return {
       ...item,
-      imageUrl: resolveMenuCardImageUrl(item.link, liveUrl, item.imageUrl),
+      imageUrl: resolveMenuCardImageUrl(item.link, liveUrl, item.imageUrl, categoryHandle),
     };
   });
 }

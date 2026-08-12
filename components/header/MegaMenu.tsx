@@ -47,8 +47,8 @@ interface MegaMenuProps {
   onClose?: () => void;
 }
 
-const THUMB_WIDTH = 112;
-const FEATURED_WIDTH = 800;
+const THUMB_WIDTH = 160;
+const FEATURED_WIDTH = 1200;
 
 function sized(url: string | undefined, width: number): string {
   if (!url) return '';
@@ -88,10 +88,13 @@ export function MegaMenu({
   const getSubcategoryImageFallback = (link: string, title: string): string => {
     const normalizedLink = normalizeMenuHref(link, `/${categoryHandle}`);
     const linkParts = normalizedLink.split('/').filter(Boolean);
-    const handleFromLink = linkParts[0] === categoryHandle ? linkParts[1] : undefined;
+    const afterCategory =
+      linkParts[0] === categoryHandle ? linkParts.slice(1) : linkParts;
+    // Nested paths (womens/tops) must not share the parent (womens) thumb.
+    const isNested = afterCategory.length > 1;
 
-    if (handleFromLink) {
-      const byHandle = subcategories.find((sub) => sub.handle === handleFromLink);
+    if (!isNested && afterCategory[0]) {
+      const byHandle = subcategories.find((sub) => sub.handle === afterCategory[0]);
       if (byHandle?.image?.url) {
         return byHandle.image.url;
       }
@@ -101,6 +104,8 @@ export function MegaMenu({
     if (byTitle?.image?.url) {
       return byTitle.image.url;
     }
+
+    if (isNested) return '';
 
     return subcategories.find((sub) => sub.image?.url)?.image?.url || '';
   };
