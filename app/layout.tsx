@@ -4,6 +4,7 @@ import { SITE_DESCRIPTION, SITE_NAME, SITE_NAME_DISPLAY } from '@/lib/seo/site-i
 import { generateSitewideSchemaGraph } from '@/lib/utils/site-schema';
 import './globals.css';
 import { Header } from '@/components/header/Header';
+import { CrawlNav } from '@/components/header/CrawlNav';
 import { Footer } from '@/components/footer/Footer';
 import dynamic from 'next/dynamic';
 import { CartProvider } from '@/components/cart/cart-context';
@@ -139,6 +140,7 @@ export default function RootLayout({
         <CartProvider>
           <NavigationProgress />
           <Header />
+          <CrawlNav />
           <main className="min-h-screen overflow-x-hidden">
             {children}
           </main>
