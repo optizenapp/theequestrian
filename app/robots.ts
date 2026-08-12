@@ -53,13 +53,15 @@ export default function robots(): MetadataRoute.Robots {
 
   return {
     rules: [
-      // Own group: GSC URL Inspection only. Does not affect Search or GMC.
+      // InspectionTool must share Googlebot rules so GSC live tests match production crawl.
       {
-        userAgent: 'Google-InspectionTool',
-        allow: ['/', '/*?*variant=*'],
-      },
-      {
-        userAgent: ['Googlebot', 'Googlebot-Image', 'AdsBot-Google', 'AdsBot-Google-Mobile'],
+        userAgent: [
+          'Googlebot',
+          'Google-InspectionTool',
+          'Googlebot-Image',
+          'AdsBot-Google',
+          'AdsBot-Google-Mobile',
+        ],
         allow: ['/*?*variant=*', ...GOOGLE_CRAWLER_ALLOW],
         disallow: [...GOOGLE_CRAWLER_DISALLOW],
       },

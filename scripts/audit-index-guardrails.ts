@@ -125,19 +125,28 @@ function assertGoogleCrawlerAllowsVariant(userAgent: string): GuardrailResult {
     };
   }
   const blocked = matching.some((rule) => ruleDisallows(rule).includes('/*?*variant=*'));
-  const explicitlyAllowed = matching.some((rule) => {
-    const allow = ruleAllows(rule);
-    return allow.includes('/*?*variant=*') || allow.includes('/');
-  });
-  const passed = !blocked && explicitlyAllowed;
+  const explicitlyAllowed = matching.some((rule) => ruleAllows(rule).includes('/*?*variant=*'));
+  const googlebotDisallows = robotsRules()
+    .filter((rule) =>
+      ruleUserAgents(rule).some((agent) => agent.toLowerCase() === 'googlebot')
+    )
+    .flatMap(ruleDisallows)
+    .sort();
+  const thisDisallows = matching.flatMap(ruleDisallows).sort();
+  const mirrorsGooglebot =
+    userAgent.toLowerCase() === 'googlebot' ||
+    JSON.stringify(thisDisallows) === JSON.stringify(googlebotDisallows);
+  const passed = !blocked && explicitlyAllowed && mirrorsGooglebot;
   return {
     name: `${userAgent} allows variant params`,
     passed,
     detail: blocked
       ? `${userAgent} still disallows /*?*variant=*`
-      : explicitlyAllowed
-        ? `${userAgent} explicitly allows /*?*variant=*`
-        : `${userAgent} is missing Allow /*?*variant=*`,
+      : !explicitlyAllowed
+        ? `${userAgent} is missing Allow /*?*variant=*`
+        : !mirrorsGooglebot
+          ? `${userAgent} rules diverge from Googlebot (live tests would lie)`
+          : `${userAgent} mirrors Googlebot and allows /*?*variant=*`,
   };
 }
 
