@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import type { HomeSliderItem } from '@/lib/content/home';
 
 const DEFAULT_DEAL_IMAGE =
@@ -133,37 +134,69 @@ export function BestDealsSlider({
                     ref={scrollContainerRef}
                     className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide scroll-smooth"
                   >
-                    {displayItems.map((item, idx) => (
-                      <button
-                        key={`${item.label}-${idx}`}
-                        onClick={() => setActiveIndex(idx)}
-                        className="group flex flex-col items-center gap-2 outline-none flex-shrink-0"
-                        type="button"
-                      >
-                        <div
-                          className={`relative h-20 w-28 overflow-hidden rounded-lg bg-gray-50 transition-all ${
-                            idx === activeIndex
-                              ? 'opacity-100'
-                              : 'opacity-60 group-hover:opacity-80'
-                          }`}
+                    {displayItems.map((item, idx) => {
+                      const productHref = item.handle
+                        ? item.productHref ?? `/products/${item.handle}`
+                        : null;
+                      const thumbClass =
+                        'group flex flex-col items-center gap-2 outline-none flex-shrink-0';
+                      const thumbInner = (
+                        <>
+                          <div
+                            className={`relative h-20 w-28 overflow-hidden rounded-lg bg-gray-50 transition-all ${
+                              idx === activeIndex
+                                ? 'opacity-100'
+                                : 'opacity-60 group-hover:opacity-80'
+                            }`}
+                          >
+                            {item.image && (
+                              <img
+                                src={item.image}
+                                alt={item.label}
+                                className="h-full w-full object-cover"
+                              />
+                            )}
+                          </div>
+                          <span
+                            className={`text-xs font-medium text-center transition-colors ${
+                              idx === activeIndex
+                                ? 'text-gray-900'
+                                : 'text-gray-600 group-hover:text-gray-900'
+                            }`}
+                          >
+                            {item.label}
+                          </span>
+                        </>
+                      );
+
+                      if (productHref) {
+                        return (
+                          <Link
+                            key={`${item.label}-${idx}`}
+                            href={productHref}
+                            className={thumbClass}
+                            onClick={(event) => {
+                              // Keep carousel selection UX; href remains for crawlers.
+                              event.preventDefault();
+                              setActiveIndex(idx);
+                            }}
+                          >
+                            {thumbInner}
+                          </Link>
+                        );
+                      }
+
+                      return (
+                        <button
+                          key={`${item.label}-${idx}`}
+                          onClick={() => setActiveIndex(idx)}
+                          className={thumbClass}
+                          type="button"
                         >
-                          {item.image && (
-                            <img
-                              src={item.image}
-                              alt={item.label}
-                              className="h-full w-full object-cover"
-                            />
-                          )}
-                        </div>
-                        <span
-                          className={`text-xs font-medium text-center transition-colors ${
-                            idx === activeIndex ? 'text-gray-900' : 'text-gray-600 group-hover:text-gray-900'
-                          }`}
-                        >
-                          {item.label}
-                        </span>
-                      </button>
-                    ))}
+                          {thumbInner}
+                        </button>
+                      );
+                    })}
                   </div>
                   
                   {/* Carousel Navigation Buttons */}

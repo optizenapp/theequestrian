@@ -278,34 +278,20 @@ export default async function Home() {
               ? section.fetchedProducts
               : (section.most_wanted_items || []);
 
+            // Eager render so product <Link>s exist in SSR HTML for Googlebot.
             return (
-              <LazySection
+              <MostWantedCarousel
                 key={section.key}
-                fallback={<div className="h-96 bg-white animate-pulse rounded-lg" />}
-                minHeight="24rem"
-              >
-                <MostWantedCarousel
-                  products={carouselProducts}
-                  eyebrow={section.eyebrow}
-                  heading={<InlineHtml html={section.title_html} />}
-                  description={<InlineHtml html={section.body_html || section.subtitle_html} />}
-                />
-              </LazySection>
+                products={carouselProducts}
+                eyebrow={section.eyebrow}
+                heading={<InlineHtml html={section.title_html} />}
+                description={<InlineHtml html={section.body_html || section.subtitle_html} />}
+              />
             );
           }
 
           case 'best_deals_slider':
-            return (
-              <LazySection
-                key={section.key}
-                fallback={<div className="h-80 bg-gray-50 animate-pulse rounded-lg" />}
-                minHeight="20rem"
-              >
-                <BestDealsSliderContainer 
-                  section={section}
-                />
-              </LazySection>
-            );
+            return <BestDealsSliderContainer key={section.key} section={section} />;
 
           case 'signup':
             return (

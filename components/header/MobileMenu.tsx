@@ -193,95 +193,64 @@ export function MobileMenu() {
         </svg>
       </button>
 
-      {/* Always in DOM so top-level shop links exist in SSR HTML for mobile Googlebot. */}
-      <div
-        className={
-          isOpen
-            ? 'fixed inset-0 z-50 bg-black bg-opacity-50 lg:hidden'
-            : 'sr-only'
-        }
-        onClick={isOpen ? closeMenu : undefined}
-        aria-hidden={!isOpen}
-      >
+      {isOpen && (
         <div
-          className={
-            isOpen
-              ? 'fixed top-0 right-0 bottom-0 w-full max-w-sm bg-white shadow-xl flex flex-col'
-              : undefined
-          }
-          onClick={isOpen ? (e) => e.stopPropagation() : undefined}
+          className="fixed inset-0 z-50 bg-black bg-opacity-50 lg:hidden"
+          onClick={closeMenu}
         >
-          {isOpen && (
-            <>
-              <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                <span className="text-lg font-semibold">Menu</span>
-                <button
-                  onClick={closeMenu}
-                  className="p-2 text-gray-700 hover:text-primary transition-colors"
-                  aria-label="Close menu"
-                >
-                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              <div className="p-4 border-b border-gray-200">
-                <SearchBar />
-              </div>
-            </>
-          )}
+          <div
+            className="fixed top-0 right-0 bottom-0 w-full max-w-sm bg-white shadow-xl flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <span className="text-lg font-semibold">Menu</span>
+              <button
+                onClick={closeMenu}
+                className="p-2 text-gray-700 hover:text-primary transition-colors"
+                aria-label="Close menu"
+              >
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
 
-          <nav className={isOpen ? 'flex-1 overflow-y-auto p-4' : undefined} aria-label="Mobile shop">
-            <p className={isOpen ? 'px-4 pb-2 text-xs font-semibold uppercase tracking-wider text-gray-400' : 'sr-only'}>
-              Shop
-            </p>
-            <ul className={isOpen ? 'space-y-1 mb-6' : undefined}>
-              {SHOP_MENU.map((item) =>
-                isOpen ? (
+            <div className="p-4 border-b border-gray-200">
+              <SearchBar />
+            </div>
+
+            <nav className="flex-1 overflow-y-auto p-4">
+              <p className="px-4 pb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">Shop</p>
+              <ul className="space-y-1 mb-6">
+                {SHOP_MENU.map((item) => (
                   <MobileNavLink key={item.label} item={item} onNavigate={closeMenu} />
-                ) : (
-                  <li key={item.label}>
-                    <Link href={item.href}>{item.label}</Link>
-                  </li>
-                )
-              )}
-            </ul>
+                ))}
+              </ul>
 
-            <p className={isOpen ? 'px-4 pb-2 text-xs font-semibold uppercase tracking-wider text-gray-400' : 'sr-only'}>
-              Discover
-            </p>
-            <ul className={isOpen ? 'space-y-1 mb-6' : undefined}>
-              {UTILITY_MENU.map((item) =>
-                isOpen ? (
+              <p className="px-4 pb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">Discover</p>
+              <ul className="space-y-1 mb-6">
+                {UTILITY_MENU.map((item) => (
                   <MobileNavLink key={item.label} item={item} onNavigate={closeMenu} />
-                ) : (
-                  <li key={item.label}>
-                    <Link href={item.href}>{item.label}</Link>
-                  </li>
-                )
-              )}
-            </ul>
+                ))}
+              </ul>
 
-            <ul className={isOpen ? 'space-y-1 pt-4 border-t border-gray-100' : undefined}>
-              {MOBILE_SECONDARY_LINKS.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    onClick={isOpen ? closeMenu : undefined}
-                    className={
-                      isOpen
-                        ? 'block px-4 py-3 text-sm font-medium text-gray-600 hover:text-action hover:bg-gray-50 rounded-md'
-                        : undefined
-                    }
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
+              <ul className="space-y-1 pt-4 border-t border-gray-100">
+                {MOBILE_SECONDARY_LINKS.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      onClick={closeMenu}
+                      className="block px-4 py-3 text-sm font-medium text-gray-600 hover:text-action hover:bg-gray-50 rounded-md"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 }

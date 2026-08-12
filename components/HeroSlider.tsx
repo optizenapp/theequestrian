@@ -104,8 +104,29 @@ export function HeroSlider({
 
   if (!active) return null;
 
+  const slideCtas = slides.map((slide, index) => ({
+    key: `${slide.src}-${index}`,
+    ...slideCta(slide, ctaText, ctaLink),
+  }));
+
   return (
     <section className="relative h-[600px] w-full overflow-hidden bg-gray-900">
+      <nav className="sr-only" aria-label="Hero offers">
+        <ul>
+          {slideCtas.map((cta) => (
+            <li key={cta.key}>
+              <Link href={cta.link} prefetch={false}>
+                {cta.text}
+              </Link>
+            </li>
+          ))}
+          {secondaryCtaText && secondaryCtaLink ? (
+            <li>
+              <Link href={secondaryCtaLink}>{secondaryCtaText}</Link>
+            </li>
+          ) : null}
+        </ul>
+      </nav>
       <div className="absolute inset-0 w-full h-full">
         {slides.map((slide, index) => {
           const isActive = index === activeIndex;
