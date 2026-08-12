@@ -74,6 +74,7 @@ function assertGone(name: string, path: string): GuardrailResult {
 
 type RobotsRule = {
   userAgent?: string | string[];
+  allow?: string | string[];
   disallow?: string | string[];
 };
 
@@ -92,6 +93,13 @@ function ruleUserAgents(rule: RobotsRule): string[] {
 function ruleDisallows(rule: RobotsRule): string[] {
   if (!rule.disallow) return [];
   return (Array.isArray(rule.disallow) ? rule.disallow : [rule.disallow]).filter(
+    (value): value is string => Boolean(value)
+  );
+}
+
+function ruleAllows(rule: RobotsRule): string[] {
+  if (!rule.allow) return [];
+  return (Array.isArray(rule.allow) ? rule.allow : [rule.allow]).filter(
     (value): value is string => Boolean(value)
   );
 }
@@ -117,12 +125,16 @@ function assertGoogleCrawlerAllowsVariant(userAgent: string): GuardrailResult {
     };
   }
   const blocked = matching.some((rule) => ruleDisallows(rule).includes('/*?*variant=*'));
+  const explicitlyAllowed = matching.some((rule) => ruleAllows(rule).includes('/*?*variant=*'));
+  const passed = !blocked && explicitlyAllowed;
   return {
     name: `${userAgent} allows variant params`,
-    passed: !blocked,
+    passed,
     detail: blocked
       ? `${userAgent} still disallows /*?*variant=*`
-      : `${userAgent} can crawl GMC ?variant= landing pages`,
+      : explicitlyAllowed
+        ? `${userAgent} explicitly allows /*?*variant=*`
+        : `${userAgent} is missing Allow /*?*variant=*`,
   };
 }
 

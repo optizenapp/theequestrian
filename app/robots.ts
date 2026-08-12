@@ -61,7 +61,7 @@ export default function robots(): MetadataRoute.Robots {
           'AdsBot-Google-Mobile',
           'Google-InspectionTool',
         ],
-        allow: [...GOOGLE_CRAWLER_ALLOW],
+        allow: ['/*?*variant=*', ...GOOGLE_CRAWLER_ALLOW],
         disallow: [...GOOGLE_CRAWLER_DISALLOW],
       },
 
@@ -106,6 +106,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: [
+          '/*?*variant=*',
           ...ENTITYMAP_PATHS,
           '/',
           '/products/',
@@ -142,7 +143,6 @@ export default function robots(): MetadataRoute.Robots {
           '/*?*sort=*',
           '/*?*sort_by=*',
           '/*?*limit=*',
-          '/*?*variant=*',
           '/*?*page=*',
           '/*?filter*',
           '/*?*utm_*',
