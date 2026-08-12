@@ -94,10 +94,16 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
     resolvedProduct = await getProductById(allocationByHandle.product_id);
   }
 
+  const productAvailable = !!(resolvedProduct && hasProductImage(resolvedProduct));
+  const canonicalUrl = resolvedProduct
+    ? await getProductCanonicalUrl(resolvedProduct)
+    : undefined;
+
   await followManualRedirectUnlessProductRestored({
     pathname: requestedPath,
     handle,
-    productAvailable: !!(resolvedProduct && hasProductImage(resolvedProduct)),
+    productAvailable,
+    canonicalPath: canonicalUrl,
   });
   
   if (!resolvedProduct) {
@@ -125,12 +131,9 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
     override,
   }).html;
 
-  // Get the canonical URL for this product
-  const canonicalUrl = await getProductCanonicalUrl(resolvedProduct);
-  
   // If the requested path doesn't match the canonical URL, redirect
   // BUT: Only if the canonical is NOT /products/{handle} (which would create a loop)
-  if (requestedPath !== canonicalUrl) {
+  if (canonicalUrl && requestedPath !== canonicalUrl) {
     if (canonicalUrl.startsWith('/products/')) {
       // Product has no category mapping, render it here
       // (This prevents redirect loops for unmapped products)
@@ -204,7 +207,7 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
 
   const schemaGraph = generateProductSchemaGraph(
     { ...resolvedProduct, title: displayTitle },
-    canonicalUrl,
+    canonicalUrl ?? requestedPath,
     breadcrumbSchemas,
     siteUrl,
     reviewStats,

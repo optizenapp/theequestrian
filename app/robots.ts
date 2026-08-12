@@ -3,123 +3,65 @@ import { getCanonicalSiteUrl } from '@/lib/seo/site-url';
 
 const ENTITYMAP_PATHS = ['/entitymap.json', '/entitymap.html'] as const;
 
+const GOOGLE_CRAWLER_ALLOW = [
+  ...ENTITYMAP_PATHS,
+  '/',
+  '/products/',
+  '/collections/',
+  '/horse/',
+  '/rider/',
+  '/dog/',
+  '/pet/',
+  '/brands/',
+] as const;
+
+/** Facet/tracking params only. Do not block `?variant=` — GMC landing pages use it. */
+const GOOGLE_CRAWLER_DISALLOW = [
+  '/api/',
+  '/preview',
+  '/admin',
+  '/account',
+  '/cart',
+  '/checkout',
+  '/orders',
+  '/search',
+  '/*+*',
+  '/*%2B*',
+  '/*.atom',
+  '/*.rss',
+  '/*.json',
+  '/*globo*',
+  '/*secomapp*',
+  '/*toolbox*',
+  '/*?*utm_*',
+  '/*?*ref=*',
+  '/*?*fbclid=*',
+  '/*?*gclid=*',
+  '/*?*size=*',
+  '/*?*price=*',
+  '/*?*color=*',
+  '/*?*colour=*',
+  '/*?*brand=*',
+  '/*?*sort=*',
+  '/*?*sort_by=*',
+  '/*?*page=*',
+  '/*?filter*',
+] as const;
+
 export default function robots(): MetadataRoute.Robots {
   const baseUrl = getCanonicalSiteUrl();
 
   return {
     rules: [
-      // ========================================
-      // GOOGLEBOT - Full access to content & redirects
-      // ========================================
       {
-        userAgent: 'Googlebot',
-        allow: [
-          ...ENTITYMAP_PATHS,
-          '/',
-          '/products/',
-          '/collections/',
-          '/horse/',
-          '/rider/',
-          '/dog/',
-          '/pet/',
-          '/brands/',
-        ],
-        disallow: [
-          '/api/',
-          '/preview',
-          '/admin',
-          '/account',
-          '/cart',
-          '/checkout',
-          '/orders',
-          '/search',
-          '/*+*',
-          '/*%2B*',
-          '/*.atom',
-          '/*.rss',
-          '/*.json',
-          '/*globo*',
-          '/*secomapp*',
-          '/*toolbox*',
-          '/*?*utm_*',
-          '/*?*ref=*',
-          '/*?*fbclid=*',
-          '/*?*gclid=*',
-          '/*?*size=*',
-          '/*?*price=*',
-          '/*?*color=*',
-          '/*?*colour=*',
-          '/*?*brand=*',
-          '/*?*sort=*',
-          '/*?*sort_by=*',
-          '/*?*variant=*',
-          '/*?*page=*',
-          '/*?filter*',
-        ],
-      },
-      {
-        userAgent: 'Googlebot-Image',
-        allow: [
-          ...ENTITYMAP_PATHS,
-          '/',
-          '/products/',
-          '/collections/',
-          '/horse/',
-          '/rider/',
-          '/dog/',
-          '/pet/',
-          '/brands/',
-        ],
-        disallow: [
-          '/api/',
-          '/preview',
-          '/admin',
-          '/account',
-          '/cart',
-          '/checkout',
-          '/orders',
-          '/search',
-          '/*+*',
-          '/*%2B*',
-          '/*.atom',
-          '/*.rss',
-          '/*.json',
-          '/*globo*',
-          '/*secomapp*',
-          '/*toolbox*',
-          '/*?*utm_*',
-          '/*?*ref=*',
-          '/*?*fbclid=*',
-          '/*?*gclid=*',
-          '/*?*size=*',
-          '/*?*price=*',
-          '/*?*color=*',
-          '/*?*colour=*',
-          '/*?*brand=*',
-          '/*?*sort=*',
-          '/*?*sort_by=*',
-          '/*?*variant=*',
-          '/*?*page=*',
-          '/*?filter*',
-        ],
+        userAgent: ['Googlebot', 'Googlebot-Image', 'AdsBot-Google', 'AdsBot-Google-Mobile'],
+        allow: [...GOOGLE_CRAWLER_ALLOW],
+        disallow: [...GOOGLE_CRAWLER_DISALLOW],
       },
 
-      // ========================================
-      // BINGBOT - Same rules as Googlebot
-      // ========================================
       {
         userAgent: 'Bingbot',
-        allow: [
-          ...ENTITYMAP_PATHS,
-          '/',
-          '/products/',
-          '/collections/',
-          '/horse/',
-          '/rider/',
-          '/dog/',
-          '/pet/',
-          '/brands/',
-        ],
+        allow: [...GOOGLE_CRAWLER_ALLOW],
         disallow: [
           '/api/',
           '/_next/',
@@ -155,75 +97,37 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
 
-      // ========================================
-      // ALL OTHER BOTS - More restrictive
-      // ========================================
       {
         userAgent: '*',
         allow: [
           ...ENTITYMAP_PATHS,
           '/',
-          '/products/', // Allow so Google can follow 301 redirects to new nested URLs
-          '/collections/', // Allow so Google can follow 301 redirects from old collection URLs
+          '/products/',
+          '/collections/',
         ],
         disallow: [
-          // ========================================
-          // 1. TECHNICAL & SECURITY
-          // ========================================
-          '/api/', // Block all API endpoints (except explicit allows above)
+          '/api/',
           '/_next/',
           '/preview',
           '/admin',
-
-          // ========================================
-          // 2. SHOPIFY / CHECKOUT
-          // ========================================
           '/account',
           '/cart',
           '/checkout',
           '/orders',
           '/404',
           '/500',
-
-          // ========================================
-          // 3. LEGACY SHOPIFY STRUCTURE (DUPLICATE CONTENT)
-          // ========================================
-          '/pages/', // Block Shopify /pages/ if migrated to root paths
-          '/blogs/*/tagged/*', // Block blog tag archives (duplicate content)
-
-          // ========================================
-          // 4. MULTI-TAG "+" COMBINATIONS
-          // ========================================
-          // Blocks: /collections/footwear/top-boots+black
-          // Does NOT block single tags (those have link juice → handled by redirects)
+          '/pages/',
+          '/blogs/*/tagged/*',
           '/*+*',
-          '/*%2B*', // URL-encoded version of +
-
-          // ========================================
-          // 5. RSS / ATOM / JSON FEEDS
-          // ========================================
+          '/*%2B*',
           '/*.atom',
           '/*.rss',
-          '/*.json', // Shopify JSON API endpoints
-
-          // ========================================
-          // 6. SHOPIFY APP JUNK
-          // ========================================
+          '/*.json',
           '/*globo*',
           '/*secomapp*',
           '/*toolbox*',
-
-          // ========================================
-          // 7. SEARCH & INTERNAL QUERIES
-          // ========================================
           '/search',
           '/*?q=*',
-
-          // ========================================
-          // 8. FACETED NAVIGATION (CRUCIAL)
-          // ========================================
-          // Based on: /horse?size=1+Litre&price=193-860
-          // Each filter param blocked individually so combinations are caught
           '/*?*size=*',
           '/*?*price=*',
           '/*?*color=*',
@@ -235,30 +139,18 @@ export default function robots(): MetadataRoute.Robots {
           '/*?*variant=*',
           '/*?*page=*',
           '/*?filter*',
-
-          // ========================================
-          // 9. TRACKING & ANALYTICS PARAMS
-          // ========================================
-          '/*?*utm_*', // UTM campaign params (utm_source, utm_medium, etc.)
-          '/*?*ref=*', // Referral tracking
-          '/*?*fbclid=*', // Facebook click ID
-          '/*?*gclid=*', // Google click ID
-          '/*?*mc_*', // Mailchimp params
-          '/*?*_ga=*', // Google Analytics client ID
-          '/*?*_ke=*', // Klaviyo tracking
-
-          // ========================================
-          // 10. SHOPIFY INTERNAL PARAMS
-          // ========================================
-          '/*?*_pos=*', // Shopify POS params
-          '/*?*_psq=*', // Shopify search query
-          '/*?*_ss=*', // Shopify session
-          '/*?*_v=*', // Shopify version
-          '/*?*discount=*', // Discount codes
-
-          // ========================================
-          // 11. PRINT & SHARE VARIATIONS
-          // ========================================
+          '/*?*utm_*',
+          '/*?*ref=*',
+          '/*?*fbclid=*',
+          '/*?*gclid=*',
+          '/*?*mc_*',
+          '/*?*_ga=*',
+          '/*?*_ke=*',
+          '/*?*_pos=*',
+          '/*?*_psq=*',
+          '/*?*_ss=*',
+          '/*?*_v=*',
+          '/*?*discount=*',
           '/*/print',
           '/*?print=*',
           '/*?share=*',

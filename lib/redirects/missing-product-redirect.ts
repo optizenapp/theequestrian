@@ -76,6 +76,8 @@ export async function followManualRedirectUnlessProductRestored(options: {
   pathname: string;
   handle?: string;
   productAvailable: boolean;
+  /** Live allocation/canonical PDP path. Never redirect away from this URL. */
+  canonicalPath?: string;
 }): Promise<boolean> {
   const manualRedirect = await getManualRedirect(options.pathname);
   if (!manualRedirect) return false;
@@ -85,6 +87,20 @@ export async function followManualRedirectUnlessProductRestored(options: {
       await deactivateProductDeleteRedirectsForHandle(options.handle);
     }
     return false;
+  }
+
+  if (options.productAvailable) {
+    const requested = normalizePath(options.pathname);
+    let canonical = options.canonicalPath ? normalizePath(options.canonicalPath) : null;
+    if (!canonical && options.handle) {
+      const allocation = await getProductAllocationByHandle(options.handle);
+      if (allocation?.canonical_path) {
+        canonical = normalizePath(allocation.canonical_path);
+      }
+    }
+    if (canonical && requested === canonical) {
+      return false;
+    }
   }
 
   if (manualRedirect.type === '301' || manualRedirect.type === '308') {

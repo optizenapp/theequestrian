@@ -109,21 +109,24 @@ export default async function Page({ params, searchParams }: PageProps) {
   const { resolvedHandle: preResolvedHandle, product: productAtPath } =
     await getResolvedProductBySlug(thirdSegment);
 
-  await followManualRedirectUnlessProductRestored({
-    pathname: currentPath,
-    handle: preResolvedHandle,
-    productAvailable: !!(productAtPath && hasProductImage(productAtPath)),
-  });
-
-  if (productAtPath && hasProductImage(productAtPath)) {
+  const productAvailable = !!(productAtPath && hasProductImage(productAtPath));
+  let preCanonical: string | undefined;
+  if (productAtPath && productAvailable) {
     const preOverride = await getProductOverrideByHandle(preResolvedHandle);
     if (preOverride?.is_published_headless !== false) {
-      const preCanonical = await getProductCanonicalUrl(productAtPath);
+      preCanonical = await getProductCanonicalUrl(productAtPath);
       if (preCanonical === currentPath) {
         return renderProductPage(productAtPath, currentPath, sp);
       }
     }
   }
+
+  await followManualRedirectUnlessProductRestored({
+    pathname: currentPath,
+    handle: preResolvedHandle,
+    productAvailable,
+    canonicalPath: preCanonical,
+  });
 
   // 1. Check if this is a valid sub-subcategory
   // First check if it exists in the database (collection_content table)

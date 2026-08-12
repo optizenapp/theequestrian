@@ -72,18 +72,57 @@ function assertGone(name: string, path: string): GuardrailResult {
   };
 }
 
-function assertRobotsDisallow(name: string, disallowPattern: string): GuardrailResult {
-  const metadata = robots();
-  const rules = Array.isArray(metadata.rules) ? metadata.rules : [metadata.rules];
-  const passed = rules.some((rule) => {
-    const disallow = Array.isArray(rule.disallow) ? rule.disallow : [rule.disallow];
-    return disallow.includes(disallowPattern);
-  });
+type RobotsRule = {
+  userAgent?: string | string[];
+  disallow?: string | string[];
+};
 
+function robotsRules(): RobotsRule[] {
+  const metadata = robots();
+  const rules = metadata.rules;
+  if (!rules) return [];
+  return Array.isArray(rules) ? rules : [rules];
+}
+
+function ruleUserAgents(rule: RobotsRule): string[] {
+  if (!rule.userAgent) return [];
+  return Array.isArray(rule.userAgent) ? rule.userAgent : [rule.userAgent];
+}
+
+function ruleDisallows(rule: RobotsRule): string[] {
+  if (!rule.disallow) return [];
+  return (Array.isArray(rule.disallow) ? rule.disallow : [rule.disallow]).filter(
+    (value): value is string => Boolean(value)
+  );
+}
+
+function assertRobotsDisallow(name: string, disallowPattern: string): GuardrailResult {
+  const passed = robotsRules().some((rule) => ruleDisallows(rule).includes(disallowPattern));
   return {
     name,
     passed,
     detail: `${disallowPattern} ${passed ? 'is present' : 'is missing'} in robots rules`,
+  };
+}
+
+function assertGoogleCrawlerAllowsVariant(userAgent: string): GuardrailResult {
+  const matching = robotsRules().filter((rule) =>
+    ruleUserAgents(rule).some((agent) => agent.toLowerCase() === userAgent.toLowerCase())
+  );
+  if (matching.length === 0) {
+    return {
+      name: `${userAgent} allows variant params`,
+      passed: false,
+      detail: `${userAgent} rule is missing`,
+    };
+  }
+  const blocked = matching.some((rule) => ruleDisallows(rule).includes('/*?*variant=*'));
+  return {
+    name: `${userAgent} allows variant params`,
+    passed: !blocked,
+    detail: blocked
+      ? `${userAgent} still disallows /*?*variant=*`
+      : `${userAgent} can crawl GMC ?variant= landing pages`,
   };
 }
 
@@ -102,7 +141,11 @@ const results: GuardrailResult[] = [
   assertRobotsDisallow('robots blocks api', '/api/'),
   assertRobotsDisallow('robots blocks cart', '/cart'),
   assertRobotsDisallow('robots blocks search', '/search'),
-  assertRobotsDisallow('robots blocks variant params', '/*?*variant=*'),
+  assertRobotsDisallow('robots blocks variant params for non-Google bots', '/*?*variant=*'),
+  assertGoogleCrawlerAllowsVariant('Googlebot'),
+  assertGoogleCrawlerAllowsVariant('Googlebot-Image'),
+  assertGoogleCrawlerAllowsVariant('AdsBot-Google'),
+  assertGoogleCrawlerAllowsVariant('AdsBot-Google-Mobile'),
   assertRobotsDisallow('robots blocks page params', '/*?*page=*'),
   assertRobotsDisallow('robots blocks sort params', '/*?*sort_by=*'),
   assertRobotsDisallow('robots blocks filter params', '/*?filter*'),

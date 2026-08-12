@@ -76,10 +76,13 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
   const { handle: rawHandle } = await params;
   const sp = await searchParams;
   const { resolvedHandle, product } = await getResolvedProduct(rawHandle);
+  const productAvailable = !!(product && hasProductImage(product));
+  const canonicalUrl = product ? await getProductCanonicalUrl(product) : undefined;
   await followManualRedirectUnlessProductRestored({
     pathname: `/products/${rawHandle}`,
     handle: resolvedHandle,
-    productAvailable: !!(product && hasProductImage(product)),
+    productAvailable,
+    canonicalPath: canonicalUrl,
   });
   if (!product) {
     return permanentRedirectMissingProduct(`/products/${rawHandle}`, resolvedHandle);
@@ -99,12 +102,10 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
   const { html: descriptionHtml, videos: descriptionVideos } =
     extractVideosFromHtml(composedDescription.html);
 
-  // Get the canonical URL
-  const canonicalUrl = await getProductCanonicalUrl(product);
   const currentUrl = `/products/${rawHandle}`;
   
   // Only redirect if canonical URL is different (i.e., product has a category mapping)
-  if (canonicalUrl !== currentUrl) {
+  if (canonicalUrl && canonicalUrl !== currentUrl) {
     try {
       await createManualRedirect(currentUrl, canonicalUrl, '301', 'auto');
     } catch (error) {
