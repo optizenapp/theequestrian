@@ -1,0 +1,13 @@
+path_a,path_b,reason,score,leaf_a,leaf_b,rollup_a,rollup_b,h1_a,h1_b,suggested_keep,suggested_action,verdict,notes
+/clothing/footwear/boots,/clothing/footwear/riding-boots,boots_vs_riding_boots,0.85,27,8,27,8,Boots,Riding Boots,/clothing/footwear/boots,confirm_both_needed_or_merge,,
+/clothing/footwear/boots,/clothing/footwear/tall-boots,boots_vs_tall_boots,0.85,27,14,27,14,Boots,Tall Boots,/clothing/footwear/boots,confirm_both_needed_or_merge,,
+/clothing/footwear/tall-boots,/clothing/footwear/riding-boots,tall_vs_riding_boots,0.85,14,8,14,8,Tall Boots,Riding Boots,/clothing/footwear/tall-boots,confirm_both_needed_or_merge,,
+/clothing/mens/jackets,/clothing/outerwear/jackets,mens_vs_outerwear_jackets,0.85,22,28,22,28,Men's Jackets,Casual Jackets for Equestrians,/clothing/outerwear/jackets,confirm_both_needed_or_merge,,
+/clothing/mens/show-jackets,/clothing/womens/riding-jackets,mens_show_vs_womens_riding,0.85,16,42,16,42,Men's Show Jackets,Women's Riding & Show Jackets,/clothing/womens/riding-jackets,confirm_both_needed_or_merge,,
+/clothing/tops,/clothing/womens/tops,generic_tops_vs_womens_tops,0.85,16,39,164,39,Tops,Women's Riding Tops,/clothing/womens/tops,confirm_both_needed_or_merge,,
+/clothing/womens/riding-jackets,/clothing/outerwear/jackets,womens_riding_vs_outerwear,0.85,42,28,42,28,Women's Riding & Show Jackets,Casual Jackets for Equestrians,/clothing/womens/riding-jackets,confirm_both_needed_or_merge,,
+/horse/bonnets,/horse/bonnets/fly-masks,bonnets_vs_fly_masks,0.85,60,21,81,21,Flyveils & Bonnets,Fly Masks for Horses,/horse/bonnets,confirm_both_needed_or_merge,,
+/horse/rugs/therapeutic,/horse/rugs,therapeutic_under_rugs,0.85,4,119,4,142,Therapeutic & Magnetic Rugs,Horse Rugs for Every Season & Condition,/horse/rugs,confirm_both_needed_or_merge,,
+/horse/tack,/horse/tack/bridles,similar_h1,0.78,22,118,329,118,"Horse Tack for Training, Competition & Everyday Riding","Horse Bridles for Training, Competition & Everyday Riding",/horse/tack/bridles,review_overlap,,
+/horse/tack,/horse/tack/nosebands,similar_h1,0.78,22,6,329,6,"Horse Tack for Training, Competition & Everyday Riding","Horse Nosebands for Training, Competition & Everyday Riding",/horse/tack,review_overlap,,
+/horse/tack/bridles,/horse/tack/nosebands,similar_h1,0.78,118,6,118,6,"Horse Bridles for Training, Competition & Everyday Riding","Horse Nosebands for Training, Competition & Everyday Riding",/horse/tack/bridles,review_overlap,,
