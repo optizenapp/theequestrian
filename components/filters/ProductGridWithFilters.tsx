@@ -34,11 +34,13 @@ import type { ShopifyProduct } from '@/types/shopify';
 import type { FilterOption } from '@/lib/filters/product-filters';
 
 import type { FilterPreferences } from '@/lib/filters/localStorage';
+import type { CategorySiloNav } from '@/lib/nav/category-silo';
 
 interface ProductGridWithFiltersProps {
   products: ShopifyProduct[];
   currentCategory: string;
   currentSubcategory?: string;
+  siloNav?: CategorySiloNav;
   pageInfo?: {
     hasNextPage: boolean;
     endCursor: string | null;
@@ -62,6 +64,7 @@ export function ProductGridWithFilters({
   products,
   currentCategory,
   currentSubcategory,
+  siloNav,
   pageInfo,
   totalCount,
   allowedBrands,
@@ -354,6 +357,7 @@ export function ProductGridWithFilters({
           
           <FilterSidebar
             currentCategory={currentCategory}
+            siloNav={siloNav}
             sizeOptions={sizeOptions}
             colorOptions={colorOptions}
             brandOptions={brandOptions}
@@ -368,6 +372,7 @@ export function ProductGridWithFilters({
           <div className="lg:hidden">
             <FilterSidebar
               currentCategory={currentCategory}
+              siloNav={siloNav}
               sizeOptions={sizeOptions}
               colorOptions={colorOptions}
               brandOptions={brandOptions}

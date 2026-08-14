@@ -6,18 +6,15 @@ import { getProductCanonicalUrls } from '@/lib/shopify/products';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
 import { 
-  getProductTypesForCollection, 
-  getSubcategoriesForCollection as getMappingSubcategories,
   getCollectionTitle,
   getCollectionHierarchy
 } from '@/lib/mapping/collection-mapping';
 import { TrustSignals } from '@/components/TrustSignals';
-import { CategoryPills } from '@/components/CategoryPills';
 import { CollectionDescription } from '@/components/CollectionDescription';
 import { CollectionBreadcrumbs } from '@/components/CollectionBreadcrumbs';
 import { getCategoryContent, getParentCollectionLink } from '@/lib/content/collections';
 import { getAllowedBrandVendors } from '@/lib/filters/brand-filter-helper';
-import Link from 'next/link';
+import { getCategorySiloNav } from '@/lib/nav/category-silo';
 import type { Metadata } from 'next';
 import { getManualRedirect } from '@/lib/redirects/manual';
 import { ProductGridSkeleton } from '@/components/filters/ProductGridSkeleton';
@@ -133,25 +130,8 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
   // Serialize Maps to plain objects for Client Components (Maps are not JSON-serializable in RSC)
   const productUrls = Object.fromEntries(productUrlsMap);
   const reviewStats = Object.fromEntries(reviewStatsMap);
+  const siloNav = await getCategorySiloNav(`/${category}/${subcategory}`);
 
-  // Get sub-subcategories from our mapping (third level)
-  let subSubcategories = await getMappingSubcategories(category, subcategory);
-  if (category === 'rider' && subcategory === 'luggage') {
-    const hasAriat = subSubcategories.some((s) => s.handle === 'ariat');
-    if (!hasAriat) {
-      const ariatContent = await getCategoryContent(category, subcategory, 'ariat');
-      subSubcategories = [
-        ...subSubcategories,
-        {
-          handle: 'ariat',
-          label: ariatContent?.breadcrumb_label || ariatContent?.h1_title || 'Ariat',
-          count: 1,
-        },
-      ];
-    }
-  }
-
-  // Get collection data
   const mappingTitle = getCollectionTitle(category, subcategory);
   const breadcrumbs = getCollectionHierarchy(category, subcategory);
   
@@ -214,19 +194,12 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
           />
         </div>
 
-        {/* Sub-subcategories as Pills (3rd level) */}
-        <CategoryPills 
-          categories={subSubcategories.map(s => ({ handle: s.handle, label: s.label }))}
-          basePath={`/${category}/${subcategory}`}
-          sectionHeading={`Shop ${mappingTitle} by Type`}
-        />
-
-        {/* Products Grid with Filters */}
         <Suspense fallback={<ProductGridSkeleton />}>
           <ProductGridWithFilters
             products={filteredProducts}
             currentCategory={category}
             currentSubcategory={subcategory}
+            siloNav={siloNav}
             pageInfo={pageInfo}
             totalCount={totalProductCount}
             allowedBrands={allowedBrands}

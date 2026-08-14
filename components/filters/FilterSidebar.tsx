@@ -9,13 +9,16 @@
 
 import { useState, useEffect } from 'react';
 import { TopCategoryFilter } from './TopCategoryFilter';
+import { CategorySiloNav } from './CategorySiloNav';
 import { PriceFilter } from './PriceFilter';
 import { AttributeFilter } from './AttributeFilter';
 import type { FilterOption } from '@/lib/filters/product-filters';
+import type { CategorySiloNav as CategorySiloNavData } from '@/lib/nav/category-silo';
 
 interface FilterSidebarProps {
   // Current category for highlighting
   currentCategory?: string;
+  siloNav?: CategorySiloNavData;
 
   // Attribute filter options
   sizeOptions: FilterOption[];
@@ -33,6 +36,7 @@ interface FilterSidebarProps {
 
 export function FilterSidebar({
   currentCategory,
+  siloNav,
   sizeOptions,
   colorOptions,
   brandOptions,
@@ -67,8 +71,11 @@ export function FilterSidebar({
 
   const content = (
     <div className="space-y-6">
-      {/* Top Category Links */}
-      <TopCategoryFilter currentCategory={currentCategory} />
+      {siloNav ? (
+        <CategorySiloNav nav={siloNav} />
+      ) : (
+        <TopCategoryFilter currentCategory={currentCategory} />
+      )}
 
       {/* Price Filter */}
       <PriceFilter

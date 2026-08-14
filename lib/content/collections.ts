@@ -178,6 +178,29 @@ export async function getParentCollectionLink(
   return { href, label };
 }
 
+export type CollectionNavRow = {
+  path: string;
+  label: string;
+  parent_url: string;
+  category_level: number;
+};
+
+/** Published catalog rows for silo nav — uses the same in-memory content cache. */
+export async function getPublishedCollectionNav(): Promise<CollectionNavRow[]> {
+  const content = await loadContent();
+  const rows: CollectionNavRow[] = [];
+  for (const row of content.values()) {
+    const path = row.url_path.startsWith('/') ? row.url_path : `/${row.url_path}`;
+    rows.push({
+      path,
+      label: (row.breadcrumb_label || row.h1_title || path).trim(),
+      parent_url: row.parent_url || '',
+      category_level: row.category_level,
+    });
+  }
+  return rows;
+}
+
 /**
  * Check if a category exists in the database
  * Returns true if the category exists and is published

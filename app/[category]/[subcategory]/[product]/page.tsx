@@ -14,11 +14,9 @@ import {
   getProductTypesForCollection, 
   getCollectionTitle,
   getCollectionHierarchy,
-  getSubcategoriesForCollection as getMappingSubcategories,
   getBreadcrumbsForProduct
 } from '@/lib/mapping/collection-mapping';
 import { TrustSignals } from '@/components/TrustSignals';
-import { CategoryPills } from '@/components/CategoryPills';
 import { CollectionDescription } from '@/components/CollectionDescription';
 import { CollectionBreadcrumbs } from '@/components/CollectionBreadcrumbs';
 import { FAQSection } from '@/components/collection/FAQSection';
@@ -39,6 +37,7 @@ import { resolveProductShippingDisplay } from '@/lib/shipping/product-shipping-d
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { getStoreReviewStats } from '@/lib/reviews/store-stats';
 import { getAllowedBrandVendors } from '@/lib/filters/brand-filter-helper';
+import { getCategorySiloNav } from '@/lib/nav/category-silo';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
 import { StoreRatingBadge } from '@/components/reviews/StoreRatingBadge';
 import ProductIdentifierMetaRow from '@/components/product/ProductIdentifierMetaRow';
@@ -561,12 +560,10 @@ async function renderSubSubcategoryPage(
   // Review stats for product cards
   const productHandles = filteredProducts.map((p) => p.handle);
   const reviewStatsMap = await getReviewStatsForProducts(productHandles);
+  const siloNav = await getCategorySiloNav(
+    `/${category}/${subcategory}/${subsubcategory}`
+  );
 
-  // Get sibling sub-subcategories (for pills)
-  const allSubSubcategories = await getMappingSubcategories(category, subcategory);
-  const siblingSubSubcategories = allSubSubcategories.filter(s => s.handle !== subsubcategory);
-
-  // Get collection titles and content
   const mappingTitle = getCollectionTitle(category, subcategory, subsubcategory);
   const breadcrumbs = getCollectionHierarchy(category, subcategory, subsubcategory);
   
@@ -639,21 +636,12 @@ async function renderSubSubcategoryPage(
           />
         </div>
 
-        {/* Sibling Sub-subcategories Pills */}
-        {siblingSubSubcategories.length > 0 && (
-          <CategoryPills 
-            categories={siblingSubSubcategories.map(s => ({ handle: s.handle, label: s.label }))}
-            basePath={`/${category}/${subcategory}`}
-            sectionHeading={`Shop ${getCollectionTitle(category, subcategory)} by Type`}
-          />
-        )}
-
-        {/* Products Grid with Filters */}
         <Suspense fallback={<ProductGridSkeleton />}>
           <ProductGridWithFilters
             products={filteredProducts}
             currentCategory={category}
             currentSubcategory={subcategory}
+            siloNav={siloNav}
             pageInfo={pageInfo}
             totalCount={totalProductCount}
             allowedBrands={allowedBrands}

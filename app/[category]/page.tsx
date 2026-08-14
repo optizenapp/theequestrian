@@ -8,15 +8,14 @@ import { getCategoryContent, getParentCollectionLink } from '@/lib/content/colle
 import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
 import { generateProductSchema } from '@/lib/utils/product-schema';
 import { 
-  getSubcategoriesForCollection as getMappingSubcategories,
   getCollectionTitle,
   getCollectionHierarchy
 } from '@/lib/mapping/collection-mapping';
 import { getAllowedBrandVendors } from '@/lib/filters/brand-filter-helper';
 import { TrustSignals } from '@/components/TrustSignals';
-import { CategoryPills } from '@/components/CategoryPills';
 import { CollectionDescription } from '@/components/CollectionDescription';
 import { CollectionBreadcrumbs } from '@/components/CollectionBreadcrumbs';
+import { getCategorySiloNav } from '@/lib/nav/category-silo';
 import Image from 'next/image';
 import type { Metadata } from 'next';
 import { getManualRedirect } from '@/lib/redirects/manual';
@@ -246,10 +245,8 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     ? undefined
     : await getAllowedBrandVendors();
 
-  // Get subcategories from our mapping
-  const subcategories = await getMappingSubcategories(category);
+  const siloNav = await getCategorySiloNav(`/${category}`);
 
-  // Get collection title from mapping (Fallback)
   const mappingTitle = getCollectionTitle(category);
   const breadcrumbs = getCollectionHierarchy(category);
   
@@ -304,18 +301,11 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
           />
         </div>
 
-        {/* Subcategories as Pills */}
-        <CategoryPills 
-          categories={subcategories.map(s => ({ handle: s.handle, label: s.label }))}
-          basePath={`/${category}`}
-          sectionHeading={`Shop ${pageTitle} by Type`}
-        />
-
-        {/* Products Grid with Filters */}
         <Suspense fallback={<ProductGridSkeleton />}>
           <ProductGridWithFilters
             products={filteredProducts}
             currentCategory={category}
+            siloNav={siloNav}
             pageInfo={pageInfo}
             totalCount={totalProductCount}
             allowedBrands={allowedBrands}
