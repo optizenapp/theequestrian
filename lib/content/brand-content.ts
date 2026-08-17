@@ -16,6 +16,9 @@ export interface BrandContentRow {
   faq_json: string | null;
   quick_answer: string | null;
   logo_url: string | null;
+  sizing_html: string | null;
+  sizing_source_url: string | null;
+  sizing_updated_at: string | null;
   status: string | null;
   updated_at?: string | null;
 }
@@ -49,6 +52,9 @@ async function ensureBrandContentTable() {
   await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS rules TEXT`;
   await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS quick_answer TEXT`;
   await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS logo_url TEXT`;
+  await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS sizing_html TEXT`;
+  await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS sizing_source_url TEXT`;
+  await sql`ALTER TABLE brand_content ADD COLUMN IF NOT EXISTS sizing_updated_at TIMESTAMPTZ`;
 }
 
 async function loadBrandContent(): Promise<Map<string, BrandContentRow>> {
@@ -74,17 +80,41 @@ async function loadBrandContent(): Promise<Map<string, BrandContentRow>> {
         faq_json,
         quick_answer,
         logo_url,
+        sizing_html,
+        sizing_source_url,
+        sizing_updated_at,
         status,
         updated_at
       FROM brand_content
       WHERE status = 'published'
       ORDER BY handle
     `;
-    const rows = (Array.isArray(result) ? result : []) as BrandContentRow[];
+    const rawRows = (Array.isArray(result) ? result : []) as Array<
+      Partial<BrandContentRow> & Pick<BrandContentRow, 'handle' | 'title'>
+    >;
     const map = new Map<string, BrandContentRow>();
-    for (const row of rows) {
+    for (const row of rawRows) {
       if (isBlockedBrandHandle(row.handle)) continue;
-      map.set(row.handle, row);
+      map.set(row.handle, {
+        handle: row.handle,
+        title: row.title,
+        products_count: row.products_count ?? 0,
+        rules: row.rules ?? null,
+        h1_title: row.h1_title ?? null,
+        meta_title: row.meta_title ?? null,
+        meta_description: row.meta_description ?? null,
+        short_description: row.short_description ?? null,
+        long_description: row.long_description ?? null,
+        breadcrumb_label: row.breadcrumb_label ?? null,
+        faq_json: row.faq_json ?? null,
+        quick_answer: row.quick_answer ?? null,
+        logo_url: row.logo_url ?? null,
+        sizing_html: row.sizing_html ?? null,
+        sizing_source_url: row.sizing_source_url ?? null,
+        sizing_updated_at: row.sizing_updated_at ?? null,
+        status: row.status ?? null,
+        updated_at: row.updated_at ?? null,
+      });
     }
     brandContentCache = map;
     cacheTimestamp = now;

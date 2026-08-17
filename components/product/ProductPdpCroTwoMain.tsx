@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react';
 import { ProductImageGallery } from '@/components/ProductImageGallery';
 import { ProductBuyBox } from '@/components/product/ProductBuyBox';
-import { ProductDescription } from '@/components/product/ProductDescription';
+import { ProductDescriptionSizingTabs } from '@/components/product/ProductDescriptionSizingTabs';
 import ProductIdentifierMetaRow from '@/components/product/ProductIdentifierMetaRow';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
 import { StoreRatingBadge } from '@/components/reviews/StoreRatingBadge';
 import { getStoreReviewStats } from '@/lib/reviews/store-stats';
 import { getProductIdentifiers } from '@/lib/products/product-identifiers';
+import { getBrandSizingForProduct } from '@/lib/sizing/resolve-brand-sizing';
 import type { ProductShippingDisplay } from '@/lib/shipping/product-shipping-display';
 import type { ShopifyBuyBoxProduct, ShopifyProduct } from '@/types/shopify';
 
@@ -75,6 +76,14 @@ export default async function ProductPdpCroTwoMain({
 }: ProductPdpCroTwoMainProps) {
   const storeReviewStats = await getStoreReviewStats();
   const identifiers = getProductIdentifiers(product, { canonicalBrand, brandHubHandle });
+  const brandSizing = await getBrandSizingForProduct({
+    brandHubHandle,
+    brandDisplayName: canonicalBrand,
+    vendor: product.vendor,
+    title: product.title,
+    handle: product.handle,
+    productType: product.productType,
+  });
   const galleryImages = product.images.edges.map(({ node }) => node);
   const buyBoxProduct: ShopifyBuyBoxProduct = {
     id: product.id,
@@ -114,12 +123,14 @@ export default async function ProductPdpCroTwoMain({
               className="order-4 lg:order-none lg:flex-1 lg:min-h-0 lg:flex lg:flex-col"
               aria-label="Product description"
             >
-              <ProductDescription
-                html={descriptionHtml}
+              <ProductDescriptionSizingTabs
+                descriptionHtml={descriptionHtml}
                 productTitle={displayTitle}
+                sizing={brandSizing}
                 collapsedHeight={360}
                 accentBorder
                 fillHeight
+                className="border border-black"
               />
             </section>
           </div>
@@ -151,6 +162,7 @@ export default async function ProductPdpCroTwoMain({
                   product={buyBoxProduct}
                   layout={styleMode === 'cro3' ? 'croTheme3' : 'croTrial'}
                   shippingDisplay={shippingDisplay}
+                  sizing={brandSizing}
                 />
               </div>
             </section>

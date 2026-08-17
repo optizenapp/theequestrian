@@ -8,6 +8,8 @@ interface ProductPdpStructuredDetailsProps {
   productTitle: string;
   productHandle: string;
   carePlainText: string | null;
+  /** Prefer same-page #sizing tab when provided. */
+  sizingHref?: string;
 }
 
 function DetailBlock({
@@ -45,15 +47,23 @@ export default function ProductPdpStructuredDetails({
   productTitle,
   productHandle,
   carePlainText,
+  sizingHref,
 }: ProductPdpStructuredDetailsProps) {
-  const sizingUrl = getSizingUrl({
-    vendor,
-    productType,
-    title: productTitle,
-    handle: productHandle,
-  });
-  const finalSizingUrl = sizingUrl || '/sizing';
-  const sizingLabel = sizingUrl ? 'View sizing guide' : 'View size charts';
+  const sizingUrl =
+    sizingHref ||
+    getSizingUrl({
+      vendor,
+      productType,
+      title: productTitle,
+      handle: productHandle,
+    }) ||
+    '/sizing';
+  const isInPage = sizingUrl.startsWith('#');
+  const sizingLabel = isInPage
+    ? 'View sizing information'
+    : sizingUrl !== '/sizing'
+      ? 'View sizing guide'
+      : 'View size charts';
 
   const blocks: ReactNode[] = [];
 
@@ -84,16 +94,17 @@ export default function ProductPdpStructuredDetails({
   blocks.push(
     <DetailBlock key="sizing" id="pdp-sizing" title="Sizing & fit" defaultOpen>
       <p className="mb-3">
-        Not sure which size to pick? Use our charts to compare foot length and width to the brand&apos;s
+        Not sure which size to pick? Use our charts to compare measurements to the brand&apos;s
         scale.
       </p>
       <Link
-        href={finalSizingUrl}
-        target="_blank"
-        rel="noopener noreferrer"
+        href={sizingUrl}
+        {...(isInPage
+          ? {}
+          : { target: '_blank', rel: 'noopener noreferrer' })}
         className="inline-flex font-semibold text-action hover:text-action-hover"
       >
-        {sizingLabel} (opens in new tab)
+        {isInPage ? sizingLabel : `${sizingLabel} (opens in new tab)`}
       </Link>
     </DetailBlock>
   );

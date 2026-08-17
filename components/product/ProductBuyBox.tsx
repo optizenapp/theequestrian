@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { ShopifyBuyBoxProduct } from '@/types/shopify';
 import { ProductVariantSelector } from '@/components/ProductVariantSelector';
 import { AddToCartButton } from './AddToCartButton';
@@ -8,24 +8,39 @@ import { BuyNowButton } from './BuyNowButton';
 import { MobileStickyBar } from './MobileStickyBar';
 import { ProductBuyBoxPostCta } from './ProductBuyBoxPostCta';
 import { ProductBuyBoxPriceAndBadges } from './ProductBuyBoxPriceAndBadges';
+import { SizeChartModal, SizeChartTriggerButton } from '@/components/sizing/SizeChartModal';
 import { buildGa4ItemFromProduct } from '@/lib/analytics/ga4-ecommerce';
 import { useProductVariantSelection } from '@/hooks/useProductVariantSelection';
 import type { ProductShippingDisplay } from '@/lib/shipping/product-shipping-display';
 import { SHIPPING_DISPLAY_FALLBACK } from '@/lib/shipping/product-shipping-display';
+import type { ResolvedBrandSizing } from '@/lib/sizing/types';
 
 interface ProductBuyBoxProps {
   product: ShopifyBuyBoxProduct;
   /** CRO PDP trial: accurate trust copy, sale %, trust under CTAs, sticky ATC-only. */
   layout?: 'default' | 'croTrial' | 'croTheme3';
   shippingDisplay?: ProductShippingDisplay;
+  /** Brand sizing for Size Chart modal next to size options. */
+  sizing?: ResolvedBrandSizing | null;
+}
+
+function productHasSizeOption(product: ShopifyBuyBoxProduct): boolean {
+  return product.variants.edges.some(({ node }) =>
+    node.selectedOptions.some((opt) => {
+      const n = opt.name.toLowerCase();
+      return n === 'size' || n.includes('size');
+    })
+  );
 }
 
 export function ProductBuyBox({
   product,
   layout = 'default',
   shippingDisplay = SHIPPING_DISPLAY_FALLBACK,
+  sizing = null,
 }: ProductBuyBoxProps) {
   const { selectedOptions, selectedVariant, handleOptionSelect } = useProductVariantSelection(product);
+  const [sizeChartOpen, setSizeChartOpen] = useState(false);
 
   const basePrice = selectedVariant?.price.amount || product.priceRange.minVariantPrice.amount;
   const baseCompareAtPrice =
@@ -62,6 +77,12 @@ export function ProductBuyBox({
       : null;
   const sku = selectedVariant?.sku ?? product.variants.edges[0]?.node.sku ?? null;
 
+  const showSizeChart = Boolean(sizing);
+  const sizeChartAction = showSizeChart ? (
+    <SizeChartTriggerButton onClick={() => setSizeChartOpen(true)} />
+  ) : null;
+  const hasSizeOption = productHasSizeOption(product);
+
   return (
     <div className="space-y-6">
       <ProductBuyBoxPriceAndBadges
@@ -82,8 +103,14 @@ export function ProductBuyBox({
           selectedOptions={selectedOptions}
           onOptionSelect={handleOptionSelect}
           styleMode={layout === 'croTheme3' ? 'croTheme3' : 'default'}
+          sizeChartAction={sizeChartAction}
         />
       )}
+
+      {/* No size option row (single-variant / colour-only) — still offer Size Chart */}
+      {showSizeChart && !hasSizeOption ? (
+        <div className="flex justify-end">{sizeChartAction}</div>
+      ) : null}
 
       {!isAvailable && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -117,6 +144,15 @@ export function ProductBuyBox({
         currencyCode={currencyCode}
         showBuyNow={!isCro}
       />
+
+      {sizing ? (
+        <SizeChartModal
+          open={sizeChartOpen}
+          onClose={() => setSizeChartOpen(false)}
+          productTitle={product.title}
+          sizing={sizing}
+        />
+      ) : null}
     </div>
   );
 }

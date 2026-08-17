@@ -10,6 +10,7 @@
  * - Controlled component (receives selectedOptions and onOptionSelect)
  */
 
+import type { ReactNode } from 'react';
 import type { ShopifyBuyBoxProduct } from '@/types/shopify';
 
 interface ProductVariantSelectorProps {
@@ -17,6 +18,8 @@ interface ProductVariantSelectorProps {
   selectedOptions: Record<string, string>;
   onOptionSelect: (optionName: string, value: string) => void;
   styleMode?: 'default' | 'croTheme3';
+  /** Shown beside Size option label (opens size chart modal). */
+  sizeChartAction?: ReactNode;
 }
 
 // Color mapping for common color names
@@ -63,6 +66,7 @@ export function ProductVariantSelector({
   selectedOptions,
   onOptionSelect,
   styleMode = 'default',
+  sizeChartAction,
 }: ProductVariantSelectorProps) {
   const variants = product.variants.edges;
 
@@ -87,7 +91,8 @@ export function ProductVariantSelector({
       {Array.from(optionTypes.entries()).map(([optionName, values]) => {
         const normalizedOptionName = optionName.toLowerCase();
         const isColorOption = normalizedOptionName === 'color' || normalizedOptionName === 'colour';
-        const shouldShowDashedGroup = isColorOption || normalizedOptionName === 'size';
+        const isSizeOption = normalizedOptionName === 'size' || normalizedOptionName.includes('size');
+        const shouldShowDashedGroup = isColorOption || isSizeOption;
         const optionGroupClassName = styleMode === 'croTheme3'
           ? 'rounded-2xl border border-solid p-4'
           : 'rounded-2xl border border-dashed border-green-500 p-4';
@@ -99,9 +104,12 @@ export function ProductVariantSelector({
             className={shouldShowDashedGroup ? optionGroupClassName : undefined}
             style={shouldShowDashedGroup && styleMode === 'croTheme3' ? { borderColor: '#D9D9D9' } : undefined}
           >
-            <label className="text-sm font-semibold text-gray-900 mb-2 block">
-              {optionName}
-            </label>
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <label className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
+                {optionName}
+              </label>
+              {isSizeOption && sizeChartAction ? sizeChartAction : null}
+            </div>
 
             {isColorOption ? (
               // Color Swatches

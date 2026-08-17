@@ -10,8 +10,9 @@ import {
 import { ProductImageGallery } from '@/components/ProductImageGallery';
 import { ProductBreadcrumbs } from '@/components/ProductBreadcrumbs';
 import { ProductBuyBox } from '@/components/product/ProductBuyBox';
-import { ProductDescription } from '@/components/product/ProductDescription';
+import { ProductDescriptionSizingTabs } from '@/components/product/ProductDescriptionSizingTabs';
 import { RelatedProducts } from '@/components/product/RelatedProducts';
+import { getBrandSizingForProduct } from '@/lib/sizing/resolve-brand-sizing';
 import { generateBreadcrumbSchema } from '@/lib/utils/breadcrumb-schema';
 import { generateProductSchemaGraph } from '@/lib/utils/product-schema';
 import { resolveProductShippingDisplay } from '@/lib/shipping/product-shipping-display';
@@ -224,6 +225,14 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
   );
   const showArcEquineGelPromo = resolvedProduct.handle === 'arcequine-complete-kit';
   const identifiers = getProductIdentifiers(resolvedProduct, { canonicalBrand, brandHubHandle });
+  const brandSizing = await getBrandSizingForProduct({
+    brandHubHandle,
+    brandDisplayName: canonicalBrand,
+    vendor: resolvedProduct.vendor,
+    title: resolvedProduct.title,
+    handle: resolvedProduct.handle,
+    productType: resolvedProduct.productType,
+  });
   const pdpCroVariant = getPdpCroVariant(resolvedProduct.handle, sp);
   const isCroTrialPdp = pdpCroVariant === 'cro1';
   const isCroTwoPdp = pdpCroVariant === 'cro2';
@@ -362,7 +371,11 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
             aria-label="Purchase options"
           >
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-gray-100">
-              <ProductBuyBox product={buyBoxProduct} shippingDisplay={shippingDisplay} />
+              <ProductBuyBox
+                product={buyBoxProduct}
+                shippingDisplay={shippingDisplay}
+                sizing={brandSizing}
+              />
             </div>
           </section>
 
@@ -370,7 +383,11 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
             className="order-4 lg:order-none lg:col-span-7 lg:row-start-3 space-y-8 mt-8 lg:mt-0"
             aria-label="Product description"
           >
-            <ProductDescription html={descriptionHtml} productTitle={displayTitle} />
+            <ProductDescriptionSizingTabs
+              descriptionHtml={descriptionHtml}
+              productTitle={displayTitle}
+              sizing={brandSizing}
+            />
           </section>
         </div>
         </article>

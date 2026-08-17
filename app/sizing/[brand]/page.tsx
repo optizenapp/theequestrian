@@ -6,10 +6,11 @@ import {
   getBrandSizing,
   getAllBrandSlugs,
 } from '@/lib/sizing/sizing-config';
-import { SizingChartImage } from '@/components/sizing/SizingChartImage';
+import { getBrandContentByHandle } from '@/lib/content/brand-content';
+import { BrandSizingPanel } from '@/components/sizing/BrandSizingPanel';
+import { getBrandSizingForHandle } from '@/lib/sizing/resolve-brand-sizing';
 
-// Force static generation
-export const dynamic = 'force-static';
+export const revalidate = 3600;
 
 interface BrandSizingPageProps {
   params: Promise<{
@@ -17,9 +18,6 @@ interface BrandSizingPageProps {
   }>;
 }
 
-/**
- * Generate static params for all brand pages
- */
 export async function generateStaticParams() {
   const slugs = getAllBrandSlugs();
   return slugs.map((slug) => ({
@@ -27,29 +25,29 @@ export async function generateStaticParams() {
   }));
 }
 
-/**
- * Generate metadata for brand sizing page
- */
 export async function generateMetadata({ params }: BrandSizingPageProps): Promise<Metadata> {
   const { brand: brandSlug } = await params;
-  const brand = getBrandSizing(brandSlug);
+  const sizing = await getBrandSizingForHandle(brandSlug);
+  const config = getBrandSizing(brandSlug);
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
+  const displayName = sizing.displayName || config?.displayName;
 
-  if (!brand) {
+  if (!displayName && sizing.source === 'empty') {
     return {
       title: 'Sizing Guide Not Found | The Equestrian',
     };
   }
 
+  const name = displayName || brandSlug;
   return {
-    title: `${brand.displayName} Sizing Guide | The Equestrian`,
-    description: `Find the perfect fit with our comprehensive ${brand.displayName} sizing charts. View detailed sizing information for boots, apparel, and accessories.`,
+    title: `${name} Sizing Guide | The Equestrian`,
+    description: `Find the perfect fit with our comprehensive ${name} sizing charts. View detailed sizing information for boots, apparel, and accessories.`,
     alternates: {
       canonical: `${siteUrl}/sizing/${brandSlug}`,
     },
     openGraph: {
-      title: `${brand.displayName} Sizing Guide | The Equestrian`,
-      description: `Find the perfect fit with our comprehensive ${brand.displayName} sizing charts.`,
+      title: `${name} Sizing Guide | The Equestrian`,
+      description: `Find the perfect fit with our comprehensive ${name} sizing charts.`,
       url: `${siteUrl}/sizing/${brandSlug}`,
     },
   };
@@ -57,9 +55,11 @@ export async function generateMetadata({ params }: BrandSizingPageProps): Promis
 
 export default async function BrandSizingPage({ params }: BrandSizingPageProps) {
   const { brand: brandSlug } = await params;
-  const brand = getBrandSizing(brandSlug);
+  const sizing = await getBrandSizingForHandle(brandSlug);
+  const config = getBrandSizing(brandSlug);
+  const brandRow = await getBrandContentByHandle(brandSlug);
 
-  if (!brand) {
+  if (!config && !brandRow && sizing.source === 'empty') {
     notFound();
   }
 
@@ -68,10 +68,10 @@ export default async function BrandSizingPage({ params }: BrandSizingPageProps) 
   );
 
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
+  const displayName = sizing.displayName || config?.displayName || brandSlug;
 
   return (
     <>
-      {/* Breadcrumb Schema */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -94,8 +94,8 @@ export default async function BrandSizingPage({ params }: BrandSizingPageProps) 
               {
                 '@type': 'ListItem',
                 position: 3,
-                name: brand.displayName,
-                item: `${siteUrl}/sizing/${brand.slug}`,
+                name: displayName,
+                item: `${siteUrl}/sizing/${brandSlug}`,
               },
             ],
           }),
@@ -104,7 +104,6 @@ export default async function BrandSizingPage({ params }: BrandSizingPageProps) 
 
       <div className="bg-background min-h-screen">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-          {/* Breadcrumbs */}
           <nav className="mb-8 text-sm">
             <ol className="flex items-center gap-2 text-gray-600">
               <li>
@@ -123,26 +122,34 @@ export default async function BrandSizingPage({ params }: BrandSizingPageProps) 
               <li>
                 <span className="text-gray-400">/</span>
               </li>
-              <li className="text-gray-900 font-medium">{brand.displayName}</li>
+              <li className="text-gray-900 font-medium">{displayName}</li>
             </ol>
           </nav>
 
-          {/* Header */}
           <div className="mb-12">
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              {brand.displayName} Sizing Guide
+              {displayName} Sizing Guide
             </h1>
             <p className="text-lg text-gray-600 max-w-3xl">
-              Find the perfect fit with our comprehensive sizing charts for {brand.displayName} products. 
+              Find the perfect fit with our comprehensive sizing charts for {displayName} products.
               Use these guides to ensure you order the correct size.
             </p>
+            {brandRow ? (
+              <p className="mt-3">
+                <Link
+                  href={`/brands/${brandRow.handle}#sizing`}
+                  className="text-sm font-semibold text-action hover:text-action-hover"
+                >
+                  View sizing on the {displayName} brand page
+                </Link>
+              </p>
+            ) : null}
           </div>
 
-          {/* Brand pills */}
           <div className="mb-8">
             <div className="flex flex-wrap gap-2 overflow-x-auto pb-1">
               {sortedBrands.map((brandItem) => {
-                const isActive = brandItem.slug === brand.slug;
+                const isActive = brandItem.slug === brandSlug;
                 return (
                   <Link
                     key={brandItem.slug}
@@ -160,7 +167,6 @@ export default async function BrandSizingPage({ params }: BrandSizingPageProps) 
             </div>
           </div>
 
-          {/* Info Banner */}
           <div className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
             <div className="flex items-start gap-3">
               <svg className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -177,44 +183,15 @@ export default async function BrandSizingPage({ params }: BrandSizingPageProps) 
             </div>
           </div>
 
-
-          {/* Sizing Charts */}
-          <div className="space-y-12">
-            {brand.charts.map((chart, index) => (
-              <div key={index} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                {/* Chart Header */}
-                <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                  <h2 className="text-2xl font-bold text-gray-900">{chart.title}</h2>
-                  {chart.description && (
-                    <p className="text-gray-600 mt-1">{chart.description}</p>
-                  )}
-                </div>
-
-                {/* Chart Images */}
-                <div className="p-6 space-y-6">
-                  {chart.images.map((imagePath, imgIndex) => (
-                    <SizingChartImage
-                      key={imgIndex}
-                      src={imagePath}
-                      alt={`${brand.displayName} ${chart.title} - Chart ${imgIndex + 1}`}
-                      brandName={brand.displayName}
-                      chartTitle={chart.title}
-                      priority={index === 0 && imgIndex === 0}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
+          <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8">
+            <BrandSizingPanel sizing={{ ...sizing, sizingPagePath: null }} />
           </div>
 
-          {/* Help Section */}
           <div className="mt-16 bg-gray-50 rounded-xl p-8">
             <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Need Help with Sizing?
-              </h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Need Help with Sizing?</h2>
               <p className="text-gray-600 mb-6">
-                If you&apos;re unsure about which size to order or need additional measurements, 
+                If you&apos;re unsure about which size to order or need additional measurements,
                 our team is here to help. We want to make sure you get the perfect fit.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -223,17 +200,11 @@ export default async function BrandSizingPage({ params }: BrandSizingPageProps) 
                   className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-action text-white rounded-full font-semibold hover:bg-action-hover transition-colors"
                 >
                   Contact Us
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
                 </Link>
                 <Link
                   href="/sizing"
                   className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-gray-700 border border-gray-300 rounded-full font-semibold hover:border-action hover:text-action transition-colors"
                 >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                  </svg>
                   View All Sizing Guides
                 </Link>
               </div>
@@ -244,4 +215,3 @@ export default async function BrandSizingPage({ params }: BrandSizingPageProps) 
     </>
   );
 }
-

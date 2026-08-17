@@ -1,0 +1,8 @@
+brand_handle,official_sizing_url,notes
+ariat,https://www.ariat.com/size-chart,Confirm AU chart region before apply
+roeckl,https://www.roeckl.com/en/size-guide,Gloves size guide
+cavalleria-toscana,,Add official CT sizing URL when known
+animo,,Add official Animo sizing URL when known
+cavallo,,Add official Cavallo sizing URL when known
+tucci,,Hub is /brands/tucci — sizing slug tucci-and-ego-7
+jnk-collective,,House brand; Shopify vendor is JnK Collective — ensure brand_content.rules matches

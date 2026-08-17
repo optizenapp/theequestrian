@@ -2,9 +2,7 @@ import { notFound, redirect } from 'next/navigation';
 import { getReviewStatsForProducts } from '@/lib/reviews/stats';
 import { ProductGridWithFilters } from '@/components/filters/ProductGridWithFilters';
 import { getBrandContentByHandle, getBrandIndexDisplayName } from '@/lib/content/brand-content';
-import { RichContent } from '@/components/collection/RichContent';
 import { FAQSection } from '@/components/collection/FAQSection';
-import { CollectionDescription } from '@/components/CollectionDescription';
 import { generateBrandPageSchema } from '@/lib/utils/brand-page-schema';
 import { FAQItem } from '@/lib/content/collections';
 import { getBrandProductsFromDb } from '@/lib/brands/get-brand-products';
@@ -12,7 +10,9 @@ import { getBrandCategories } from '@/lib/brands/get-brand-categories';
 import { BrandQuickAnswer } from '@/components/brand/BrandQuickAnswer';
 import { BrandProductLines } from '@/components/brand/BrandProductLines';
 import { BrandLogo } from '@/components/brand/BrandLogo';
+import { BrandHubDescriptionSizingTabs } from '@/components/brand/BrandHubDescriptionSizingTabs';
 import { resolveBrandLogoUrl } from '@/lib/brands/resolve-brand-logo';
+import { getBrandSizingForHandle } from '@/lib/sizing/resolve-brand-sizing';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
@@ -110,6 +110,7 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
   }
 
   const brandCategories = await getBrandCategories(brand, 12);
+  const brandSizing = await getBrandSizingForHandle(handle, getBrandIndexDisplayName(brand));
 
   // Fetch review stats for all products in one batch (server-side)
   const productHandles = products.map(p => p.handle);
@@ -195,7 +196,11 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
                 </h1>
                 {brand.quick_answer && <BrandQuickAnswer text={brand.quick_answer} />}
                 <div className="mt-6">
-                  <CollectionDescription description={shortDescription} />
+                  <BrandHubDescriptionSizingTabs
+                    shortDescription={shortDescription}
+                    longDescription={longDescription}
+                    sizing={brandSizing}
+                  />
                   {totalProductCount > 0 && (
                     <p className="mt-4 text-sm text-gray-500">
                       Showing {totalProductCount} results
@@ -230,9 +235,6 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
             productUrls={productUrls}
             reviewStatsMap={reviewStats}
           />
-
-          {/* Long Description (editorial: Brand Explained, What Sets Apart, etc.) */}
-          {longDescription && <RichContent html={longDescription} />}
 
           {/* Auto-generated Product Lines from product → category joins */}
           <BrandProductLines

@@ -26,6 +26,9 @@ function warehouseAsBrandContent(warehouse: WarehouseDefinition): BrandContentRo
     faq_json: null,
     quick_answer: null,
     logo_url: null,
+    sizing_html: null,
+    sizing_source_url: null,
+    sizing_updated_at: null,
     status: 'published',
   };
 }

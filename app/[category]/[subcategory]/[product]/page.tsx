@@ -26,10 +26,10 @@ import { getCategoryContent, getParentCollectionLink } from '@/lib/content/colle
 import { ProductImageGallery } from '@/components/ProductImageGallery';
 import { ProductBreadcrumbs } from '@/components/ProductBreadcrumbs';
 import { ProductBuyBox } from '@/components/product/ProductBuyBox';
-import { ProductDescription } from '@/components/product/ProductDescription';
+import { ProductDescriptionSizingTabs } from '@/components/product/ProductDescriptionSizingTabs';
 import { ProductVideoSection } from '@/components/product/ProductVideoSection';
 import { RelatedProducts } from '@/components/product/RelatedProducts';
-import { SizingGuideLink } from '@/components/product/SizingGuideLink';
+import { getBrandSizingForProduct } from '@/lib/sizing/resolve-brand-sizing';
 import { extractVideosFromHtml } from '@/lib/products/extract-videos';
 import { generateBreadcrumbSchema } from '@/lib/utils/breadcrumb-schema';
 import { generateProductSchemaGraph } from '@/lib/utils/product-schema';
@@ -304,6 +304,14 @@ async function renderProductPage(
   });
   const showArcEquineGelPromo = product.handle === 'arcequine-complete-kit';
   const identifiers = getProductIdentifiers(product, { canonicalBrand, brandHubHandle });
+  const brandSizing = await getBrandSizingForProduct({
+    brandHubHandle,
+    brandDisplayName: canonicalBrand,
+    vendor: product.vendor,
+    title: product.title,
+    handle: product.handle,
+    productType: product.productType,
+  });
   const pdpCroVariant = getPdpCroVariant(product.handle, searchParams);
   const isCroTrialPdp = pdpCroVariant === 'cro1';
   const isCroTwoPdp = pdpCroVariant === 'cro2';
@@ -399,12 +407,6 @@ async function renderProductPage(
                   videos={descriptionVideos}
                   productTitle={displayTitle}
                 />
-                <SizingGuideLink
-                  vendor={product.vendor}
-                  productType={product.productType}
-                  productTitle={product.title}
-                  productHandle={product.handle}
-                />
               </>
             }
           />
@@ -464,7 +466,11 @@ async function renderProductPage(
             aria-label="Purchase options"
           >
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-gray-100">
-              <ProductBuyBox product={buyBoxProduct} shippingDisplay={shippingDisplay} />
+              <ProductBuyBox
+                product={buyBoxProduct}
+                shippingDisplay={shippingDisplay}
+                sizing={brandSizing}
+              />
             </div>
           </section>
 
@@ -472,7 +478,11 @@ async function renderProductPage(
             className="order-4 lg:order-none lg:col-span-7 lg:row-start-3 space-y-8 mt-8 lg:mt-0"
             aria-label="Product description"
           >
-            <ProductDescription html={descriptionHtml} productTitle={displayTitle} />
+            <ProductDescriptionSizingTabs
+              descriptionHtml={descriptionHtml}
+              productTitle={displayTitle}
+              sizing={brandSizing}
+            />
           </section>
         </div>
         </article>
@@ -481,14 +491,6 @@ async function renderProductPage(
         <ProductVideoSection
           videos={descriptionVideos}
           productTitle={displayTitle}
-        />
-
-        {/* Sizing Guide Link - Between Description and Reviews */}
-        <SizingGuideLink
-          vendor={product.vendor}
-          productType={product.productType}
-          productTitle={product.title}
-          productHandle={product.handle}
         />
         </>
         )}

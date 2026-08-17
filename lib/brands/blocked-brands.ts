@@ -5,6 +5,11 @@ const BLOCKED_BRAND_HANDLES = new Set<string>([
   'penelope',
   'penelope-leprevost',
   'penelope-leprovost',
+  // No longer stocked / empty hubs — keep out of brand index + sizing
+  'hitchley-harrow',
+  'hitchley-and-harrow',
+  'plum-tack',
+  'lemieux',
 ]);
 const BLOCKED_BRAND_KEYS = new Set<string>([
   'rmwilliams',
@@ -12,6 +17,10 @@ const BLOCKED_BRAND_KEYS = new Set<string>([
   'penelope',
   'penelopeleprevost',
   'penelopeleprovost',
+  'hitchleyharrow',
+  'hitchleyandharrow',
+  'plumtack',
+  'lemieux',
 ]);
 
 function normalizeHandle(value: string): string {

@@ -10,6 +10,8 @@ interface ProductDescriptionProps {
   accentBorder?: boolean;
   /** Stretch the container to fill its parent (e.g. a grid row) and clamp content to that height. */
   fillHeight?: boolean;
+  /** Skip outer card chrome when nested inside DescriptionSizingTabs. */
+  bare?: boolean;
 }
 
 export function ProductDescription({
@@ -19,6 +21,7 @@ export function ProductDescription({
   className = '',
   accentBorder = false,
   fillHeight = false,
+  bare = false,
 }: ProductDescriptionProps) {
   const [expanded, setExpanded] = useState(false);
   const [overflowing, setOverflowing] = useState(false);
@@ -45,14 +48,16 @@ export function ProductDescription({
     }
   }, [html, collapsedHeight, fillHeight, expanded]);
 
-  const wrapperClass = [
-    'bg-surface rounded-2xl p-8 shadow-sm',
-    accentBorder ? 'border border-black' : 'border border-gray-100',
-    fillHeight ? 'flex h-full flex-col' : 'space-y-4',
-    className,
-  ]
-    .filter(Boolean)
-    .join(' ');
+  const wrapperClass = bare
+    ? ['space-y-4', fillHeight ? 'flex h-full flex-col' : '', className].filter(Boolean).join(' ')
+    : [
+        'bg-surface rounded-2xl p-8 shadow-sm',
+        accentBorder ? 'border border-black' : 'border border-gray-100',
+        fillHeight ? 'flex h-full flex-col' : 'space-y-4',
+        className,
+      ]
+        .filter(Boolean)
+        .join(' ');
 
   const contentClass = [
     'product-description prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-action hover:prose-a:text-action-hover prose-strong:text-gray-900 prose-ul:list-disc prose-ul:pl-5 transition-[max-height] duration-300 ease-in-out',
@@ -70,9 +75,11 @@ export function ProductDescription({
 
   return (
     <div className={wrapperClass}>
-      <h2 className="text-2xl font-bold text-gray-900 mb-6 flex-shrink-0">
-        {productTitle} Description
-      </h2>
+      {!bare ? (
+        <h2 className="text-2xl font-bold text-gray-900 mb-6 flex-shrink-0">
+          {productTitle} Description
+        </h2>
+      ) : null}
 
       <div
         className={`relative ${fillHeight ? 'flex flex-1 min-h-0 flex-col' : ''}`.trim()}

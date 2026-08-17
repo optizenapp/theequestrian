@@ -92,6 +92,9 @@ export const BRAND_SIZING_DATA: BrandSizing[] = [
         images: [
           '/sizing/animo/Animo 1.webp',
           '/sizing/animo/animo boots.webp',
+          '/sizing/animo/clothing-sizes.png',
+          '/sizing/animo/boot-sizes.png',
+          '/sizing/animo/boot-measurement.png',
         ],
       },
     ],
@@ -108,9 +111,7 @@ export const BRAND_SIZING_DATA: BrandSizing[] = [
         title: 'Equiline Sizing Charts',
         description: 'Sizing guide for Equiline riding apparel',
         images: [
-          '/sizing/equiline/chart-1.jpg',
-          '/sizing/equiline/chart-2.jpg',
-          '/sizing/equiline/chart-3.jpg',
+          '/sizing/equiline/clothing-sizes.png',
         ],
       },
     ],
@@ -127,7 +128,8 @@ export const BRAND_SIZING_DATA: BrandSizing[] = [
         title: 'Pampeano Sizing Charts',
         description: 'Sizing guide for Pampeano belts and accessories',
         images: [
-          '/sizing/pampeano/chart-1.jpg',
+          '/sizing/pampeano/belts.png',
+          '/sizing/pampeano/dog-collars.png',
         ],
       },
     ],
@@ -144,7 +146,8 @@ export const BRAND_SIZING_DATA: BrandSizing[] = [
         title: 'Secchiari Sizing Charts',
         description: 'Sizing guide for Secchiari riding boots',
         images: [
-          '/sizing/secchiari/chart-1.jpg',
+          '/sizing/secchiari/tall-boots.png',
+          '/sizing/secchiari/gaiters.png',
         ],
       },
     ],
@@ -161,7 +164,7 @@ export const BRAND_SIZING_DATA: BrandSizing[] = [
         title: 'Vestrum Sizing Charts',
         description: 'Sizing guide for Vestrum equestrian apparel',
         images: [
-          '/sizing/vestrum/chart-1.jpg',
+          '/sizing/vestrum/sizes.png',
         ],
       },
     ],
@@ -178,6 +181,8 @@ export const BRAND_SIZING_DATA: BrandSizing[] = [
         title: 'Alessandro Albanese Sizing Charts',
         description: 'Sizing guide for Alessandro Albanese riding apparel',
         images: [
+          '/sizing/alessandro-albanese/womens-sizing.webp',
+          '/sizing/alessandro-albanese/mens-sizing.webp',
           '/sizing/alessandro-albanese/alessandro-sizing-1.webp',
           '/sizing/alessandro-albanese/alessandro-sizing-2.webp',
         ],
@@ -196,9 +201,8 @@ export const BRAND_SIZING_DATA: BrandSizing[] = [
         title: 'Cavallo Sizing Charts',
         description: 'Sizing guide for Cavallo boots and apparel',
         images: [
-          '/sizing/cavallo/chart-1.jpg',
-          '/sizing/cavallo/chart-2.jpg',
-          '/sizing/cavallo/chart-3.jpg',
+          '/sizing/cavallo/breeches-sizing.webp',
+          '/sizing/cavallo/jacket-sizing.webp',
         ],
       },
     ],
@@ -215,24 +219,8 @@ export const BRAND_SIZING_DATA: BrandSizing[] = [
         title: 'GhoDho Sizing Charts',
         description: 'Sizing guide for GhoDho equestrian apparel',
         images: [
-          '/sizing/ghodho/chart-1.jpg',
-        ],
-      },
-    ],
-  },
-
-  // ===== HITCHLEY & HARROW =====
-  {
-    slug: 'hitchley-harrow',
-    name: 'Hitchley & Harrow',
-    displayName: 'Hitchley & Harrow',
-    vendorNames: ['Hitchley & Harrow', 'Hitchley and Harrow'],
-    charts: [
-      {
-        title: 'Hitchley & Harrow Sizing Charts',
-        description: 'Sizing guide for Hitchley & Harrow products',
-        images: [
-          '/sizing/hitchley-harrow/sizing-chart.jpg',
+          '/sizing/ghodho/sizing.webp',
+          '/sizing/ghodho/belt-sizing.webp',
         ],
       },
     ],
@@ -243,7 +231,7 @@ export const BRAND_SIZING_DATA: BrandSizing[] = [
     slug: 'diamond-deluxe',
     name: 'Diamond Deluxe',
     displayName: 'Diamond Deluxe',
-    vendorNames: ['Diamond Deluxe'],
+    vendorNames: ['Diamond Deluxe', 'Diamond Deluxe Horsewear'],
     charts: [
       {
         title: 'Diamond Deluxe Sizing Charts',
@@ -333,24 +321,6 @@ export const BRAND_SIZING_DATA: BrandSizing[] = [
     charts: [],
   },
 
-  // ===== PLUM TACK =====
-  {
-    slug: 'plum-tack',
-    name: 'Plum Tack',
-    displayName: 'Plum Tack',
-    vendorNames: ['Plum Tack'],
-    charts: [
-      {
-        title: 'Plum Tack Sizing Charts',
-        description: 'Sizing guide for Plum Tack jods and breeches',
-        images: [
-          '/sizing/plum-tack/measurements.png',
-          '/sizing/plum-tack/size-chart.jpg',
-        ],
-      },
-    ],
-  },
-
   // ===== ANKY =====
   {
     slug: 'anky',
@@ -376,7 +346,8 @@ export const BRAND_SIZING_DATA: BrandSizing[] = [
     slug: 'jnk-collective',
     name: 'JNK Collective',
     displayName: 'JNK Collective',
-    vendorNames: ['JNK Collective', 'JNK'],
+    // Shopify vendor string is "JnK Collective" (lowercase n)
+    vendorNames: ['JnK Collective', 'JNK Collective', 'JNK'],
     textCharts: [
       {
         title: 'JNK Collective Sizing Guide',
@@ -622,6 +593,11 @@ function findBrandSizingByContext(context: BrandSizingContext): BrandSizing | nu
   }
 
   return null;
+}
+
+/** Match config sizing by vendor/title/handle without product-type gating. */
+export function matchBrandSizingByContext(context: BrandSizingContext): BrandSizing | null {
+  return findBrandSizingByContext(context);
 }
 
 function isProductTypeRelevant(productType?: string | null) {

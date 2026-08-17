@@ -1,8 +1,7 @@
 import type { ReactNode } from 'react';
 import { ProductImageGallery } from '@/components/ProductImageGallery';
 import { ProductBuyBox } from '@/components/product/ProductBuyBox';
-import { ProductDescription } from '@/components/product/ProductDescription';
-import { SizingGuideLink } from '@/components/product/SizingGuideLink';
+import { ProductDescriptionSizingTabs } from '@/components/product/ProductDescriptionSizingTabs';
 import ProductIdentifierMetaRow from '@/components/product/ProductIdentifierMetaRow';
 import ProductPdpStructuredDetails from '@/components/product/ProductPdpStructuredDetails';
 import ProductPdpValueSummary from '@/components/product/ProductPdpValueSummary';
@@ -12,6 +11,7 @@ import { getStoreReviewStats } from '@/lib/reviews/store-stats';
 import { extractCareSectionPlainText } from '@/lib/products/extract-care-from-html';
 import { getProductIdentifiers } from '@/lib/products/product-identifiers';
 import { buildPdpSummaryLine } from '@/lib/products/pdp-summary-line';
+import { getBrandSizingForProduct } from '@/lib/sizing/resolve-brand-sizing';
 import type { ProductShippingDisplay } from '@/lib/shipping/product-shipping-display';
 import type { ShopifyBuyBoxProduct, ShopifyProduct } from '@/types/shopify';
 
@@ -51,6 +51,14 @@ export default async function ProductPdpCroTrialMain({
   const croSummaryLine = buildPdpSummaryLine(descriptionHtml, displayTitle);
   const croCarePlain = extractCareSectionPlainText(descriptionHtml);
   const identifiers = getProductIdentifiers(product, { canonicalBrand, brandHubHandle });
+  const brandSizing = await getBrandSizingForProduct({
+    brandHubHandle,
+    brandDisplayName: canonicalBrand,
+    vendor: product.vendor,
+    title: product.title,
+    handle: product.handle,
+    productType: product.productType,
+  });
   const galleryImages = product.images.edges.map(({ node }) => node);
   const buyBoxProduct: ShopifyBuyBoxProduct = {
     id: product.id,
@@ -104,15 +112,13 @@ export default async function ProductPdpCroTrialMain({
           aria-label="Purchase options"
         >
           <div className="bg-surface rounded-2xl p-6 shadow-sm border border-gray-100">
-            <ProductBuyBox product={buyBoxProduct} layout="croTrial" shippingDisplay={shippingDisplay} />
+            <ProductBuyBox
+              product={buyBoxProduct}
+              layout="croTrial"
+              shippingDisplay={shippingDisplay}
+              sizing={brandSizing}
+            />
           </div>
-          <SizingGuideLink
-            vendor={product.vendor}
-            productType={product.productType}
-            productTitle={product.title}
-            productHandle={product.handle}
-            variant="compact"
-          />
           <div className="lg:hidden">
             <ProductPdpValueSummary
               summaryLine={croSummaryLine}
@@ -136,11 +142,16 @@ export default async function ProductPdpCroTrialMain({
             productTitle={product.title}
             productHandle={product.handle}
             carePlainText={croCarePlain}
+            sizingHref="#sizing"
           />
         </div>
 
         <div className="order-5 lg:order-none lg:col-span-12 lg:row-start-4 min-w-0">
-          <ProductDescription html={descriptionHtml} productTitle={displayTitle} />
+          <ProductDescriptionSizingTabs
+            descriptionHtml={descriptionHtml}
+            productTitle={displayTitle}
+            sizing={brandSizing}
+          />
         </div>
 
         {videoSection ? (
