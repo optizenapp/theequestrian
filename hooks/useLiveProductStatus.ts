@@ -79,6 +79,11 @@ export function useLiveProductStatus(products: ShopifyProduct[]): {
           const liveStatus = statusMap[product.id];
           if (!liveStatus || !(liveStatus.price > 0)) return [];
 
+          const currencyCode = product.priceRange.minVariantPrice.currencyCode;
+          const liveCompare = liveStatus.compareAtPrice;
+          const hasLiveDiscount =
+            typeof liveCompare === 'number' && liveCompare > liveStatus.price;
+
           return [{
             ...product,
             availableForSale: liveStatus.available,
@@ -87,25 +92,28 @@ export function useLiveProductStatus(products: ShopifyProduct[]): {
               ...product.priceRange,
               minVariantPrice: {
                 amount: liveStatus.price.toString(),
-                currencyCode: product.priceRange.minVariantPrice.currencyCode,
+                currencyCode,
               },
               maxVariantPrice: {
                 amount: liveStatus.price.toString(),
-                currencyCode: product.priceRange.maxVariantPrice.currencyCode,
+                currencyCode,
               },
             },
-            ...(liveStatus.compareAtPrice && {
-              compareAtPriceRange: {
-                minVariantPrice: {
-                  amount: liveStatus.compareAtPrice.toString(),
-                  currencyCode: product.priceRange.minVariantPrice.currencyCode,
+            compareAtPriceRange: hasLiveDiscount
+              ? {
+                  minVariantPrice: {
+                    amount: liveCompare!.toString(),
+                    currencyCode,
+                  },
+                  maxVariantPrice: {
+                    amount: liveCompare!.toString(),
+                    currencyCode,
+                  },
+                }
+              : {
+                  minVariantPrice: { amount: '0', currencyCode },
+                  maxVariantPrice: { amount: '0', currencyCode },
                 },
-                maxVariantPrice: {
-                  amount: liveStatus.compareAtPrice.toString(),
-                  currencyCode: product.priceRange.maxVariantPrice.currencyCode,
-                },
-              },
-            }),
           }];
         });
 
@@ -205,6 +213,11 @@ export function useLiveProductStatusOptimized(
           const liveStatus = statusMap[product.id];
           if (!liveStatus || !(liveStatus.price > 0)) return [];
 
+          const currencyCode = product.priceRange.minVariantPrice.currencyCode;
+          const liveCompare = liveStatus.compareAtPrice;
+          const hasLiveDiscount =
+            typeof liveCompare === 'number' && liveCompare > liveStatus.price;
+
           return [{
             ...product,
             availableForSale: liveStatus.available,
@@ -213,25 +226,28 @@ export function useLiveProductStatusOptimized(
               ...product.priceRange,
               minVariantPrice: {
                 amount: liveStatus.price.toString(),
-                currencyCode: product.priceRange.minVariantPrice.currencyCode,
+                currencyCode,
               },
               maxVariantPrice: {
                 amount: liveStatus.price.toString(),
-                currencyCode: product.priceRange.maxVariantPrice.currencyCode,
+                currencyCode,
               },
             },
-            ...(liveStatus.compareAtPrice && {
-              compareAtPriceRange: {
-                minVariantPrice: {
-                  amount: liveStatus.compareAtPrice.toString(),
-                  currencyCode: product.priceRange.minVariantPrice.currencyCode,
+            compareAtPriceRange: hasLiveDiscount
+              ? {
+                  minVariantPrice: {
+                    amount: liveCompare!.toString(),
+                    currencyCode,
+                  },
+                  maxVariantPrice: {
+                    amount: liveCompare!.toString(),
+                    currencyCode,
+                  },
+                }
+              : {
+                  minVariantPrice: { amount: '0', currencyCode },
+                  maxVariantPrice: { amount: '0', currencyCode },
                 },
-                maxVariantPrice: {
-                  amount: liveStatus.compareAtPrice.toString(),
-                  currencyCode: product.priceRange.maxVariantPrice.currencyCode,
-                },
-              },
-            }),
           }];
         });
 

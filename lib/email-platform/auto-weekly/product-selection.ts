@@ -123,7 +123,10 @@ async function getOnSaleCandidates(
 ): Promise<ProductCandidate[]> {
   const pageData = getSalePageByPath('/on-sale');
   const collectionHandle = pageData?.handle || 'on-sale';
-  const { products } = await getCollectionWithPagination(collectionHandle, 100);
+  const { products } = await getCollectionWithPagination(collectionHandle, 100, null, {
+    requireRealDiscount: true,
+    maxProducts: 2000,
+  });
   const withSales = products
     .map((p) => ({
       handle: p.handle,

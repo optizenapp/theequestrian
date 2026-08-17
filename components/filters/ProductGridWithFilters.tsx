@@ -14,6 +14,7 @@ import Link from 'next/link';
 import { ProductCard } from '@/components/ProductCard';
 import { applyFilters } from '@/lib/filters/product-filters';
 import { useLiveProductStatusOptimized } from '@/hooks/useLiveProductStatus';
+import { hasRealCompareAtDiscount } from '@/lib/shopify/product-discount';
 import type { ReviewStats } from '@/lib/reviews/stats';
 import {
   getSizeOptions,
@@ -114,8 +115,13 @@ export function ProductGridWithFilters({
     delete clientFilters.brands;
     delete clientFilters.sizes;
     delete clientFilters.colors;
-    return applyFilters(hydratedProducts, clientFilters);
-  }, [hydratedProducts, filters]);
+    let next = applyFilters(hydratedProducts, clientFilters);
+    // /on-sale: drop anything live hydration shows without a real compare-at discount
+    if (currentCategory === 'on-sale') {
+      next = next.filter(hasRealCompareAtDiscount);
+    }
+    return next;
+  }, [hydratedProducts, filters, currentCategory]);
   
   // Apply sorting to filtered products
   // IMPORTANT: Always keep in-stock products before out-of-stock products

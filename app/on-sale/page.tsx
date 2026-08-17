@@ -62,11 +62,12 @@ export default async function OnSalePage({
   const pageData = getSalePageByPath('/on-sale');
   const collectionHandle = pageData?.handle || 'on-sale';
 
-  // 2. Fetch Products from Shopify Collection with pagination and sorting
-  const { collection, products, pageInfo, totalCount } = await getCollectionWithPagination(
+  // 2. Fetch products; keep only real compare-at discounts (Collective often sets compare === price).
+  const { products, pageInfo, totalCount } = await getCollectionWithPagination(
     collectionHandle,
     36,
-    afterCursor
+    afterCursor,
+    { requireRealDiscount: true, maxProducts: 2000 }
   );
   
   // Generate canonical URLs for all products (fast with Neon DB)

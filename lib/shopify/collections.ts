@@ -1,6 +1,7 @@
 import { shopifyFetch } from './client';
 import { GET_COLLECTION_BY_HANDLE, GET_ALL_COLLECTIONS, GET_COLLECTION_PRODUCTS_PAGE } from './queries';
 import { filterExcludedFrontendVendors } from './vendor-visibility';
+import { hasRealCompareAtDiscount } from './product-discount';
 import type { ShopifyCollection, CollectionWithParent, ShopifyProduct } from '@/types/shopify';
 
 interface CollectionResponse {
@@ -91,6 +92,13 @@ export async function getCollectionByHandle(
   }
 }
 
+export type CollectionPaginationOptions = {
+  /** Only keep products with compare-at strictly above price (sale badge). */
+  requireRealDiscount?: boolean;
+  /** Cap on products fetched before filtering/pagination. */
+  maxProducts?: number;
+};
+
 /**
  * Get a collection with paginated products, sorted with in-stock items first
  * This function fetches ALL products from the collection and then applies manual pagination
@@ -99,7 +107,8 @@ export async function getCollectionByHandle(
 export async function getCollectionWithPagination(
   handle: string,
   limit: number = 36,
-  after?: string | null
+  after?: string | null,
+  options?: CollectionPaginationOptions
 ): Promise<{
   collection: CollectionWithParent;
   products: ShopifyProduct[];
@@ -146,7 +155,7 @@ export async function getCollectionWithPagination(
   const allProducts: ShopifyProduct[] = [];
   let hasNextPage = true;
   let cursor: string | null = null;
-  const maxProducts = 250; // Safety limit
+  const maxProducts = options?.maxProducts ?? 250;
 
   while (hasNextPage && allProducts.length < maxProducts) {
     const paginationCursor = cursor; // Avoid circular type inference
@@ -171,10 +180,15 @@ export async function getCollectionWithPagination(
 
   }
 
-  const productsWithoutExcludedVendors = filterExcludedFrontendVendors(allProducts);
+  let visibleProducts = filterExcludedFrontendVendors(allProducts);
+
+  // /on-sale: Shopify IS_PRICE_REDUCED includes compare_at === price; only real discounts.
+  if (options?.requireRealDiscount) {
+    visibleProducts = visibleProducts.filter(hasRealCompareAtDiscount);
+  }
 
   // Sort: In-stock first, out-of-stock last
-  productsWithoutExcludedVendors.sort((a, b) => {
+  visibleProducts.sort((a, b) => {
     if (a.availableForSale === b.availableForSale) return 0;
     return a.availableForSale ? -1 : 1;
   });
@@ -192,13 +206,13 @@ export async function getCollectionWithPagination(
 
   const startIndex = page * limit;
   const endIndex = startIndex + limit;
-  const paginatedProducts = productsWithoutExcludedVendors.slice(startIndex, endIndex);
-  const hasMore = endIndex < productsWithoutExcludedVendors.length;
+  const paginatedProducts = visibleProducts.slice(startIndex, endIndex);
+  const hasMore = endIndex < visibleProducts.length;
 
   return {
     collection: collectionWithMetadata,
     products: paginatedProducts,
-    totalCount: productsWithoutExcludedVendors.length,
+    totalCount: visibleProducts.length,
     pageInfo: {
       hasNextPage: hasMore,
       endCursor: hasMore ? `page:${page + 1}` : null

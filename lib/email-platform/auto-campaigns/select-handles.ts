@@ -20,7 +20,10 @@ export async function selectProductHandlesForAutoType(
   if (type === 'on_sale') {
     const pageData = getSalePageByPath('/on-sale');
     const collectionHandle = pageData?.handle || 'on-sale';
-    const { products } = await getCollectionWithPagination(collectionHandle, 24);
+    const { products } = await getCollectionWithPagination(collectionHandle, 24, null, {
+      requireRealDiscount: true,
+      maxProducts: 2000,
+    });
     return products
       .filter((p) => p.handle)
       .slice(0, 3)
