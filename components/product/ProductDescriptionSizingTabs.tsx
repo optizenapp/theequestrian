@@ -2,6 +2,7 @@ import { ProductDescription } from '@/components/product/ProductDescription';
 import { BrandSizingPanel } from '@/components/sizing/BrandSizingPanel';
 import { DescriptionSizingTabs } from '@/components/sizing/DescriptionSizingTabs';
 import type { ResolvedBrandSizing } from '@/lib/sizing/types';
+import { resolvedSizingHasContent } from '@/lib/sizing/types';
 
 interface ProductDescriptionSizingTabsProps {
   descriptionHtml: string;
@@ -23,19 +24,25 @@ export function ProductDescriptionSizingTabs({
   collapsedHeight = 220,
   className = '',
 }: ProductDescriptionSizingTabsProps) {
+  const description = (
+    <ProductDescription
+      html={descriptionHtml}
+      productTitle={productTitle}
+      bare
+      accentBorder={accentBorder}
+      fillHeight={fillHeight}
+      collapsedHeight={collapsedHeight}
+    />
+  );
+
+  if (!resolvedSizingHasContent(sizing)) {
+    return <div className={className}>{description}</div>;
+  }
+
   return (
     <DescriptionSizingTabs
       className={className}
-      description={
-        <ProductDescription
-          html={descriptionHtml}
-          productTitle={productTitle}
-          bare
-          accentBorder={accentBorder}
-          fillHeight={fillHeight}
-          collapsedHeight={collapsedHeight}
-        />
-      }
+      description={description}
       sizing={<BrandSizingPanel sizing={sizing} />}
     />
   );

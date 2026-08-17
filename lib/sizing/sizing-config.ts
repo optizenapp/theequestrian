@@ -52,12 +52,13 @@ export const SIZING_REQUIRED_CATEGORIES = [
  * All brand sizing data
  */
 export const BRAND_SIZING_DATA: BrandSizing[] = [
-  // ===== TUCCI & EGO 7 ===== (Previously Trailrace)
+  // ===== TUCCI & EGO 7 =====
+  // Do not list marketplace aggregators (e.g. Trailrace) — they sell many brands.
   {
     slug: 'tucci-and-ego-7',
     name: 'Tucci & Ego 7',
     displayName: 'Tucci & Ego 7',
-    vendorNames: ['Trailrace', 'Tucci', 'Ego 7', 'Ego7'],
+    vendorNames: ['Tucci', 'Ego 7', 'Ego7'],
     charts: [
       {
         title: 'Tucci Sizing Charts',
@@ -79,12 +80,12 @@ export const BRAND_SIZING_DATA: BrandSizing[] = [
     ],
   },
 
-  // ===== ANIMO ===== (Extracted from DappleEq)
+  // ===== ANIMO =====
   {
     slug: 'animo',
     name: 'Animo',
     displayName: 'Animo',
-    vendorNames: ['Animo', 'DappleEq'],
+    vendorNames: ['Animo'],
     charts: [
       {
         title: 'Animo Sizing Charts',
@@ -100,12 +101,12 @@ export const BRAND_SIZING_DATA: BrandSizing[] = [
     ],
   },
 
-  // ===== EQUILINE ===== (Extracted from DappleEq)
+  // ===== EQUILINE =====
   {
     slug: 'equiline',
     name: 'Equiline',
     displayName: 'Equiline',
-    vendorNames: ['Equiline', 'DappleEq'],
+    vendorNames: ['Equiline'],
     charts: [
       {
         title: 'Equiline Sizing Charts',
@@ -117,12 +118,12 @@ export const BRAND_SIZING_DATA: BrandSizing[] = [
     ],
   },
 
-  // ===== PAMPEANO ===== (Extracted from DappleEq)
+  // ===== PAMPEANO =====
   {
     slug: 'pampeano',
     name: 'Pampeano',
     displayName: 'Pampeano',
-    vendorNames: ['Pampeano', 'DappleEq'],
+    vendorNames: ['Pampeano'],
     charts: [
       {
         title: 'Pampeano Sizing Charts',
@@ -135,12 +136,12 @@ export const BRAND_SIZING_DATA: BrandSizing[] = [
     ],
   },
 
-  // ===== SECCHIARI ===== (Extracted from DappleEq)
+  // ===== SECCHIARI =====
   {
     slug: 'secchiari',
     name: 'Secchiari',
     displayName: 'Secchiari',
-    vendorNames: ['Secchiari', 'DappleEq'],
+    vendorNames: ['Secchiari'],
     charts: [
       {
         title: 'Secchiari Sizing Charts',
@@ -153,12 +154,12 @@ export const BRAND_SIZING_DATA: BrandSizing[] = [
     ],
   },
 
-  // ===== VESTRUM ===== (Extracted from DappleEq)
+  // ===== VESTRUM =====
   {
     slug: 'vestrum',
     name: 'Vestrum',
     displayName: 'Vestrum',
-    vendorNames: ['Vestrum', 'DappleEq'],
+    vendorNames: ['Vestrum'],
     charts: [
       {
         title: 'Vestrum Sizing Charts',
@@ -170,12 +171,12 @@ export const BRAND_SIZING_DATA: BrandSizing[] = [
     ],
   },
 
-  // ===== ALESSANDRO ALBANESE ===== (Extracted from Little Equine Co)
+  // ===== ALESSANDRO ALBANESE =====
   {
     slug: 'alessandro-albanese',
     name: 'Alessandro Albanese',
     displayName: 'Alessandro Albanese',
-    vendorNames: ['Alessandro Albanese', 'Little Equine Co'],
+    vendorNames: ['Alessandro Albanese'],
     charts: [
       {
         title: 'Alessandro Albanese Sizing Charts',
@@ -190,12 +191,12 @@ export const BRAND_SIZING_DATA: BrandSizing[] = [
     ],
   },
 
-  // ===== CAVALLO ===== (Extracted from Little Equine Co)
+  // ===== CAVALLO =====
   {
     slug: 'cavallo',
     name: 'Cavallo',
     displayName: 'Cavallo',
-    vendorNames: ['Cavallo', 'Little Equine Co'],
+    vendorNames: ['Cavallo'],
     charts: [
       {
         title: 'Cavallo Sizing Charts',
@@ -208,12 +209,12 @@ export const BRAND_SIZING_DATA: BrandSizing[] = [
     ],
   },
 
-  // ===== GHODHO ===== (Extracted from Little Equine Co)
+  // ===== GHODHO =====
   {
     slug: 'ghodho',
     name: 'GhoDho',
     displayName: 'GhoDho',
-    vendorNames: ['GhoDho', 'Little Equine Co'],
+    vendorNames: ['GhoDho'],
     charts: [
       {
         title: 'GhoDho Sizing Charts',
@@ -518,16 +519,29 @@ export interface BrandSizingContext {
   productType?: string | null;
   title?: string | null;
   handle?: string | null;
+  /** Neon / canonical brand label — preferred over marketplace vendor. */
+  brand?: string | null;
 }
 
 const normalize = (value?: string | null) => (value ? value.trim().toLowerCase() : '');
+
+/** Marketplace distributors — never treat as a sizing brand signal. */
+const AGGREGATOR_VENDORS = new Set(
+  [
+    'trailrace',
+    'trailrace equestrian outfitters',
+    'dappleeq',
+    'little equine co',
+    'little equine co.',
+  ].map((s) => s.toLowerCase())
+);
 
 function buildBrandKeywords(brand: BrandSizing) {
   const keywords = new Set<string>();
 
   brand.vendorNames.forEach((vendorName) => {
     const normalizedVendor = normalize(vendorName);
-    if (normalizedVendor) {
+    if (normalizedVendor && !AGGREGATOR_VENDORS.has(normalizedVendor)) {
       keywords.add(normalizedVendor);
     }
   });
@@ -548,10 +562,14 @@ function buildBrandKeywords(brand: BrandSizing) {
   return keywords;
 }
 
+/** Whole-phrase match so short tokens (e.g. "jnk") do not match inside unrelated words. */
 function matchesKeyword(value: string, keywords: Set<string>) {
   if (!value) return false;
   for (const keyword of keywords) {
-    if (value.includes(keyword)) {
+    if (!keyword || keyword.length < 3) continue;
+    const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
+    const re = new RegExp(`(?:^|[^a-z0-9])${escaped}(?:[^a-z0-9]|$)`, 'i');
+    if (re.test(value)) {
       return true;
     }
   }
@@ -560,11 +578,22 @@ function matchesKeyword(value: string, keywords: Set<string>) {
 }
 
 function findBrandSizingByContext(context: BrandSizingContext): BrandSizing | null {
+  const brandNormalized = normalize(context.brand);
   const vendorNormalized = normalize(context.vendor);
   const titleNormalized = normalize(context.title);
   const handleNormalized = normalize(context.handle);
 
-  // 1. Try to match by Title or Handle (Strongest Signal)
+  // 1. Canonical brand label (strongest after Neon hub handle)
+  if (brandNormalized) {
+    for (const brand of BRAND_SIZING_DATA) {
+      const keywords = buildBrandKeywords(brand);
+      if (keywords.has(brandNormalized) || matchesKeyword(brandNormalized, keywords)) {
+        return brand;
+      }
+    }
+  }
+
+  // 2. Title or handle containing a brand name
   for (const brand of BRAND_SIZING_DATA) {
     const keywords = buildBrandKeywords(brand);
 
@@ -577,18 +606,13 @@ function findBrandSizingByContext(context: BrandSizingContext): BrandSizing | nu
     }
   }
 
-  // 2. Fallback to Vendor match (Weakest Signal - might be distributor)
-  for (const brand of BRAND_SIZING_DATA) {
-    const keywords = buildBrandKeywords(brand);
-    
-    // Exact match on vendor is better than partial
-    if (vendorNormalized && keywords.has(vendorNormalized)) {
+  // 3. Vendor only when it is not a multi-brand aggregator — exact match preferred
+  if (vendorNormalized && !AGGREGATOR_VENDORS.has(vendorNormalized)) {
+    for (const brand of BRAND_SIZING_DATA) {
+      const keywords = buildBrandKeywords(brand);
+      if (keywords.has(vendorNormalized)) {
         return brand;
-    }
-    
-    // Partial match on vendor
-    if (vendorNormalized && matchesKeyword(vendorNormalized, keywords)) {
-      return brand;
+      }
     }
   }
 

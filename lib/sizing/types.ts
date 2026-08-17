@@ -13,3 +13,10 @@ export interface ResolvedBrandSizing {
   /** Legacy /sizing/{slug} path when config match exists */
   sizingPagePath: string | null;
 }
+
+export function resolvedSizingHasContent(sizing: ResolvedBrandSizing): boolean {
+  if (sizing.sizingHtml && sizing.sizingHtml.length > 0) return true;
+  if (sizing.charts.length > 0) return true;
+  if (sizing.textCharts.length > 0) return true;
+  return false;
+}

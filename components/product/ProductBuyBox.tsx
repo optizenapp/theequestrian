@@ -14,6 +14,7 @@ import { useProductVariantSelection } from '@/hooks/useProductVariantSelection';
 import type { ProductShippingDisplay } from '@/lib/shipping/product-shipping-display';
 import { SHIPPING_DISPLAY_FALLBACK } from '@/lib/shipping/product-shipping-display';
 import type { ResolvedBrandSizing } from '@/lib/sizing/types';
+import { resolvedSizingHasContent } from '@/lib/sizing/types';
 
 interface ProductBuyBoxProps {
   product: ShopifyBuyBoxProduct;
@@ -77,7 +78,7 @@ export function ProductBuyBox({
       : null;
   const sku = selectedVariant?.sku ?? product.variants.edges[0]?.node.sku ?? null;
 
-  const showSizeChart = Boolean(sizing);
+  const showSizeChart = Boolean(sizing && resolvedSizingHasContent(sizing));
   const sizeChartAction = showSizeChart ? (
     <SizeChartTriggerButton onClick={() => setSizeChartOpen(true)} />
   ) : null;
@@ -145,7 +146,7 @@ export function ProductBuyBox({
         showBuyNow={!isCro}
       />
 
-      {sizing ? (
+      {showSizeChart && sizing ? (
         <SizeChartModal
           open={sizeChartOpen}
           onClose={() => setSizeChartOpen(false)}

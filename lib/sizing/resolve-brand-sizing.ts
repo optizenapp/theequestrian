@@ -9,6 +9,7 @@ import {
 import type { ResolvedBrandSizing } from '@/lib/sizing/types';
 
 export type { ResolvedBrandSizing, ResolvedBrandSizingSource } from '@/lib/sizing/types';
+export { resolvedSizingHasContent } from '@/lib/sizing/types';
 
 /** Neon hub handle → sizing-config slug when they differ. */
 const HUB_TO_SIZING_SLUG: Record<string, string> = {
@@ -136,6 +137,7 @@ export async function getBrandSizingForProduct(context: {
     title: context.title,
     handle: context.handle,
     productType: context.productType,
+    brand: context.brandDisplayName,
   } satisfies BrandSizingContext);
 
   if (matched) {
@@ -150,11 +152,4 @@ export async function getBrandSizingForProduct(context: {
     context.handle?.trim() || '',
     context.brandDisplayName || context.vendor || 'Brand'
   );
-}
-
-export function resolvedSizingHasContent(sizing: ResolvedBrandSizing): boolean {
-  if (sizing.sizingHtml && sizing.sizingHtml.length > 0) return true;
-  if (sizing.charts.length > 0) return true;
-  if (sizing.textCharts.length > 0) return true;
-  return false;
 }
