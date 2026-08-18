@@ -1,0 +1,26 @@
+# Prod /brands hubs (floral-prod) still without a logo file
+# published + products_count > 0, blocked brands omitted
+# handle	title	products_count
+ezy-ride	EZY Ride	174
+eurohunter	Eurohunter	80
+grainge	Grainge	22
+anna-scarpati	Anna Scarpati	20
+academy	Academy	8
+aintree	Aintree	8
+oregon	Oregon	8
+eureka	Eureka	7
+flyveils-by-design	Flyveils BY Design	5
+fort-worth	Fort Worth	3
+shear-magic	Shear Magic	3
+arena	Arena	2
+equimec	Equimec	2
+equiprene	Equiprene	2
+fancy-stitch	Fancy Stitch	2
+ponyjet	Ponyjet	2
+troy	TROY	2
+alessandro-albanese	Alessandro Albanese	1
+alto-lab	Alto Lab	1
+diamond-deluxe-horsewear	Diamond Deluxe Horsewear	1
+paw	PAW	1
+run-away-equestrian-co	Runaway Equestrian Co.	1
+showcraft	Showcraft	1
