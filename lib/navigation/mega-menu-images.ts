@@ -86,7 +86,6 @@ const EMPTY_MEGA_MENU_PATHS = new Set([
   '/pets/cats',
   '/pets/dogs',
   '/pet/supplements',
-  '/rider/eyewear',
   '/horse/stock-western',
 ]);
 

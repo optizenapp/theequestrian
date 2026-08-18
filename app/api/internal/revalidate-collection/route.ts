@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { invalidateCache } from '@/lib/content/collections';
 import { invalidateBrandContentCache } from '@/lib/content/brand-content';
+import { CATEGORY_PRODUCT_LISTINGS_CACHE_TAG } from '@/lib/config/collection-cache';
+import { invalidateCategoryAllocationCaches } from '@/lib/db/product-allocations';
 
 function isAuthorized(request: NextRequest): boolean {
   const configuredSecret = process.env.INTERNAL_REVALIDATE_SECRET || process.env.REVALIDATE_SECRET;
@@ -27,9 +29,13 @@ export async function POST(request: NextRequest) {
 
     invalidateCache();
     invalidateBrandContentCache();
+    invalidateCategoryAllocationCaches();
+    // Collection grids use unstable_cache tagged with CATEGORY_PRODUCT_LISTINGS_CACHE_TAG
+    revalidateTag(CATEGORY_PRODUCT_LISTINGS_CACHE_TAG, 'max');
     revalidatePath(raw);
+    revalidatePath(raw, 'page');
 
-    return NextResponse.json({ ok: true, revalidated: raw });
+    return NextResponse.json({ ok: true, revalidated: raw, tag: CATEGORY_PRODUCT_LISTINGS_CACHE_TAG });
   } catch (error) {
     console.error('[internal-revalidate-collection]', error);
     return NextResponse.json({ error: 'Failed to revalidate' }, { status: 500 });

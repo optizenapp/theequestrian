@@ -97,6 +97,11 @@ function clearCategoryAllocationCaches() {
   categoryHandleCache.clear();
 }
 
+/** Bust in-process category allocation id/handle caches (e.g. after repair scripts). */
+export function invalidateCategoryAllocationCaches() {
+  clearCategoryAllocationCaches();
+}
+
 export async function getProductAllocationByProductId(productId: string) {
   await ensureProductAllocationTable();
   const result = await sql`
