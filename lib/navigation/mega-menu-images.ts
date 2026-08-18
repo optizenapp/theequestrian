@@ -21,10 +21,13 @@ const SUBCATEGORY_IMAGE_TYPE_FALLBACKS: Record<string, string[]> = {
  * Used when Storefront cannot resolve a live subcategory product image.
  */
 const MENU_CARD_IMAGE_BY_PATH: Record<string, string> = {
-  '/pet/cat':
-    'https://cdn.shopify.com/s/files/1/0562/0963/7457/files/CuraPet_RemedeazCoatConditioner_2048x_0c9d7711-7372-4c20-88e6-02cafce0883b.webp?v=1783319389',
+  // Pet cards: distinct product thumbs (dog parent live search otherwise returns a collar)
+  '/pet/dog':
+    'https://cdn.shopify.com/s/files/1/0562/0963/7457/files/NewIronbarkdogrug.jpg?v=1783318908',
   '/pet/dog/collars-and-leads':
-    'https://cdn.shopify.com/s/files/1/0562/0963/7457/files/C4_Dog_Collar_Pink_Rescue.webp?v=1785900747',
+    'https://cdn.shopify.com/s/files/1/0562/0963/7457/files/Brass_Clincher_Dog_Collar_Lead_Set_2.png?v=1785900751',
+  '/pet/supplements':
+    'https://cdn.shopify.com/s/files/1/0562/0963/7457/files/IAPROP30.webp?v=1783318840',
   '/clothing/womens/tops':
     'https://cdn.shopify.com/s/files/1/0562/0963/7457/files/A005122_V_8Q_01_1920x1920_9df6a614-2260-4c75-addc-42cba2ff45aa.webp?v=1785819201',
   '/clothing/womens/breeches':
