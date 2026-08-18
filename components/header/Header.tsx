@@ -22,7 +22,7 @@ export function Header() {
         hideMobileChrome ? 'max-lg:-translate-y-full max-lg:pointer-events-none' : 'translate-y-0'
       }`}
     >
-      <div className="border-b border-gray-100 lg:py-4">
+      <div className="border-b border-gray-100 py-2 lg:py-4">
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
           {/* Mobile Layout */}
           <div className="relative flex h-12 items-center justify-between lg:hidden">

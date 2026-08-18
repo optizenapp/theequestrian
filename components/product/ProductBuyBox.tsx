@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { ShopifyBuyBoxProduct } from '@/types/shopify';
 import { ProductVariantSelector } from '@/components/ProductVariantSelector';
 import { AddToCartButton } from './AddToCartButton';
@@ -42,6 +42,7 @@ export function ProductBuyBox({
 }: ProductBuyBoxProps) {
   const { selectedOptions, selectedVariant, handleOptionSelect } = useProductVariantSelection(product);
   const [sizeChartOpen, setSizeChartOpen] = useState(false);
+  const ctaRef = useRef<HTMLDivElement>(null);
 
   const basePrice = selectedVariant?.price.amount || product.priceRange.minVariantPrice.amount;
   const baseCompareAtPrice =
@@ -120,7 +121,7 @@ export function ProductBuyBox({
         </div>
       )}
 
-      <div className="space-y-3">
+      <div ref={ctaRef} className="space-y-3">
         <AddToCartButton
           variantId={selectedVariant?.id || ''}
           disabled={!isAvailable || !selectedVariant}
@@ -144,6 +145,7 @@ export function ProductBuyBox({
         analyticsItem={analyticsItem}
         currencyCode={currencyCode}
         showBuyNow={!isCro}
+        anchorRef={ctaRef}
       />
 
       {showSizeChart && sizing ? (

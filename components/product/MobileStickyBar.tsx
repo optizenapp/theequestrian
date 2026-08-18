@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState, type RefObject } from 'react';
 import type { ShopifyVariant } from '@/types/shopify';
 import { AddToCartButton } from './AddToCartButton';
 import { BuyNowButton } from './BuyNowButton';
-
 import type { Ga4EcommerceItem } from '@/lib/analytics/ga4-ecommerce';
 
 interface MobileStickyBarProps {
@@ -13,17 +12,11 @@ interface MobileStickyBarProps {
   isAvailable: boolean;
   analyticsItem?: Ga4EcommerceItem | null;
   currencyCode?: string;
-  /** When false, sticky bar is Add to Cart only (CRO trial). Default true. */
   showBuyNow?: boolean;
+  /** Main Add to Cart block — sticky shows only after this scrolls off the top. */
+  anchorRef: RefObject<HTMLElement | null>;
 }
 
-/**
- * Mobile Sticky Bottom Bar
- * 
- * Appears on scroll (after 300px) on mobile devices
- * Shows Add to Cart (+ optional Buy Now)
- * Fixed at bottom of screen for easy access
- */
 export function MobileStickyBar({
   productTitle,
   selectedVariant,
@@ -31,31 +24,25 @@ export function MobileStickyBar({
   analyticsItem,
   currencyCode,
   showBuyNow = true,
+  anchorRef,
 }: MobileStickyBarProps) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    
-    const handleScroll = () => {
-      // Debounce scroll events
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        // Show after scrolling 300px down
-        setIsVisible(window.scrollY > 300);
-      }, 50);
-    };
+    const el = anchorRef.current;
+    if (!el) return;
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    
-    // Check initial scroll position
-    handleScroll();
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      clearTimeout(timeoutId);
-    };
-  }, []);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const scrolledOffTop = !entry.isIntersecting && entry.boundingClientRect.top < 0;
+        setIsVisible(scrolledOffTop);
+      },
+      { threshold: 0, rootMargin: '0px' }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [anchorRef]);
 
   return (
     <div
