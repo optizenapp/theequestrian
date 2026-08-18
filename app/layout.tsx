@@ -93,7 +93,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={manrope.variable}>
+    <html lang="en-AU" className={manrope.variable}>
       <head>
         {/* Critical resource hints - reduces connection time by 200-400ms */}
         <link rel="preconnect" href="https://theequestrian.myshopify.com" crossOrigin="anonymous" />

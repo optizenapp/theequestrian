@@ -1,52 +1,93 @@
 /**
  * Schema.org @graph for /brands/[handle] pages.
  *
- * Models the page as a CollectionPage whose mainEntity is the Brand, with an
- * ItemList of products linking back to the Brand via stable @id. This is the
- * Google-recommended pattern for brand hubs and beats a generic CollectionPage
- * because it gives the Brand its own entity in the knowledge graph.
+ * CollectionPage about a Brand, with a url-only ItemList. WebSite/Organization
+ * are referenced by @id from the sitewide layout graph — not redeclared here.
  */
 
 import type { ShopifyProduct } from '@/types/shopify';
-import { SITE_NAME_DISPLAY } from '@/lib/seo/site-identity';
+import type { FAQItem } from '@/lib/content/collections';
+
+export interface BrandRelatedCollection {
+  name: string;
+  url: string;
+}
 
 export interface BrandPageSchemaInput {
   brand: {
     handle: string;
     name: string;
+    h1?: string | null;
     description?: string | null;
+    brandDescription?: string | null;
     logoUrl?: string | null;
     breadcrumbLabel?: string | null;
   };
   products: ShopifyProduct[];
-  totalProductCount: number;
   productUrls?: Map<string, string> | Record<string, string>;
   siteUrl: string;
   maxProductsInSchema?: number;
+  faqs?: FAQItem[];
+  relatedCollections?: BrandRelatedCollection[];
 }
 
-function getCanonicalProductPath(
+function lookupPath(
+  productUrls: NonNullable<BrandPageSchemaInput['productUrls']>,
   id: string,
-  handle: string,
-  productUrls?: Map<string, string> | Record<string, string>
-): string | null {
-  if (!productUrls) return null;
-  const path = productUrls instanceof Map
+  handle: string
+): string | undefined {
+  return productUrls instanceof Map
     ? productUrls.get(id) || productUrls.get(handle)
     : productUrls[id] || productUrls[handle];
-  if (!path || path.startsWith('/products/')) return null;
-  return path;
+}
+
+function collectCanonicalUrls(
+  products: ShopifyProduct[],
+  productUrls: BrandPageSchemaInput['productUrls'],
+  baseUrl: string,
+  max: number
+): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+
+  const push = (path: string | null | undefined) => {
+    if (!path || path.startsWith('/products/') || out.length >= max) return;
+    const abs = `${baseUrl}${path.startsWith('/') ? path : `/${path}`}`;
+    if (seen.has(abs)) return;
+    seen.add(abs);
+    out.push(abs);
+  };
+
+  if (productUrls) {
+    for (const p of products) push(lookupPath(productUrls, p.id, p.handle));
+    if (out.length < max) {
+      const rest = productUrls instanceof Map ? productUrls.values() : Object.values(productUrls);
+      for (const path of rest) push(path);
+    }
+  }
+
+  return out;
 }
 
 export function generateBrandPageSchema(input: BrandPageSchemaInput) {
   const baseUrl = input.siteUrl.replace(/\/+$/, '');
-  const brandPath = `/brands/${input.brand.handle}`;
-  const brandUrl = `${baseUrl}${brandPath}`;
+  const brandUrl = `${baseUrl}/brands/${input.brand.handle}`;
   const brandId = `${brandUrl}#brand`;
   const pageId = `${brandUrl}#webpage`;
   const itemListId = `${brandUrl}#products`;
-  const orgId = `${baseUrl}#organization`;
+  const faqId = `${brandUrl}#faq`;
+  const logoId = `${brandUrl}#logo`;
   const max = input.maxProductsInSchema ?? 12;
+  const faqs = (input.faqs || []).filter((f) => f.question?.trim() && f.answer?.trim());
+  const pageName = input.brand.h1?.trim() || input.brand.name;
+  const pageDescription =
+    input.brand.description?.trim() || `Shop ${input.brand.name} at The Equestrian.`;
+  const brandDescription = input.brand.brandDescription?.trim();
+  const productUrls = collectCanonicalUrls(input.products, input.productUrls, baseUrl, max);
+
+  const logoObject = input.brand.logoUrl
+    ? { '@type': 'ImageObject', '@id': logoId, url: input.brand.logoUrl }
+    : null;
 
   const brandEntity: Record<string, unknown> = {
     '@type': 'Brand',
@@ -54,98 +95,77 @@ export function generateBrandPageSchema(input: BrandPageSchemaInput) {
     name: input.brand.name,
     url: brandUrl,
   };
-  if (input.brand.description) brandEntity.description = input.brand.description;
-  if (input.brand.logoUrl) {
-    brandEntity.logo = { '@type': 'ImageObject', url: input.brand.logoUrl };
-    brandEntity.image = input.brand.logoUrl;
+  if (brandDescription) brandEntity.description = brandDescription;
+  if (logoObject) {
+    brandEntity.logo = { '@id': logoId };
+    brandEntity.image = { '@id': logoId };
   }
-
-  const breadcrumbList = {
-    '@type': 'BreadcrumbList',
-    '@id': `${brandUrl}#breadcrumbs`,
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: `${baseUrl}/` },
-      { '@type': 'ListItem', position: 2, name: 'Brands', item: `${baseUrl}/brands` },
-      {
-        '@type': 'ListItem',
-        position: 3,
-        name: input.brand.breadcrumbLabel || input.brand.name,
-        item: brandUrl,
-      },
-    ],
-  };
-
-  const itemListElements = input.products.slice(0, max).flatMap((p, i) => {
-    const productPath = getCanonicalProductPath(p.id, p.handle, input.productUrls);
-    if (!productPath) return [];
-    const productUrl = `${baseUrl}${productPath.startsWith('/') ? productPath : `/${productPath}`}`;
-    const image = p.images?.edges?.[0]?.node?.url;
-    const price = p.priceRange?.minVariantPrice;
-    return [{
-      '@type': 'ListItem',
-      position: i + 1,
-      url: productUrl,
-      item: {
-        '@type': 'Product',
-        '@id': `${productUrl}#product`,
-        name: p.title,
-        url: productUrl,
-        ...(image ? { image } : {}),
-        brand: { '@id': brandId },
-        ...(price
-          ? {
-              offers: {
-                '@type': 'Offer',
-                price: price.amount,
-                priceCurrency: price.currencyCode,
-                availability: p.availableForSale
-                  ? 'https://schema.org/InStock'
-                  : 'https://schema.org/OutOfStock',
-                url: productUrl,
-              },
-            }
-          : {}),
-      },
-    }];
-  });
 
   const itemList = {
     '@type': 'ItemList',
     '@id': itemListId,
-    numberOfItems: input.totalProductCount,
-    itemListElement: itemListElements,
+    numberOfItems: productUrls.length,
+    itemListElement: productUrls.map((url, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url,
+    })),
   };
 
-  // mainEntity → ItemList is the Google-recommended pattern for product
-  // collection pages. The Brand is surfaced via `about` (valid target) and as
-  // a top-level entity in the @graph so it can be linked from PDPs by @id.
-  const collectionPage = {
+  const hasPart: Record<string, unknown>[] = [];
+  if (faqs.length > 0) hasPart.push({ '@id': faqId });
+  for (const related of input.relatedCollections || []) {
+    hasPart.push({ '@type': 'CollectionPage', name: related.name, url: related.url });
+  }
+
+  const collectionPage: Record<string, unknown> = {
     '@type': 'CollectionPage',
     '@id': pageId,
     url: brandUrl,
-    name: input.brand.name,
-    description: input.brand.description || `Shop ${input.brand.name} at The Equestrian.`,
+    name: pageName,
+    description: pageDescription,
     inLanguage: 'en-AU',
-    isPartOf: { '@type': 'WebSite', '@id': `${baseUrl}#website` },
-    publisher: { '@id': orgId },
+    isPartOf: { '@id': `${baseUrl}#website` },
+    publisher: { '@id': `${baseUrl}#organization` },
     breadcrumb: { '@id': `${brandUrl}#breadcrumbs` },
     about: { '@id': brandId },
     mainEntity: { '@id': itemListId },
   };
+  if (logoObject) collectionPage.primaryImageOfPage = { '@id': logoId };
+  if (hasPart.length > 0) collectionPage.hasPart = hasPart;
 
-  return {
-    '@context': 'https://schema.org',
-    '@graph': [
-      {
-        '@type': 'WebSite',
-        '@id': `${baseUrl}#website`,
-        url: baseUrl,
-        name: SITE_NAME_DISPLAY,
-      },
-      breadcrumbList,
-      brandEntity,
-      collectionPage,
-      itemList,
-    ],
-  };
+  const graph: Record<string, unknown>[] = [
+    ...(logoObject ? [logoObject] : []),
+    {
+      '@type': 'BreadcrumbList',
+      '@id': `${brandUrl}#breadcrumbs`,
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: `${baseUrl}/` },
+        { '@type': 'ListItem', position: 2, name: 'Brands', item: `${baseUrl}/brands` },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: input.brand.breadcrumbLabel || input.brand.name,
+          item: brandUrl,
+        },
+      ],
+    },
+    brandEntity,
+    collectionPage,
+    itemList,
+  ];
+
+  if (faqs.length > 0) {
+    graph.push({
+      '@type': 'FAQPage',
+      '@id': faqId,
+      mainEntity: faqs.map((faq) => ({
+        '@type': 'Question',
+        name: faq.question,
+        acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+      })),
+    });
+  }
+
+  return { '@context': 'https://schema.org', '@graph': graph };
 }

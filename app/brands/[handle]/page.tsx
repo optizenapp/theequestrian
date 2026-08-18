@@ -12,7 +12,11 @@ import { BrandProductLines } from '@/components/brand/BrandProductLines';
 import { BrandLogo } from '@/components/brand/BrandLogo';
 import { BrandHubDescriptionSizingTabs } from '@/components/brand/BrandHubDescriptionSizingTabs';
 import { RichContent } from '@/components/collection/RichContent';
-import { resolveBrandLogoUrl } from '@/lib/brands/resolve-brand-logo';
+import {
+  resolveBrandLogoUrl,
+  resolveExistingBrandLogoAbsoluteUrl,
+} from '@/lib/brands/resolve-brand-logo';
+import { getCanonicalSiteUrl } from '@/lib/seo/site-url';
 import { getBrandSizingForHandle } from '@/lib/sizing/resolve-brand-sizing';
 import Link from 'next/link';
 import type { Metadata } from 'next';
@@ -42,7 +46,10 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
 
   const title = brand.meta_title || `${brand.title} | The Equestrian`;
   const description = brand.meta_description || `Shop the full range of ${brand.title} equestrian products. Saddles, tack, clothing and more from ${brand.title}.`;
-  const canonicalUrl = `${(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '')}/brands/${handle}`;
+  const siteUrl = getCanonicalSiteUrl();
+  const canonicalUrl = `${siteUrl}/brands/${handle}`;
+  const logoAbsolute = resolveExistingBrandLogoAbsoluteUrl(brand, siteUrl);
+  const ogImages = logoAbsolute ? [{ url: logoAbsolute }] : undefined;
 
   if (isEmpty) {
     return {
@@ -65,11 +72,13 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
       url: canonicalUrl,
       type: 'website',
       siteName: 'The Equestrian',
+      ...(ogImages ? { images: ogImages } : {}),
     },
     twitter: {
-      card: 'summary',
+      card: logoAbsolute ? 'summary_large_image' : 'summary',
       title,
       description,
+      ...(logoAbsolute ? { images: [logoAbsolute] } : {}),
     },
   };
 }
@@ -135,26 +144,33 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
     console.warn(`Failed to parse FAQ JSON for brand ${brand.handle}`, e);
   }
 
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
+  const siteUrl = getCanonicalSiteUrl();
   const logoUrl = resolveBrandLogoUrl(brand);
+  const logoAbsolute = resolveExistingBrandLogoAbsoluteUrl(brand, siteUrl);
+  const relatedCollections =
+    brandCategories.brandFilterValue
+      ? brandCategories.categories.map((c) => ({
+          name: `${getBrandIndexDisplayName(brand)} ${c.label}`,
+          url: `${siteUrl}${c.url_path}?brand=${encodeURIComponent(brandCategories.brandFilterValue!)}`,
+        }))
+      : [];
 
   const enhancedSchema = generateBrandPageSchema({
     brand: {
       handle,
       name: brand.title,
-      description: brand.meta_description || shortDescription,
+      h1: pageTitle,
+      description: brand.short_description || brand.meta_description || shortDescription,
+      brandDescription: brand.quick_answer || brand.short_description || brand.meta_description,
       breadcrumbLabel: brand.breadcrumb_label,
-      logoUrl: logoUrl
-        ? logoUrl.startsWith('http')
-          ? logoUrl
-          : `${siteUrl}${logoUrl}`
-        : null,
+      logoUrl: logoAbsolute,
     },
     products,
-    totalProductCount: totalProductCount || products.length,
     productUrls: productUrlsMap,
     siteUrl,
     maxProductsInSchema: 12,
+    faqs: faqItems,
+    relatedCollections,
   });
 
   return (
@@ -182,7 +198,9 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
             </li>
             <li>
               <span className="mx-2">/</span>
-              <span className="text-gray-900 font-medium">{brand.breadcrumb_label || brand.title}</span>
+              <span className="text-gray-900 font-medium" aria-current="page">
+                {brand.breadcrumb_label || brand.title}
+              </span>
             </li>
           </ol>
         </nav>
@@ -246,11 +264,11 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
             categories={brandCategories.categories}
           />
 
-          {/* FAQ Section (emits FAQPage JSON-LD) */}
           {faqItems.length > 0 && (
             <FAQSection
               faqs={faqItems}
               categoryTitle={brand.title}
+              emitJsonLd={false}
             />
           )}
         </div>

@@ -88,8 +88,8 @@ export const SCHEMA_CONTRACTS: SchemaContract[] = [
     pageType: 'Brand Collection',
     templatePath: 'app/brands/[handle]/page.tsx',
     sampleUrls: ['/brands/sample-brand'],
-    requiredTypes: ['CollectionPage', 'ItemList', 'BreadcrumbList'],
-    recommendedTypes: [],
+    requiredTypes: ['CollectionPage', 'ItemList', 'BreadcrumbList', 'Brand'],
+    recommendedTypes: ['FAQPage'],
     missingSeverity: 'medium',
   },
   {

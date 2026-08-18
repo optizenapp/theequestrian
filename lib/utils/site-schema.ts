@@ -364,6 +364,7 @@ export function generateBrandIndexSchema(path: string, title: string, descriptio
           position: index + 1,
           item: {
             '@type': 'Brand',
+            '@id': toAbsoluteUrl(`/brands/${brand.handle}`, siteUrl) + '#brand',
             name: brand.name,
             url: toAbsoluteUrl(`/brands/${brand.handle}`, siteUrl),
           },
