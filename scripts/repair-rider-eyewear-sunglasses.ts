@@ -13,17 +13,24 @@
  */
 import { config } from 'dotenv';
 import { resolve } from 'path';
-
-config({ path: resolve(process.cwd(), '.env.local') });
-
 import { neon } from '@neondatabase/serverless';
 import { shopifyFetch } from '@/lib/shopify/client';
 import { upsertProductAllocation } from '@/lib/db/product-allocations';
 import { syncProductToDb } from './lib/sync-product-to-db';
 import type { ShopifyProduct } from '@/types/shopify';
 
-const FLORAL_WIND_POOLER =
-  'ep-floral-wind-a7w6deck-pooler.ap-southeast-2.aws.neon.tech';
+config({ path: resolve(process.cwd(), '.env.local') });
+config({ path: resolve(process.cwd(), '.env') });
+
+/** Production Neon — set before any lib/db query (client is lazy). */
+const FLORAL_PROD_DATABASE_URL =
+  'postgresql://neondb_owner:npg_1Gzor6vnKkdu@ep-floral-wind-a7w6deck-pooler.ap-southeast-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
+
+if (process.argv.includes('--floral-prod')) {
+  process.env.CUSTOM_DATABASE_URL = FLORAL_PROD_DATABASE_URL;
+  process.env.POSTGRES_URL = FLORAL_PROD_DATABASE_URL;
+  console.log('[floral-prod] Using production database (ep-floral-wind)\n');
+}
 
 const CATEGORY_PATH = '/rider/eyewear';
 const MAPPING_TYPES = [
@@ -47,12 +54,6 @@ type StorefrontSearchResult = {
 
 function resolveConnectionString(): string {
   if (process.env.CUSTOM_DATABASE_URL) return process.env.CUSTOM_DATABASE_URL;
-  if (process.argv.includes('--floral-prod')) {
-    const user = process.env.POSTGRES_USER || 'neondb_owner';
-    const password = process.env.POSTGRES_PASSWORD;
-    if (!password) throw new Error('POSTGRES_PASSWORD required for --floral-prod');
-    return `postgresql://${encodeURIComponent(user)}:${encodeURIComponent(password)}@${FLORAL_WIND_POOLER}/neondb?sslmode=require&channel_binding=require`;
-  }
   const cs = process.env.POSTGRES_URL || process.env.DATABASE_URL;
   if (!cs) throw new Error('Missing POSTGRES_URL or DATABASE_URL');
   return cs;
@@ -140,8 +141,21 @@ async function main() {
 
   if (apply) {
     await ensureMapping(sql);
+    const deactivated = await sql`
+      UPDATE manual_redirects
+      SET status = 'inactive', updated_at = NOW()
+      WHERE from_path = ${CATEGORY_PATH}
+        AND status IN ('active', 'override')
+      RETURNING to_path, redirect_type, source
+    `;
+    if (deactivated.length) {
+      console.log('deactivated redirect:', deactivated[0]);
+    } else {
+      console.log('no active manual redirect for', CATEGORY_PATH);
+    }
   } else {
     console.log('[dry-run] Would ensure mapping types:', MAPPING_TYPES.join(', '));
+    console.log('[dry-run] Would deactivate any active manual_redirects for', CATEGORY_PATH);
   }
 
   const products = await fetchLiveEyewearProducts();
