@@ -488,6 +488,22 @@ export const BRAND_SIZING_DATA: BrandSizing[] = [
     ],
   },
 
+  // ===== MAJYK EQUIPE =====
+  // Sold via marketplace vendors (Top Brands, Toptac). Match on product title/handle, not vendor.
+  {
+    slug: 'majyk-equipe',
+    name: 'Majyk Equipe',
+    displayName: 'Majyk Equipe',
+    vendorNames: ['Majyk Equipe', 'Majyk'],
+    charts: [
+      {
+        title: 'Cross Country Boot Sizing',
+        description: 'Sizing guide for Majyk Equipe horse boots. Measure in centimetres for greater accuracy.',
+        images: ['/sizing/majyk-equipe/cross-country-boots.png'],
+      },
+    ],
+  },
+
   // ===== ARIAT =====
   {
     slug: 'ariat',
@@ -533,6 +549,9 @@ const AGGREGATOR_VENDORS = new Set(
     'dappleeq',
     'little equine co',
     'little equine co.',
+    'top brands',
+    'toptac international',
+    'toptac',
   ].map((s) => s.toLowerCase())
 );
 

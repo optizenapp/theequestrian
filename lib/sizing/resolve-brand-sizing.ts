@@ -118,7 +118,8 @@ export async function getBrandSizingForHandle(
 }
 
 /**
- * Resolve sizing for a PDP. Prefer Neon brand hub handle, then vendor/title match.
+ * Resolve sizing for a PDP. Title/handle can identify a more specific brand
+ * than the marketplace hub (e.g. Majyk Equipe products on the Equipe hub).
  */
 export async function getBrandSizingForProduct(context: {
   brandHubHandle?: string | null;
@@ -128,10 +129,6 @@ export async function getBrandSizingForProduct(context: {
   handle?: string | null;
   productType?: string | null;
 }): Promise<ResolvedBrandSizing> {
-  if (context.brandHubHandle?.trim()) {
-    return getBrandSizingForHandle(context.brandHubHandle, context.brandDisplayName);
-  }
-
   const matched = matchBrandSizingByContext({
     vendor: context.vendor,
     title: context.title,
@@ -141,11 +138,15 @@ export async function getBrandSizingForProduct(context: {
   } satisfies BrandSizingContext);
 
   if (matched) {
-    const neon = await getBrandSizingForHandle(matched.slug, matched.displayName);
-    if (neon.source !== 'empty') {
-      return neon;
+    const resolved = await getBrandSizingForHandle(matched.slug, matched.displayName);
+    if (resolved.source !== 'empty') {
+      return resolved;
     }
     return fromConfig(matched);
+  }
+
+  if (context.brandHubHandle?.trim()) {
+    return getBrandSizingForHandle(context.brandHubHandle, context.brandDisplayName);
   }
 
   return emptyResult(
