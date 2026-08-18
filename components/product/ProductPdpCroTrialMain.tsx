@@ -85,7 +85,6 @@ export default async function ProductPdpCroTrialMain({
           <div className="hidden lg:block">
             <ProductPdpValueSummary
               summaryLine={croSummaryLine}
-              bullets={featureHighlights}
               variant="summaryOnly"
             />
           </div>
@@ -122,15 +121,7 @@ export default async function ProductPdpCroTrialMain({
           <div className="lg:hidden">
             <ProductPdpValueSummary
               summaryLine={croSummaryLine}
-              bullets={featureHighlights}
-              variant="full"
-            />
-          </div>
-          <div className="hidden lg:block">
-            <ProductPdpValueSummary
-              summaryLine={croSummaryLine}
-              bullets={featureHighlights}
-              variant="bulletsOnly"
+              variant="summaryOnly"
             />
           </div>
         </section>
@@ -151,6 +142,7 @@ export default async function ProductPdpCroTrialMain({
             descriptionHtml={descriptionHtml}
             productTitle={displayTitle}
             sizing={brandSizing}
+            specifications={featureHighlights}
           />
         </div>
 

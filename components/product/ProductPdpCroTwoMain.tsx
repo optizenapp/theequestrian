@@ -30,22 +30,6 @@ interface ProductPdpCroTwoMainProps {
   shippingDisplay?: ProductShippingDisplay;
 }
 
-function FeatureHighlights({ featureHighlights }: { featureHighlights: string[] }) {
-  if (featureHighlights.length === 0) return null;
-  return (
-    <div className="space-y-2">
-      {featureHighlights.map((feature) => (
-        <div key={feature} className="flex items-start gap-2 text-sm text-gray-700">
-          <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-          </svg>
-          <span>{feature}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function ArcEquinePromo() {
   return (
     <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3">
@@ -106,7 +90,7 @@ export default async function ProductPdpCroTwoMain({
    *         stretching to the same total height. Left col: image then
    *         description (description flex-1 → fills remaining height,
    *         Read More if overflowing). Right col: summary, buy box
-   *         (flex-1 → fills remaining height), bullets.
+   *         (flex-1 → fills remaining height).
    */
   return (
     <>
@@ -127,6 +111,7 @@ export default async function ProductPdpCroTwoMain({
                 descriptionHtml={descriptionHtml}
                 productTitle={displayTitle}
                 sizing={brandSizing}
+                specifications={featureHighlights}
                 collapsedHeight={360}
                 accentBorder
                 fillHeight
@@ -135,7 +120,7 @@ export default async function ProductPdpCroTwoMain({
             </section>
           </div>
 
-          {/* Right column: summary + buy box (flex-1) + bullets */}
+          {/* Right column: summary + buy box (flex-1) */}
           <div className="contents lg:col-span-5 lg:flex lg:flex-col lg:gap-6">
             <section
               className="order-1 mt-4 space-y-2 lg:order-none lg:mt-0"
@@ -167,17 +152,12 @@ export default async function ProductPdpCroTwoMain({
               </div>
             </section>
 
-            {(featureHighlights.length > 0 || showArcEquineGelPromo) ? (
+            {showArcEquineGelPromo ? (
               <section
                 className="order-5 space-y-4 lg:order-none lg:flex-shrink-0"
                 aria-label="Additional product highlights"
               >
-                {featureHighlights.length > 0 && (
-                  <div className="rounded-2xl border border-black bg-surface p-6 shadow-sm">
-                    <FeatureHighlights featureHighlights={featureHighlights} />
-                  </div>
-                )}
-                {showArcEquineGelPromo && <ArcEquinePromo />}
+                <ArcEquinePromo />
               </section>
             ) : null}
           </div>

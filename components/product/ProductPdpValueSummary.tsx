@@ -1,13 +1,13 @@
 interface ProductPdpValueSummaryProps {
   summaryLine: string;
-  bullets: string[];
+  bullets?: string[];
   /** Default `full`. Use `summaryOnly` / `bulletsOnly` to split the CRO desktop column layout. */
   variant?: 'full' | 'summaryOnly' | 'bulletsOnly';
 }
 
 export default function ProductPdpValueSummary({
   summaryLine,
-  bullets,
+  bullets = [],
   variant = 'full',
 }: ProductPdpValueSummaryProps) {
   const items = bullets.filter((b) => b.trim().length > 0).slice(0, 5);
