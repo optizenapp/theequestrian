@@ -56,7 +56,7 @@ export function ProductCardActions({
       <div className="flex flex-row gap-2" onClick={(e) => e.stopPropagation()}>
         <Link
           href={productHref}
-          className="min-w-0 flex-1 rounded-full bg-action py-2.5 px-3 text-center text-sm font-semibold text-white transition-all hover:bg-action-hover"
+          className="inline-flex h-9 min-w-0 flex-1 items-center justify-center whitespace-nowrap rounded-full bg-action px-3 text-center text-xs font-semibold leading-none text-white transition-all hover:bg-action-hover xl:text-sm"
         >
           View product
         </Link>
@@ -74,7 +74,7 @@ export function ProductCardActions({
       listName: itemListName,
     });
     return (
-      <div className="flex flex-row gap-2" onClick={(e) => e.stopPropagation()}>
+      <div className="flex flex-row items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
         <AddToCartButton
           variantId={node.id}
           disabled={!node.availableForSale}
@@ -105,12 +105,12 @@ export function ProductCardActions({
   return (
     <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
       {!panelOpen ? (
-        <div className="flex flex-row gap-2">
+        <div className="flex flex-row items-center gap-1.5">
           <button
             type="button"
             onClick={() => openPanel('add_to_cart')}
             disabled={multiDisabled}
-            className="min-w-0 flex-1 rounded-full bg-action py-2.5 px-2 text-xs font-semibold text-white transition-all hover:bg-action-hover hover:-translate-y-0.5 hover:shadow-md sm:px-3 sm:text-sm disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 disabled:hover:translate-y-0"
+            className="inline-flex h-9 min-w-0 flex-[1.4] items-center justify-center whitespace-nowrap rounded-full bg-action px-2 text-xs font-semibold leading-none text-white transition-all hover:bg-action-hover hover:-translate-y-0.5 hover:shadow-md xl:px-3 xl:text-sm disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 disabled:hover:translate-y-0"
           >
             Add to Cart
           </button>
@@ -118,7 +118,7 @@ export function ProductCardActions({
             type="button"
             onClick={() => openPanel('buy_now')}
             disabled={multiDisabled}
-            className="min-w-0 flex-1 rounded-full border border-gray-300 bg-transparent py-2.5 px-2 text-xs font-semibold text-action transition-all hover:border-action hover:-translate-y-0.5 active:scale-95 sm:px-3 sm:text-sm disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400"
+            className="inline-flex h-9 min-w-0 flex-1 items-center justify-center whitespace-nowrap rounded-full border border-gray-300 bg-transparent px-2 text-xs font-semibold leading-none text-action transition-all hover:border-action hover:-translate-y-0.5 active:scale-95 xl:px-3 xl:text-sm disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400"
           >
             Buy Now
           </button>

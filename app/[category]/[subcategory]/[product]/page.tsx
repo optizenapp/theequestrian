@@ -538,11 +538,14 @@ async function renderSubSubcategoryPage(
   // Total count is returned from getProductsByCategoryForCollectionPage (no separate API call needed)
   const totalProductCount = totalCount;
 
-  // EMPTY CATEGORY REDIRECT: If this sub-subcategory has no products and no filters are applied,
-  // redirect up to the parent subcategory
+  // EMPTY CATEGORY REDIRECT: unpublished/unknown empty shells roll up.
+  // Published collection_content leaves stay even when Storefront live count is 0.
   if (totalProductCount === 0 && !filterBrands && !filterSizes && !filterColors && !afterCursor) {
-    const { redirect } = await import('next/navigation');
-    redirect(`/${category}/${subcategory}`);
+    const published = await getCategoryContent(category, subcategory, subsubcategory);
+    if (!published) {
+      const { redirect } = await import('next/navigation');
+      redirect(`/${category}/${subcategory}`);
+    }
   }
 
   // Allowed brands for the filter sidebar (same logic as 2nd-level pages)

@@ -1,5 +1,8 @@
 import OpenAI from 'openai';
-import { isMarketplaceAggregatorVendor } from '@/lib/brands/marketplace-vendors';
+import {
+  isDualVendorBrand,
+  isMarketplaceAggregatorVendor,
+} from '@/lib/brands/marketplace-vendors';
 import { sanitizeBulletBrandLines } from '@/lib/products/sanitize-bullet-brand';
 import { seoEnrichmentConfig } from '@/lib/seo-enrichment/config';
 import {
@@ -18,7 +21,9 @@ import type { EnrichmentResult, ProductCollectiveEnrichmentPayload, QueueItem } 
 
 function sellableBrand(row: { brand?: string | null; vendor?: string | null }): string {
   const brand = typeof row.brand === 'string' ? row.brand.trim() : '';
-  if (!brand || isMarketplaceAggregatorVendor(brand)) return '';
+  if (!brand) return '';
+  if (isDualVendorBrand(brand)) return brand;
+  if (isMarketplaceAggregatorVendor(brand)) return '';
   if (isMarketplaceAggregatorVendor(row.vendor) && brand.toLowerCase() === String(row.vendor || '').trim().toLowerCase()) {
     return '';
   }

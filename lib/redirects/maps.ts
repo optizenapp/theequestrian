@@ -198,7 +198,7 @@ export const collectionRedirects: Record<string, string> = {
   "/collections/saddle-pads/western": "/horse/pads/western",
   "/collections/pets/hills-science-diet": "/pet/dog/food",
   "/collections/pets/petlife-dog-beds": "/pet/dog/bedding",
-  "/collections/pets/melanie-newman-shampoo": "/pet/dog/grooming",
+  "/collections/pets/melanie-newman-shampoo": "/brands/melanie-newman",
   "/collections/pets/kazoo-dog-bed": "/pet/dog/bedding",
   "/collections/pets/pawz-dog-bed": "/pet/dog/bedding",
   "/collections/pets/earthborn-dog-food": "/pet/dog/food",

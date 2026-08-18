@@ -1,4 +1,7 @@
-import { isMarketplaceAggregatorVendor } from '@/lib/brands/marketplace-vendors';
+import {
+  isDualVendorBrand,
+  isMarketplaceAggregatorVendor,
+} from '@/lib/brands/marketplace-vendors';
 
 function normalizeKey(value: string): string {
   return value
@@ -16,7 +19,9 @@ export function sanitizeBulletBrandLines(
   options?: { canonicalBrand?: string | null; vendor?: string | null }
 ): string[] {
   const canonical = options?.canonicalBrand?.trim() || '';
-  const canonicalIsReal = Boolean(canonical && !isMarketplaceAggregatorVendor(canonical));
+  const canonicalIsReal = Boolean(
+    canonical && (!isMarketplaceAggregatorVendor(canonical) || isDualVendorBrand(canonical))
+  );
   const vendorKey = options?.vendor ? normalizeKey(options.vendor) : '';
 
   return bullets.flatMap((raw) => {

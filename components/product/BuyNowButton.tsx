@@ -79,9 +79,9 @@ export function BuyNowButton({
     }
   };
 
-  const widthClass = compact ? 'flex-1 min-w-0' : 'w-full';
+  const widthClass = compact ? 'min-w-0 flex-1' : 'w-full';
   const sizeClass = compact
-    ? 'py-2.5 px-3 text-sm'
+    ? 'inline-flex h-9 items-center justify-center px-2 text-xs leading-none whitespace-nowrap xl:px-3 xl:text-sm'
     : 'py-4 px-6 text-lg';
 
   return (

@@ -107,10 +107,14 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
   // Total count is now returned from getProductsByTypes (no separate API call needed)
   const totalProductCount = totalCount;
 
-  // EMPTY CATEGORY REDIRECT: If this subcategory has no products and no filters are applied,
-  // redirect up to the parent category
+  // EMPTY CATEGORY REDIRECT: unpublished/unknown empty shells roll up.
+  // Published collection_content leaves stay even when Storefront live count is 0
+  // (e.g. newly allocated Shopify drafts).
   if (totalProductCount === 0 && !filterBrands && !filterSizes && !filterColors && !afterCursor) {
-    redirect(`/${category}`);
+    const published = await getCategoryContent(category, subcategory);
+    if (!published) {
+      redirect(`/${category}`);
+    }
   }
   
   // Get allowed brand vendors from brand-mapping.csv (only for equestrian categories)

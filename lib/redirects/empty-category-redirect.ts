@@ -1,16 +1,6 @@
 /**
- * Empty category redirect: when a category has no products, redirect to parent.
- *
- * Uses existing:
- * - getCollectionContent(urlPath) – optional, for parent_url when path is in collection_content
- * - getProductsByCategory(categoryPath) – product count by path (DB allocations)
- *
- * Redirect when:
- * - Path has 0 products (getProductsByCategory returns totalCount 0).
- * - Target = content.parent_url if path is in collection_content, else path with last segment dropped.
- *
- * So even if the path is not in collection_content (e.g. /pet/dog/accessories/dog-bandanas),
- * we still redirect to parent when there are no products allocated to that path.
+ * Empty category redirect: unpublished/unknown paths with 0 products roll up to parent.
+ * Published collection_content leaves are never redirected here (including draft-only grids).
  */
 
 import { getCollectionContent } from '@/lib/content/collections';
@@ -43,14 +33,12 @@ export async function getEmptyCategoryRedirectTarget(path: string): Promise<stri
   const segments = normalized.split('/').filter(Boolean);
   if (segments.length <= 1) return null;
 
-  let redirectTarget: string;
   const content = await getCollectionContent(normalized);
-  if (content?.status === 'published' && content.parent_url?.trim()) {
-    redirectTarget = normalizePath(content.parent_url.trim());
-  } else {
-    redirectTarget = parentPath(normalized);
-  }
+  // Published leaves stay (including newly allocated Shopify drafts that Storefront
+  // does not count as live yet). Unknown/unpublished empty paths still roll up.
+  if (content) return null;
 
+  const redirectTarget = parentPath(normalized);
   if (redirectTarget === normalized) return null;
 
   try {

@@ -26,6 +26,18 @@ const MENU_CARD_IMAGE_BY_PATH: Record<string, string> = {
     'https://cdn.shopify.com/s/files/1/0562/0963/7457/files/NewIronbarkdogrug.jpg?v=1783318908',
   '/pet/dog/collars-and-leads':
     'https://cdn.shopify.com/s/files/1/0562/0963/7457/files/Brass_Clincher_Dog_Collar_Lead_Set_2.png?v=1785900751',
+  '/pet/dog/grooming':
+    'https://cdn.shopify.com/s/files/1/0562/0963/7457/files/SPAFUSION-SHAM_CON-BOTTLE_500ml_2.png?v=1787038286',
+  '/pet/dog/food':
+    'https://cdn.shopify.com/s/files/1/0562/0963/7457/files/pfa-kangaroo-dog-food.jpg?v=1787038287',
+  '/pet/dog/treats':
+    'https://cdn.shopify.com/s/files/1/0562/0963/7457/files/Pet-Food-AUS-Packaging-CHICKEN-JERKY-1000x1000-1.png?v=1787038286',
+  '/pet/dog/coats-and-rugs':
+    'https://cdn.shopify.com/s/files/1/0562/0963/7457/files/Kentuckydograincoat.png?v=1783317864',
+  '/pet/cat':
+    'https://cdn.shopify.com/s/files/1/0562/0963/7457/files/20397302_1.jpg?v=1746461085',
+  '/pet/cat/food':
+    'https://cdn.shopify.com/s/files/1/0562/0963/7457/files/img-prod-cat-dry-main_71ba9bfa-9f4c-4c9d-a2ac-d49172a1f819.png?v=1787038286',
   '/clothing/womens/tops':
     'https://cdn.shopify.com/s/files/1/0562/0963/7457/files/A005122_V_8Q_01_1920x1920_9df6a614-2260-4c75-addc-42cba2ff45aa.webp?v=1785819201',
   '/clothing/womens/breeches':
@@ -82,7 +94,6 @@ function normalizeMenuPath(link: string): string {
  * Keep mega menu from linking into empty category shells.
  */
 const EMPTY_MEGA_MENU_PATHS = new Set([
-  '/pet/cat',
   '/pets/cats',
   '/pets/dogs',
   '/pet/supplements',
