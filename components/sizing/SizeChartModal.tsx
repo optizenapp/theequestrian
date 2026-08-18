@@ -27,43 +27,53 @@ export function SizeChartModal({ open, onClose, productTitle, sizing }: SizeChar
 
   useEffect(() => {
     if (!open) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener('keydown', onKey);
+    };
   }, [open, onClose]);
 
   return (
     <dialog
       ref={dialogRef}
       aria-labelledby={titleId}
-      className="w-[min(960px,calc(100vw-1.5rem))] max-h-[90vh] p-0 rounded-2xl border-0 bg-white shadow-2xl backdrop:bg-black/60 open:flex open:flex-col"
+      className="!fixed !inset-0 !z-[70] !m-0 !h-[100dvh] !w-full !max-h-none !max-w-none border-0 bg-black/60 p-0 shadow-none open:!flex open:items-end open:justify-center sm:open:items-center sm:p-4 [&::backdrop]:bg-transparent"
       onClose={onClose}
       onClick={(e) => {
         if (e.target === dialogRef.current) onClose();
       }}
     >
-      <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-5 py-4 shrink-0">
-        <div className="min-w-0">
-          <h2 id={titleId} className="text-lg font-bold text-gray-900 truncate">
-            {productTitle}
-          </h2>
-          <p className="text-sm text-gray-500 mt-0.5">Size chart</p>
+      <div
+        className="flex min-h-0 w-full max-h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-0.75rem)] flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:w-[min(960px,calc(100vw-2rem))] sm:max-h-[min(90dvh,calc(100dvh-4rem))] sm:rounded-2xl"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      >
+        <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-5 py-4 shrink-0">
+          <div className="min-w-0">
+            <h2 id={titleId} className="text-lg font-bold text-gray-900 truncate">
+              {productTitle}
+            </h2>
+            <p className="text-sm text-gray-500 mt-0.5">Size chart</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="shrink-0 rounded-full p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+            aria-label="Close size chart"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="shrink-0 rounded-full p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
-          aria-label="Close size chart"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-      <div className="overflow-y-auto px-5 py-5 flex-1 min-h-0">
-        <BrandSizingPanel sizing={{ ...sizing, sizingPagePath: sizing.sizingPagePath }} />
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 [-webkit-overflow-scrolling:touch]">
+          <BrandSizingPanel sizing={{ ...sizing, sizingPagePath: sizing.sizingPagePath }} />
+        </div>
       </div>
     </dialog>
   );

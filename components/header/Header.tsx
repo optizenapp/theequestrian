@@ -8,26 +8,24 @@ import { SearchBar } from './SearchBar';
 import { Logo } from '../Logo';
 import Link from 'next/link';
 import { useCart } from '@/components/cart/cart-context';
+import { useMobileHeaderScroll } from '@/hooks/useMobileHeaderScroll';
 
-/**
- * Main Header Component
- * 
- * Redesigned to match Back Market's layout:
- * - Prominent Search Bar
- * - Clean White Background
- * - Clear Action Icons
- */
 export function Header() {
   const { cart } = useCart();
   const itemCount = cart?.totalQuantity || 0;
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const { hidden: hideMobileChrome, atTop } = useMobileHeaderScroll(isMobileSearchOpen);
 
   return (
-    <header className="sticky top-0 z-50 bg-surface shadow-sm">
-      <div className="border-b border-gray-100 py-4">
+    <header
+      className={`sticky top-0 z-50 bg-surface shadow-sm transition-transform duration-200 ease-out ${
+        hideMobileChrome ? 'max-lg:-translate-y-full max-lg:pointer-events-none' : 'translate-y-0'
+      }`}
+    >
+      <div className="border-b border-gray-100 lg:py-4">
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
           {/* Mobile Layout */}
-          <div className="lg:hidden flex h-16 items-center justify-between">
+          <div className="relative flex h-12 items-center justify-between lg:hidden">
             {/* Left: Hamburger Menu */}
             <div className="flex items-center">
               <MobileMenu />
@@ -35,7 +33,7 @@ export function Header() {
 
             {/* Center: Logo */}
             <div className="absolute left-1/2 -translate-x-1/2">
-              <Logo variant="full" className="h-8 w-auto" />
+              <Logo variant="full" className="h-7 w-auto" />
             </div>
 
             {/* Right: Search & Cart */}
@@ -140,7 +138,9 @@ export function Header() {
         </div>
       </div>
 
-      <HeaderTopBar />
+      <div className={atTop ? undefined : 'max-lg:hidden'}>
+        <HeaderTopBar />
+      </div>
     </header>
   );
 }
