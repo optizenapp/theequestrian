@@ -26,8 +26,6 @@ const MENU_CARD_IMAGE_BY_PATH: Record<string, string> = {
     'https://cdn.shopify.com/s/files/1/0562/0963/7457/files/NewIronbarkdogrug.jpg?v=1783318908',
   '/pet/dog/collars-and-leads':
     'https://cdn.shopify.com/s/files/1/0562/0963/7457/files/Brass_Clincher_Dog_Collar_Lead_Set_2.png?v=1785900751',
-  '/pet/supplements':
-    'https://cdn.shopify.com/s/files/1/0562/0963/7457/files/IAPROP30.webp?v=1783318840',
   '/clothing/womens/tops':
     'https://cdn.shopify.com/s/files/1/0562/0963/7457/files/A005122_V_8Q_01_1920x1920_9df6a614-2260-4c75-addc-42cba2ff45aa.webp?v=1785819201',
   '/clothing/womens/breeches':
@@ -77,6 +75,44 @@ function normalizeMenuPath(link: string): string {
   const path = link.replace(/^https?:\/\/[^/]+/i, '').split('?')[0] || '/';
   if (path.length > 1 && path.endsWith('/')) return path.slice(0, -1);
   return path.startsWith('/') ? path : `/${path}`;
+}
+
+/**
+ * PLPs that currently 308 to the parent (zero allocated products).
+ * Keep mega menu from linking into empty category shells.
+ */
+const EMPTY_MEGA_MENU_PATHS = new Set([
+  '/pet/cat',
+  '/pets/cats',
+  '/pets/dogs',
+  '/pet/supplements',
+  '/rider/eyewear',
+  '/horse/stock-western',
+]);
+
+/** Prefer a live sibling path when the CMS still points at an empty shell. */
+const MEGA_MENU_PATH_REWRITES: Record<string, string> = {
+  '/rider/giftware': '/accessories/gifts',
+};
+
+export function isEmptyMegaMenuPath(link: string): boolean {
+  return EMPTY_MEGA_MENU_PATHS.has(normalizeMenuPath(link));
+}
+
+export function normalizeMegaMenuItemLink(link: string): string {
+  const normalized = normalizeMenuPath(link);
+  return MEGA_MENU_PATH_REWRITES[normalized] ?? normalized;
+}
+
+/** Drop empty-category links and rewrite known bad CMS paths. */
+export function filterMegaMenuItems<T extends { link: string }>(
+  items: T[] | null | undefined
+): T[] | null {
+  if (!items?.length) return items ?? null;
+  const filtered = items
+    .map((item) => ({ ...item, link: normalizeMegaMenuItemLink(item.link) }))
+    .filter((item) => !isEmptyMegaMenuPath(item.link));
+  return filtered.length > 0 ? filtered : null;
 }
 
 export function buildProductTypeImageQuery(productTypes: string[]): string {
@@ -146,8 +182,9 @@ export function resolveMenuCardImageUrl(
 export function enrichMenuImageItems<
   T extends { title: string; imageUrl: string; link: string },
 >(items: T[] | null | undefined, subcategories: MegaMenuSubcategory[], categoryHandle: string): T[] | null {
-  if (!items?.length) return items ?? null;
-  return items.map((item) => {
+  const filtered = filterMegaMenuItems(items);
+  if (!filtered?.length) return filtered ?? null;
+  return filtered.map((item) => {
     const liveUrl = findSubcategoryImageUrl(subcategories, item.link, item.title, categoryHandle);
     return {
       ...item,

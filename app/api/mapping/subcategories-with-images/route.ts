@@ -12,6 +12,8 @@ import {
   type MegaMenuThumbImage,
 } from '@/lib/navigation/mega-menu-images';
 
+export const dynamic = 'force-dynamic';
+
 type ImageNode = { url: string; altText: string | null; width: number; height: number };
 type ProductNode = { images: { edges: Array<{ node: ImageNode }> }; availableForSale: boolean };
 type QueryResult = { products: { edges: Array<{ node: ProductNode }> } };
