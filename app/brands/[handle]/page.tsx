@@ -11,6 +11,7 @@ import { BrandQuickAnswer } from '@/components/brand/BrandQuickAnswer';
 import { BrandProductLines } from '@/components/brand/BrandProductLines';
 import { BrandLogo } from '@/components/brand/BrandLogo';
 import { BrandHubDescriptionSizingTabs } from '@/components/brand/BrandHubDescriptionSizingTabs';
+import { RichContent } from '@/components/collection/RichContent';
 import { resolveBrandLogoUrl } from '@/lib/brands/resolve-brand-logo';
 import { getBrandSizingForHandle } from '@/lib/sizing/resolve-brand-sizing';
 import Link from 'next/link';
@@ -198,7 +199,6 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
                 <div className="mt-6">
                   <BrandHubDescriptionSizingTabs
                     shortDescription={shortDescription}
-                    longDescription={longDescription}
                     sizing={brandSizing}
                   />
                   {totalProductCount > 0 && (
@@ -235,6 +235,9 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
             productUrls={productUrls}
             reviewStatsMap={reviewStats}
           />
+
+          {/* Long about copy — below grid (same pattern as category PLPs) */}
+          {longDescription ? <RichContent html={longDescription} /> : null}
 
           {/* Auto-generated Product Lines from product → category joins */}
           <BrandProductLines
