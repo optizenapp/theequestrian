@@ -187,6 +187,17 @@ function buildWhereClause(
   return conditions.join(' AND ');
 }
 
+export async function countDbProductsForBrand(brand: BrandContentRow): Promise<number> {
+  const brandBase = buildBrandBaseClause(brand);
+  if (!brandBase) return 0;
+  const rows = (await sql.unsafe(`
+    SELECT COUNT(*)::int AS total
+    FROM products p
+    WHERE ${brandBase}
+  `)) as unknown as Array<{ total: number }>;
+  return Number(rows[0]?.total || 0);
+}
+
 // ---------------------------------------------------------------------------
 // DB-first fast path (uses variant_options — same as category pages)
 // ---------------------------------------------------------------------------

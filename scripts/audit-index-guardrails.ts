@@ -21,6 +21,7 @@ function evaluatePath(pathname: string): { status: number; location?: string; no
 
   if (pathname === '/brands/kentucky-horsewear') return { status: 301, location: '/brands/kentucky' };
   if (pathname === '/brands/ego-7') return { status: 301, location: '/brands/ego7' };
+  if (pathname === '/brands/hairy') return { status: 301, location: '/brands/hairy-pony' };
   if (pathname === '/accessories/collectibles') return { status: 301, location: '/accessories/toys' };
   if (pathname.startsWith('/cart/c/')) return { status: 301, location: '/cart' };
 
@@ -157,6 +158,7 @@ const firstPageRedirect = Object.entries(pageRedirects)[0];
 const results: GuardrailResult[] = [
   assertRedirect('sample collection redirect', firstCollectionRedirect[0], firstCollectionRedirect[1]),
   assertRedirect('legacy brand consolidation', '/brands/kentucky-horsewear', '/brands/kentucky'),
+  assertRedirect('hairy brand consolidation', '/brands/hairy', '/brands/hairy-pony'),
   assertRedirect('legacy cart permalink', '/cart/c/example-cart-id', '/cart'),
   assertGone('unknown collection path is gone', '/collections/not-in-map'),
   assertGone('plus URL combination is gone', '/collections/footwear/top-boots+black'),

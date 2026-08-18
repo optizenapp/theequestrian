@@ -17,6 +17,15 @@ import { getArg, hasFlag, loadHandlesFromFile } from './lib/migration-cli';
 config({ path: resolve(process.cwd(), '.env.local') });
 config({ path: resolve(process.cwd(), '.env') });
 
+const FLORAL_PROD_DATABASE_URL =
+  'postgresql://neondb_owner:npg_1Gzor6vnKkdu@ep-floral-wind-a7w6deck-pooler.ap-southeast-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
+
+if (process.argv.includes('--floral-prod')) {
+  process.env.CUSTOM_DATABASE_URL = FLORAL_PROD_DATABASE_URL;
+  process.env.POSTGRES_URL = FLORAL_PROD_DATABASE_URL;
+  console.log('[floral-prod] Using production database (ep-floral-wind)\n');
+}
+
 function brandHandlePrefix(brand: string): string {
   return `${brand.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-%`;
 }
