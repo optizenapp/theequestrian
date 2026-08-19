@@ -12,6 +12,7 @@ import {
   type CollectiveShippingLookups,
 } from '@/lib/gmc/feed-shipping';
 import { loadProductBrandMapByHandles } from '@/lib/db/product-brand';
+import { getCompareAtSalePair } from '@/lib/shopify/product-discount';
 import type { ProductWithPrimaryCollection, ShopifyVariant } from '@/types/shopify';
 
 function escapeXml(value: string) {
@@ -341,6 +342,18 @@ function buildVariantItem({
     return null;
   }
 
+  const currency = variant.price.currencyCode;
+  const compareAtAmount =
+    variant.compareAtPrice?.amount || product.compareAtPriceRange?.minVariantPrice?.amount;
+  const salePair = getCompareAtSalePair(variant.price.amount, compareAtAmount);
+  // Merchant Center: price = original list, sale_price = current charge.
+  const priceTags = salePair
+    ? [
+        `<g:price>${escapeXml(formatPrice(salePair.compareAtAmount, currency))}</g:price>`,
+        `<g:sale_price>${escapeXml(formatPrice(salePair.saleAmount, currency))}</g:sale_price>`,
+      ]
+    : [`<g:price>${escapeXml(formatPrice(variant.price.amount, currency))}</g:price>`];
+
   const tags = [
     `<g:id>${escapeXml(variantId)}</g:id>`,
     `<g:item_group_id>${escapeXml(productId)}</g:item_group_id>`,
@@ -349,7 +362,7 @@ function buildVariantItem({
     `<g:link>${escapeXml(variantLink)}</g:link>`,
     `<g:image_link>${escapeXml(imageUrl)}</g:image_link>`,
     `<g:availability>${isAvailable ? 'in_stock' : 'out_of_stock'}</g:availability>`,
-    `<g:price>${escapeXml(formatPrice(variant.price.amount, variant.price.currencyCode))}</g:price>`,
+    ...priceTags,
     `<g:condition>new</g:condition>`,
     brand ? `<g:brand>${escapeXml(brand)}</g:brand>` : '',
     product.productType ? `<g:product_type>${escapeXml(product.productType)}</g:product_type>` : '',

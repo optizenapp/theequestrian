@@ -19,6 +19,7 @@
 
 import type { ShopifyProduct } from '@/types/shopify';
 import { getProductIdentifiers } from '@/lib/products/product-identifiers';
+import { getCompareAtSalePair } from '@/lib/shopify/product-discount';
 
 /**
  * Review statistics for AggregateRating
@@ -152,6 +153,24 @@ function extractSize(product: ShopifyProduct): string | undefined {
   );
   
   return sizeOption?.value;
+}
+
+/**
+ * Google merchant-listing sale annotation: active price stays on Offer.price;
+ * original compare-at goes in UnitPriceSpecification with StrikethroughPrice.
+ */
+function buildStrikethroughPriceSpecification(
+  saleAmount: string,
+  compareAt: { amount: string; currencyCode: string } | null | undefined
+): Record<string, string> | undefined {
+  const pair = getCompareAtSalePair(saleAmount, compareAt?.amount);
+  if (!pair || !compareAt?.currencyCode) return undefined;
+  return {
+    '@type': 'UnitPriceSpecification',
+    priceType: 'https://schema.org/StrikethroughPrice',
+    price: pair.compareAtAmount,
+    priceCurrency: compareAt.currencyCode,
+  };
 }
 
 export interface ProductSchemaOptions {
@@ -356,11 +375,12 @@ export function generateProductSchema(
   
   // Single price vs price range
   if (price.amount === maxPrice.amount) {
-    // Single price - use Offer
+    const productPriceSpec = buildStrikethroughPriceSpecification(price.amount, compareAtPrice);
     schema.offers = {
       "@type": "Offer",
       ...offerBase,
       "price": price.amount,
+      ...(productPriceSpec ? { priceSpecification: productPriceSpec } : {}),
     };
   } else {
     // Price range - use AggregateOffer
@@ -391,12 +411,19 @@ export function generateProductSchema(
       "hasVariant": product.variants.edges.slice(0, 50).map(({ node }) => {
         const variantColor = node.selectedOptions.find((option) => option.name.toLowerCase() === 'color' || option.name.toLowerCase() === 'colour')?.value;
         const variantSize = node.selectedOptions.find((option) => option.name.toLowerCase() === 'size')?.value;
+        const variantCompareAt = node.compareAtPrice || compareAtPrice;
+        const variantPriceSpec = buildStrikethroughPriceSpecification(
+          node.price.amount,
+          variantCompareAt
+        );
         const variantOffer = {
           "@type": "Offer",
           ...offerBase,
           "url": productAbsoluteUrl,
           "price": node.price.amount,
+          "priceCurrency": node.price.currencyCode || price.currencyCode,
           "availability": node.availableForSale ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+          ...(variantPriceSpec ? { priceSpecification: variantPriceSpec } : {}),
         };
 
         const variantSchema: any = {
