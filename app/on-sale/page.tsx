@@ -55,20 +55,24 @@ export default async function OnSalePage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const { cursor } = await searchParams;
-  const afterCursor = typeof cursor === 'string' ? cursor : null;
+  const params = await searchParams;
+  const afterCursor = typeof params.cursor === 'string' ? params.cursor : null;
+  const saleCategory =
+    typeof params.saleCategory === 'string' ? params.saleCategory : undefined;
 
   // 1. Get Page Configuration from CSV
   const pageData = getSalePageByPath('/on-sale');
   const collectionHandle = pageData?.handle || 'on-sale';
 
   // 2. Fetch products; keep only real compare-at discounts (Collective often sets compare === price).
-  const { products, pageInfo, totalCount } = await getCollectionWithPagination(
-    collectionHandle,
-    36,
-    afterCursor,
-    { requireRealDiscount: true, maxProducts: 2000 }
-  );
+  // Category facets + optional saleCategory filter run on the full sale set before paging.
+  const { products, pageInfo, totalCount, onSaleCategoryOptions } =
+    await getCollectionWithPagination(collectionHandle, 36, afterCursor, {
+      requireRealDiscount: true,
+      maxProducts: 2000,
+      includeOnSaleCategoryFacets: true,
+      saleCategory,
+    });
   
   // Generate canonical URLs for all products (fast with Neon DB)
   // Product cards will link directly to category-based URLs
@@ -185,6 +189,7 @@ export default async function OnSalePage({
             totalCount={totalCount}
             productUrls={productUrls}
             reviewStatsMap={reviewStats}
+            onSaleCategoryOptions={onSaleCategoryOptions}
           />
 
           {/* Long Description (Rich Content) */}

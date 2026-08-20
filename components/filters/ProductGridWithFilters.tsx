@@ -23,10 +23,6 @@ import {
   getPriceRange,
 } from '@/lib/filters/product-filters';
 import {
-  getOnSaleCategoryOptions,
-  filterByOnSaleCategory,
-} from '@/lib/filters/on-sale-category';
-import {
   getFilterPreferences,
   saveFilterPreferences,
   clearFilterPreferences,
@@ -60,6 +56,8 @@ interface ProductGridWithFiltersProps {
   };
   productUrls?: Record<string, string>; // product.id -> canonical URL (plain object for RSC serialization)
   reviewStatsMap?: Record<string, ReviewStats>; // product.handle -> review stats (plain object for RSC serialization)
+  /** /on-sale: server-built facet options from the full sale set (not the current page) */
+  onSaleCategoryOptions?: FilterOption[];
   /** Override GA4 `item_list_id` (defaults from category path) */
   itemListId?: string;
   itemListName?: string;
@@ -76,6 +74,7 @@ export function ProductGridWithFilters({
   serverFacets,
   productUrls,
   reviewStatsMap,
+  onSaleCategoryOptions: onSaleCategoryOptionsProp,
   itemListId: itemListIdProp,
   itemListName: itemListNameProp,
 }: ProductGridWithFiltersProps) {
@@ -119,14 +118,15 @@ export function ProductGridWithFilters({
     delete clientFilters.brands;
     delete clientFilters.sizes;
     delete clientFilters.colors;
+    // /on-sale saleCategory is applied server-side before pagination
+    delete clientFilters.saleCategory;
     let next = applyFilters(hydratedProducts, clientFilters);
     // /on-sale: drop anything live hydration shows without a real compare-at discount
     if (currentCategory === 'on-sale') {
       next = next.filter(hasRealCompareAtDiscount);
-      next = filterByOnSaleCategory(next, filters.saleCategory, productUrls);
     }
     return next;
-  }, [hydratedProducts, filters, currentCategory, productUrls]);
+  }, [hydratedProducts, filters, currentCategory]);
   
   // Apply sorting to filtered products
   // IMPORTANT: Always keep in-stock products before out-of-stock products
@@ -289,11 +289,8 @@ export function ProductGridWithFilters({
     return getPriceRange(hydratedProducts);
   }, [hydratedProducts, serverFacets]);
 
-  const onSaleCategoryOptions = useMemo(() => {
-    if (currentCategory !== 'on-sale') return undefined;
-    const discounted = hydratedProducts.filter(hasRealCompareAtDiscount);
-    return getOnSaleCategoryOptions(discounted, productUrls);
-  }, [currentCategory, hydratedProducts, productUrls]);
+  const onSaleCategoryOptions =
+    currentCategory === 'on-sale' ? onSaleCategoryOptionsProp : undefined;
 
   // Save filter preferences to localStorage
   useEffect(() => {

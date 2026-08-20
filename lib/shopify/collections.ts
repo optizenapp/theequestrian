@@ -2,6 +2,12 @@ import { shopifyFetch } from './client';
 import { GET_COLLECTION_BY_HANDLE, GET_ALL_COLLECTIONS, GET_COLLECTION_PRODUCTS_PAGE } from './queries';
 import { filterExcludedFrontendVendors } from './vendor-visibility';
 import { hasRealCompareAtDiscount } from './product-discount';
+import { getProductCanonicalUrls } from './products';
+import {
+  filterByOnSaleCategory,
+  getOnSaleCategoryOptions,
+} from '@/lib/filters/on-sale-category';
+import type { FilterOption } from '@/lib/filters/product-filters';
 import type { ShopifyCollection, CollectionWithParent, ShopifyProduct } from '@/types/shopify';
 
 interface CollectionResponse {
@@ -97,6 +103,13 @@ export type CollectionPaginationOptions = {
   requireRealDiscount?: boolean;
   /** Cap on products fetched before filtering/pagination. */
   maxProducts?: number;
+  /**
+   * /on-sale: filter the full sale set by top-level silo before paging.
+   * Facet counts are always built from the unfiltered sale set when set.
+   */
+  saleCategory?: string;
+  /** Build Horse/Rider/… facet options from every sale product (not just the page). */
+  includeOnSaleCategoryFacets?: boolean;
 };
 
 /**
@@ -114,6 +127,7 @@ export async function getCollectionWithPagination(
   products: ShopifyProduct[];
   totalCount: number;
   pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  onSaleCategoryOptions?: FilterOption[];
 }> {
   // Fetch collection metadata
   const collectionData = await shopifyFetch<CollectionResponse>({
@@ -193,6 +207,21 @@ export async function getCollectionWithPagination(
     return a.availableForSale ? -1 : 1;
   });
 
+  let onSaleCategoryOptions: FilterOption[] | undefined;
+  let productsForPaging = visibleProducts;
+
+  if (options?.includeOnSaleCategoryFacets || options?.saleCategory) {
+    const urlMap = await getProductCanonicalUrls(visibleProducts);
+    const productUrls = Object.fromEntries(urlMap);
+    onSaleCategoryOptions = getOnSaleCategoryOptions(visibleProducts, productUrls);
+    if (options.saleCategory) {
+      productsForPaging = filterByOnSaleCategory(
+        visibleProducts,
+        options.saleCategory,
+        productUrls
+      );
+    }
+  }
 
   // Handle pagination manually
   // Parse page number from cursor (format: "page:N")
@@ -206,17 +235,18 @@ export async function getCollectionWithPagination(
 
   const startIndex = page * limit;
   const endIndex = startIndex + limit;
-  const paginatedProducts = visibleProducts.slice(startIndex, endIndex);
-  const hasMore = endIndex < visibleProducts.length;
+  const paginatedProducts = productsForPaging.slice(startIndex, endIndex);
+  const hasMore = endIndex < productsForPaging.length;
 
   return {
     collection: collectionWithMetadata,
     products: paginatedProducts,
-    totalCount: visibleProducts.length,
+    totalCount: productsForPaging.length,
     pageInfo: {
       hasNextPage: hasMore,
       endCursor: hasMore ? `page:${page + 1}` : null
-    }
+    },
+    onSaleCategoryOptions,
   };
 }
 
