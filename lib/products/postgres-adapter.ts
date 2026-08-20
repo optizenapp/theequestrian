@@ -7,6 +7,7 @@ import { shopifyFetch } from '@/lib/shopify/client';
 import { searchProducts, type ProductFilters, type ProductQueryResult } from '@/lib/db/queries';
 import { sql } from '@/lib/db/client';
 import { ensureProductsBrandColumns } from '@/lib/db/ensure-products-brand-columns';
+import { getCategoryCrossListRules } from '@/lib/mapping/category-cross-list';
 import type { ProductWithPrimaryCollection } from '@/types/shopify';
 
 type CategoryFilters = {
@@ -169,9 +170,22 @@ function asLowerArrayLiteral(values: string[]): string {
 function buildCategoryWhereClause(categoryPath: string, filters?: CategoryFilters): string {
   const normalized = normalizePath(categoryPath);
   const escapedPath = escapeLiteral(normalized);
-  const conditions: string[] = [
-    `(pca.category_path = '${escapedPath}' OR pca.category_path LIKE '${escapedPath}/%')`,
+  const pathClauses = [
+    `pca.category_path = '${escapedPath}'`,
+    `pca.category_path LIKE '${escapedPath}/%'`,
   ];
+  for (const rule of getCategoryCrossListRules(normalized)) {
+    const fromPath = escapeLiteral(rule.alsoIncludeFrom);
+    if (rule.brandEquals) {
+      const brand = escapeLiteral(rule.brandEquals.toLowerCase());
+      pathClauses.push(
+        `(pca.category_path = '${fromPath}' AND LOWER(TRIM(COALESCE(p.brand, ''))) = '${brand}')`
+      );
+    } else {
+      pathClauses.push(`pca.category_path = '${fromPath}'`);
+    }
+  }
+  const conditions: string[] = [`(${pathClauses.join(' OR ')})`];
 
   if (filters?.brands && filters.brands.length > 0) {
     // Brand filter uses the canonical `products.brand` column only.

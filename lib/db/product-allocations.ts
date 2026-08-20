@@ -1,5 +1,6 @@
 import { sql } from '@/lib/db/client';
 import { CATEGORY_ALLOC_CACHE_MS } from '@/lib/config/collection-cache';
+import { getCategoryCrossListRules } from '@/lib/mapping/category-cross-list';
 
 export interface ProductAllocationInput {
   productId: string;
@@ -189,25 +190,52 @@ export async function listProductAllocations(options: {
  * Get product IDs allocated to a specific category path
  * Includes products from the exact category and all child categories
  */
+function buildCrossListSqlFragments(categoryPath: string): {
+  pathEquals: string[];
+  brandPairs: Array<{ path: string; brand: string }>;
+} {
+  const pathEquals: string[] = [];
+  const brandPairs: Array<{ path: string; brand: string }> = [];
+  for (const rule of getCategoryCrossListRules(categoryPath)) {
+    if (rule.brandEquals) {
+      brandPairs.push({ path: rule.alsoIncludeFrom, brand: rule.brandEquals.toLowerCase() });
+    } else {
+      pathEquals.push(rule.alsoIncludeFrom);
+    }
+  }
+  return { pathEquals, brandPairs };
+}
+
 export async function getProductIdsByCategory(categoryPath: string): Promise<string[]> {
   await ensureProductAllocationTable();
   const normalized = normalizePath(categoryPath);
   const cached = getCachedList(categoryIdCache, normalized);
   if (cached) return cached;
 
-  // Get products where category_path starts with the given path
-  // This includes exact matches and child categories
+  const { pathEquals, brandPairs } = buildCrossListSqlFragments(normalized);
+  const crossPaths = pathEquals;
+  const crossBrandPath = brandPairs[0]?.path ?? null;
+  const crossBrand = brandPairs[0]?.brand ?? null;
+
+  // Primary path + optional dual-list from sibling leaves (e.g. Kindly Tail dog/cat).
   const result = await sql`
-    SELECT
+    SELECT DISTINCT
       CASE
-        WHEN product_id LIKE 'gid://shopify/Product/%'
-          THEN split_part(product_id, '/', 5)
-        ELSE product_id
+        WHEN pca.product_id LIKE 'gid://shopify/Product/%'
+          THEN split_part(pca.product_id, '/', 5)
+        ELSE pca.product_id
       END AS product_id_compact,
-      (product_id LIKE 'gid://shopify/Product/%') AS is_shopify_gid
-    FROM product_category_assignments
-    WHERE category_path = ${normalized}
-       OR category_path LIKE ${normalized + '/%'}
+      (pca.product_id LIKE 'gid://shopify/Product/%') AS is_shopify_gid
+    FROM product_category_assignments pca
+    LEFT JOIN products p ON p.id = pca.product_id OR p.handle = pca.product_handle
+    WHERE pca.category_path = ${normalized}
+       OR pca.category_path LIKE ${normalized + '/%'}
+       OR pca.category_path = ANY(${crossPaths})
+       OR (
+         ${crossBrandPath}::text IS NOT NULL
+         AND pca.category_path = ${crossBrandPath}
+         AND LOWER(TRIM(COALESCE(p.brand, ''))) = ${crossBrand}
+       )
   `;
 
   const rows = (Array.isArray(result) ? result : []) as Array<{
@@ -232,15 +260,27 @@ export async function getProductHandlesByCategory(categoryPath: string): Promise
   const cached = getCachedList(categoryHandleCache, normalized);
   if (cached) return cached;
 
+  const { pathEquals, brandPairs } = buildCrossListSqlFragments(normalized);
+  const crossPaths = pathEquals;
+  const crossBrandPath = brandPairs[0]?.path ?? null;
+  const crossBrand = brandPairs[0]?.brand ?? null;
+
   const result = await sql`
-    SELECT product_handle
-    FROM product_category_assignments
-    WHERE category_path = ${normalized}
-       OR category_path LIKE ${normalized + '/%'}
+    SELECT DISTINCT pca.product_handle
+    FROM product_category_assignments pca
+    LEFT JOIN products p ON p.id = pca.product_id OR p.handle = pca.product_handle
+    WHERE pca.category_path = ${normalized}
+       OR pca.category_path LIKE ${normalized + '/%'}
+       OR pca.category_path = ANY(${crossPaths})
+       OR (
+         ${crossBrandPath}::text IS NOT NULL
+         AND pca.category_path = ${crossBrandPath}
+         AND LOWER(TRIM(COALESCE(p.brand, ''))) = ${crossBrand}
+       )
   `;
-  
+
   const rows = (Array.isArray(result) ? result : []) as Array<{ product_handle: string }>;
-  const value = rows.map(row => row.product_handle);
+  const value = rows.map((row) => row.product_handle);
   setCachedList(categoryHandleCache, normalized, value);
   return value;
 }
