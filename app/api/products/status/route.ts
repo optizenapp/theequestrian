@@ -102,6 +102,12 @@ const GET_PRODUCTS_STATUS = `
         id
         availableForSale
         totalInventory
+        compareAtPriceRange {
+          minVariantPrice {
+            amount
+            currencyCode
+          }
+        }
         variants(first: 100) {
           edges {
             node {
@@ -202,16 +208,27 @@ export async function POST(request: NextRequest) {
 
           const price = cheapest ? parseFloat(cheapest.price.amount) : 0;
 
-          // Compare-at from the cheapest in-stock on-sale variant, if any.
+          // Prefer compare-at from an in-stock (or pool) on-sale variant.
+          // If only an OOS sibling still carries compare-at — common after
+          // partial price-offset sync — fall back to product.compareAtPriceRange
+          // so PLP sale badges match the PDP.
           const onSalePool = pool.filter(
             (v) =>
               v.compareAtPrice &&
               parseFloat(v.compareAtPrice.amount) > parseFloat(v.price.amount)
           );
           const cheapestOnSale = [...onSalePool].sort(byPrice)[0];
-          const compareAtPrice = cheapestOnSale?.compareAtPrice
+          let compareAtPrice = cheapestOnSale?.compareAtPrice
             ? parseFloat(cheapestOnSale.compareAtPrice.amount)
             : undefined;
+
+          if (compareAtPrice === undefined) {
+            const productCompareRaw = node.compareAtPriceRange?.minVariantPrice?.amount;
+            const productCompare = productCompareRaw ? parseFloat(productCompareRaw) : NaN;
+            if (Number.isFinite(productCompare) && productCompare > price) {
+              compareAtPrice = productCompare;
+            }
+          }
 
           statusMap[node.id] = {
             price,

@@ -30,6 +30,60 @@ interface LiveStatusOptions {
   mode?: 'soft' | 'strict';
 }
 
+function applyLiveStatusToProduct(
+  product: ShopifyProduct,
+  liveStatus: ProductStatus
+): ShopifyProduct | null {
+  if (!(liveStatus.price > 0)) return null;
+
+  const currencyCode = product.priceRange.minVariantPrice.currencyCode;
+  const liveCompare = liveStatus.compareAtPrice;
+  const hasLiveDiscount =
+    typeof liveCompare === 'number' && liveCompare > liveStatus.price;
+  const ssrCompare = parseFloat(
+    product.compareAtPriceRange?.minVariantPrice?.amount || ''
+  );
+  const hasSsrDiscount =
+    Number.isFinite(ssrCompare) && ssrCompare > liveStatus.price;
+  const compareAmount = hasLiveDiscount
+    ? liveCompare!
+    : hasSsrDiscount
+      ? ssrCompare
+      : null;
+
+  return {
+    ...product,
+    availableForSale: liveStatus.available,
+    priceRange: {
+      ...product.priceRange,
+      minVariantPrice: {
+        amount: liveStatus.price.toString(),
+        currencyCode,
+      },
+      maxVariantPrice: {
+        amount: liveStatus.price.toString(),
+        currencyCode,
+      },
+    },
+    compareAtPriceRange:
+      compareAmount !== null
+        ? {
+            minVariantPrice: {
+              amount: compareAmount.toString(),
+              currencyCode,
+            },
+            maxVariantPrice: {
+              amount: compareAmount.toString(),
+              currencyCode,
+            },
+          }
+        : {
+            minVariantPrice: { amount: '0', currencyCode },
+            maxVariantPrice: { amount: '0', currencyCode },
+          },
+  };
+}
+
 export function useLiveProductStatus(products: ShopifyProduct[]): {
   products: ShopifyProduct[];
   isLoading: boolean;
@@ -77,44 +131,9 @@ export function useLiveProductStatus(products: ShopifyProduct[]): {
         // Drop products with no Storefront node or non-positive price ($0 drafts/ghosts).
         const updatedProducts = products.flatMap((product) => {
           const liveStatus = statusMap[product.id];
-          if (!liveStatus || !(liveStatus.price > 0)) return [];
-
-          const currencyCode = product.priceRange.minVariantPrice.currencyCode;
-          const liveCompare = liveStatus.compareAtPrice;
-          const hasLiveDiscount =
-            typeof liveCompare === 'number' && liveCompare > liveStatus.price;
-
-          return [{
-            ...product,
-            availableForSale: liveStatus.available,
-            totalInventory: liveStatus.stock,
-            priceRange: {
-              ...product.priceRange,
-              minVariantPrice: {
-                amount: liveStatus.price.toString(),
-                currencyCode,
-              },
-              maxVariantPrice: {
-                amount: liveStatus.price.toString(),
-                currencyCode,
-              },
-            },
-            compareAtPriceRange: hasLiveDiscount
-              ? {
-                  minVariantPrice: {
-                    amount: liveCompare!.toString(),
-                    currencyCode,
-                  },
-                  maxVariantPrice: {
-                    amount: liveCompare!.toString(),
-                    currencyCode,
-                  },
-                }
-              : {
-                  minVariantPrice: { amount: '0', currencyCode },
-                  maxVariantPrice: { amount: '0', currencyCode },
-                },
-          }];
+          if (!liveStatus) return [];
+          const next = applyLiveStatusToProduct(product, liveStatus);
+          return next ? [next] : [];
         });
 
         setHydratedProducts(updatedProducts);
@@ -211,44 +230,9 @@ export function useLiveProductStatusOptimized(
 
         const updatedProducts = currentProducts.flatMap((product) => {
           const liveStatus = statusMap[product.id];
-          if (!liveStatus || !(liveStatus.price > 0)) return [];
-
-          const currencyCode = product.priceRange.minVariantPrice.currencyCode;
-          const liveCompare = liveStatus.compareAtPrice;
-          const hasLiveDiscount =
-            typeof liveCompare === 'number' && liveCompare > liveStatus.price;
-
-          return [{
-            ...product,
-            availableForSale: liveStatus.available,
-            totalInventory: liveStatus.stock,
-            priceRange: {
-              ...product.priceRange,
-              minVariantPrice: {
-                amount: liveStatus.price.toString(),
-                currencyCode,
-              },
-              maxVariantPrice: {
-                amount: liveStatus.price.toString(),
-                currencyCode,
-              },
-            },
-            compareAtPriceRange: hasLiveDiscount
-              ? {
-                  minVariantPrice: {
-                    amount: liveCompare!.toString(),
-                    currencyCode,
-                  },
-                  maxVariantPrice: {
-                    amount: liveCompare!.toString(),
-                    currencyCode,
-                  },
-                }
-              : {
-                  minVariantPrice: { amount: '0', currencyCode },
-                  maxVariantPrice: { amount: '0', currencyCode },
-                },
-          }];
+          if (!liveStatus) return [];
+          const next = applyLiveStatusToProduct(product, liveStatus);
+          return next ? [next] : [];
         });
 
         setHydratedProducts(updatedProducts);
