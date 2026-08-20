@@ -10,6 +10,8 @@ export interface FilterPreferences {
   brands?: string[];
   priceRange?: { min: number; max: number };
   inStockOnly?: boolean;
+  /** /on-sale only: filter by top-level category (horse, rider, …) */
+  saleCategory?: string;
   
   // Alias for compatibility
   size?: string[];
@@ -114,6 +116,12 @@ export function getFiltersFromSearchParams(
     filters.inStockOnly = true;
   }
 
+  // On-sale top-level category
+  const saleCategory = searchParams.get('saleCategory');
+  if (saleCategory) {
+    filters.saleCategory = saleCategory;
+  }
+
   return filters;
 }
 
@@ -146,6 +154,10 @@ export function filtersToSearchParams(
 
   if (filters.inStockOnly) {
     params.set('inStock', 'true');
+  }
+
+  if (filters.saleCategory) {
+    params.set('saleCategory', filters.saleCategory);
   }
 
   return params;

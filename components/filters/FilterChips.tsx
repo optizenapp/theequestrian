@@ -10,6 +10,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useMemo } from 'react';
 import type { SubcategoryOption } from '@/lib/filters/category-filter';
 import type { FilterPreferences } from '@/lib/filters/localStorage';
+import { ON_SALE_TOP_CATEGORIES } from '@/lib/filters/on-sale-category';
 
 interface FilterChipsProps {
   filters: FilterPreferences;
@@ -140,6 +141,21 @@ export function FilterChips({ filters, onClearAll }: FilterChipsProps) {
         label: 'In Stock Only',
         value: 'true',
         param: 'inStock',
+      });
+    }
+
+    // On-sale top-level category chip
+    if (filters.saleCategory) {
+      const known = ON_SALE_TOP_CATEGORIES.find(
+        (c) => c.handle === filters.saleCategory
+      );
+      const label = known?.label
+        ?? filters.saleCategory.charAt(0).toUpperCase() + filters.saleCategory.slice(1);
+      chips.push({
+        key: 'saleCategory',
+        label: `Category: ${label}`,
+        value: filters.saleCategory,
+        param: 'saleCategory',
       });
     }
 

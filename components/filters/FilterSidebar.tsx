@@ -9,6 +9,7 @@
 
 import { useState, useEffect } from 'react';
 import { TopCategoryFilter } from './TopCategoryFilter';
+import { OnSaleCategoryFilter } from './OnSaleCategoryFilter';
 import { CategorySiloNav } from './CategorySiloNav';
 import { PriceFilter } from './PriceFilter';
 import { AttributeFilter } from './AttributeFilter';
@@ -24,6 +25,8 @@ interface FilterSidebarProps {
   sizeOptions: FilterOption[];
   colorOptions: FilterOption[];
   brandOptions: FilterOption[];
+  /** On-sale page only: top-level categories that currently have deals */
+  onSaleCategoryOptions?: FilterOption[];
 
   // Price range
   priceRange?: { min: number; max: number };
@@ -40,6 +43,7 @@ export function FilterSidebar({
   sizeOptions,
   colorOptions,
   brandOptions,
+  onSaleCategoryOptions,
   priceRange,
   currencyCode = 'USD',
   isOpen = false,
@@ -71,6 +75,10 @@ export function FilterSidebar({
 
   const content = (
     <div className="space-y-6">
+      {currentCategory === 'on-sale' && onSaleCategoryOptions && onSaleCategoryOptions.length > 0 && (
+        <OnSaleCategoryFilter options={onSaleCategoryOptions} />
+      )}
+
       {siloNav ? (
         <CategorySiloNav nav={siloNav} />
       ) : (

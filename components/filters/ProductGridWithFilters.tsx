@@ -23,6 +23,10 @@ import {
   getPriceRange,
 } from '@/lib/filters/product-filters';
 import {
+  getOnSaleCategoryOptions,
+  filterByOnSaleCategory,
+} from '@/lib/filters/on-sale-category';
+import {
   getFilterPreferences,
   saveFilterPreferences,
   clearFilterPreferences,
@@ -119,9 +123,10 @@ export function ProductGridWithFilters({
     // /on-sale: drop anything live hydration shows without a real compare-at discount
     if (currentCategory === 'on-sale') {
       next = next.filter(hasRealCompareAtDiscount);
+      next = filterByOnSaleCategory(next, filters.saleCategory, productUrls);
     }
     return next;
-  }, [hydratedProducts, filters, currentCategory]);
+  }, [hydratedProducts, filters, currentCategory, productUrls]);
   
   // Apply sorting to filtered products
   // IMPORTANT: Always keep in-stock products before out-of-stock products
@@ -284,6 +289,12 @@ export function ProductGridWithFilters({
     return getPriceRange(hydratedProducts);
   }, [hydratedProducts, serverFacets]);
 
+  const onSaleCategoryOptions = useMemo(() => {
+    if (currentCategory !== 'on-sale') return undefined;
+    const discounted = hydratedProducts.filter(hasRealCompareAtDiscount);
+    return getOnSaleCategoryOptions(discounted, productUrls);
+  }, [currentCategory, hydratedProducts, productUrls]);
+
   // Save filter preferences to localStorage
   useEffect(() => {
     if (Object.keys(filters).length > 0) {
@@ -367,6 +378,7 @@ export function ProductGridWithFilters({
             sizeOptions={sizeOptions}
             colorOptions={colorOptions}
             brandOptions={brandOptions}
+            onSaleCategoryOptions={onSaleCategoryOptions}
             priceRange={priceRange}
             isOpen={false}
             onClose={() => {}}
@@ -382,6 +394,7 @@ export function ProductGridWithFilters({
               sizeOptions={sizeOptions}
               colorOptions={colorOptions}
               brandOptions={brandOptions}
+              onSaleCategoryOptions={onSaleCategoryOptions}
               priceRange={priceRange}
               isOpen={isMobileFilterOpen}
               onClose={() => setIsMobileFilterOpen(false)}
