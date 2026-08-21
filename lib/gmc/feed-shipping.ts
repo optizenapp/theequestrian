@@ -2,6 +2,10 @@
  * GMC feed shipping — Shopify Collective Carrier Service rates (cached).
  * Source of truth: draftOrderCalculate → collective_shipping_rates.
  * Variant miss falls back to any cached rate for the same product.
+ *
+ * Optional per-vendor free_shipping_threshold (from vendor_shipping_rates) is
+ * emitted as g:free_shipping_threshold so Merchant listings can show
+ * "Free delivery over $X" on the individual product offer.
  */
 import {
   getCollectiveShippingRatesByProductIds,
@@ -14,6 +18,8 @@ export type GmcShippingResolution = {
   rateAud: number | null;
   shippingLabel: string;
   shippingXml: string;
+  /** Present when the vendor has a free-over threshold for this offer. */
+  freeShippingThresholdAud: number | null;
 };
 
 export type CollectiveShippingLookups = {
@@ -41,17 +47,36 @@ export function formatShippingLabel(rateAud: number | null): string {
   return `aud_${rateAud.toFixed(2)}`;
 }
 
-function buildShippingXml(rateAud: number | null, shippingLabel: string): string {
-  if (rateAud === null) {
-    return `<g:shipping_label>${escapeXml(shippingLabel)}</g:shipping_label>`;
-  }
+function buildFreeShippingThresholdXml(thresholdAud: number): string {
   return [
-    '<g:shipping>',
+    '<g:free_shipping_threshold>',
     '<g:country>AU</g:country>',
-    `<g:price>${escapeXml(`${rateAud.toFixed(2)} AUD`)}</g:price>`,
-    '</g:shipping>',
-    `<g:shipping_label>${escapeXml(shippingLabel)}</g:shipping_label>`,
+    `<g:price_threshold>${escapeXml(`${thresholdAud.toFixed(2)} AUD`)}</g:price_threshold>`,
+    '</g:free_shipping_threshold>',
   ].join('');
+}
+
+function buildShippingXml(
+  rateAud: number | null,
+  shippingLabel: string,
+  freeShippingThresholdAud: number | null
+): string {
+  const parts: string[] = [];
+  if (rateAud === null) {
+    parts.push(`<g:shipping_label>${escapeXml(shippingLabel)}</g:shipping_label>`);
+  } else {
+    parts.push(
+      '<g:shipping>',
+      '<g:country>AU</g:country>',
+      `<g:price>${escapeXml(`${rateAud.toFixed(2)} AUD`)}</g:price>`,
+      '</g:shipping>',
+      `<g:shipping_label>${escapeXml(shippingLabel)}</g:shipping_label>`
+    );
+  }
+  if (freeShippingThresholdAud != null && freeShippingThresholdAud > 0) {
+    parts.push(buildFreeShippingThresholdXml(freeShippingThresholdAud));
+  }
+  return parts.join('');
 }
 
 export function pickCollectiveRateForVariant(input: {
@@ -67,13 +92,29 @@ export function pickCollectiveRateForVariant(input: {
 export function resolveGmcShippingFromCollectiveRate(input: {
   tags: string[];
   collectiveRate: CollectiveShippingRateRow | null | undefined;
+  /** Vendor free-over threshold in AUD, if known. */
+  freeShippingThresholdAud?: number | null;
+  /** Current offer price — qualifies for free ship alone when >= threshold. */
+  offerPriceAud?: number | null;
 }): GmcShippingResolution {
-  if (tagsIndicateFreeShipping(input.tags)) {
+  const thresholdRaw = input.freeShippingThresholdAud;
+  const threshold =
+    thresholdRaw != null && Number.isFinite(thresholdRaw) && thresholdRaw > 0
+      ? thresholdRaw
+      : null;
+  const offerPrice =
+    input.offerPriceAud != null && Number.isFinite(input.offerPriceAud)
+      ? input.offerPriceAud
+      : null;
+  const qualifiesAlone = threshold != null && offerPrice != null && offerPrice >= threshold;
+
+  if (tagsIndicateFreeShipping(input.tags) || qualifiesAlone) {
     const shippingLabel = 'free';
     return {
       rateAud: 0,
       shippingLabel,
-      shippingXml: buildShippingXml(0, shippingLabel),
+      freeShippingThresholdAud: threshold,
+      shippingXml: buildShippingXml(0, shippingLabel, threshold),
     };
   }
 
@@ -82,7 +123,8 @@ export function resolveGmcShippingFromCollectiveRate(input: {
     return {
       rateAud: null,
       shippingLabel,
-      shippingXml: buildShippingXml(null, shippingLabel),
+      freeShippingThresholdAud: threshold,
+      shippingXml: buildShippingXml(null, shippingLabel, threshold),
     };
   }
 
@@ -92,7 +134,8 @@ export function resolveGmcShippingFromCollectiveRate(input: {
     return {
       rateAud: null,
       shippingLabel,
-      shippingXml: buildShippingXml(null, shippingLabel),
+      freeShippingThresholdAud: threshold,
+      shippingXml: buildShippingXml(null, shippingLabel, threshold),
     };
   }
 
@@ -100,7 +143,8 @@ export function resolveGmcShippingFromCollectiveRate(input: {
   return {
     rateAud,
     shippingLabel,
-    shippingXml: buildShippingXml(rateAud, shippingLabel),
+    freeShippingThresholdAud: threshold,
+    shippingXml: buildShippingXml(rateAud, shippingLabel, threshold),
   };
 }
 
