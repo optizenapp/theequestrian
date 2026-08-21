@@ -7,6 +7,7 @@ const content: BrandSEOContent = {
   logo_url: '/brands/logos/thinline-global-australia.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'ThinLine Global Australia' },
+    { column: 'BRAND', relation: 'EQUALS', condition: 'Thinline Global' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'thinline-' },
   ],
 

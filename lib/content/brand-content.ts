@@ -1,6 +1,7 @@
 import { sql } from '@/lib/db/client';
 import { ensureBrandContentColumns } from '@/lib/db/ensure-brand-content-columns';
 import { isBlockedBrandHandle, isBlockedBrandName } from '@/lib/brands/blocked-brands';
+import { isAliasBrandHub } from '@/lib/brands/hub-consolidations';
 
 export interface BrandContentRow {
   handle: string;
@@ -94,7 +95,7 @@ async function loadBrandContent(): Promise<Map<string, BrandContentRow>> {
     >;
     const map = new Map<string, BrandContentRow>();
     for (const row of rawRows) {
-      if (isBlockedBrandHandle(row.handle)) continue;
+      if (isBlockedBrandHandle(row.handle) || isAliasBrandHub(row.handle)) continue;
       map.set(row.handle, {
         handle: row.handle,
         title: row.title,

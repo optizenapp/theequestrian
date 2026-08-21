@@ -14,6 +14,7 @@ import { resolve } from 'path';
 import { slugFromBrandName } from '@/lib/brands/brand-slug';
 import { isBlockedBrandCandidate } from '@/lib/brands/blocked-brands';
 import { invalidateBrandContentCache } from '@/lib/content/brand-content';
+import { resolveCanonicalBrandHubHandle } from '@/lib/brands/hub-consolidations';
 
 config({ path: resolve(process.cwd(), '.env.local') });
 config({ path: resolve(process.cwd(), '.env') });
@@ -64,14 +65,25 @@ async function main(): Promise<void> {
         }
         if (best) handle = best;
       }
+      handle = resolveCanonicalBrandHubHandle(handle);
       return { name, cnt: v.count, handle };
     })
     .sort((a, b) => a.name.localeCompare(b.name));
 
+  const collapsed = new Map<string, { name: string; cnt: number; handle: string }>();
+  for (const row of counts) {
+    const prev = collapsed.get(row.handle);
+    if (prev) {
+      prev.cnt += row.cnt;
+    } else {
+      collapsed.set(row.handle, { name: row.name, cnt: row.cnt, handle: row.handle });
+    }
+  }
+
   let upserted = 0;
   let skippedBlocked = 0;
   const activeHandles = new Set<string>();
-  for (const row of counts) {
+  for (const row of collapsed.values()) {
     const name = row.name.trim();
     const cnt = Number(row.cnt);
     const handle = row.handle;

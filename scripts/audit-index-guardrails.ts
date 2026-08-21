@@ -1,4 +1,5 @@
 import robots from '@/app/robots';
+import { BRAND_HUB_CONSOLIDATIONS } from '@/lib/brands/hub-consolidations';
 import { blogRedirects, collectionRedirects, pageRedirects } from '@/lib/redirects/maps';
 
 type GuardrailResult = {
@@ -19,9 +20,15 @@ function normalizeLocation(location: string | null): string | null {
 function evaluatePath(pathname: string): { status: number; location?: string; noindex?: boolean } {
   const decodedPath = decodeURIComponent(pathname);
 
-  if (pathname === '/brands/kentucky-horsewear') return { status: 301, location: '/brands/kentucky' };
-  if (pathname === '/brands/ego-7') return { status: 301, location: '/brands/ego7' };
-  if (pathname === '/brands/hairy') return { status: 301, location: '/brands/hairy-pony' };
+  if (pathname.startsWith('/brands/')) {
+    const handle = pathname.slice('/brands/'.length);
+    if (handle && !handle.includes('/')) {
+      const canonical = BRAND_HUB_CONSOLIDATIONS[handle];
+      if (canonical && canonical !== handle) {
+        return { status: 301, location: `/brands/${canonical}` };
+      }
+    }
+  }
   if (pathname === '/accessories/collectibles') return { status: 301, location: '/accessories/toys' };
   if (pathname.startsWith('/cart/c/')) return { status: 301, location: '/cart' };
 
@@ -159,6 +166,11 @@ const results: GuardrailResult[] = [
   assertRedirect('sample collection redirect', firstCollectionRedirect[0], firstCollectionRedirect[1]),
   assertRedirect('legacy brand consolidation', '/brands/kentucky-horsewear', '/brands/kentucky'),
   assertRedirect('hairy brand consolidation', '/brands/hairy', '/brands/hairy-pony'),
+  assertRedirect('cdm full-name alias', '/brands/carr-day-martin', '/brands/cdm'),
+  assertRedirect('cdm and-name alias', '/brands/carr-and-day-martin', '/brands/cdm'),
+  assertRedirect('thinline alias', '/brands/thinline-global', '/brands/thinline-global-australia'),
+  assertRedirect('kep alias', '/brands/kep', '/brands/kep-italia'),
+  assertRedirect('dyon long-handle alias', '/brands/dyon-european-classic-equestrian-gear', '/brands/dyon'),
   assertRedirect('legacy cart permalink', '/cart/c/example-cart-id', '/cart'),
   assertGone('unknown collection path is gone', '/collections/not-in-map'),
   assertGone('plus URL combination is gone', '/collections/footwear/top-boots+black'),

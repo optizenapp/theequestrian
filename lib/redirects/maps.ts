@@ -43,7 +43,7 @@ export const collectionRedirects: Record<string, string> = {
   "/collections/hitchley-harrow": "/accessories/brands/hitchley-harrow",
   "/collections/diamond-deluxe-horsewear": "/brands/diamond-deluxe-horsewear",
   "/collections/bucas-australia": "/horse/rugs",
-  "/collections/cavalor-equicare": "/brands/cavalor-equicare",
+  "/collections/cavalor-equicare": "/brands/cavalor",
   "/collections/lemieux": "/horse/pads",
   "/collections/zilco": "/brands/zilco",
   "/collections/penelope-leprovost": "/brands/penelope-leprovost",

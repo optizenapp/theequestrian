@@ -1,5 +1,6 @@
 import type { BrandContentRow } from '@/lib/content/brand-content';
 import { slugFromBrandName } from '@/lib/brands/brand-slug';
+import { resolveCanonicalBrandHubHandle } from '@/lib/brands/hub-consolidations';
 import { isBlockedBrandHandle } from '@/lib/brands/blocked-brands';
 import { inferProductBrand } from '@/lib/brands/infer-product-brand';
 import { isMarketplaceAggregatorVendor } from '@/lib/brands/marketplace-vendors';
@@ -61,7 +62,7 @@ export function findHubForBrandLabel(brand: string, lexicon: BrandLexiconEntry[]
   const exact = lexicon.find((e) => e.label.toLowerCase() === lower);
   if (exact) return exact.hubHandle;
 
-  const slug = slugFromBrandName(brand);
+  const slug = resolveCanonicalBrandHubHandle(slugFromBrandName(brand));
   const bySlug = lexicon.find((e) => e.hubHandle === slug);
   return bySlug?.hubHandle ?? null;
 }
@@ -97,7 +98,7 @@ export function resolveProductBrandDisplay(
   const dbHub = input.brandHubHandle?.trim() || null;
 
   if (dbBrand && dbHub) {
-    return { brand: dbBrand, brandHubHandle: dbHub };
+    return { brand: dbBrand, brandHubHandle: resolveCanonicalBrandHubHandle(dbHub) };
   }
 
   if (dbBrand && !dbHub) {

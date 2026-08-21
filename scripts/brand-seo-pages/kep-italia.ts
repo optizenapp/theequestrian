@@ -7,7 +7,8 @@ const content: BrandSEOContent = {
   logo_url: '/brands/logos/kep-italia.png',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'KEP Italia' },
-    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'kep-italia-' },
+    { column: 'BRAND', relation: 'EQUALS', condition: 'KEP' },
+    { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'kep-' },
   ],
 
   meta_title: 'KEP Italia Helmets Australia | The Equestrian',

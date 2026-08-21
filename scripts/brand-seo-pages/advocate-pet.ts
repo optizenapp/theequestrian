@@ -6,6 +6,7 @@ const content: BrandSEOContent = {
   breadcrumb_label: 'Advocate Pet',
   rules: [
     { column: 'BRAND', relation: 'EQUALS', condition: 'Advocate Pet' },
+    { column: 'BRAND', relation: 'EQUALS', condition: 'Advocate' },
     { column: 'HANDLE', relation: 'STARTS_WITH', condition: 'advocate-' },
   ],
 

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { BRAND_HUB_CONSOLIDATIONS } from '@/lib/brands/hub-consolidations';
 import { blogRedirects, collectionRedirects, pageRedirects } from '@/lib/redirects/maps';
 
 const goneResponse = () =>
@@ -30,22 +31,16 @@ export function middleware(request: NextRequest) {
   }
 
   // Duplicate brand URLs: consolidate on canonical brand handles.
-  if (pathname === '/brands/kentucky-horsewear') {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = '/brands/kentucky';
-    return NextResponse.redirect(redirectUrl, 301);
-  }
-
-  if (pathname === '/brands/ego-7') {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = '/brands/ego7';
-    return NextResponse.redirect(redirectUrl, 301);
-  }
-
-  if (pathname === '/brands/hairy') {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = '/brands/hairy-pony';
-    return NextResponse.redirect(redirectUrl, 301);
+  if (pathname.startsWith('/brands/')) {
+    const handle = pathname.slice('/brands/'.length);
+    if (handle && !handle.includes('/')) {
+      const canonical = BRAND_HUB_CONSOLIDATIONS[handle];
+      if (canonical && canonical !== handle) {
+        const redirectUrl = request.nextUrl.clone();
+        redirectUrl.pathname = `/brands/${canonical}`;
+        return NextResponse.redirect(redirectUrl, 301);
+      }
+    }
   }
 
   // Hard-stop blocked brand hubs at edge so cached/runtime content cannot revive them.
