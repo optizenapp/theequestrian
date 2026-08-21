@@ -13,6 +13,16 @@ import {
 } from '@/lib/gmc/feed-shipping';
 import { loadProductBrandMapByHandles } from '@/lib/db/product-brand';
 import { getCompareAtSalePair } from '@/lib/shopify/product-discount';
+import {
+  getVendorFreeShippingThreshold,
+  loadShippingRates,
+  type ShippingRates,
+} from '@/lib/shipping/rates';
+import { buildGmcCustomLabels } from '@/lib/gmc/custom-labels';
+import {
+  loadVariantEconomicsMap,
+  type VariantEconomics,
+} from '@/lib/gmc/variant-economics';
 import type { ProductWithPrimaryCollection, ShopifyVariant } from '@/types/shopify';
 
 function escapeXml(value: string) {
@@ -131,125 +141,6 @@ function extractAgeGroup(tags: string[], productType?: string | null): string | 
   return 'adult';
 }
 
-function extractMarginTier(tags: string[]): string {
-  const tag = tags.find((value) => normalizeTag(value).startsWith('margin:'));
-  if (tag) {
-    const [, raw] = tag.split(':');
-    const tier = normalizeTag(raw || '');
-    if (tier.includes('high')) return 'high';
-    if (tier.includes('medium')) return 'medium';
-    if (tier.includes('low')) return 'low';
-  }
-  return 'unknown';
-}
-
-function extractSeasonality(tags: string[]): string {
-  const normalized = tags.map(normalizeTag);
-  if (normalized.some((tag) => tag.includes('summer'))) return 'summer';
-  if (normalized.some((tag) => tag.includes('winter'))) return 'winter';
-  if (normalized.some((tag) => tag.includes('spring'))) return 'spring';
-  if (normalized.some((tag) => tag.includes('autumn') || tag.includes('fall'))) return 'autumn';
-  return 'evergreen';
-}
-
-function extractPerformanceBucket(tags: string[]): string {
-  const normalized = tags.map(normalizeTag);
-  if (normalized.some((tag) => tag.includes('bestseller') || tag.includes('best seller'))) return 'bestseller';
-  if (normalized.some((tag) => tag.includes('slow') || tag.includes('slow_mover'))) return 'slow_mover';
-  if (normalized.some((tag) => tag.includes('clearance'))) return 'slow_mover';
-  return 'unknown';
-}
-
-type CommissionGroup = '13' | '9';
-
-const COMMISSION_13_KEYWORDS = [
-  'fly veil',
-  'flyveils',
-  'fly bonnet',
-  'fly hood',
-  'fly mask',
-  'stable',
-  'arena',
-  'horse accessories',
-  'accessories',
-  'halter',
-  'grooming',
-  'bridle',
-  'strapping',
-];
-
-const COMMISSION_9_KEYWORDS = [
-  'bit',
-  'boots',
-  'footwear',
-  'helmet',
-  'rug',
-  'clipper',
-  'pet',
-  'saddle pad',
-  'saddlecloth',
-  'toy',
-  'jewellery',
-  'jewelry',
-  'health',
-  'nutrition',
-  'feed',
-  'body protector',
-  'safety vest',
-  'riding',
-  'clothing',
-  'jodhpur',
-  'breeches',
-];
-
-function hasKeywordMatch(haystacks: string[], keywords: string[]) {
-  return keywords.some((keyword) => haystacks.some((value) => value.includes(keyword)));
-}
-
-function resolveCommissionGroup(productType: string | null | undefined, canonicalPath: string, tags: string[]): CommissionGroup {
-  const searchSpace = [
-    normalizeTag(productType || ''),
-    normalizeTag(canonicalPath.replace(/\//g, ' ')),
-    ...tags.map(normalizeTag),
-  ];
-
-  if (hasKeywordMatch(searchSpace, COMMISSION_13_KEYWORDS)) {
-    return '13';
-  }
-
-  // Non-13 groups (including legacy 11/10/7/6.5/5) are treated with 9% logic.
-  if (hasKeywordMatch(searchSpace, COMMISSION_9_KEYWORDS)) {
-    return '9';
-  }
-
-  return '9';
-}
-
-function resolveCommissionTier(group: CommissionGroup, amount: string): string {
-  const price = Number(amount);
-  if (!Number.isFinite(price)) {
-    return 'do_not_advertise';
-  }
-
-  if (group === '13') {
-    if (price >= 100) return 'tier_1';
-    if (price >= 40) return 'tier_2';
-    return 'do_not_advertise';
-  }
-
-  if (price >= 300) return 'tier_3';
-  return 'do_not_advertise';
-}
-
-function getPriceTier(amount: string): string {
-  const price = Number(amount);
-  if (!Number.isFinite(price)) return 'unknown';
-  if (price < 50) return 'under_50';
-  if (price <= 100) return '50_to_100';
-  if (price <= 300) return '100_to_300';
-  return '300_plus';
-}
-
 function normalizeDigits(value: string | null | undefined): string {
   return (value || '').replace(/\D/g, '');
 }
@@ -293,6 +184,8 @@ function buildVariantItem({
   googleCategory,
   collectiveLookups,
   brand,
+  shippingRates,
+  economics,
 }: {
   product: ProductWithPrimaryCollection;
   variant: ShopifyVariant;
@@ -302,6 +195,8 @@ function buildVariantItem({
   collectiveLookups: CollectiveShippingLookups;
   /** Postgres products.brand — never Shopify Collective vendor */
   brand: string | null;
+  shippingRates: ShippingRates;
+  economics: VariantEconomics | undefined;
 }): { xml: string; variantId: string } | null {
   const productUrl = `${baseUrl}${canonicalPath}`;
   const productImageUrl = product.images.edges[0]?.node.url;
@@ -319,16 +214,15 @@ function buildVariantItem({
   const colorFallback = findColorSpecificImage(product.images.edges, color);
   const imageUrl = variantImageUrl || colorFallback || productImageUrl || null;
   const title = buildTitle([brand, product.title, color, size, material]);
-  const priceTier = getPriceTier(variant.price.amount);
-  const marginTier = extractMarginTier(product.tags);
-  const commissionGroup = resolveCommissionGroup(product.productType, canonicalPath, product.tags);
-  const commissionTier = resolveCommissionTier(commissionGroup, variant.price.amount);
-  const stockPressure = isAvailable ? 'high_stock' : 'low_stock';
-  const performanceBucket = extractPerformanceBucket(product.tags);
   const gtin = extractGtin(variant.barcode);
   const mpn = extractMpn(variant.sku);
   const identifierExists = Boolean(gtin || mpn);
   const variantLink = `${productUrl}?variant=${variantId}`;
+  const offerPriceAud = Number(variant.price.amount);
+  const freeShippingThresholdAud = getVendorFreeShippingThreshold(
+    product.vendor || '',
+    shippingRates
+  );
   const shipping = resolveGmcShippingFromCollectiveRate({
     tags: product.tags,
     collectiveRate: pickCollectiveRateForVariant({
@@ -336,6 +230,8 @@ function buildVariantItem({
       variantId,
       productId,
     }),
+    freeShippingThresholdAud,
+    offerPriceAud: Number.isFinite(offerPriceAud) ? offerPriceAud : null,
   });
 
   if (!imageUrl) {
@@ -353,6 +249,18 @@ function buildVariantItem({
         `<g:sale_price>${escapeXml(formatPrice(salePair.saleAmount, currency))}</g:sale_price>`,
       ]
     : [`<g:price>${escapeXml(formatPrice(variant.price.amount, currency))}</g:price>`];
+
+  // Economics use the price Google will advertise (sale when present).
+  const sellingPriceAud = Number(salePair?.saleAmount ?? variant.price.amount);
+  const labels = buildGmcCustomLabels({
+    sellingPriceAud: Number.isFinite(sellingPriceAud) ? sellingPriceAud : NaN,
+    tags: product.tags,
+    unitCostAud: economics?.unitCostAud ?? null,
+    availableForSale: isAvailable,
+    quantityAvailable: economics?.quantityAvailable ?? null,
+    tracked: economics?.tracked ?? null,
+    inventoryPolicy: economics?.inventoryPolicy ?? null,
+  });
 
   const tags = [
     `<g:id>${escapeXml(variantId)}</g:id>`,
@@ -377,11 +285,11 @@ function buildVariantItem({
     material ? `<g:material>${escapeXml(material)}</g:material>` : '',
     pattern ? `<g:pattern>${escapeXml(pattern)}</g:pattern>` : '',
     shipping.shippingXml,
-    `<g:custom_label_0>${escapeXml(priceTier)}</g:custom_label_0>`,
-    `<g:custom_label_1>${escapeXml(marginTier)}</g:custom_label_1>`,
-    `<g:custom_label_2>${escapeXml(commissionTier)}</g:custom_label_2>`,
-    `<g:custom_label_3>${escapeXml(stockPressure)}</g:custom_label_3>`,
-    `<g:custom_label_4>${escapeXml(performanceBucket)}</g:custom_label_4>`,
+    `<g:custom_label_0>${escapeXml(labels.custom_label_0)}</g:custom_label_0>`,
+    `<g:custom_label_1>${escapeXml(labels.custom_label_1)}</g:custom_label_1>`,
+    `<g:custom_label_2>${escapeXml(labels.custom_label_2)}</g:custom_label_2>`,
+    `<g:custom_label_3>${escapeXml(labels.custom_label_3)}</g:custom_label_3>`,
+    `<g:custom_label_4>${escapeXml(labels.custom_label_4)}</g:custom_label_4>`,
   ].filter(Boolean);
 
   return { xml: `<item>${tags.join('')}</item>`, variantId };
@@ -402,13 +310,15 @@ export async function buildGmcFeedXml() {
   );
   const allProductIds = products.map((product) => stripGid(product.id));
   const allHandles = products.map((product) => product.handle);
-  const [urlMap, collectiveLookups, brandMap] = await Promise.all([
+  const [urlMap, collectiveLookups, brandMap, shippingRates, economicsMap] = await Promise.all([
     getProductCanonicalUrls(products),
     loadCollectiveShippingLookups({
       variantIds: allVariantIds,
       productIds: allProductIds,
     }),
     loadProductBrandMapByHandles(allHandles),
+    loadShippingRates(),
+    loadVariantEconomicsMap(),
   ]);
   const missingBrandCount = products.filter((product) => !brandMap.has(product.handle)).length;
   console.log(
@@ -433,6 +343,8 @@ export async function buildGmcFeedXml() {
           googleCategory,
           collectiveLookups,
           brand,
+          shippingRates,
+          economics: economicsMap.get(stripGid(variant.id)),
         })
       )
       .filter((item): item is { xml: string; variantId: string } => item !== null);
