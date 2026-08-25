@@ -1,11 +1,23 @@
 /**
- * GMC custom-label economics (price / margin / contribution / stock / performance).
+ * GMC custom-label economics (price / margin / paid acquisition / stock / performance).
  * Thresholds are centralised so Shopping eligibility can be tuned later.
  */
 
-export const TIER_1_MIN_CONTRIBUTION = 20;
-export const TIER_2_MIN_CONTRIBUTION = 10;
-export const TIER_3_MIN_CONTRIBUTION = 6;
+/** Absolute contribution floors (AUD) for paid acquisition labels. */
+export const PRIME_MIN_CONTRIBUTION = 20;
+export const STRONG_MIN_CONTRIBUTION = 20;
+export const TEST_MIN_CONTRIBUTION = 10;
+
+/** Margin % floors for paid acquisition (full-precision classification). */
+export const PAID_MIN_MARGIN_PCT = 20;
+export const PRIME_MIN_MARGIN_PCT = 30;
+
+/**
+ * Negligible absolute epsilon on percentage-point / dollar comparisons to absorb
+ * IEEE float artefacts (e.g. 20 becoming 19.999999999999996). Must NOT promote
+ * genuinely-below-threshold economics (e.g. 19.995% stays below 20%).
+ */
+export const CLASSIFICATION_EPS = 1e-9;
 
 /** Margin band cutovers (%). Ranges are [lower, next). */
 export const MARGIN_RANGE_1 = 10;
@@ -31,7 +43,8 @@ export type MarginRangeLabel =
   | 'margin_40_plus'
   | 'unknown';
 
-export type ProfitabilityLabel = 'tier_1' | 'tier_2' | 'tier_3' | 'do_not_advertise';
+/** Paid acquisition potential — custom_label_2. */
+export type ProfitabilityLabel = 'prime' | 'strong' | 'test' | 'do_not_advertise';
 
 export type StockPressureLabel = 'high_stock' | 'low_stock';
 
@@ -51,6 +64,14 @@ export type MarginResolution = {
   source: 'tag' | 'unit_cost' | 'unknown';
 };
 
+function atLeast(value: number, threshold: number): boolean {
+  return value + CLASSIFICATION_EPS >= threshold;
+}
+
+function below(value: number, threshold: number): boolean {
+  return value + CLASSIFICATION_EPS < threshold;
+}
+
 export function getPriceTier(sellingPriceAud: number): PriceTierLabel {
   if (!Number.isFinite(sellingPriceAud) || sellingPriceAud < 0) {
     return 'under_50';
@@ -64,14 +85,25 @@ export function getPriceTier(sellingPriceAud: number): PriceTierLabel {
 
 export function getMarginRangeLabel(marginPercent: number | null): MarginRangeLabel {
   if (marginPercent == null || !Number.isFinite(marginPercent)) return 'unknown';
-  if (marginPercent < MARGIN_RANGE_1) return 'margin_under_10';
-  if (marginPercent < MARGIN_RANGE_2) return 'margin_10_19';
-  if (marginPercent < MARGIN_RANGE_3) return 'margin_20_29';
-  if (marginPercent < MARGIN_RANGE_4) return 'margin_30_39';
+  if (below(marginPercent, MARGIN_RANGE_1)) return 'margin_under_10';
+  if (below(marginPercent, MARGIN_RANGE_2)) return 'margin_10_19';
+  if (below(marginPercent, MARGIN_RANGE_3)) return 'margin_20_29';
+  if (below(marginPercent, MARGIN_RANGE_4)) return 'margin_30_39';
   return 'margin_40_plus';
 }
 
-export function getGrossContribution(
+/** Preferred contribution when unit cost is known: price − cost. */
+export function getGrossContributionFromCost(
+  sellingPriceAud: number,
+  unitCostAud: number | null | undefined
+): number | null {
+  if (!Number.isFinite(sellingPriceAud) || sellingPriceAud <= 0) return null;
+  if (unitCostAud == null || !Number.isFinite(unitCostAud) || unitCostAud <= 0) return null;
+  return sellingPriceAud - unitCostAud;
+}
+
+/** Fallback when only a margin % is known (e.g. margin:N tag). */
+export function getGrossContributionFromMargin(
   sellingPriceAud: number,
   marginPercent: number | null
 ): number | null {
@@ -80,14 +112,52 @@ export function getGrossContribution(
   return sellingPriceAud * (marginPercent / 100);
 }
 
-export function getProfitabilityLabel(grossContributionAud: number | null): ProfitabilityLabel {
+/**
+ * Paid acquisition label: requires BOTH healthy margin % and contribution $.
+ * Evaluate DNA first, then prime → strong → test.
+ */
+export function getPaidAcquisitionLabel(
+  marginPercent: number | null,
+  grossContributionAud: number | null,
+  _advertisedPriceAud?: number | null
+): ProfitabilityLabel {
+  if (marginPercent == null || !Number.isFinite(marginPercent)) {
+    return 'do_not_advertise';
+  }
   if (grossContributionAud == null || !Number.isFinite(grossContributionAud)) {
     return 'do_not_advertise';
   }
-  if (grossContributionAud >= TIER_1_MIN_CONTRIBUTION) return 'tier_1';
-  if (grossContributionAud >= TIER_2_MIN_CONTRIBUTION) return 'tier_2';
-  if (grossContributionAud >= TIER_3_MIN_CONTRIBUTION) return 'tier_3';
-  return 'do_not_advertise';
+  if (below(marginPercent, PAID_MIN_MARGIN_PCT)) {
+    return 'do_not_advertise';
+  }
+  if (below(grossContributionAud, TEST_MIN_CONTRIBUTION)) {
+    return 'do_not_advertise';
+  }
+
+  if (
+    atLeast(marginPercent, PRIME_MIN_MARGIN_PCT) &&
+    atLeast(grossContributionAud, PRIME_MIN_CONTRIBUTION)
+  ) {
+    return 'prime';
+  }
+
+  if (
+    atLeast(marginPercent, PAID_MIN_MARGIN_PCT) &&
+    atLeast(grossContributionAud, STRONG_MIN_CONTRIBUTION)
+  ) {
+    return 'strong';
+  }
+
+  return 'test';
+}
+
+/** @deprecated Prefer getPaidAcquisitionLabel. */
+export function getProfitabilityLabel(
+  marginPercent: number | null,
+  grossContributionAud: number | null,
+  advertisedPriceAud?: number | null
+): ProfitabilityLabel {
+  return getPaidAcquisitionLabel(marginPercent, grossContributionAud, advertisedPriceAud);
 }
 
 export function getStockPressureLabel(input: {
@@ -98,7 +168,6 @@ export function getStockPressureLabel(input: {
 }): StockPressureLabel {
   if (!input.availableForSale) return 'low_stock';
 
-  // Supplier-managed / unlimited: do not treat missing local qty as low stock.
   if (input.tracked === false || input.inventoryPolicy === 'CONTINUE') {
     return 'high_stock';
   }
@@ -126,8 +195,7 @@ export function getPerformanceLabel(tags: string[]): PerformanceLabel {
 
 /**
  * Parse exact margin from tags like `margin:17`, `margin:17%`, `margin:17.5`.
- * Qualitative tags (margin:high|medium|low) are intentionally ignored — they are
- * not exact percentages and must not drive profitability.
+ * Qualitative tags (margin:high|medium|low) are intentionally ignored.
  */
 export function parseExactMarginPercentFromTags(tags: string[]): number | null {
   for (const tag of tags) {
@@ -140,15 +208,14 @@ export function parseExactMarginPercentFromTags(tags: string[]): number | null {
   return null;
 }
 
+/** Full-precision margin % from unit cost — no business rounding. */
 export function marginPercentFromUnitCost(
   sellingPriceAud: number,
   unitCostAud: number | null | undefined
 ): number | null {
-  if (!Number.isFinite(sellingPriceAud) || sellingPriceAud <= 0) return null;
-  if (unitCostAud == null || !Number.isFinite(unitCostAud) || unitCostAud <= 0) return null;
-  const raw = ((sellingPriceAud - unitCostAud) / sellingPriceAud) * 100;
-  // Money is 2dp; round so e.g. 9.997% from cost/price noise lands on 10.00%.
-  return Math.round(raw * 100) / 100;
+  const contribution = getGrossContributionFromCost(sellingPriceAud, unitCostAud);
+  if (contribution == null) return null;
+  return (contribution / sellingPriceAud) * 100;
 }
 
 export function resolveMargin(input: {
@@ -180,17 +247,29 @@ export function buildGmcCustomLabels(input: {
   marginSource: MarginResolution['source'];
   grossContributionAud: number | null;
 } {
+  const price = input.sellingPriceAud;
   const margin = resolveMargin({
     tags: input.tags,
-    sellingPriceAud: input.sellingPriceAud,
+    sellingPriceAud: price,
     unitCostAud: input.unitCostAud,
   });
-  const grossContributionAud = getGrossContribution(input.sellingPriceAud, margin.marginPercent);
+
+  // Prefer price − cost when unit cost is the source; tag path uses price × rate.
+  let grossContributionAud: number | null = null;
+  if (margin.source === 'unit_cost') {
+    grossContributionAud = getGrossContributionFromCost(price, input.unitCostAud);
+  } else if (margin.source === 'tag') {
+    grossContributionAud = getGrossContributionFromMargin(price, margin.marginPercent);
+  }
 
   return {
-    custom_label_0: getPriceTier(input.sellingPriceAud),
+    custom_label_0: getPriceTier(price),
     custom_label_1: getMarginRangeLabel(margin.marginPercent),
-    custom_label_2: getProfitabilityLabel(grossContributionAud),
+    custom_label_2: getPaidAcquisitionLabel(
+      margin.marginPercent,
+      grossContributionAud,
+      price
+    ),
     custom_label_3: getStockPressureLabel({
       availableForSale: input.availableForSale,
       quantityAvailable: input.quantityAvailable,

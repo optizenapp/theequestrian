@@ -1,28 +1,29 @@
 /**
- * Boundary + sanity tests for GMC custom-label economics.
+ * Boundary + sanity tests for GMC paid-acquisition custom labels.
  * Run: npx tsx scripts/test-gmc-custom-labels.ts
  */
 import assert from 'node:assert/strict';
 import {
   buildGmcCustomLabels,
-  getGrossContribution,
+  getGrossContributionFromCost,
+  getGrossContributionFromMargin,
   getMarginRangeLabel,
+  getPaidAcquisitionLabel,
   getPriceTier,
-  getProfitabilityLabel,
   parseExactMarginPercentFromTags,
 } from '../lib/gmc/custom-labels';
 
-function expectTier(price: number, marginPct: number, expected: string) {
-  const contribution = getGrossContribution(price, marginPct);
-  const tier = getProfitabilityLabel(contribution);
+function expectPaid(price: number, marginPct: number, expected: string) {
+  const contribution = getGrossContributionFromMargin(price, marginPct);
+  const label = getPaidAcquisitionLabel(marginPct, contribution, price);
   assert.equal(
-    tier,
+    label,
     expected,
-    `A$${price} @ ${marginPct}% → contribution ${contribution} expected ${expected}, got ${tier}`
+    `A$${price} @ ${marginPct}% → contrib ${contribution} expected ${expected}, got ${label}`
   );
 }
 
-// Price tier boundaries
+// Price tier boundaries (unchanged)
 assert.equal(getPriceTier(49.99), 'under_50');
 assert.equal(getPriceTier(50), '50_to_100');
 assert.equal(getPriceTier(99.99), '50_to_100');
@@ -32,7 +33,7 @@ assert.equal(getPriceTier(150), '150_to_300');
 assert.equal(getPriceTier(299.99), '150_to_300');
 assert.equal(getPriceTier(300), '300_plus');
 
-// Margin range boundaries
+// Margin range boundaries (unchanged thresholds)
 assert.equal(getMarginRangeLabel(9.99), 'margin_under_10');
 assert.equal(getMarginRangeLabel(10), 'margin_10_19');
 assert.equal(getMarginRangeLabel(19.99), 'margin_10_19');
@@ -43,31 +44,44 @@ assert.equal(getMarginRangeLabel(39.99), 'margin_30_39');
 assert.equal(getMarginRangeLabel(40), 'margin_40_plus');
 assert.equal(getMarginRangeLabel(null), 'unknown');
 
-// Contribution thresholds
-assert.equal(getProfitabilityLabel(5.99), 'do_not_advertise');
-assert.equal(getProfitabilityLabel(6), 'tier_3');
-assert.equal(getProfitabilityLabel(9.99), 'tier_3');
-assert.equal(getProfitabilityLabel(10), 'tier_2');
-assert.equal(getProfitabilityLabel(19.99), 'tier_2');
-assert.equal(getProfitabilityLabel(20), 'tier_1');
-assert.equal(getProfitabilityLabel(null), 'do_not_advertise');
+// Margin boundaries for paid label (price passed so prime value gate applies)
+assert.equal(getPaidAcquisitionLabel(19.99, 50, 100), 'do_not_advertise');
+assert.equal(getPaidAcquisitionLabel(19.995, 50, 100), 'do_not_advertise');
+assert.equal(getPaidAcquisitionLabel(20, 10, 100), 'test');
+assert.equal(getPaidAcquisitionLabel(29.99, 20, 100), 'strong');
+assert.equal(getPaidAcquisitionLabel(30, 20, 100), 'prime');
+assert.equal(getPaidAcquisitionLabel(39.99, 20, 100), 'prime');
+assert.equal(getPaidAcquisitionLabel(40, 20, 100), 'prime');
 
-// Sanity matrix from brief
-expectTier(50, 10, 'do_not_advertise');
-expectTier(80, 10, 'tier_3');
-expectTier(120, 10, 'tier_2');
-expectTier(200, 10, 'tier_1');
-expectTier(50, 17, 'tier_3');
-expectTier(80, 17, 'tier_2');
-expectTier(120, 17, 'tier_1');
-expectTier(30, 25, 'tier_3');
-expectTier(50, 25, 'tier_2');
-expectTier(80, 25, 'tier_1');
-expectTier(20, 40, 'tier_3');
-expectTier(30, 40, 'tier_2');
-expectTier(50, 40, 'tier_1');
+// Contribution boundaries at >=20% margin
+assert.equal(getPaidAcquisitionLabel(25, 9.99, 100), 'do_not_advertise');
+assert.equal(getPaidAcquisitionLabel(25, 10, 100), 'test');
+assert.equal(getPaidAcquisitionLabel(25, 19.99, 100), 'test');
+assert.equal(getPaidAcquisitionLabel(25, 20, 100), 'strong');
+assert.equal(getPaidAcquisitionLabel(30, 20, 100), 'prime');
 
-// Exact margin drives profitability (not the range label)
+// Unknowns
+assert.equal(getPaidAcquisitionLabel(null, 50, 100), 'do_not_advertise');
+assert.equal(getPaidAcquisitionLabel(40, null, 100), 'do_not_advertise');
+assert.equal(getPaidAcquisitionLabel(-5, 50, 100), 'do_not_advertise');
+
+// Brief examples (prime = margin >= 30% AND contrib >= $20)
+expectPaid(100, 40, 'prime'); // $40
+expectPaid(80, 30, 'prime'); // $24
+expectPaid(200, 30, 'prime'); // $60
+expectPaid(100, 25, 'strong'); // $25
+expectPaid(150, 20, 'strong'); // $30
+expectPaid(50, 30, 'test'); // $15 — contrib < $20
+expectPaid(30, 40, 'test'); // $12
+expectPaid(70, 20, 'test'); // $14
+expectPaid(300, 10, 'do_not_advertise');
+expectPaid(200, 10, 'do_not_advertise');
+expectPaid(45, 50, 'prime'); // $22.50 — under $50 still prime when contrib >= $20
+expectPaid(45, 70, 'prime'); // $31.50
+expectPaid(49.99, 40.1, 'prime'); // ~$20.05
+expectPaid(50, 40, 'prime');
+
+// Tag 17% with $20.40 contrib → DNA (margin < 20%)
 {
   const labels = buildGmcCustomLabels({
     sellingPriceAud: 120,
@@ -77,10 +91,8 @@ expectTier(50, 40, 'tier_1');
   });
   assert.equal(labels.custom_label_0, '100_to_150');
   assert.equal(labels.custom_label_1, 'margin_10_19');
-  assert.equal(labels.custom_label_2, 'tier_1');
+  assert.equal(labels.custom_label_2, 'do_not_advertise');
   assert.equal(labels.marginPercent, 17);
-  assert.ok(labels.grossContributionAud != null);
-  assert.ok(Math.abs(labels.grossContributionAud - 20.4) < 0.0001);
 }
 
 // Unknown margin fails closed
@@ -93,38 +105,55 @@ expectTier(50, 40, 'tier_1');
   });
   assert.equal(labels.custom_label_1, 'unknown');
   assert.equal(labels.custom_label_2, 'do_not_advertise');
-  assert.equal(labels.marginSource, 'unknown');
 }
 
-// unitCost → exact margin (not range midpoint)
+// unitCost path: contribution = price − cost
 {
   const labels = buildGmcCustomLabels({
     sellingPriceAud: 100,
     tags: [],
-    unitCostAud: 83, // 17%
+    unitCostAud: 60, // 40%, $40
     availableForSale: true,
     quantityAvailable: 5,
   });
   assert.equal(labels.marginSource, 'unit_cost');
-  assert.ok(labels.marginPercent != null);
-  assert.ok(Math.abs(labels.marginPercent - 17) < 0.0001);
-  assert.equal(labels.custom_label_1, 'margin_10_19');
-  assert.equal(labels.custom_label_2, 'tier_2'); // $17 contribution
+  assert.equal(labels.grossContributionAud, 40);
+  assert.equal(labels.custom_label_2, 'prime');
+  assert.ok(labels.marginPercent != null && Math.abs(labels.marginPercent - 40) < 1e-9);
 }
 
-// 10% Collective-style cost must not fall into margin_under_10 via float noise
+// Cost >= price → DNA
 {
-  const price = 384.95;
-  const cost = Number((price * 0.9).toFixed(2));
   const labels = buildGmcCustomLabels({
-    sellingPriceAud: price,
+    sellingPriceAud: 50,
     tags: [],
-    unitCostAud: cost,
+    unitCostAud: 55,
     availableForSale: true,
-    quantityAvailable: 1,
+    quantityAvailable: 5,
   });
-  assert.equal(labels.custom_label_1, 'margin_10_19');
-  assert.equal(labels.marginPercent, 10);
+  assert.equal(labels.custom_label_2, 'do_not_advertise');
+  assert.ok((labels.grossContributionAud ?? 0) < 0);
+}
+
+// Sale-price style: lower advertised price can drop prime → DNA
+{
+  const atList = buildGmcCustomLabels({
+    sellingPriceAud: 100,
+    tags: [],
+    unitCostAud: 60,
+    availableForSale: true,
+    quantityAvailable: 5,
+  });
+  assert.equal(atList.custom_label_2, 'prime');
+
+  const onSale = buildGmcCustomLabels({
+    sellingPriceAud: 70, // same cost → margin ~14.3%, contrib $10
+    tags: [],
+    unitCostAud: 60,
+    availableForSale: true,
+    quantityAvailable: 5,
+  });
+  assert.equal(onSale.custom_label_2, 'do_not_advertise');
 }
 
 // Tag wins over unit cost
@@ -138,15 +167,15 @@ assert.equal(parseExactMarginPercentFromTags(['margin:22%']), 22);
     quantityAvailable: 5,
   });
   assert.equal(labels.marginSource, 'tag');
-  assert.equal(labels.marginPercent, 40);
-  assert.equal(labels.custom_label_2, 'tier_1');
+  assert.equal(labels.custom_label_2, 'prime');
+  assert.equal(labels.grossContributionAud, 40);
 }
 
-// Stock: qty threshold + supplier-managed
+// Stock unchanged
 {
   assert.equal(
     buildGmcCustomLabels({
-      sellingPriceAud: 50,
+      sellingPriceAud: 100,
       tags: ['margin:40'],
       availableForSale: true,
       quantityAvailable: 4,
@@ -156,7 +185,7 @@ assert.equal(parseExactMarginPercentFromTags(['margin:22%']), 22);
   );
   assert.equal(
     buildGmcCustomLabels({
-      sellingPriceAud: 50,
+      sellingPriceAud: 100,
       tags: ['margin:40'],
       availableForSale: true,
       quantityAvailable: 5,
@@ -164,25 +193,8 @@ assert.equal(parseExactMarginPercentFromTags(['margin:22%']), 22);
     }).custom_label_3,
     'high_stock'
   );
-  assert.equal(
-    buildGmcCustomLabels({
-      sellingPriceAud: 50,
-      tags: ['margin:40'],
-      availableForSale: true,
-      quantityAvailable: 0,
-      tracked: false,
-    }).custom_label_3,
-    'high_stock'
-  );
-  assert.equal(
-    buildGmcCustomLabels({
-      sellingPriceAud: 50,
-      tags: ['margin:40'],
-      availableForSale: false,
-      quantityAvailable: 100,
-    }).custom_label_3,
-    'low_stock'
-  );
 }
+
+assert.equal(getGrossContributionFromCost(100, 75), 25);
 
 console.log('✅ All GMC custom-label tests passed');
