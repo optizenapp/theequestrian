@@ -8,6 +8,7 @@ import type {
   EmailBlock,
   TemplateCategory,
 } from '@/lib/email-platform/types';
+import { continueBulletOnEnter, insertBulletMarker } from '@/lib/email-platform/text-block-bullets';
 
 type TemplateRow = {
   id: string;
@@ -995,20 +996,68 @@ export default function AdminEmailTemplatesPage() {
                   )}
                   {block.type === 'text' && (
                     <div className="space-y-2">
-                      <select value={block.align || 'left'} onChange={(e) => updateBlock(block.id, { align: e.target.value as 'left' | 'center' | 'right' })} className="w-28 rounded border border-gray-300 px-2 py-1 text-sm">
-                        <option value="left">Left</option>
-                        <option value="center">Center</option>
-                        <option value="right">Right</option>
-                      </select>
-                      <input
-                        type="number"
-                        min={10}
-                        max={48}
-                        value={block.fontSize || 16}
-                        onChange={(e) => updateBlock(block.id, { fontSize: Number(e.target.value || 16) })}
-                        className="w-24 rounded border border-gray-300 px-2 py-1 text-sm"
+                      <div className="flex flex-wrap items-center gap-2">
+                        <select value={block.align || 'left'} onChange={(e) => updateBlock(block.id, { align: e.target.value as 'left' | 'center' | 'right' })} className="w-28 rounded border border-gray-300 px-2 py-1 text-sm">
+                          <option value="left">Left</option>
+                          <option value="center">Center</option>
+                          <option value="right">Right</option>
+                        </select>
+                        <input
+                          type="number"
+                          min={10}
+                          max={48}
+                          value={block.fontSize || 16}
+                          onChange={(e) => updateBlock(block.id, { fontSize: Number(e.target.value || 16) })}
+                          className="w-24 rounded border border-gray-300 px-2 py-1 text-sm"
+                        />
+                        <button
+                          type="button"
+                          className="rounded-full border border-gray-300 bg-white px-3 py-1 text-xs font-semibold text-gray-700 hover:border-action hover:text-action"
+                          onClick={() => {
+                            const input = document.querySelector(
+                              `[data-block-id="${block.id}"][data-field="text"]`
+                            ) as HTMLTextAreaElement | null;
+                            const start = input?.selectionStart ?? (block.text || '').length;
+                            const end = input?.selectionEnd ?? start;
+                            const next = insertBulletMarker(block.text || '', start, end);
+                            updateBlock(block.id, { text: next.text });
+                            setLastFocusedInput({ blockId: block.id, field: 'text' });
+                            requestAnimationFrame(() => {
+                              const el = document.querySelector(
+                                `[data-block-id="${block.id}"][data-field="text"]`
+                              ) as HTMLTextAreaElement | null;
+                              if (!el) return;
+                              el.focus();
+                              el.setSelectionRange(next.cursor, next.cursor);
+                            });
+                          }}
+                        >
+                          • Bullet
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Tip: start a line with <code>- </code> or click Bullet. Press Enter to continue the list.
+                      </p>
+                      <textarea
+                        value={block.text}
+                        onChange={(e) => updateBlock(block.id, { text: e.target.value })}
+                        onFocus={() => setLastFocusedInput({ blockId: block.id, field: 'text' })}
+                        onKeyDown={(e) => {
+                          if (e.key !== 'Enter' || e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return;
+                          const target = e.currentTarget;
+                          const next = continueBulletOnEnter(target.value, target.selectionStart ?? 0);
+                          if (!next) return;
+                          e.preventDefault();
+                          updateBlock(block.id, { text: next.text });
+                          requestAnimationFrame(() => {
+                            target.setSelectionRange(next.cursor, next.cursor);
+                          });
+                        }}
+                        data-block-id={block.id}
+                        data-field="text"
+                        rows={3}
+                        className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
                       />
-                      <textarea value={block.text} onChange={(e) => updateBlock(block.id, { text: e.target.value })} onFocus={() => setLastFocusedInput({ blockId: block.id, field: 'text' })} data-block-id={block.id} data-field="text" rows={3} className="w-full rounded border border-gray-300 px-3 py-2 text-sm" />
                     </div>
                   )}
                   {block.type === 'llmHeading' && (

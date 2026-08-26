@@ -1,5 +1,6 @@
 import { sql } from '@vercel/postgres';
 import { applyTemplate } from '@/lib/reviews/email-settings';
+import { stripBulletMarker } from '@/lib/email-platform/text-block-bullets';
 import type {
   CuratedProductCard,
   EmailBlock,
@@ -145,6 +146,66 @@ function renderTextWithStyledLinks(value: string, linkColor: string): string {
   }
 
   return result.join('');
+}
+
+/**
+ * Renders TEXT / LLM Intro content with paragraphs plus markdown-style bullets.
+ * Lines starting with "-", "*", "•", or "1." become email-safe <ul><li> items.
+ */
+function renderRichTextBlockHtml(input: {
+  value: string;
+  linkColor: string;
+  textColor: string;
+  fontSize: number;
+  align: 'left' | 'center' | 'right';
+}): string {
+  const { value, linkColor, textColor, fontSize, align } = input;
+  const lines = value.replace(/\r\n/g, '\n').split('\n');
+  const chunks: string[] = [];
+  let paragraphLines: string[] = [];
+  let bulletItems: string[] = [];
+
+  const paragraphStyle = `margin:0 0 12px 0;text-align:${align};color:${textColor};font-size:${fontSize}px;`;
+  const listStyle = `margin:0 0 12px 0;padding-left:22px;text-align:${align};color:${textColor};font-size:${fontSize}px;`;
+  const itemStyle = 'margin:0 0 6px 0;';
+
+  const flushParagraph = () => {
+    while (paragraphLines.length > 0 && paragraphLines[0] === '') paragraphLines.shift();
+    while (paragraphLines.length > 0 && paragraphLines[paragraphLines.length - 1] === '') paragraphLines.pop();
+    if (paragraphLines.length === 0) return;
+    chunks.push(
+      `<p style="${paragraphStyle}">${renderTextWithStyledLinks(paragraphLines.join('\n'), linkColor)}</p>`
+    );
+    paragraphLines = [];
+  };
+
+  const flushBullets = () => {
+    if (bulletItems.length === 0) return;
+    const items = bulletItems
+      .map((item) => `<li style="${itemStyle}">${renderTextWithStyledLinks(item, linkColor)}</li>`)
+      .join('');
+    chunks.push(`<ul style="${listStyle}">${items}</ul>`);
+    bulletItems = [];
+  };
+
+  for (const line of lines) {
+    const bulletContent = stripBulletMarker(line);
+    if (bulletContent !== null) {
+      flushParagraph();
+      bulletItems.push(bulletContent);
+      continue;
+    }
+    if (line.trim() === '' && bulletItems.length > 0) {
+      flushBullets();
+      continue;
+    }
+    flushBullets();
+    paragraphLines.push(line);
+  }
+  flushParagraph();
+  flushBullets();
+
+  return chunks.join('') || `<p style="${paragraphStyle}"></p>`;
 }
 
 function normalizeTemplateCategory(source: Record<string, unknown>): TemplateCategory {
@@ -350,17 +411,14 @@ export function renderTemplateBlocksHtml(input: {
         block.text
       )}</h${level}>`;
     }
-    if (block.type === 'text') {
-      return `<p style="margin:0 0 12px 0;text-align:${block.align || 'left'};color:${visual.brandDark};font-size:${block.fontSize || 16}px;">${renderTextWithStyledLinks(
-        block.text,
-        visual.linkColor
-      )}</p>`;
-    }
-    if (block.type === 'llmIntro') {
-      return `<p style="margin:0 0 12px 0;text-align:${block.align || 'left'};color:${visual.brandDark};font-size:${block.fontSize || 16}px;">${renderTextWithStyledLinks(
-        block.text,
-        visual.linkColor
-      )}</p>`;
+    if (block.type === 'text' || block.type === 'llmIntro') {
+      return renderRichTextBlockHtml({
+        value: block.text,
+        linkColor: visual.linkColor,
+        textColor: visual.brandDark,
+        fontSize: block.fontSize || 16,
+        align: block.align === 'center' || block.align === 'right' ? block.align : 'left',
+      });
     }
     if (block.type === 'llmHeading') {
       const level = Math.min(Math.max(block.level || 2, 1), 3);
