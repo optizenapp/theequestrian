@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg version="1.2" baseProfile="tiny-ps" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 225 225" width="225" height="225">
+  <title>The Equestrian</title>
+  <desc>The Equestrian brand mark for BIMI email logos</desc>
+  <rect width="225" height="225" fill="#B87AB3"/>
+  <rect x="33" y="33" width="159" height="159" fill="#FFFFFF"/>
+  <rect x="36" y="36" width="153" height="153" fill="#B87AB3"/>
+  <rect x="88" y="66" width="6" height="93" fill="#78CDD5"/>
+  <rect x="104" y="66" width="30" height="5" fill="#FFFFFF"/>
+  <rect x="104" y="110" width="30" height="5" fill="#FFFFFF"/>
+  <rect x="104" y="154" width="30" height="5" fill="#FFFFFF"/>
+</svg>
