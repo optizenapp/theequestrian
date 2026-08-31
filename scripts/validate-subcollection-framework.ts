@@ -102,8 +102,17 @@ async function main() {
   const dup = hrefs.filter((h, i) => hrefs.indexOf(h) !== i);
   if (dup.length) errors.push(`Duplicate hrefs: ${[...new Set(dup)].join(', ')}`);
   const uniqueHrefCount = new Set(hrefs).size;
-  if (uniqueHrefCount < 12 || uniqueHrefCount > 20) {
-    errors.push(`Need 12-20 unique internal links, found ${uniqueHrefCount}.`);
+  const depth = (content.url_path || '').split('/').filter(Boolean).length;
+  const minLinks = depth >= 3 ? 6 : 12;
+  const maxLinks = depth >= 3 ? 12 : 20;
+  if (uniqueHrefCount < minLinks || uniqueHrefCount > maxLinks) {
+    errors.push(`Need ${minLinks}-${maxLinks} unique internal links for depth ${depth}, found ${uniqueHrefCount}.`);
+  }
+  const parentPath = depth >= 3
+    ? '/' + (content.url_path || '').split('/').filter(Boolean).slice(0, -1).join('/')
+    : '';
+  if (parentPath && hrefs.includes(parentPath)) {
+    errors.push(`Do not link parent ${parentPath} in HTML; CollectionDescription injects it.`);
   }
   if (!/<ul\b/i.test(long)) errors.push('long_description needs a <ul>.');
 
