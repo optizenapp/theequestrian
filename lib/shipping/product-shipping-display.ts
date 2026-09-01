@@ -1,4 +1,5 @@
 import { tagsIndicateFreeShipping } from '@/lib/shipping/free-shipping';
+import { tagsIndicateCollective } from '@/lib/shipping/collective-vendors';
 import {
   SHIPPING_CHECKOUT_MESSAGE,
   SHIPPING_DISPATCH_LINE,
@@ -80,6 +81,17 @@ export function resolveProductShippingDisplaySync(input: {
 
   if (tagsIndicateFreeShipping(input.tags)) {
     return freeShippingDisplay({ ...SHIPPING_DISPLAY_FALLBACK, ...origin });
+  }
+
+  // Collective: never treat a $0 vendor_shipping_rates row as "free shipping"
+  // (freight is calculated at checkout / via collective_shipping_rates).
+  if (tagsIndicateCollective(input.tags)) {
+    return {
+      ...origin,
+      shortMessage: SHIPPING_CHECKOUT_MESSAGE,
+      isShippingIncluded: false,
+      hasFreeShipping: false,
+    };
   }
 
   const { shippingOffset } = resolveShippingOffset(

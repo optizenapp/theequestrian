@@ -6,6 +6,7 @@
 import { sql } from '@/lib/db/client';
 import { ensureVendorShippingColumns } from '@/lib/db/ensure-vendor-shipping-columns';
 import { getVendorAliasKeys, normalizeVendorKey } from '@/lib/shipping/vendor-aliases';
+import { isCollectiveProduct } from '@/lib/shipping/collective-vendors';
 
 export interface VendorRate {
   vendor: string;
@@ -173,6 +174,12 @@ export function resolveShippingOffset(
   price?: number
 ): { shippingOffset: number | null; tagMatch: string | null } {
   const normalizedTags = normalizeTags(tags);
+
+  // Collective: freight is calculated at checkout — never bake into price.
+  if (isCollectiveProduct({ vendor, tags: normalizedTags })) {
+    return { shippingOffset: 0, tagMatch: 'shopify_collective' };
+  }
+
   const vendorMatch = findVendorRate(vendor, rates);
 
   if (vendorMatch) {

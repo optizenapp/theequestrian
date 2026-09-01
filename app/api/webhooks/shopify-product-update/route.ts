@@ -7,6 +7,7 @@ import {
   normalizeTags,
   getVendorFreeShippingThreshold,
 } from '@/lib/shipping/rates';
+import { isCollectiveProduct } from '@/lib/shipping/collective-vendors';
 import { fetchVendorProduct } from '@/lib/shopify/vendor-shopify-rest';
 import {
   setMarketplaceInventoryLevel,
@@ -306,6 +307,14 @@ async function processProductUpdate(
       console.log(
         `[Shopify Webhook] Reverted ${lockedVariantsReverted} locked variant(s) to manual price`
       );
+    }
+
+    // Collective: shipping is calculated at checkout — never bake freight into price.
+    if (isCollectiveProduct({ vendor, tags })) {
+      console.log(
+        `[Shopify Webhook] Collective product (${vendor}) — skipping shipping price offset`
+      );
+      return;
     }
 
     const directPriceVendors = await getMarketplaceVendorsWithPriceSyncEnabled();

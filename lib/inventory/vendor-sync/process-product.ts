@@ -4,6 +4,7 @@ import {
   updateMarketplaceVariantPriceRest,
 } from '@/lib/shopify/marketplace-inventory-rest';
 import { loadShippingRates, normalizeTags, resolveShippingOffset } from '@/lib/shipping/rates';
+import { isCollectiveProduct } from '@/lib/shipping/collective-vendors';
 import { sql } from '@/lib/db/client';
 import {
   getActiveMapsForVendorProduct,
@@ -75,14 +76,12 @@ export async function processVendorProductUpdateWebhook(
     const { vendor: mpVendor, tags } = await fetchMarketplaceProductTags(
       row.marketplace_product_id
     );
-    const { shippingOffset, tagMatch } = resolveShippingOffset(
-      mpVendor,
-      normalizeTags(tags),
-      rates,
-      undefined,
-      basePrice
-    );
-    const offset = shippingOffset ?? 0;
+    const normalizedTags = normalizeTags(tags);
+    // Collective: keep vendor retail as-is — freight is calculated at checkout.
+    const offset = isCollectiveProduct({ vendor: mpVendor, tags: normalizedTags })
+      ? 0
+      : (resolveShippingOffset(mpVendor, normalizedTags, rates, undefined, basePrice)
+          .shippingOffset ?? 0);
     const newPrice = (basePrice + offset).toFixed(2);
 
     const currentCompare = vv.compare_at_price ? parseFloat(String(vv.compare_at_price)) : null;
