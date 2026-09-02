@@ -10,7 +10,7 @@ import {
 import { getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
 import { resolveProductFreeShipping } from '@/lib/shipping/free-shipping';
 import { sendSesEmail } from '@/lib/email-platform/ses-mailer';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 
 function toMoney(value: string | number | undefined): string {
   const parsed = typeof value === 'number' ? value : Number(value || 0);

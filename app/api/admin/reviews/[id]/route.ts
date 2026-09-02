@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 
 // Update review (approve/reject or edit)
 export async function PATCH(

@@ -15,7 +15,7 @@
 
 import { config } from 'dotenv';
 import { resolve } from 'path';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { shopifyAdminFetch } from '@/lib/shopify/admin-client';
 import { syncQueuedGa4PurchaseEvents } from '@/lib/analytics/ga4-sync';
 

@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import type { VideoBrandStyle } from './brand';
 import type { CampaignVideoRenderResult } from './video-render-types';
 

@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { applyTemplate } from '@/lib/reviews/email-settings';
 import { stripBulletMarker } from '@/lib/email-platform/text-block-bullets';
 import type {

@@ -1,5 +1,5 @@
 import { headers } from 'next/headers';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { upsertNotFoundRollup } from '@/lib/not-found/rollup-store';
 
 const ensureNotFoundTable = async () => {

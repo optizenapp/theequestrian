@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { getTemplateVersion, renderTemplateContent } from '@/lib/email-platform/templates';
 import { buildCampaignHtmlWithOverrides } from '@/lib/email-platform/auto-weekly/render';
 import { sendSesEmail } from '@/lib/email-platform/ses-mailer';

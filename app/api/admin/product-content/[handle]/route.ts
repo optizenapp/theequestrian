@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { slugFromBrandName } from '@/lib/brands/brand-slug';
 import { getProductByHandle } from '@/lib/shopify/products';
 import type { ShopifyProduct } from '@/types/shopify';

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { invalidateCache } from '@/lib/content/collections';
 import { revalidatePath } from 'next/cache';
 

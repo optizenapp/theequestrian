@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 
 const KEY_ENABLED = 'auto_weekly_enabled';
 const KEY_INTRO_PROMPT = 'auto_weekly_intro_prompt';

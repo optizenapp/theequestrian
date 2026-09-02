@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { log } from '@/lib/seo-enrichment/logger';
 
 export interface LinkablePageEntry {

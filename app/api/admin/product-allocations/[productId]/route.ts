@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { deleteProductAllocation } from '@/lib/db/product-allocations';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 
 const ensureProductAllocationTable = async () => {
   await sql`

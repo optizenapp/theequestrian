@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { getProductByHandle } from '@/lib/shopify/products';
 import { resolveBrandLogoBuffer } from './brand-logo-resolver';
 

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { shopifyFetch } from '@/lib/shopify/client';
 import { getProductTypesForCollection } from '@/lib/mapping/collection-mapping';
 import { getProductOverridesByHandles } from '@/lib/content/product-overrides';

@@ -8,7 +8,7 @@
  * 2. Run: npx tsx scripts/import-yotpo-reviews.ts
  */
 
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 
 interface YotpoReview {
   id: number;

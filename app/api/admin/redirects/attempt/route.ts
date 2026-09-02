@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 
 const normalizePath = (value: string) => {
   if (!value) return '/';

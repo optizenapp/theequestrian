@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 
 /**
  * Published brands with meaningful SEO/editorial content (not bare placeholders).

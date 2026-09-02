@@ -16,7 +16,7 @@ import type { ReviewStats } from '@/lib/utils/product-schema';
 export async function getReviewStats(productHandle: string): Promise<ReviewStats | null> {
   try {
     // Fetch from Vercel Postgres database
-    const { sql } = await import('@vercel/postgres');
+    const { sql } = await import('@/lib/db/vercel-postgres');
     
     const result = await sql`
       SELECT 

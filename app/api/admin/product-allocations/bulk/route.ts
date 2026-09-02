@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { createManualRedirect } from '@/lib/redirects/manual';
 import { upsertProductAllocation } from '@/lib/db/product-allocations';
 

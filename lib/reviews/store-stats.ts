@@ -1,5 +1,5 @@
 import { cache } from 'react';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 
 export type StoreReviewStats = {
   average_rating: number;

@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { getProductsByHandles } from '@/lib/shopify/products-by-handles';
 import type { EmailBlock } from '@/lib/email-platform/types';
 import { getTemplateVersion } from '@/lib/email-platform/templates';

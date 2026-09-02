@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { ensureEmailPlatformSchema } from '@/lib/email-platform/schema';
 import { getSocialCredential } from '@/lib/social/credentials';
 import { getMetaSystemCredential } from '@/lib/social/meta-system';

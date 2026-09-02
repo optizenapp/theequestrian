@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { mkdir, writeFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { ensureEmailPlatformSchema } from '@/lib/email-platform/schema';

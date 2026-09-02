@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { sendQueuedCampaignRecipients } from './sending';
 
 export type CampaignWorkerResult = {

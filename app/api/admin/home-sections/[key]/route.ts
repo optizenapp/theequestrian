@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath, revalidateTag } from 'next/cache';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { invalidateHomeSectionsCache } from '@/lib/content/home';
 
 const ensureHomeSectionsTable = async () => {

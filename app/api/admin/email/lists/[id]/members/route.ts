@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { addContactsToList } from '@/lib/email-platform/contacts';
 import { upsertEmailContact } from '@/lib/email-platform/contacts';
 

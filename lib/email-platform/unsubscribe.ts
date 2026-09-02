@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 
 const UNSUBSCRIBED_LIST_NAME = 'Unsubscribed';
 

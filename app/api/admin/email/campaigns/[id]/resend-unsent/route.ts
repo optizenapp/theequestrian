@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { logEmailAudit } from '@/lib/email-platform/audit';
 import { sendQueuedCampaignRecipients } from '@/lib/email-platform/sending';
 

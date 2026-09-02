@@ -5,7 +5,7 @@
 import { parse } from 'csv-parse/sync';
 import * as fs from 'fs';
 import * as path from 'path';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import dotenv from 'dotenv';
 
 // Load environment variables

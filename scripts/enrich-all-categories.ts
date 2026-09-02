@@ -26,7 +26,7 @@ if (!process.argv.includes('--dry-run') && !process.env.SEO_ENRICHMENT_MODE) {
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { AnalyticsCollector } from '@/lib/seo-enrichment/collector';
 import { EnrichmentEngine } from '@/lib/seo-enrichment/engine';
 import { EnrichmentWriter } from '@/lib/seo-enrichment/writer';

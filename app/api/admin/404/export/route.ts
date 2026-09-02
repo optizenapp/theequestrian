@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { ensureNotFoundRollupTable } from '@/lib/not-found/rollup-store';
 
 export const runtime = 'nodejs';

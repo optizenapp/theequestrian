@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { getResolvedAudienceContactIds } from '@/lib/email-platform/segments';
 import { queueCampaignRecipients } from '@/lib/email-platform/sending';
 

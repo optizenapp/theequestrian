@@ -21,7 +21,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as csv from 'csv-parse/sync';
 import { stringify } from 'csv-stringify/sync';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { execSync } from 'child_process';
 
 // ============================================================================

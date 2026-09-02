@@ -238,7 +238,7 @@ export function migrateHtmlTemplateToBlocks(htmlTemplate: string | null) {
 
 export async function getReviewEmailSettings(): Promise<ReviewEmailSettings> {
   try {
-    const { sql } = await import('@vercel/postgres');
+    const { sql } = await import('@/lib/db/vercel-postgres');
     const { rows } = await sql`SELECT * FROM review_email_settings WHERE id = 1 LIMIT 1`;
     if (!rows[0]) {
       return {
@@ -296,7 +296,7 @@ export async function getReviewEmailSettings(): Promise<ReviewEmailSettings> {
 export async function upsertReviewEmailSettings(
   nextSettings: ReviewEmailSettings
 ): Promise<ReviewEmailSettings> {
-  const { sql } = await import('@vercel/postgres');
+  const { sql } = await import('@/lib/db/vercel-postgres');
   const { rows } = await sql`
     INSERT INTO review_email_settings (
       id,

@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 
 export interface ReviewStats {
   total_reviews: number;
@@ -20,7 +20,7 @@ export async function getReviewStatsForProducts(productHandles: string[]): Promi
 
   try {
     // We can't use = ANY() easily with template literals and array of strings in some SQL clients,
-    // but vercel/postgres supports passing arrays.
+    // but our postgres client supports passing arrays.
     // If not, we might need to construct the query differently.
     // Let's assume standard behavior for now.
     

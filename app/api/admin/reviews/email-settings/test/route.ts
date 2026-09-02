@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { applyTemplate, getReviewEmailSettings } from '@/lib/reviews/email-settings';
 import { getProductByHandle, getProductCanonicalUrl } from '@/lib/shopify/products';
 import { renderReviewEmailHtml, type ReviewEmailRenderData } from '@/lib/reviews/email-template';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { sendSesEmail } from '@/lib/email-platform/ses-mailer';
 
 export async function POST(request: NextRequest) {

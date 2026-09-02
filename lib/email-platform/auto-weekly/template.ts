@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { createTemplate, createTemplateVersion, getTemplateVersion, listTemplates } from '@/lib/email-platform/templates';
 import type { EmailBlock } from '@/lib/email-platform/types';
 

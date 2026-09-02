@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { shopifyAdminFetch } from '@/lib/shopify/admin-client';
 import { getProductByHandle } from '@/lib/shopify/products';
 import { getProductCanonicalUrl } from '@/lib/shopify/products';

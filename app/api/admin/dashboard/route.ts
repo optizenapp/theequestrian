@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { BetaAnalyticsDataClient } from '@google-analytics/data';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { isAdminRequest } from '@/lib/admin/auth';
 import { getGscOverview, getGscTotals } from '@/lib/gsc/search-console';
 import { shopifyAdminFetch } from '@/lib/shopify/admin-client';

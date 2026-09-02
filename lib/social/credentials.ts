@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { ensureEmailPlatformSchema } from '@/lib/email-platform/schema';
 
 const OAUTH_TOKEN_URL = 'https://oauth2.googleapis.com/token';

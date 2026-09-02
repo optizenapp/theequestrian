@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 
 /**
  * Product handles already used in auto weekly campaigns in the same calendar month as forDate.

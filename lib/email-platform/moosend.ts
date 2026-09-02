@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { upsertEmailContact, addContactsToList } from '@/lib/email-platform/contacts';
 import { logEmailAudit } from '@/lib/email-platform/audit';
 

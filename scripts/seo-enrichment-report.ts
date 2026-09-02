@@ -2,7 +2,7 @@
 
 import { config } from 'dotenv';
 import { resolve } from 'path';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { sendSesEmail } from '@/lib/email-platform/ses-mailer';
 
 config({ path: resolve(process.cwd(), '.env.local') });

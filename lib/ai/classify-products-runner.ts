@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { parse } from 'csv-parse/sync';
 import { stringify } from 'csv-stringify/sync';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { shopifyFetch } from '@/lib/shopify/client';
 import { getProductOverridesByHandles } from '@/lib/content/product-overrides';
 import type { ProductContentOverride } from '@/lib/content/product-overrides';

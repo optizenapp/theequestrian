@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { syncQueuedGa4PurchaseEvents } from '@/lib/analytics/ga4-sync';
 
 /**

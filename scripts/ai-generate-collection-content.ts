@@ -17,7 +17,7 @@ import { config } from 'dotenv';
 import { resolve } from 'path';
 config({ path: resolve(process.cwd(), '.env.local') });
 
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import OpenAI from 'openai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -186,7 +186,7 @@ async function generateCollectionContent() {
         console.log('   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
         generated++;
       } else {
-        // Execute SQL using @vercel/postgres (supports raw SQL)
+        // Execute SQL using @/lib/db/vercel-postgres (supports raw SQL)
         console.log('   💾 Inserting into database...');
         try {
           const result = await sql.query(cleanSQL);

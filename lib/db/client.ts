@@ -5,6 +5,7 @@
  */
 
 import { neon } from '@neondatabase/serverless';
+import { isTransientPostgresError } from '@/lib/db/transient-errors';
 
 // Lazy connection - only initialize when sql is accessed
 // This allows dotenv to load vars before database connection is created
@@ -45,14 +46,9 @@ function isQuotaError(err: unknown): boolean {
   return false;
 }
 
-/** Neon pooler queue saturation — short retry often succeeds on the next attempt. */
+/** Neon pooler / cold-start errors — short retry often succeeds on the next attempt. */
 function isTransientPoolError(err: unknown): boolean {
-  const msg = String((err as { message?: string })?.message ?? err ?? '');
-  return (
-    msg.includes('query_wait_timeout') ||
-    msg.includes('MaxClientsInSessionMode') ||
-    (msg.includes('timeout') && msg.includes('query'))
-  );
+  return isTransientPostgresError(err);
 }
 
 // Export sql as a template tag function with lazy initialization

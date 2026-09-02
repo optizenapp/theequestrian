@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { EnrichmentQueries } from '@/lib/seo-enrichment/queries';
 import type {
   EnrichmentPageType,

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 
 const allowedStatuses = new Set(['active', 'disabled', 'conflict', 'override']);
 const allowedTypes = new Set(['301', '302', '307', '308']);

@@ -1,6 +1,6 @@
 require('dotenv').config({ path: '.env.local' });
 require('dotenv').config({ path: '.env' });
-const { sql } = require('@vercel/postgres');
+const { sql } = require('@/lib/db/vercel-postgres');
 
 (async () => {
   try {

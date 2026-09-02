@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { listBrandsWithOverrides } from '@/lib/content/brand-content';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 
 const ensureBrandContentTable = async () => {
   await sql`

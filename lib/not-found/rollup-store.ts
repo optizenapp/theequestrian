@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { suggestRedirectForPath } from '@/lib/not-found/suggestions';
 import { createManualRedirect } from '@/lib/redirects/manual';
 

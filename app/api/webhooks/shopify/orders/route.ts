@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/vercel-postgres';
 import { shopifyAdminFetch } from '@/lib/shopify/admin-client';
 import { getProductCanonicalUrl } from '@/lib/shopify/products';
 import { applyTemplate, getReviewEmailSettings } from '@/lib/reviews/email-settings';
@@ -341,7 +341,7 @@ async function sendReviewRequestEmail({
   // Log email send attempt to database
   let emailSendId: string | null = null;
   try {
-    const { sql } = await import('@vercel/postgres');
+    const { sql } = await import('@/lib/db/vercel-postgres');
     const scheduledAtDate = scheduledAt ? scheduledAt : null;
     const result = await sql`
       INSERT INTO review_email_sends (
@@ -393,7 +393,7 @@ async function sendReviewRequestEmail({
 
     if (emailSendId) {
       try {
-        const { sql } = await import('@vercel/postgres');
+        const { sql } = await import('@/lib/db/vercel-postgres');
         if (scheduledAt) {
           await sql`
             UPDATE review_email_sends
@@ -422,7 +422,7 @@ async function sendReviewRequestEmail({
     // Update email send record to 'failed' status
     if (emailSendId) {
       try {
-        const { sql } = await import('@vercel/postgres');
+        const { sql } = await import('@/lib/db/vercel-postgres');
         await sql`
           UPDATE review_email_sends
           SET status = 'failed',
