@@ -1,6 +1,18 @@
-import { NextResponse } from 'next/server';
+import { after, NextResponse } from 'next/server';
 import { logEmailAudit } from '@/lib/email-platform/audit';
 import { resendNonOpenersForCampaign } from '@/lib/email-platform/auto-campaigns/resend-non-openers-for-campaign';
+import { sendQueuedCampaignRecipients } from '@/lib/email-platform/sending';
+
+export const dynamic = 'force-dynamic';
+export const maxDuration = 300;
+
+function runAsync(work: () => Promise<void>) {
+  try {
+    after(work);
+  } catch {
+    void work();
+  }
+}
 
 export async function POST(
   _request: Request,
@@ -11,6 +23,7 @@ export async function POST(
     const result = await resendNonOpenersForCampaign({
       parentCampaignId: id,
       actor: 'manual-resend',
+      deferSend: true,
     });
 
     await logEmailAudit({
@@ -21,9 +34,7 @@ export async function POST(
       payload: {
         childCampaignId: result.childCampaignId,
         recipientCount: result.recipientCount,
-        sent: result.sent,
-        failed: result.failed,
-        skipped: result.skipped,
+        deferredSend: true,
         reason: result.reason,
       },
     });
@@ -41,14 +52,26 @@ export async function POST(
       );
     }
 
+    const childCampaignId = result.childCampaignId;
+    if (childCampaignId) {
+      runAsync(async () => {
+        try {
+          await sendQueuedCampaignRecipients({ campaignId: childCampaignId });
+        } catch (error) {
+          console.error('[resend-non-openers] background send failed:', error);
+        }
+      });
+    }
+
     return NextResponse.json({
       ok: true,
       parentCampaignId: id,
       childCampaignId: result.childCampaignId,
       recipientCount: result.recipientCount,
-      sent: result.sent,
-      failed: result.failed,
-      skipped: result.skipped,
+      sent: 0,
+      failed: 0,
+      skipped: 0,
+      deferred: true,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to resend to non-openers';

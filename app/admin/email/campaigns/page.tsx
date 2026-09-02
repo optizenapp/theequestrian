@@ -2017,7 +2017,7 @@ export default function AdminEmailCampaignsPage() {
                       className="rounded-full border border-fuchsia-300 px-3 py-1.5 text-xs font-semibold text-fuchsia-800 hover:border-fuchsia-500 disabled:opacity-60"
                       onClick={async () => {
                         const confirmed = window.confirm(
-                          `Resend this campaign only to recipients who did NOT open the original email? A new "Resend (non-openers)" campaign will be created with a fresh subject line and sent immediately.`
+                          `Resend this campaign only to recipients who did NOT open the original email? A new "Resend (non-openers)" campaign will be created with a fresh subject line and sent in the background.`
                         );
                         if (!confirmed) return;
                         setResendingNonOpenersId(campaign.id);
@@ -2028,14 +2028,35 @@ export default function AdminEmailCampaignsPage() {
                             `/api/admin/email/campaigns/${campaign.id}/resend-non-openers`,
                             { method: 'POST' }
                           );
-                          const data = await response.json();
+                          const raw = await response.text();
+                          let data: {
+                            error?: string;
+                            recipientCount?: number;
+                            sent?: number;
+                            failed?: number;
+                            skipped?: number;
+                            deferred?: boolean;
+                          } = {};
+                          try {
+                            data = raw ? (JSON.parse(raw) as typeof data) : {};
+                          } catch {
+                            throw new Error(
+                              raw.trim().slice(0, 200) || `Server error (HTTP ${response.status})`
+                            );
+                          }
                           if (!response.ok) {
                             setError(data?.error || 'Failed to resend to non-openers');
                             return;
                           }
-                          setStatusMessage(
-                            `Resent to non-openers: ${data.recipientCount ?? 0} queued, sent ${data.sent ?? 0}, failed ${data.failed ?? 0}, skipped ${data.skipped ?? 0}.`
-                          );
+                          if (data.deferred) {
+                            setStatusMessage(
+                              `Resend to non-openers started: ${data.recipientCount ?? 0} recipients queued. Sending continues in the background — refresh in a few minutes to see progress.`
+                            );
+                          } else {
+                            setStatusMessage(
+                              `Resent to non-openers: ${data.recipientCount ?? 0} queued, sent ${data.sent ?? 0}, failed ${data.failed ?? 0}, skipped ${data.skipped ?? 0}.`
+                            );
+                          }
                           await loadAll();
                         } catch (err) {
                           setError(err instanceof Error ? err.message : 'Failed to resend to non-openers');

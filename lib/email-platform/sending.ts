@@ -35,26 +35,26 @@ export async function isFrequencyCapped(input: {
 }
 
 export async function queueCampaignRecipients(campaignId: string, contactIds: string[]): Promise<number> {
-  let queued = 0;
-  for (const contactId of contactIds) {
-    const contactResult = await sql`
-      SELECT c.primary_email
-      FROM email_contacts c
-      WHERE c.id = ${contactId}
-      LIMIT 1
-    `;
-    const email = contactResult.rows[0]?.primary_email as string | undefined;
-    if (!email) {
-      continue;
-    }
+  if (contactIds.length === 0) return 0;
 
-    await sql`
+  let queued = 0;
+  const chunkSize = 500;
+  for (let offset = 0; offset < contactIds.length; offset += chunkSize) {
+    const chunk = contactIds.slice(offset, offset + chunkSize);
+    const result = await sql.query(
+      `
       INSERT INTO email_campaign_recipients (campaign_id, contact_id, email, status)
-      VALUES (${campaignId}, ${contactId}, ${email}, 'queued')
+      SELECT $1, c.id, c.primary_email, 'queued'
+      FROM email_contacts c
+      WHERE c.id = ANY($2::uuid[])
+        AND c.primary_email IS NOT NULL
+        AND TRIM(c.primary_email) <> ''
       ON CONFLICT (campaign_id, contact_id)
       DO NOTHING
-    `;
-    queued += 1;
+      `,
+      [campaignId, chunk]
+    );
+    queued += Number(result.rowCount || 0);
   }
   return queued;
 }

@@ -60,6 +60,8 @@ async function loadNonOpenerContactIds(parentCampaignId: string): Promise<string
 export async function resendNonOpenersForCampaign(input: {
   parentCampaignId: string;
   actor?: string;
+  /** When true, queue recipients and return; caller starts send separately (avoids Vercel timeouts). */
+  deferSend?: boolean;
 }): Promise<ResendNonOpenersResult> {
   const empty: ResendNonOpenersResult = {
     childCampaignId: null,
@@ -96,7 +98,13 @@ export async function resendNonOpenersForCampaign(input: {
     return { ...empty, reason: 'no_non_openers' };
   }
 
-  const newSubject = await generateResendSubjectLine({ originalSubject, productContext });
+  let newSubject: string;
+  try {
+    newSubject = await generateResendSubjectLine({ originalSubject, productContext });
+  } catch (error) {
+    console.warn('[resend-non-openers] subject generation failed; using fallback', error);
+    newSubject = 'Still interested? Your picks inside';
+  }
   const childMeta: Record<string, unknown> = {
     ...meta,
     parentCampaignId: input.parentCampaignId,
@@ -133,11 +141,21 @@ export async function resendNonOpenersForCampaign(input: {
     return { ...empty, reason: 'insert_failed' };
   }
 
-  await queueCampaignRecipients(childCampaignId, contactIds);
+  const recipientCount = await queueCampaignRecipients(childCampaignId, contactIds);
+  if (input.deferSend) {
+    return {
+      childCampaignId,
+      recipientCount,
+      sent: 0,
+      failed: 0,
+      skipped: 0,
+    };
+  }
+
   const sendResult = await sendQueuedCampaignRecipients({ campaignId: childCampaignId });
   return {
     childCampaignId,
-    recipientCount: contactIds.length,
+    recipientCount,
     sent: sendResult.sent,
     failed: sendResult.failed,
     skipped: sendResult.skipped,
