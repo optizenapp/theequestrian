@@ -35,7 +35,8 @@ const FLORAL =
   'postgresql://neondb_owner:npg_1Gzor6vnKkdu@ep-floral-wind-a7w6deck-pooler.ap-southeast-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
 
 const VENDOR = 'Exclusively Equine';
-const BAD_HUB = 'exclusively-equine';
+const HOUSE_BRAND_HUB = 'exclusively-equine';
+const HOUSE_BRAND_LABEL = 'Exclusively Equine';
 
 type Row = {
   handle: string;
@@ -77,11 +78,20 @@ function proposeBrand(
 } {
   const currentBrand = row.brand?.trim() || null;
   const currentHub = row.brand_hub_handle?.trim() || null;
-  const isVendorBrand =
-    (currentHub || '').toLowerCase() === BAD_HUB ||
-    (currentBrand || '').toLowerCase() === 'exclusively equine';
+  const isHouseBrand =
+    (currentHub || '').toLowerCase() === HOUSE_BRAND_HUB &&
+    (currentBrand || '').toLowerCase() === HOUSE_BRAND_LABEL.toLowerCase();
 
-  if (currentBrand && currentHub && !isVendorBrand) {
+  if (isHouseBrand) {
+    return {
+      proposedBrand: currentBrand,
+      proposedHub: currentHub,
+      source: 'house_brand',
+      action: 'keep_existing',
+    };
+  }
+
+  if (currentBrand && currentHub) {
     return {
       proposedBrand: currentBrand,
       proposedHub: currentHub,
@@ -180,7 +190,6 @@ async function main(): Promise<void> {
   }
 
   const applyProductBrands = hasFlag('--apply-product-brands');
-  const clearVendorBrand = hasFlag('--clear-vendor-brand') || applyProductBrands;
 
   await ensureProductsBrandColumns();
   const published = await getAllPublishedBrandContent();
@@ -274,19 +283,7 @@ async function main(): Promise<void> {
     console.log(`  ${b.product_count}\t${b.brand}\t${b.hub_handle}`);
   }
 
-  if (clearVendorBrand) {
-    const cleared = await sql`
-      UPDATE products
-      SET brand = NULL, brand_hub_handle = NULL, updated_at = NOW()
-      WHERE LOWER(TRIM(vendor)) = LOWER(TRIM(${VENDOR}))
-        AND (
-          LOWER(TRIM(COALESCE(brand_hub_handle, ''))) = ${BAD_HUB}
-          OR LOWER(TRIM(COALESCE(brand, ''))) = 'exclusively equine'
-        )
-      RETURNING handle
-    `;
-    console.log(`\nCleared vendor-as-brand on ${cleared.length} products`);
-  }
+  // House-brand assignments (exclusively-equine hub) are managed by allocate-exclusively-equine-house-brand.ts — do not clear here.
 
   if (applyProductBrands) {
     let applied = 0;

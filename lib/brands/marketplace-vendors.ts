@@ -13,7 +13,7 @@ const MARKETPLACE_VENDOR_KEYS = new Set([
 ]);
 
 /** Collective vendors that also have a published house-brand hub. */
-const DUAL_VENDOR_BRAND_KEYS = new Set(['petfoodaustralia']);
+const DUAL_VENDOR_BRAND_KEYS = new Set(['petfoodaustralia', 'exclusivelyequine']);
 
 function normalizeVendorKey(vendor: string): string {
   return vendor

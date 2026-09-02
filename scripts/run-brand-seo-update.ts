@@ -172,19 +172,21 @@ async function main() {
   }
 
   try {
-    const res = await fetch(`${base}/api/internal/revalidate-collection`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-revalidate-secret': secret,
-      },
-      body: JSON.stringify({ path: `/brands/${content.handle}` }),
-    });
-    const text = await res.text();
-    if (!res.ok) {
-      console.warn('[revalidate]', res.status, text.slice(0, 300));
-    } else {
-      console.log('[revalidate]', text);
+    for (const path of [`/brands/${content.handle}`, '/brands']) {
+      const res = await fetch(`${base}/api/internal/revalidate-collection`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-revalidate-secret': secret,
+        },
+        body: JSON.stringify({ path }),
+      });
+      const text = await res.text();
+      if (!res.ok) {
+        console.warn('[revalidate]', path, res.status, text.slice(0, 300));
+      } else {
+        console.log('[revalidate]', text);
+      }
     }
   } catch (e) {
     console.warn('[revalidate] fetch failed:', e instanceof Error ? e.message : e);
