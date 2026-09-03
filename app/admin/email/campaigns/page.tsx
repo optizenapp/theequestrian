@@ -696,38 +696,51 @@ export default function AdminEmailCampaignsPage() {
       return next;
     });
 
-    Promise.all(
-      campaignIds.map(async (campaignId) => {
-        const response = await fetch(`/api/admin/email/campaigns/${campaignId}/stats`);
-        const data = await response.json();
-        if (!response.ok || !data?.stats) {
-          throw new Error(data?.error || `Failed to load stats for campaign ${campaignId}`);
-        }
-        return { campaignId, stats: data.stats as CampaignStats };
-      })
-    )
-      .then((statsRows) => {
+    // Load per campaign so one slow/failing /stats call cannot wipe every row
+    // ("No engagement data yet" previously appeared for all when Promise.all rejected).
+    const CONCURRENCY = 4;
+    void (async () => {
+      const next: Record<string, CampaignStats> = {};
+      for (let i = 0; i < campaignIds.length; i += CONCURRENCY) {
         if (isCancelled) return;
-        const next: Record<string, CampaignStats> = {};
-        for (const row of statsRows) {
-          next[row.campaignId] = row.stats;
-        }
-        setCampaignStatsById(next);
-      })
-      .catch((err) => {
-        if (isCancelled) return;
-        console.error('Failed to load campaign stats:', err);
-      })
-      .finally(() => {
-        if (isCancelled) return;
-        setCampaignStatsLoading((prev) => {
-          const next = { ...prev };
-          for (const campaignId of campaignIds) {
-            next[campaignId] = false;
+        const batch = campaignIds.slice(i, i + CONCURRENCY);
+        const settled = await Promise.allSettled(
+          batch.map(async (campaignId) => {
+            const response = await fetch(`/api/admin/email/campaigns/${campaignId}/stats`);
+            if (!response.ok) {
+              const errorText = await response.text().catch(() => '');
+              throw new Error(
+                errorText || `Failed to load stats for campaign ${campaignId} (${response.status})`
+              );
+            }
+            const data = (await response.json()) as { stats?: CampaignStats; error?: string };
+            if (!data?.stats) {
+              throw new Error(data?.error || `Failed to load stats for campaign ${campaignId}`);
+            }
+            return { campaignId, stats: data.stats };
+          })
+        );
+
+        for (const result of settled) {
+          if (result.status === 'fulfilled') {
+            next[result.value.campaignId] = result.value.stats;
+          } else {
+            console.error('Failed to load campaign stats:', result.reason);
           }
-          return next;
-        });
-      });
+        }
+
+        if (!isCancelled) {
+          setCampaignStatsById({ ...next });
+          setCampaignStatsLoading((prev) => {
+            const loading = { ...prev };
+            for (const campaignId of batch) {
+              loading[campaignId] = false;
+            }
+            return loading;
+          });
+        }
+      }
+    })();
 
     return () => {
       isCancelled = true;

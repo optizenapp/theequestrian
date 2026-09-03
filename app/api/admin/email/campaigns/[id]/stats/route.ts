@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/vercel-postgres';
 
+export const maxDuration = 30;
+
 function toNumber(value: unknown): number {
   const num = Number(value ?? 0);
   return Number.isFinite(num) ? num : 0;
@@ -29,18 +31,41 @@ export async function GET(
       return NextResponse.json({ error: 'Campaign not found' }, { status: 404 });
     }
 
+    // Recipient counts stay on recipients (avoids inflation when a contact has multiple sends).
+    // Open/click/delivered counts come from email_sends for the campaign.
     const totals = await sql`
       SELECT
-        COUNT(*) FILTER (WHERE r.status IN ('sent', 'delivered', 'failed', 'cancelled'))::int AS sent_count,
-        COUNT(*) FILTER (WHERE r.status = 'queued')::int AS remaining_queued,
-        COUNT(*) FILTER (WHERE s.status = 'delivered')::int AS delivered_count,
-        COUNT(*) FILTER (WHERE s.opened_at IS NOT NULL)::int AS unique_opened_count,
-        COALESCE(SUM(s.open_count), 0)::int AS total_open_count,
-        COUNT(*) FILTER (WHERE s.clicked_at IS NOT NULL)::int AS unique_clicked_count,
-        COALESCE(SUM(s.click_count), 0)::int AS total_click_count
-      FROM email_campaign_recipients r
-      LEFT JOIN email_sends s ON s.campaign_recipient_id = r.id
-      WHERE r.campaign_id = ${id}
+        (SELECT COUNT(*)::int
+           FROM email_campaign_recipients r
+          WHERE r.campaign_id = ${id}
+            AND r.status IN ('sent', 'delivered', 'failed', 'cancelled')) AS sent_count,
+        (SELECT COUNT(*)::int
+           FROM email_campaign_recipients r
+          WHERE r.campaign_id = ${id}
+            AND r.status = 'queued') AS remaining_queued,
+        (SELECT COUNT(*)::int
+           FROM email_sends s
+           JOIN email_campaign_recipients r ON r.id = s.campaign_recipient_id
+          WHERE r.campaign_id = ${id}
+            AND s.status = 'delivered') AS delivered_count,
+        (SELECT COUNT(*)::int
+           FROM email_sends s
+           JOIN email_campaign_recipients r ON r.id = s.campaign_recipient_id
+          WHERE r.campaign_id = ${id}
+            AND s.opened_at IS NOT NULL) AS unique_opened_count,
+        (SELECT COALESCE(SUM(s.open_count), 0)::int
+           FROM email_sends s
+           JOIN email_campaign_recipients r ON r.id = s.campaign_recipient_id
+          WHERE r.campaign_id = ${id}) AS total_open_count,
+        (SELECT COUNT(*)::int
+           FROM email_sends s
+           JOIN email_campaign_recipients r ON r.id = s.campaign_recipient_id
+          WHERE r.campaign_id = ${id}
+            AND s.clicked_at IS NOT NULL) AS unique_clicked_count,
+        (SELECT COALESCE(SUM(s.click_count), 0)::int
+           FROM email_sends s
+           JOIN email_campaign_recipients r ON r.id = s.campaign_recipient_id
+          WHERE r.campaign_id = ${id}) AS total_click_count
     `;
 
     const topLinks = await sql`
