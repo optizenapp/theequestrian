@@ -12,12 +12,14 @@ import { BrandProductLines } from '@/components/brand/BrandProductLines';
 import { BrandLogo } from '@/components/brand/BrandLogo';
 import { BrandHubDescriptionSizingTabs } from '@/components/brand/BrandHubDescriptionSizingTabs';
 import { RichContent } from '@/components/collection/RichContent';
+import { FulfillmentDelayNotice } from '@/components/product/FulfillmentDelayNotice';
 import {
   resolveBrandLogoUrl,
   resolveExistingBrandLogoAbsoluteUrl,
 } from '@/lib/brands/resolve-brand-logo';
 import { getCanonicalSiteUrl } from '@/lib/seo/site-url';
 import { getBrandSizingForHandle } from '@/lib/sizing/resolve-brand-sizing';
+import { isExclusivelyEquineFulfillmentDelayBrandHandle } from '@/lib/shipping/exclusively-equine-fulfillment-delay';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
@@ -213,6 +215,11 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
                 <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
                   {pageTitle}
                 </h1>
+                {isExclusivelyEquineFulfillmentDelayBrandHandle(handle) ? (
+                  <div className="mb-6">
+                    <FulfillmentDelayNotice variant="banner" />
+                  </div>
+                ) : null}
                 {brand.quick_answer && <BrandQuickAnswer text={brand.quick_answer} />}
                 <div className="mt-6">
                   <BrandHubDescriptionSizingTabs
