@@ -12,12 +12,10 @@ import { ProductBreadcrumbs } from '@/components/ProductBreadcrumbs';
 import { ProductBuyBox } from '@/components/product/ProductBuyBox';
 import { ProductDescriptionSizingTabs } from '@/components/product/ProductDescriptionSizingTabs';
 import { RelatedProducts } from '@/components/product/RelatedProducts';
-import { FulfillmentDelayNotice } from '@/components/product/FulfillmentDelayNotice';
 import { getBrandSizingForProduct } from '@/lib/sizing/resolve-brand-sizing';
 import { generateBreadcrumbSchema } from '@/lib/utils/breadcrumb-schema';
 import { generateProductSchemaGraph } from '@/lib/utils/product-schema';
 import { resolveProductShippingDisplay } from '@/lib/shipping/product-shipping-display';
-import { isExclusivelyEquineFulfillmentDelayVendor } from '@/lib/shipping/exclusively-equine-fulfillment-delay';
 import { getBreadcrumbsForProduct } from '@/lib/mapping/collection-mapping';
 import { ProductPageReviewBadge } from '@/components/reviews/ProductPageReviewBadge';
 import { StoreRatingBadge } from '@/components/reviews/StoreRatingBadge';
@@ -271,12 +269,6 @@ export default async function ProductCatchAllPage({ params, searchParams }: Prod
           primaryPath={primaryPath}
           additionalPaths={additionalPaths}
         />
-
-        {isExclusivelyEquineFulfillmentDelayVendor(resolvedProduct.vendor) ? (
-          <div className="mb-4 mt-2">
-            <FulfillmentDelayNotice variant="banner" />
-          </div>
-        ) : null}
 
         <ProductViewTracker
           productId={resolvedProduct.id}

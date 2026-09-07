@@ -217,7 +217,7 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
                 </h1>
                 {isExclusivelyEquineFulfillmentDelayBrandHandle(handle) ? (
                   <div className="mb-6">
-                    <FulfillmentDelayNotice variant="banner" />
+                    <FulfillmentDelayNotice variant="banner" scope="brand" />
                   </div>
                 ) : null}
                 {brand.quick_answer && <BrandQuickAnswer text={brand.quick_answer} />}
