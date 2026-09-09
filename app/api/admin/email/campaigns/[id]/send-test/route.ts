@@ -31,6 +31,10 @@ export async function POST(
     if (!to) {
       return NextResponse.json({ error: 'Missing test email address' }, { status: 400 });
     }
+    const subjectOverride =
+      typeof body?.subjectLine === 'string' && body.subjectLine.trim().length > 0
+        ? body.subjectLine.trim()
+        : '';
 
     const campaignResult = await sql`
       SELECT id, name, template_version_id, metadata, status
@@ -98,9 +102,10 @@ export async function POST(
               ? onSalePageUrlFromMapping(CAMPAIGN_SITE_URL)
               : undefined;
     const subjectLine =
-      typeof metadata.subjectLine === 'string' && metadata.subjectLine.trim().length > 0
+      subjectOverride ||
+      (typeof metadata.subjectLine === 'string' && metadata.subjectLine.trim().length > 0
         ? metadata.subjectLine.trim()
-        : templateVersion.subjectTemplate || 'The Equestrian';
+        : templateVersion.subjectTemplate || 'The Equestrian');
 
     const html = await buildCampaignHtmlWithOverrides({
       blocks: templateVersion.blocks,

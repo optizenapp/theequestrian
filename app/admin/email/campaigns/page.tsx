@@ -2349,6 +2349,7 @@ export default function AdminEmailCampaignsPage() {
       ) : null}
       <ResendNonOpenersDialog
         open={Boolean(resendNonOpenersCampaign)}
+        campaignId={resendNonOpenersCampaign?.id || ''}
         campaignName={resendNonOpenersCampaign?.name || ''}
         originalSubject={
           resendNonOpenersCampaign?.metadata &&
@@ -2356,6 +2357,7 @@ export default function AdminEmailCampaignsPage() {
             ? resendNonOpenersCampaign.metadata.subjectLine
             : ''
         }
+        defaultTestEmail={testEmailAddress}
         isSubmitting={Boolean(
           resendNonOpenersCampaign && resendingNonOpenersId === resendNonOpenersCampaign.id
         )}
