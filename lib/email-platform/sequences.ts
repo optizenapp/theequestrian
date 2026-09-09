@@ -2,6 +2,7 @@ import { sql } from '@/lib/db/vercel-postgres';
 import { getTemplateVersion, renderTemplateContent, addUtmParamsToEmailHtml, proxyEmailImages } from '@/lib/email-platform/templates';
 import { buildUnsubscribeUrl } from '@/lib/email-platform/unsubscribe';
 import { sendSesEmail } from '@/lib/email-platform/ses-mailer';
+import { shouldSuppressContact } from '@/lib/email-platform/sending';
 
 type SequenceStepRecord = {
   id: string;
@@ -103,6 +104,11 @@ export async function enrollContactInSequence(input: {
   contactId: string;
   metadata?: Record<string, unknown>;
 }): Promise<{ enrollmentId: string } | null> {
+  const suppression = await shouldSuppressContact(input.contactId);
+  if (suppression.suppress) {
+    return null;
+  }
+
   const sequence = await sql`
     SELECT id, status, active_version_id
     FROM email_sequences
@@ -182,6 +188,14 @@ async function runStep(
     const templateVersionId = String(step.config.templateVersionId || '');
     if (!templateVersionId) {
       return { status: 'failed', details: { reason: 'missing_template_version' } };
+    }
+
+    const suppression = await shouldSuppressContact(enrollment.contact_id);
+    if (suppression.suppress) {
+      return {
+        status: 'skipped',
+        details: { reason: suppression.reason || 'subscription_suppressed' },
+      };
     }
 
     const templateVersion = await getTemplateVersion(templateVersionId);
@@ -343,6 +357,23 @@ export async function runDueSequenceEnrollments(limit = 200): Promise<{
         WHERE id = ${enrollment.id}
       `;
       failed += 1;
+      processed += 1;
+      continue;
+    }
+
+    const skipReason = String(stepRun.details?.reason || '');
+    if (
+      stepRun.status === 'skipped' &&
+      (skipReason.startsWith('subscription_status_') || skipReason === 'subscription_suppressed')
+    ) {
+      await sql`
+        UPDATE email_sequence_enrollments
+        SET status = 'stopped',
+            exited_at = NOW(),
+            exit_reason = 'unsubscribed'
+        WHERE id = ${enrollment.id}
+      `;
+      completed += 1;
       processed += 1;
       continue;
     }

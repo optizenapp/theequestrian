@@ -1,6 +1,6 @@
 import { sql } from '@/lib/db/vercel-postgres';
 import { getTemplateVersion, renderTemplateContent, addUtmParamsToEmailHtml, proxyEmailImages } from '@/lib/email-platform/templates';
-import { buildUnsubscribeUrl } from '@/lib/email-platform/unsubscribe';
+import { buildUnsubscribeUrl, clearMarketingAudiences } from '@/lib/email-platform/unsubscribe';
 import { sendSesEmail } from '@/lib/email-platform/ses-mailer';
 import { ON_SALE_CTA_LABEL, onSalePageUrlFromMapping } from '@/lib/email-platform/auto-campaigns/build-one';
 
@@ -424,4 +424,11 @@ export async function markSuppressedByEmail(email: string, reason: string): Prom
       suppression_reason = EXCLUDED.suppression_reason,
       updated_at = NOW()
   `;
+  await sql`
+    UPDATE email_contacts
+    SET accepts_marketing = false,
+        updated_at = NOW()
+    WHERE id = ${contactId}
+  `;
+  await clearMarketingAudiences(contactId, 'provider_suppressed');
 }

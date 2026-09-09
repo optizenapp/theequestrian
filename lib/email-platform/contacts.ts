@@ -104,7 +104,10 @@ export async function upsertEmailContact(input: {
       shopify_customer_id = COALESCE(EXCLUDED.shopify_customer_id, email_contacts.shopify_customer_id),
       first_name = COALESCE(EXCLUDED.first_name, email_contacts.first_name),
       last_name = COALESCE(EXCLUDED.last_name, email_contacts.last_name),
-      accepts_marketing = EXCLUDED.accepts_marketing,
+      accepts_marketing = CASE
+        WHEN email_contacts.accepts_marketing = false THEN false
+        ELSE EXCLUDED.accepts_marketing
+      END,
       metadata = email_contacts.metadata || EXCLUDED.metadata,
       updated_at = NOW()
     RETURNING id, (xmax = 0) AS inserted
@@ -155,11 +158,23 @@ export async function upsertEmailContact(input: {
     ON CONFLICT (contact_id)
     DO UPDATE SET
       status = CASE
-        WHEN email_subscriptions.status = 'suppressed' THEN 'suppressed'
+        WHEN email_subscriptions.status IN ('suppressed', 'unsubscribed') THEN email_subscriptions.status
         ELSE EXCLUDED.status
       END,
       source = EXCLUDED.source,
       updated_at = NOW()
+  `;
+
+  // Keep contact marketing flag aligned with protected opt-out statuses.
+  await sql`
+    UPDATE email_contacts c
+    SET accepts_marketing = false,
+        updated_at = NOW()
+    FROM email_subscriptions s
+    WHERE c.id = ${contactId}
+      AND s.contact_id = c.id
+      AND s.status IN ('unsubscribed', 'suppressed')
+      AND c.accepts_marketing IS DISTINCT FROM false
   `;
 
   if (inserted && isCustomerSheetSyncEnabled()) {
