@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/vercel-postgres';
 import { shopifyFetch } from '@/lib/shopify/client';
-import { getProductTypesForCollection } from '@/lib/mapping/collection-mapping';
 import { getProductOverridesByHandles } from '@/lib/content/product-overrides';
 import { isExcludedFrontendProduct } from '@/lib/shopify/vendor-visibility';
 import { getProductCanonicalUrls } from '@/lib/shopify/products';
+import { resolveCollectionSearchImage } from '@/lib/search/collection-search-image';
 
 const SEARCH_PRODUCTS_QUERY = `
   query SearchProducts($query: String!, $first: Int!) {
@@ -39,31 +39,6 @@ const SEARCH_PRODUCTS_QUERY = `
     }
   }
 `;
-
-const SEARCH_CATEGORY_IMAGE_QUERY = `
-  query SearchCategoryImage($query: String!, $first: Int!) {
-    products(first: $first, query: $query) {
-      edges {
-        node {
-          images(first: 1) {
-            edges {
-              node {
-                url
-                altText
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-`;
-
-function buildProductTypeQuery(productTypes: string[]): string {
-  return productTypes
-    .map((type) => `product_type:"${type.replace(/"/g, '\\"')}"`)
-    .join(' OR ');
-}
 
 type SearchResponse = {
   results: {
@@ -109,34 +84,34 @@ export async function GET(request: Request) {
 
     const [productData, categoryData] = await Promise.all([
       shopifyFetch<{
-      products: {
-        edges: Array<{
-          node: {
-            id: string;
-            handle: string;
-            title: string;
-            vendor: string;
-            productType: string;
-            availableForSale: boolean;
-            priceRange: {
-              minVariantPrice: {
-                amount: string;
-                currencyCode: string;
+        products: {
+          edges: Array<{
+            node: {
+              id: string;
+              handle: string;
+              title: string;
+              vendor: string;
+              productType: string;
+              availableForSale: boolean;
+              priceRange: {
+                minVariantPrice: {
+                  amount: string;
+                  currencyCode: string;
+                };
+              };
+              metafield: { value: string } | null;
+              images: {
+                edges: Array<{
+                  node: {
+                    url: string;
+                    altText?: string | null;
+                  };
+                }>;
               };
             };
-            metafield: { value: string } | null;
-            images: {
-              edges: Array<{
-                node: {
-                  url: string;
-                  altText?: string | null;
-                };
-              }>;
-            };
-          };
-        }>;
-      };
-    }>({
+          }>;
+        };
+      }>({
         query: SEARCH_PRODUCTS_QUERY,
         variables: { query: `title:*${query}*`, first: 8 },
         cache: 'force-cache',
@@ -209,44 +184,8 @@ export async function GET(request: Request) {
 
     const collectionResults = await Promise.all(
       baseCollections.slice(0, 3).map(async (collection) => {
-        const pathParts = collection.urlPath.replace(/^\//, '').split('/').filter(Boolean);
-        const [category, subcategory, subsubcategory] = pathParts;
-        const productTypes = await getProductTypesForCollection(category, subcategory, subsubcategory);
-
-        if (productTypes.length === 0) {
-          return { ...collection, imageUrl: null, imageAlt: null };
-        }
-
-        const productTypeQuery = buildProductTypeQuery(productTypes);
-        if (!productTypeQuery) {
-          return { ...collection, imageUrl: null, imageAlt: null };
-        }
-
-        const imageData = await shopifyFetch<{
-          products: {
-            edges: Array<{
-              node: {
-                images: {
-                  edges: Array<{
-                    node: { url: string; altText?: string | null };
-                  }>;
-                };
-              };
-            }>;
-          };
-        }>({
-          query: SEARCH_CATEGORY_IMAGE_QUERY,
-          variables: { query: `(${productTypeQuery})`, first: 1 },
-          cache: 'force-cache',
-          tags: ['search', `search-collection-image-${collection.id}`],
-        });
-
-        const imageNode = imageData.products.edges[0]?.node.images.edges[0]?.node;
-        return {
-          ...collection,
-          imageUrl: imageNode?.url ?? null,
-          imageAlt: imageNode?.altText ?? collection.title,
-        };
+        const image = await resolveCollectionSearchImage(collection.urlPath, collection.title);
+        return { ...collection, ...image };
       })
     );
 
