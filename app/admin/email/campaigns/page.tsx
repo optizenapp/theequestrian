@@ -7,6 +7,7 @@ import type { EmailBlock, CuratedProductCard } from '@/lib/email-platform/types'
 import { applyAlternatingProductLayout } from '@/lib/email-platform/auto-weekly/product-layout';
 import { continueBulletOnEnter, insertBulletMarker } from '@/lib/email-platform/text-block-bullets';
 import { CampaignScheduleControls } from './CampaignScheduleControls';
+import { ResendNonOpenersDialog } from './ResendNonOpenersDialog';
 import { SocialPostsPanel } from './SocialPostsPanel';
 import { SlideCopyEditor } from './SlideCopyEditor';
 import { ThumbnailsPanel } from './ThumbnailsPanel';
@@ -143,6 +144,7 @@ export default function AdminEmailCampaignsPage() {
   const [cancellingCampaignId, setCancellingCampaignId] = useState<string | null>(null);
   const [resendingCampaignId, setResendingCampaignId] = useState<string | null>(null);
   const [resendingNonOpenersId, setResendingNonOpenersId] = useState<string | null>(null);
+  const [resendNonOpenersCampaign, setResendNonOpenersCampaign] = useState<CampaignRow | null>(null);
   const [preparedCampaign, setPreparedCampaign] = useState<PreparedCampaign | null>(null);
   const [duplicatedCampaignId, setDuplicatedCampaignId] = useState<string | null>(null);
   const [editingCampaignId, setEditingCampaignId] = useState<string | null>(null);
@@ -1029,6 +1031,54 @@ export default function AdminEmailCampaignsPage() {
       setError(err instanceof Error ? err.message : 'Failed to duplicate campaign');
     } finally {
       setIsDuplicatingCampaign(false);
+    }
+  };
+
+  const confirmResendNonOpeners = async (subjectLine: string) => {
+    const campaign = resendNonOpenersCampaign;
+    if (!campaign) return;
+    setResendingNonOpenersId(campaign.id);
+    setError('');
+    setStatusMessage('');
+    try {
+      const response = await fetch(`/api/admin/email/campaigns/${campaign.id}/resend-non-openers`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subjectLine }),
+      });
+      const raw = await response.text();
+      let data: {
+        error?: string;
+        recipientCount?: number;
+        sent?: number;
+        failed?: number;
+        skipped?: number;
+        deferred?: boolean;
+      } = {};
+      try {
+        data = raw ? (JSON.parse(raw) as typeof data) : {};
+      } catch {
+        throw new Error(raw.trim().slice(0, 200) || `Server error (HTTP ${response.status})`);
+      }
+      if (!response.ok) {
+        setError(data?.error || 'Failed to resend to non-openers');
+        return;
+      }
+      setResendNonOpenersCampaign(null);
+      if (data.deferred) {
+        setStatusMessage(
+          `Resend to non-openers started: ${data.recipientCount ?? 0} recipients queued with subject "${subjectLine}". Sending continues in the background — refresh in a few minutes to see progress.`
+        );
+      } else {
+        setStatusMessage(
+          `Resent to non-openers: ${data.recipientCount ?? 0} queued, sent ${data.sent ?? 0}, failed ${data.failed ?? 0}, skipped ${data.skipped ?? 0}.`
+        );
+      }
+      await loadAll();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to resend to non-openers');
+    } finally {
+      setResendingNonOpenersId(null);
     }
   };
 
@@ -2028,55 +2078,7 @@ export default function AdminEmailCampaignsPage() {
                       type="button"
                       disabled={resendingNonOpenersId === campaign.id}
                       className="rounded-full border border-fuchsia-300 px-3 py-1.5 text-xs font-semibold text-fuchsia-800 hover:border-fuchsia-500 disabled:opacity-60"
-                      onClick={async () => {
-                        const confirmed = window.confirm(
-                          `Resend this campaign only to recipients who did NOT open the original email? A new "Resend (non-openers)" campaign will be created with a fresh subject line and sent in the background.`
-                        );
-                        if (!confirmed) return;
-                        setResendingNonOpenersId(campaign.id);
-                        setError('');
-                        setStatusMessage('');
-                        try {
-                          const response = await fetch(
-                            `/api/admin/email/campaigns/${campaign.id}/resend-non-openers`,
-                            { method: 'POST' }
-                          );
-                          const raw = await response.text();
-                          let data: {
-                            error?: string;
-                            recipientCount?: number;
-                            sent?: number;
-                            failed?: number;
-                            skipped?: number;
-                            deferred?: boolean;
-                          } = {};
-                          try {
-                            data = raw ? (JSON.parse(raw) as typeof data) : {};
-                          } catch {
-                            throw new Error(
-                              raw.trim().slice(0, 200) || `Server error (HTTP ${response.status})`
-                            );
-                          }
-                          if (!response.ok) {
-                            setError(data?.error || 'Failed to resend to non-openers');
-                            return;
-                          }
-                          if (data.deferred) {
-                            setStatusMessage(
-                              `Resend to non-openers started: ${data.recipientCount ?? 0} recipients queued. Sending continues in the background — refresh in a few minutes to see progress.`
-                            );
-                          } else {
-                            setStatusMessage(
-                              `Resent to non-openers: ${data.recipientCount ?? 0} queued, sent ${data.sent ?? 0}, failed ${data.failed ?? 0}, skipped ${data.skipped ?? 0}.`
-                            );
-                          }
-                          await loadAll();
-                        } catch (err) {
-                          setError(err instanceof Error ? err.message : 'Failed to resend to non-openers');
-                        } finally {
-                          setResendingNonOpenersId(null);
-                        }
-                      }}
+                      onClick={() => setResendNonOpenersCampaign(campaign)}
                     >
                       {resendingNonOpenersId === campaign.id ? 'Resending…' : 'Resend non-openers'}
                     </button>
@@ -2345,6 +2347,24 @@ export default function AdminEmailCampaignsPage() {
           </div>
         </div>
       ) : null}
+      <ResendNonOpenersDialog
+        open={Boolean(resendNonOpenersCampaign)}
+        campaignName={resendNonOpenersCampaign?.name || ''}
+        originalSubject={
+          resendNonOpenersCampaign?.metadata &&
+          typeof resendNonOpenersCampaign.metadata.subjectLine === 'string'
+            ? resendNonOpenersCampaign.metadata.subjectLine
+            : ''
+        }
+        isSubmitting={Boolean(
+          resendNonOpenersCampaign && resendingNonOpenersId === resendNonOpenersCampaign.id
+        )}
+        onCancel={() => {
+          if (resendingNonOpenersId) return;
+          setResendNonOpenersCampaign(null);
+        }}
+        onConfirm={confirmResendNonOpeners}
+      />
     </AdminLayout>
   );
 }

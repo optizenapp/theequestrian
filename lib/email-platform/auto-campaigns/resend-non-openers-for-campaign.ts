@@ -60,6 +60,8 @@ async function loadNonOpenerContactIds(parentCampaignId: string): Promise<string
 export async function resendNonOpenersForCampaign(input: {
   parentCampaignId: string;
   actor?: string;
+  /** When set, used as the child campaign subject instead of AI generation. */
+  subjectLine?: string;
   /** When true, queue recipients and return; caller starts send separately (avoids Vercel timeouts). */
   deferSend?: boolean;
 }): Promise<ResendNonOpenersResult> {
@@ -83,11 +85,6 @@ export async function resendNonOpenersForCampaign(input: {
   }
 
   const meta = (parent.metadata as Record<string, unknown>) || {};
-  const handles = Array.isArray(meta.productHandles)
-    ? (meta.productHandles as unknown[]).filter((value): value is string => typeof value === 'string')
-    : [];
-  const products = handles.length > 0 ? await getProductsByHandles(handles) : [];
-  const productContext = formatProductContext(products as ProductLite[]);
   const originalSubject =
     typeof meta.subjectLine === 'string' && meta.subjectLine.trim().length > 0
       ? meta.subjectLine.trim()
@@ -98,12 +95,23 @@ export async function resendNonOpenersForCampaign(input: {
     return { ...empty, reason: 'no_non_openers' };
   }
 
+  const providedSubject =
+    typeof input.subjectLine === 'string' ? input.subjectLine.trim() : '';
   let newSubject: string;
-  try {
-    newSubject = await generateResendSubjectLine({ originalSubject, productContext });
-  } catch (error) {
-    console.warn('[resend-non-openers] subject generation failed; using fallback', error);
-    newSubject = 'Still interested? Your picks inside';
+  if (providedSubject.length > 0) {
+    newSubject = providedSubject.length > 120 ? providedSubject.slice(0, 120).trim() : providedSubject;
+  } else {
+    const handles = Array.isArray(meta.productHandles)
+      ? (meta.productHandles as unknown[]).filter((value): value is string => typeof value === 'string')
+      : [];
+    const products = handles.length > 0 ? await getProductsByHandles(handles) : [];
+    const productContext = formatProductContext(products as ProductLite[]);
+    try {
+      newSubject = await generateResendSubjectLine({ originalSubject, productContext });
+    } catch (error) {
+      console.warn('[resend-non-openers] subject generation failed; using fallback', error);
+      newSubject = 'Still interested? Your picks inside';
+    }
   }
   const childMeta: Record<string, unknown> = {
     ...meta,

@@ -15,14 +15,32 @@ function runAsync(work: () => Promise<void>) {
 }
 
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
+    let subjectLine: string | undefined;
+    try {
+      const body = (await request.json()) as { subjectLine?: unknown };
+      if (typeof body?.subjectLine === 'string' && body.subjectLine.trim().length > 0) {
+        subjectLine = body.subjectLine.trim();
+      }
+    } catch {
+      // Empty body is fine for backwards compatibility (AI subject fallback).
+    }
+
+    if (!subjectLine) {
+      return NextResponse.json(
+        { error: 'A new subject line is required before resending to non-openers' },
+        { status: 400 }
+      );
+    }
+
     const result = await resendNonOpenersForCampaign({
       parentCampaignId: id,
       actor: 'manual-resend',
+      subjectLine,
       deferSend: true,
     });
 
@@ -36,6 +54,7 @@ export async function POST(
         recipientCount: result.recipientCount,
         deferredSend: true,
         reason: result.reason,
+        subjectLine,
       },
     });
 
@@ -72,6 +91,7 @@ export async function POST(
       failed: 0,
       skipped: 0,
       deferred: true,
+      subjectLine,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to resend to non-openers';
