@@ -10,7 +10,7 @@ import {
   getAllProducts,
 } from '../lib/shopify/products';
 import { getCompareAtSalePair } from '../lib/shopify/product-discount';
-import { buildGmcCustomLabels } from '../lib/gmc/custom-labels';
+import { buildGmcCustomLabels, getVendorLabel } from '../lib/gmc/custom-labels';
 import { loadVariantEconomicsMap } from '../lib/gmc/variant-economics';
 
 type Dist = Record<string, number>;
@@ -95,6 +95,12 @@ async function main() {
     test: {},
     do_not_advertise: {},
   };
+  const paidXVendor: Record<string, Dist> = {
+    prime: {},
+    strong: {},
+    test: {},
+    do_not_advertise: {},
+  };
   const primeHighStockByMargin: Dist = {};
   const primeHighStockByPrice: Dist = {};
   const primeHighStockByContribution: Dist = {};
@@ -137,6 +143,7 @@ async function main() {
       const labels = buildGmcCustomLabels({
         sellingPriceAud: Number.isFinite(sellingPriceAud) ? sellingPriceAud : NaN,
         tags: product.tags,
+        vendor: product.vendor,
         unitCostAud: economics?.unitCostAud ?? null,
         availableForSale: isAvailable,
         quantityAvailable: economics?.quantityAvailable ?? null,
@@ -156,6 +163,24 @@ async function main() {
       bump(paidXMargin[labels.custom_label_2], labels.custom_label_1);
       bump(paidXPrice[labels.custom_label_2], labels.custom_label_0);
       bump(paidXStock[labels.custom_label_2], labels.custom_label_3);
+      bump(paidXVendor[labels.custom_label_2], labels.custom_label_4);
+
+      if (!labels.custom_label_4 || !/^[a-z0-9_]+$/.test(labels.custom_label_4)) {
+        sanityErrors.push(
+          `invalid custom_label_4=${labels.custom_label_4} id=${stripGid(variant.id)}`
+        );
+      }
+      const expectedVendor = getVendorLabel(product.vendor);
+      if (labels.custom_label_4 !== expectedVendor) {
+        sanityErrors.push(
+          `vendor label mismatch id=${stripGid(variant.id)} expected=${expectedVendor} got=${labels.custom_label_4}`
+        );
+      }
+      if (!product.vendor?.trim() && labels.custom_label_4 !== 'unknown') {
+        sanityErrors.push(
+          `blank vendor not unknown id=${stripGid(variant.id)} got=${labels.custom_label_4}`
+        );
+      }
 
       if (labels.custom_label_2 === 'prime') {
         bump(primeByMargin, labels.custom_label_1);
@@ -297,15 +322,32 @@ async function main() {
   lines.push('## Cross-tab: custom_label_2 × custom_label_0');
   lines.push(...formatMatrix(paidXPrice, paidKeys, priceKeys));
   lines.push('');
-  lines.push('## custom_label_0 / 1 / 3 / 4 (unchanged rules)');
+  const vendorKeys = Object.keys(label4).sort(
+    (a, b) => (label4[b] || 0) - (label4[a] || 0) || a.localeCompare(b)
+  );
+  lines.push('## custom_label_4 — Vendor (for Ads include/exclude)');
+  lines.push(`Distinct vendors: ${vendorKeys.length}`);
+  lines.push(...formatDist(label4, vendorKeys, total));
+  lines.push('');
+  lines.push('## Cross-tab: custom_label_2 × custom_label_4 (top vendors)');
+  const topVendors = vendorKeys.slice(0, 15);
+  lines.push(...formatMatrix(paidXVendor, paidKeys, topVendors));
+  lines.push('');
+  for (const vendor of topVendors.slice(0, 10)) {
+    const primeN = paidXVendor.prime?.[vendor] || 0;
+    const strongN = paidXVendor.strong?.[vendor] || 0;
+    lines.push(
+      `  ${vendor}: prime=${primeN} strong=${strongN} (${pct(primeN + strongN, total)} of catalogue paid-eligible)`
+    );
+  }
+  lines.push('');
+  lines.push('## custom_label_0 / 1 / 3');
   lines.push('### label_0');
   lines.push(...formatDist(label0, priceKeys, total));
   lines.push('### label_1');
   lines.push(...formatDist(label1, marginKeys, total));
   lines.push('### label_3');
   lines.push(...formatDist(label3, ['high_stock', 'low_stock'], total));
-  lines.push('### label_4');
-  lines.push(...formatDist(label4, ['bestseller', 'slow_mover', 'unknown'], total));
   lines.push('');
   lines.push('## Sanity check errors');
   if (sanityErrors.length === 0) {

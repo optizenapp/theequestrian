@@ -10,8 +10,10 @@ import {
   getMarginRangeLabel,
   getPaidAcquisitionLabel,
   getPriceTier,
+  getVendorLabel,
   parseExactMarginPercentFromTags,
 } from '../lib/gmc/custom-labels';
+import { COLLECTIVE_VENDORS } from '../lib/shipping/collective-vendors';
 
 function expectPaid(price: number, marginPct: number, expected: string) {
   const contribution = getGrossContributionFromMargin(price, marginPct);
@@ -86,12 +88,14 @@ expectPaid(50, 40, 'prime');
   const labels = buildGmcCustomLabels({
     sellingPriceAud: 120,
     tags: ['margin:17'],
+    vendor: 'Owned Brand Co',
     availableForSale: true,
     quantityAvailable: 12,
   });
   assert.equal(labels.custom_label_0, '100_to_150');
   assert.equal(labels.custom_label_1, 'margin_10_19');
   assert.equal(labels.custom_label_2, 'do_not_advertise');
+  assert.equal(labels.custom_label_4, 'owned_brand_co');
   assert.equal(labels.marginPercent, 17);
 }
 
@@ -100,6 +104,7 @@ expectPaid(50, 40, 'prime');
   const labels = buildGmcCustomLabels({
     sellingPriceAud: 200,
     tags: ['margin:high'],
+    vendor: 'Owned Brand Co',
     availableForSale: true,
     quantityAvailable: 20,
   });
@@ -112,6 +117,7 @@ expectPaid(50, 40, 'prime');
   const labels = buildGmcCustomLabels({
     sellingPriceAud: 100,
     tags: [],
+    vendor: 'Owned Brand Co',
     unitCostAud: 60, // 40%, $40
     availableForSale: true,
     quantityAvailable: 5,
@@ -127,6 +133,7 @@ expectPaid(50, 40, 'prime');
   const labels = buildGmcCustomLabels({
     sellingPriceAud: 50,
     tags: [],
+    vendor: 'Owned Brand Co',
     unitCostAud: 55,
     availableForSale: true,
     quantityAvailable: 5,
@@ -140,6 +147,7 @@ expectPaid(50, 40, 'prime');
   const atList = buildGmcCustomLabels({
     sellingPriceAud: 100,
     tags: [],
+    vendor: 'Owned Brand Co',
     unitCostAud: 60,
     availableForSale: true,
     quantityAvailable: 5,
@@ -149,11 +157,13 @@ expectPaid(50, 40, 'prime');
   const onSale = buildGmcCustomLabels({
     sellingPriceAud: 70, // same cost → margin ~14.3%, contrib $10
     tags: [],
+    vendor: 'Owned Brand Co',
     unitCostAud: 60,
     availableForSale: true,
     quantityAvailable: 5,
   });
   assert.equal(onSale.custom_label_2, 'do_not_advertise');
+  assert.equal(onSale.custom_label_4, 'owned_brand_co');
 }
 
 // Tag wins over unit cost
@@ -162,6 +172,7 @@ assert.equal(parseExactMarginPercentFromTags(['margin:22%']), 22);
   const labels = buildGmcCustomLabels({
     sellingPriceAud: 100,
     tags: ['margin:40'],
+    vendor: 'Owned Brand Co',
     unitCostAud: 90,
     availableForSale: true,
     quantityAvailable: 5,
@@ -177,6 +188,7 @@ assert.equal(parseExactMarginPercentFromTags(['margin:22%']), 22);
     buildGmcCustomLabels({
       sellingPriceAud: 100,
       tags: ['margin:40'],
+      vendor: 'Owned Brand Co',
       availableForSale: true,
       quantityAvailable: 4,
       tracked: true,
@@ -187,6 +199,7 @@ assert.equal(parseExactMarginPercentFromTags(['margin:22%']), 22);
     buildGmcCustomLabels({
       sellingPriceAud: 100,
       tags: ['margin:40'],
+      vendor: 'Owned Brand Co',
       availableForSale: true,
       quantityAvailable: 5,
       tracked: true,
@@ -196,5 +209,92 @@ assert.equal(parseExactMarginPercentFromTags(['margin:22%']), 22);
 }
 
 assert.equal(getGrossContributionFromCost(100, 75), 25);
+
+// --- custom_label_4: vendor slug for Ads include/exclude ---
+assert.equal(getVendorLabel(null), 'unknown');
+assert.equal(getVendorLabel('  '), 'unknown');
+assert.equal(getVendorLabel('Toptac International'), 'toptac');
+assert.equal(getVendorLabel('Toptac'), 'toptac');
+assert.equal(getVendorLabel('Trailrace'), 'trailrace');
+assert.equal(getVendorLabel('Trailrace Equestrian Outfitters'), 'trailrace');
+assert.equal(getVendorLabel('Little Equine Co.'), 'little_equine');
+assert.equal(getVendorLabel('JP Equestrian Fashion'), 'jp_equestrian_fashion');
+assert.equal(getVendorLabel(COLLECTIVE_VENDORS[0]), getVendorLabel(COLLECTIVE_VENDORS[0]));
+
+// Vendor label independent of price / margin / stock / paid labels
+{
+  const labels = buildGmcCustomLabels({
+    sellingPriceAud: 100,
+    tags: ['shopify collective', 'margin:40'],
+    vendor: 'Exclusively Equine',
+    unitCostAud: 60,
+    availableForSale: true,
+    quantityAvailable: 10,
+  });
+  assert.equal(labels.custom_label_4, 'exclusively_equine');
+  assert.equal(labels.custom_label_2, 'prime');
+}
+
+{
+  const labels = buildGmcCustomLabels({
+    sellingPriceAud: 80,
+    tags: ['margin:10'],
+    vendor: 'Toptac International',
+    availableForSale: true,
+    quantityAvailable: 2,
+  });
+  assert.equal(labels.custom_label_4, 'toptac');
+  assert.equal(labels.custom_label_2, 'do_not_advertise');
+  assert.equal(labels.custom_label_3, 'low_stock');
+}
+
+// Sale price change does not alter vendor label
+{
+  const list = buildGmcCustomLabels({
+    sellingPriceAud: 120,
+    tags: [],
+    vendor: 'Trailrace',
+    unitCostAud: 70,
+    availableForSale: true,
+    quantityAvailable: 8,
+  });
+  const sale = buildGmcCustomLabels({
+    sellingPriceAud: 60,
+    tags: [],
+    vendor: 'Trailrace',
+    unitCostAud: 70,
+    availableForSale: true,
+    quantityAvailable: 8,
+  });
+  assert.equal(list.custom_label_4, 'trailrace');
+  assert.equal(sale.custom_label_4, 'trailrace');
+  assert.notEqual(list.custom_label_2, sale.custom_label_2);
+}
+
+// Alias rename / spelling does not split the vendor bucket
+{
+  assert.equal(
+    getVendorLabel('JnK Collective'),
+    getVendorLabel('JNK Collective')
+  );
+  assert.equal(
+    getVendorLabel('QJ Riding Wear'),
+    getVendorLabel('QJ Ridingwear')
+  );
+}
+
+// Blank vendor → unknown
+{
+  const labels = buildGmcCustomLabels({
+    sellingPriceAud: 100,
+    tags: ['margin:40'],
+    vendor: null,
+    unitCostAud: 50,
+    availableForSale: true,
+    quantityAvailable: 20,
+  });
+  assert.equal(labels.custom_label_4, 'unknown');
+  assert.equal(labels.custom_label_2, 'prime');
+}
 
 console.log('✅ All GMC custom-label tests passed');

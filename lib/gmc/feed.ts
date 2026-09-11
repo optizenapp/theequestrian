@@ -255,6 +255,7 @@ function buildVariantItem({
   const labels = buildGmcCustomLabels({
     sellingPriceAud: Number.isFinite(sellingPriceAud) ? sellingPriceAud : NaN,
     tags: product.tags,
+    vendor: product.vendor,
     unitCostAud: economics?.unitCostAud ?? null,
     availableForSale: isAvailable,
     quantityAvailable: economics?.quantityAvailable ?? null,

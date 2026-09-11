@@ -1,7 +1,13 @@
 /**
- * GMC custom-label economics (price / margin / paid acquisition / stock / performance).
+ * GMC custom-label economics (price / margin / paid acquisition / stock / vendor).
  * Thresholds are centralised so Shopping eligibility can be tuned later.
  */
+
+import { getVendorAliasKeys } from '@/lib/shipping/vendor-aliases';
+import {
+  isCollectiveVendor,
+  tagsIndicateCollective,
+} from '@/lib/shipping/collective-vendors';
 
 /** Absolute contribution floors (AUD) for paid acquisition labels. */
 export const PRIME_MIN_CONTRIBUTION = 20;
@@ -48,6 +54,16 @@ export type ProfitabilityLabel = 'prime' | 'strong' | 'test' | 'do_not_advertise
 
 export type StockPressureLabel = 'high_stock' | 'low_stock';
 
+/**
+ * Shopify Product.vendor slug for Shopping include/exclude — custom_label_4.
+ * Free-form string (canonicalised + slugified), or `unknown` when vendor is blank.
+ */
+export type VendorLabel = string;
+
+/** @deprecated Not emitted on GMC custom_label_4 (vendor slug is used instead). */
+export type InventorySourceLabel = 'collective' | 'owned_stock' | 'unknown';
+
+/** @deprecated No longer emitted on GMC custom_label_4. Kept for internal reference. */
 export type PerformanceLabel = 'bestseller' | 'slow_mover' | 'unknown';
 
 export type GmcCustomLabels = {
@@ -55,7 +71,7 @@ export type GmcCustomLabels = {
   custom_label_1: MarginRangeLabel;
   custom_label_2: ProfitabilityLabel;
   custom_label_3: StockPressureLabel;
-  custom_label_4: PerformanceLabel;
+  custom_label_4: VendorLabel;
 };
 
 export type MarginResolution = {
@@ -177,6 +193,49 @@ export function getStockPressureLabel(input: {
   return input.quantityAvailable >= HIGH_STOCK_MIN_QUANTITY ? 'high_stock' : 'low_stock';
 }
 
+/**
+ * Ads-safe vendor slug: lowercase, underscores, no punctuation.
+ * Blank / unusable vendor → `unknown`.
+ */
+export function slugifyVendorLabel(vendor: string): VendorLabel {
+  const slug = vendor
+    .trim()
+    .toLowerCase()
+    .replace(/['’.]/g, '')
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 100);
+  return slug || 'unknown';
+}
+
+/**
+ * custom_label_4 — marketplace vendor for Google Ads include/exclude.
+ * Alias spellings collapse to one canonical slug (e.g. Trailrace variants).
+ */
+export function getVendorLabel(vendor?: string | null): VendorLabel {
+  if (!vendor?.trim()) return 'unknown';
+  const keys = getVendorAliasKeys(vendor);
+  const preferred = keys
+    .slice()
+    .sort((a, b) => a.length - b.length || a.localeCompare(b))[0];
+  return slugifyVendorLabel(preferred || vendor);
+}
+
+/**
+ * @deprecated Not used for GMC custom_label_4 (vendor slug is used instead).
+ * Prefer Collective tag, then known Collective vendor list; blank vendor → unknown.
+ */
+export function getInventorySourceLabel(input: {
+  vendor?: string | null;
+  tags?: string[] | null;
+}): InventorySourceLabel {
+  if (tagsIndicateCollective(input.tags)) return 'collective';
+  if (isCollectiveVendor(input.vendor)) return 'collective';
+  if (!input.vendor?.trim()) return 'unknown';
+  return 'owned_stock';
+}
+
+/** @deprecated Prefer getVendorLabel — not used for GMC custom_label_4. */
 export function getPerformanceLabel(tags: string[]): PerformanceLabel {
   const normalized = tags.map((tag) => tag.trim().toLowerCase());
   if (normalized.some((tag) => tag.includes('bestseller') || tag.includes('best seller'))) {
@@ -237,6 +296,7 @@ export function resolveMargin(input: {
 export function buildGmcCustomLabels(input: {
   sellingPriceAud: number;
   tags: string[];
+  vendor?: string | null;
   unitCostAud?: number | null;
   availableForSale: boolean;
   quantityAvailable?: number | null;
@@ -276,7 +336,7 @@ export function buildGmcCustomLabels(input: {
       tracked: input.tracked,
       inventoryPolicy: input.inventoryPolicy,
     }),
-    custom_label_4: getPerformanceLabel(input.tags),
+    custom_label_4: getVendorLabel(input.vendor),
     marginPercent: margin.marginPercent,
     marginSource: margin.source,
     grossContributionAud,

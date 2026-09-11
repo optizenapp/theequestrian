@@ -339,7 +339,7 @@ async function auditFeed() {
       issue: 'Custom labels missing for paid ads segmentation',
       count: customLabelMissing.length,
       sample: [customLabelMissing.join(', ')],
-      recommendation: 'Populate custom_label_0..4 with pricing, margin, seasonality, stock, and performance buckets.',
+      recommendation: 'Populate custom_label_0..4 with pricing, margin, paid acquisition, stock, and vendor buckets.',
     });
   }
 
