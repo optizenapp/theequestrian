@@ -17,6 +17,8 @@ export const COLLECTIVE_VENDORS = [
   'Plum Tack',
   'QJ Riding Wear',
   'Trailrace',
+  'Living Horse Tails Jewellery by Monika',
+  'WA Dog Grooming Supplies',
 ] as const;
 
 const collectiveVendorKeys = new Set<string>();

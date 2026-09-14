@@ -109,10 +109,11 @@ function looksLikeRetailPrice(n: number): boolean {
 }
 
 /**
- * Prefer subtracting only when current looks like retail+offset and the
- * restored amount looks like a normal retail price.
- * Flat dollar offsets (8/12/20) keep .95 endings on both sides — those must
- * come from audit rows only, or we would keep re-matching fixed prices.
+ * Prefer subtracting only when current looks like retail+offset.
+ *
+ * CRITICAL: For $x.95 offsets, inflated prices end in .90 (e.g. 26.90), while
+ * correct retail ends in .95 (e.g. 13.95). Never treat a .95 price as still
+ * inflated — that caused the Sep-1 double-subtract smash ($13.95 → $1.00).
  */
 function shouldSubtractOffset(current: number, offset: number): boolean {
   if (!(offset > 0) || !(current > offset)) return false;
@@ -128,10 +129,9 @@ function shouldSubtractOffset(current: number, offset: number): boolean {
     if (cents(target) === 0) return true;
     return false;
   }
-  // 12.95-style offsets often land on .90/.95 when inflated
+  // 12.95-style: ONLY subtract when current ends .90 (inflated). .95 is already retail.
   if (offsetCents === 95) {
-    const c = cents(current);
-    return c === 90 || c === 95;
+    return cents(current) === 90;
   }
   // Flat dollar offsets: refuse subtract without audit (handled separately)
   return false;
@@ -163,7 +163,9 @@ async function loadRateMap(sql: ReturnType<typeof neon>): Promise<{
   return { byExact, byKey };
 }
 
-/** Last known Collective offsets before disable — used if Neon is already zeroed. */
+/** Last known Collective offsets before disable — ONLY for reporting.
+ *  NEVER used to drive subtract after Neon rates are already $0
+ *  (that re-smashed correct retail on Sep 1). */
 const FALLBACK_OFFSETS: Record<string, number> = {
   'exclusively equine': 18.5,
   'can animal care': 20,
@@ -184,7 +186,8 @@ const FALLBACK_OFFSETS: Record<string, number> = {
 
 function rateForVendor(
   vendor: string,
-  rates: { byExact: Map<string, number>; byKey: Map<string, number> }
+  rates: { byExact: Map<string, number>; byKey: Map<string, number> },
+  allowFallback: boolean
 ): number {
   const exact =
     rates.byExact.get(vendor) ?? rates.byExact.get(vendor.toLowerCase());
@@ -195,10 +198,12 @@ function rateForVendor(
     if (rate != null && rate > 0) return rate;
   }
 
-  const fallback = FALLBACK_OFFSETS[vendor.toLowerCase().trim()];
-  if (fallback != null && fallback > 0) return fallback;
+  if (allowFallback) {
+    const fallback = FALLBACK_OFFSETS[vendor.toLowerCase().trim()];
+    if (fallback != null && fallback > 0) return fallback;
+  }
 
-  return exact != null ? 0 : 0;
+  return 0;
 }
 
 async function zeroCollectiveRates(
@@ -304,7 +309,8 @@ async function fetchCollectiveProducts(): Promise<ProductNode[]> {
 function buildPlan(input: {
   products: ProductNode[];
   auditByVariant: Map<string, AuditRow>;
-  ratesBeforeZero: Map<string, number>;
+  ratesBeforeZero: { byExact: Map<string, number>; byKey: Map<string, number> };
+  allowFallbackOffsets: boolean;
   limit?: number;
 }): PlanRow[] {
   const plan: PlanRow[] = [];
@@ -359,7 +365,11 @@ function buildPlan(input: {
         }
       }
 
-      const offset = rateForVendor(product.vendor, input.ratesBeforeZero);
+      const offset = rateForVendor(
+        product.vendor,
+        input.ratesBeforeZero,
+        input.allowFallbackOffsets
+      );
       if (!shouldSubtractOffset(currentPrice, offset)) continue;
 
       const target = round2(currentPrice - offset);
@@ -411,11 +421,22 @@ async function main(): Promise<void> {
 
   const sql = neon(dbUrl);
 
-  // Snapshot rates BEFORE zeroing — needed for subtract fallback
+  // Snapshot rates BEFORE zeroing — needed for subtract when rates still > 0.
+  // If Neon is already $0 for Collective vendors, NEVER use hardcoded FALLBACK
+  // offsets to subtract (that re-smashed correct retail on 1 Sep).
   const ratesBeforeZero = await loadRateMap(sql);
+  let anyPositiveCollectiveRate = false;
   console.log('Collective vendor rates (pre-change):');
   for (const name of COLLECTIVE_VENDORS) {
-    console.log(`  ${name.padEnd(40)} $${rateForVendor(name, ratesBeforeZero)}`);
+    const rate = rateForVendor(name, ratesBeforeZero, false);
+    if (rate > 0) anyPositiveCollectiveRate = true;
+    console.log(`  ${name.padEnd(40)} $${rate}`);
+  }
+  const allowFallbackOffsets = anyPositiveCollectiveRate;
+  if (!allowFallbackOffsets) {
+    console.log(
+      '\n⚠️  Collective Neon rates already $0 — fallback subtract offsets DISABLED (prevents re-smash).'
+    );
   }
 
   await zeroCollectiveRates(sql, apply);
@@ -433,6 +454,7 @@ async function main(): Promise<void> {
     products,
     auditByVariant,
     ratesBeforeZero,
+    allowFallbackOffsets,
     limit: Number.isFinite(limit) ? limit : undefined,
   });
 

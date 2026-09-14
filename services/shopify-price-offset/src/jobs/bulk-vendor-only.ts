@@ -131,7 +131,7 @@ async function run() {
           const tags = normalizeTags(product.tags);
           const { shippingOffset, tagMatch } = resolveShippingOffset(vendor, tags, { vendorRates, tagRates });
 
-          if (shippingOffset === null) {
+          if (shippingOffset === null || shippingOffset === 0) {
             console.log(`[Bulk] No shipping offset for vendor: ${vendor}, skipping`);
             totalSkipped++;
             totalProcessed++;
