@@ -48,7 +48,14 @@ export function middleware(request: NextRequest) {
     pathname === '/brands/rm-williams' ||
     pathname === '/brands/penelope' ||
     pathname === '/brands/penelope-leprevost' ||
-    pathname === '/brands/penelope-leprovost'
+    pathname === '/brands/penelope-leprovost' ||
+    pathname === '/brands/igroom' ||
+    pathname === '/brands/progroom' ||
+    pathname === '/brands/furex' ||
+    pathname === '/brands/plush-puppy' ||
+    pathname === '/brands/melanie-newman' ||
+    pathname === '/brands/natures-specialties' ||
+    pathname === '/brands/wa-dog-grooming-supplies'
   ) {
     return goneResponse();
   }

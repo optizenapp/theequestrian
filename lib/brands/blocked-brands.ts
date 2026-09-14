@@ -10,6 +10,14 @@ const BLOCKED_BRAND_HANDLES = new Set<string>([
   'hitchley-and-harrow',
   'plum-tack',
   'lemieux',
+  // WA Dog Grooming Supplies retired (exclusive hubs only — keep luxe-pet / kindly-tail)
+  'igroom',
+  'progroom',
+  'furex',
+  'plush-puppy',
+  'melanie-newman',
+  'natures-specialties',
+  'wa-dog-grooming-supplies',
 ]);
 const BLOCKED_BRAND_KEYS = new Set<string>([
   'rmwilliams',
@@ -21,6 +29,13 @@ const BLOCKED_BRAND_KEYS = new Set<string>([
   'hitchleyandharrow',
   'plumtack',
   'lemieux',
+  'igroom',
+  'progroom',
+  'furex',
+  'plushpuppy',
+  'melanienewman',
+  'naturesspecialties',
+  'wadoggroomingsupplies',
 ]);
 
 function normalizeHandle(value: string): string {

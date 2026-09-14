@@ -42,6 +42,12 @@ function main(): void {
     'Expected Penelope LeProvost to be blocked'
   );
   assert(!isBlockedBrandName('Ariat'), 'Expected Ariat not to be blocked');
+  assert(isBlockedBrandHandle('igroom'), 'Expected igroom handle to be blocked');
+  assert(isBlockedBrandHandle('plush-puppy'), 'Expected plush-puppy handle to be blocked');
+  assert(isBlockedBrandName('iGroom'), 'Expected iGroom name to be blocked');
+  assert(isBlockedBrandName('WA Dog Grooming Supplies'), 'Expected WA Dog vendor to be blocked');
+  assert(!isBlockedBrandHandle('luxe-pet'), 'Expected luxe-pet to remain allowed');
+  assert(!isBlockedBrandHandle('kindly-tail'), 'Expected kindly-tail to remain allowed');
   assert(
     isBlockedBrandCandidate({ title: "QJ Riding Wear's Penelope Base Layer" }),
     'Expected product titles containing Penelope to be blocked'
