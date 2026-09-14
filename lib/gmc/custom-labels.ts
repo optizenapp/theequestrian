@@ -1,5 +1,5 @@
 /**
- * GMC custom-label economics (price / margin / paid acquisition / stock / vendor).
+ * GMC custom-label economics (price / margin / paid acquisition / Trailrace demand / vendor).
  * Thresholds are centralised so Shopping eligibility can be tuned later.
  */
 
@@ -8,6 +8,7 @@ import {
   isCollectiveVendor,
   tagsIndicateCollective,
 } from '@/lib/shipping/collective-vendors';
+import type { TrailracePaidLabel } from '@/lib/gmc/trailrace-paid-demand';
 
 /** Absolute contribution floors (AUD) for paid acquisition labels. */
 export const PRIME_MIN_CONTRIBUTION = 20;
@@ -52,6 +53,10 @@ export type MarginRangeLabel =
 /** Paid acquisition potential — custom_label_2. */
 export type ProfitabilityLabel = 'prime' | 'strong' | 'test' | 'do_not_advertise';
 
+/** Trailrace paid-shopping demand — custom_label_3. */
+export type TrailraceDemandLabel = TrailracePaidLabel;
+
+/** @deprecated Not emitted on GMC custom_label_3 (Trailrace demand is used instead). */
 export type StockPressureLabel = 'high_stock' | 'low_stock';
 
 /**
@@ -70,7 +75,7 @@ export type GmcCustomLabels = {
   custom_label_0: PriceTierLabel;
   custom_label_1: MarginRangeLabel;
   custom_label_2: ProfitabilityLabel;
-  custom_label_3: StockPressureLabel;
+  custom_label_3: TrailraceDemandLabel;
   custom_label_4: VendorLabel;
 };
 
@@ -176,6 +181,7 @@ export function getProfitabilityLabel(
   return getPaidAcquisitionLabel(marginPercent, grossContributionAud, advertisedPriceAud);
 }
 
+/** @deprecated Not used for GMC custom_label_3 — prefer Trailrace demand labels. */
 export function getStockPressureLabel(input: {
   availableForSale: boolean;
   quantityAvailable?: number | null;
@@ -302,6 +308,8 @@ export function buildGmcCustomLabels(input: {
   quantityAvailable?: number | null;
   tracked?: boolean | null;
   inventoryPolicy?: string | null;
+  /** Trailrace paid-demand label; defaults to tr_unmatched when omitted. */
+  trailracePaidLabel?: TrailraceDemandLabel | null;
 }): GmcCustomLabels & {
   marginPercent: number | null;
   marginSource: MarginResolution['source'];
@@ -322,6 +330,8 @@ export function buildGmcCustomLabels(input: {
     grossContributionAud = getGrossContributionFromMargin(price, margin.marginPercent);
   }
 
+  const trailracePaidLabel = input.trailracePaidLabel ?? 'tr_unmatched';
+
   return {
     custom_label_0: getPriceTier(price),
     custom_label_1: getMarginRangeLabel(margin.marginPercent),
@@ -330,12 +340,7 @@ export function buildGmcCustomLabels(input: {
       grossContributionAud,
       price
     ),
-    custom_label_3: getStockPressureLabel({
-      availableForSale: input.availableForSale,
-      quantityAvailable: input.quantityAvailable,
-      tracked: input.tracked,
-      inventoryPolicy: input.inventoryPolicy,
-    }),
+    custom_label_3: trailracePaidLabel,
     custom_label_4: getVendorLabel(input.vendor),
     marginPercent: margin.marginPercent,
     marginSource: margin.source,

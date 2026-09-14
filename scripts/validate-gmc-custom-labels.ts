@@ -1,5 +1,5 @@
 /**
- * Validate GMC paid-acquisition custom labels against the live catalogue.
+ * Validate GMC labels including Trailrace paid-demand custom_label_3.
  *
  * Usage: npx tsx --env-file=.env.local scripts/validate-gmc-custom-labels.ts
  */
@@ -12,6 +12,12 @@ import {
 import { getCompareAtSalePair } from '../lib/shopify/product-discount';
 import { buildGmcCustomLabels, getVendorLabel } from '../lib/gmc/custom-labels';
 import { loadVariantEconomicsMap } from '../lib/gmc/variant-economics';
+import {
+  loadTrailraceDemandIndex,
+  resolveTrailracePaidDemand,
+  type TrailraceMatchMethod,
+  type TrailracePaidLabel,
+} from '../lib/gmc/trailrace-paid-demand';
 
 type Dist = Record<string, number>;
 
@@ -24,6 +30,18 @@ type SampleRow = {
   marginSource: string;
   grossContribution: number | null;
   labels: ReturnType<typeof buildGmcCustomLabels>;
+  trailraceMethod: TrailraceMatchMethod;
+};
+
+type ReviewRow = {
+  equestrian_id: string;
+  equestrian_title: string;
+  trailrace_candidate_id: string;
+  trailrace_candidate_title: string;
+  match_method: string;
+  match_confidence: string;
+  trailrace_paid_label: string;
+  reason_for_review: string;
 };
 
 function stripGid(gid: string): string {
@@ -53,18 +71,27 @@ function formatMatrix(
   colKeys: string[]
 ): string[] {
   const header = ['Paid label', ...colKeys].join(' | ');
-  const lines = [header, ...rowKeys.map((row) => {
-    const cells = colKeys.map((col) => String(matrix[row]?.[col] || 0));
-    return [row, ...cells].join(' | ');
-  })];
+  const lines = [
+    header,
+    ...rowKeys.map((row) => {
+      const cells = colKeys.map((col) => String(matrix[row]?.[col] || 0));
+      return [row, ...cells].join(' | ');
+    }),
+  ];
   return lines.map((line) => `  ${line}`);
 }
 
+function csvEscape(value: string): string {
+  if (/[",\n]/.test(value)) return `"${value.replace(/"/g, '""')}"`;
+  return value;
+}
+
 async function main() {
-  console.log('Loading Storefront products + Admin variant economics…');
-  const [allProducts, economicsMap] = await Promise.all([
+  console.log('Loading Storefront products + Admin economics + Trailrace demand…');
+  const [allProducts, economicsMap, trailraceDemand] = await Promise.all([
     getAllProducts(),
     loadVariantEconomicsMap(),
+    Promise.resolve(loadTrailraceDemandIndex()),
   ]);
   const products = await filterPublishedForHeadless(allProducts);
 
@@ -73,23 +100,8 @@ async function main() {
   const label2: Dist = {};
   const label3: Dist = {};
   const label4: Dist = {};
-  const marginSource: Dist = {};
-  const primeByMargin: Dist = {};
-  const primeByPrice: Dist = {};
-  const primeByContribution: Dist = {};
-  const paidXMargin: Record<string, Dist> = {
-    prime: {},
-    strong: {},
-    test: {},
-    do_not_advertise: {},
-  };
-  const paidXPrice: Record<string, Dist> = {
-    prime: {},
-    strong: {},
-    test: {},
-    do_not_advertise: {},
-  };
-  const paidXStock: Record<string, Dist> = {
+  const matchMethods: Dist = {};
+  const paidXDemand: Record<string, Dist> = {
     prime: {},
     strong: {},
     test: {},
@@ -101,19 +113,28 @@ async function main() {
     test: {},
     do_not_advertise: {},
   };
-  const primeHighStockByMargin: Dist = {};
-  const primeHighStockByPrice: Dist = {};
-  const primeHighStockByContribution: Dist = {};
   const samples: Record<string, SampleRow[]> = {
     prime: [],
     strong: [],
     test: [],
     do_not_advertise: [],
   };
+  const reviewRows: ReviewRow[] = [];
+  const spotCheck: SampleRow[] = [];
+  const coreByVendor: Dist = {};
 
   let total = 0;
   let knownMargin = 0;
+  let matched = 0;
+  let corePool = 0;
   const sanityErrors: string[] = [];
+  const validDemand = new Set<TrailracePaidLabel>([
+    'tr_a',
+    'tr_b',
+    'tr_c',
+    'tr_none',
+    'tr_unmatched',
+  ]);
 
   const marginKeys = [
     'margin_under_10',
@@ -125,6 +146,7 @@ async function main() {
   ];
   const priceKeys = ['under_50', '50_to_100', '100_to_150', '150_to_300', '300_plus'];
   const paidKeys = ['prime', 'strong', 'test', 'do_not_advertise'];
+  const demandKeys = ['tr_a', 'tr_b', 'tr_c', 'tr_none', 'tr_unmatched'];
 
   for (const product of products) {
     for (const { node: variant } of product.variants.edges) {
@@ -139,6 +161,16 @@ async function main() {
       const sellingPriceAud = Number(salePair?.saleAmount ?? variant.price.amount);
       const economics = economicsMap.get(stripGid(variant.id));
       const isAvailable = product.availableForSale && variant.availableForSale;
+      const variantId = stripGid(variant.id);
+
+      const trailraceMatch = resolveTrailracePaidDemand(trailraceDemand, {
+        marketplaceVariantId: variantId,
+        sku: variant.sku,
+        vendor: product.vendor,
+        productTitle: product.title,
+        variantTitle: variant.title,
+        selectedOptions: variant.selectedOptions,
+      });
 
       const labels = buildGmcCustomLabels({
         sellingPriceAud: Number.isFinite(sellingPriceAud) ? sellingPriceAud : NaN,
@@ -149,6 +181,7 @@ async function main() {
         quantityAvailable: economics?.quantityAvailable ?? null,
         tracked: economics?.tracked ?? null,
         inventoryPolicy: economics?.inventoryPolicy ?? null,
+        trailracePaidLabel: trailraceMatch.label,
       });
 
       total += 1;
@@ -157,240 +190,175 @@ async function main() {
       bump(label2, labels.custom_label_2);
       bump(label3, labels.custom_label_3);
       bump(label4, labels.custom_label_4);
-      bump(marginSource, labels.marginSource);
+      bump(matchMethods, trailraceMatch.method);
       if (labels.marginPercent != null) knownMargin += 1;
+      if (trailraceMatch.label !== 'tr_unmatched') matched += 1;
 
-      bump(paidXMargin[labels.custom_label_2], labels.custom_label_1);
-      bump(paidXPrice[labels.custom_label_2], labels.custom_label_0);
-      bump(paidXStock[labels.custom_label_2], labels.custom_label_3);
+      bump(paidXDemand[labels.custom_label_2], labels.custom_label_3);
       bump(paidXVendor[labels.custom_label_2], labels.custom_label_4);
 
-      if (!labels.custom_label_4 || !/^[a-z0-9_]+$/.test(labels.custom_label_4)) {
+      if (
+        (labels.custom_label_2 === 'prime' || labels.custom_label_2 === 'strong') &&
+        (labels.custom_label_3 === 'tr_a' || labels.custom_label_3 === 'tr_b')
+      ) {
+        corePool += 1;
+        bump(coreByVendor, labels.custom_label_4);
+      }
+
+      if (!validDemand.has(labels.custom_label_3)) {
         sanityErrors.push(
-          `invalid custom_label_4=${labels.custom_label_4} id=${stripGid(variant.id)}`
+          `invalid custom_label_3=${labels.custom_label_3} id=${variantId}`
         );
       }
-      const expectedVendor = getVendorLabel(product.vendor);
-      if (labels.custom_label_4 !== expectedVendor) {
-        sanityErrors.push(
-          `vendor label mismatch id=${stripGid(variant.id)} expected=${expectedVendor} got=${labels.custom_label_4}`
-        );
+      if (labels.custom_label_4 !== getVendorLabel(product.vendor)) {
+        sanityErrors.push(`vendor label mismatch id=${variantId}`);
       }
-      if (!product.vendor?.trim() && labels.custom_label_4 !== 'unknown') {
-        sanityErrors.push(
-          `blank vendor not unknown id=${stripGid(variant.id)} got=${labels.custom_label_4}`
-        );
-      }
-
-      if (labels.custom_label_2 === 'prime') {
-        bump(primeByMargin, labels.custom_label_1);
-        bump(primeByPrice, labels.custom_label_0);
-        const c = labels.grossContributionAud ?? 0;
-        if (c < 30) bump(primeByContribution, '20_to_30');
-        else if (c < 50) bump(primeByContribution, '30_to_50');
-        else bump(primeByContribution, '50_plus');
-
-        if (labels.custom_label_3 === 'high_stock') {
-          bump(primeHighStockByMargin, labels.custom_label_1);
-          bump(primeHighStockByPrice, labels.custom_label_0);
-          if (c < 30) bump(primeHighStockByContribution, '20_to_30');
-          else if (c < 50) bump(primeHighStockByContribution, '30_to_50');
-          else bump(primeHighStockByContribution, '50_plus');
-        }
+      if (trailraceMatch.confidence === 'ambiguous') {
+        reviewRows.push({
+          equestrian_id: variantId,
+          equestrian_title: `${product.title} ${variant.title}`.trim(),
+          trailrace_candidate_id: trailraceMatch.trailraceItemId ?? '',
+          trailrace_candidate_title: trailraceMatch.trailraceTitle ?? '',
+          match_method: trailraceMatch.method,
+          match_confidence: trailraceMatch.confidence,
+          trailrace_paid_label: trailraceMatch.label,
+          reason_for_review: trailraceMatch.reviewReason ?? 'ambiguous',
+        });
       }
 
-      // Sanity checks from brief §12
-      const m = labels.marginPercent;
-      const c = labels.grossContributionAud;
-      if (labels.custom_label_2 === 'prime') {
-        if (m == null || m < 30 - 1e-9) {
-          sanityErrors.push(`prime with margin ${m} id=${stripGid(variant.id)}`);
-        }
-        if (c == null || c < 20 - 1e-9) {
-          sanityErrors.push(`prime with contrib ${c} id=${stripGid(variant.id)}`);
-        }
-      }
-      if (labels.custom_label_2 === 'strong') {
-        if (m == null || m < 20 - 1e-9) {
-          sanityErrors.push(`strong with margin ${m} id=${stripGid(variant.id)}`);
-        }
-        if (c == null || c < 20 - 1e-9) {
-          sanityErrors.push(`strong with contrib ${c} id=${stripGid(variant.id)}`);
-        }
-      }
-      if (labels.custom_label_2 === 'test') {
-        if (m == null || m < 20 - 1e-9) {
-          sanityErrors.push(`test with margin ${m} id=${stripGid(variant.id)}`);
-        }
-        if (c == null || c < 10 - 1e-9) {
-          sanityErrors.push(`test with contrib ${c} id=${stripGid(variant.id)}`);
-        }
-      }
-      if (m == null && labels.custom_label_2 !== 'do_not_advertise') {
-        sanityErrors.push(`unknown margin not DNA id=${stripGid(variant.id)}`);
-      }
-
-      const bucket = samples[labels.custom_label_2];
-      if (bucket && bucket.length < 10) {
-        bucket.push({
+      if (
+        (labels.custom_label_3 === 'tr_a' || labels.custom_label_3 === 'tr_b') &&
+        spotCheck.length < 25
+      ) {
+        spotCheck.push({
           productTitle: product.title,
           variantTitle: variant.title,
-          gmcItemId: stripGid(variant.id),
+          gmcItemId: variantId,
           sellingPrice: sellingPriceAud,
           marginPercent: labels.marginPercent,
           marginSource: labels.marginSource,
           grossContribution: labels.grossContributionAud,
           labels,
+          trailraceMethod: trailraceMatch.method,
+        });
+      }
+
+      const bucket = samples[labels.custom_label_2];
+      if (bucket && bucket.length < 8) {
+        bucket.push({
+          productTitle: product.title,
+          variantTitle: variant.title,
+          gmcItemId: variantId,
+          sellingPrice: sellingPriceAud,
+          marginPercent: labels.marginPercent,
+          marginSource: labels.marginSource,
+          grossContribution: labels.grossContributionAud,
+          labels,
+          trailraceMethod: trailraceMatch.method,
         });
       }
     }
   }
 
   const lines: string[] = [];
-  lines.push('# GMC Paid Acquisition Label Validation');
+  lines.push('# GMC Label Validation (Trailrace demand)');
   lines.push('');
   lines.push(`Generated: ${new Date().toISOString()}`);
   lines.push(`Total GMC items processed: ${total}`);
   lines.push(
     `Margin known: ${knownMargin} (${pct(knownMargin, total)}) | unknown: ${total - knownMargin} (${pct(total - knownMargin, total)})`
   );
+  lines.push(`Trailrace source period: ${trailraceDemand.sourcePeriod}`);
   lines.push('');
-  lines.push('## custom_label_2 — Paid acquisition potential');
+  lines.push('## Matching');
+  lines.push(`  matched (not tr_unmatched): ${matched} (${pct(matched, total)})`);
+  lines.push(`  unmatched: ${total - matched} (${pct(total - matched, total)})`);
+  lines.push('  match method counts:');
+  for (const method of [
+    'variant_map',
+    'sku',
+    'normalized_title',
+    'trailrace_presence',
+    'none',
+  ]) {
+    lines.push(`    ${method}: ${matchMethods[method] || 0}`);
+  }
+  lines.push('');
+  lines.push('## custom_label_3 — Trailrace paid demand');
+  lines.push(...formatDist(label3, demandKeys, total));
+  lines.push('');
+  lines.push('## Cross-tab: custom_label_2 × custom_label_3');
+  lines.push(...formatMatrix(paidXDemand, paidKeys, demandKeys));
+  lines.push('');
+  const pairs: Array<[string, string]> = [
+    ['prime', 'tr_a'],
+    ['prime', 'tr_b'],
+    ['strong', 'tr_a'],
+    ['strong', 'tr_b'],
+    ['test', 'tr_a'],
+    ['test', 'tr_b'],
+  ];
+  for (const [paid, demand] of pairs) {
+    const n = paidXDemand[paid]?.[demand] || 0;
+    lines.push(`  ${paid} + ${demand}: ${n} (${pct(n, total)})`);
+  }
+  lines.push('');
+  lines.push(
+    `Core pool (prime|strong ∩ tr_a|tr_b): ${corePool} (${pct(corePool, total)})`
+  );
+  lines.push('');
+  lines.push('## Core pool × custom_label_4 (vendor)');
+  const vendorKeys = Object.keys(coreByVendor).sort(
+    (a, b) => (coreByVendor[b] || 0) - (coreByVendor[a] || 0)
+  );
+  lines.push(...formatDist(coreByVendor, vendorKeys, corePool || 1));
+  lines.push('');
+  lines.push('## custom_label_2');
   lines.push(...formatDist(label2, paidKeys, total));
   lines.push('');
-  const eligible =
-    (label2.prime || 0) + (label2.strong || 0) + (label2.test || 0);
-  lines.push(
-    `Eligible (prime+strong+test): ${eligible} (${pct(eligible, total)})`
-  );
-  lines.push(`Prime count: ${label2.prime || 0}`);
-  lines.push('');
-  lines.push('## Cross-tab: custom_label_2 × custom_label_3 (stock)');
-  const stockKeys = ['high_stock', 'low_stock'];
-  for (const paid of paidKeys) {
-    if (paid === 'do_not_advertise') continue;
-    for (const stock of stockKeys) {
-      const n = paidXStock[paid]?.[stock] || 0;
-      lines.push(`  ${paid} + ${stock}: ${n} (${pct(n, total)})`);
-    }
-  }
-  const primeHigh = paidXStock.prime?.high_stock || 0;
-  lines.push('');
-  lines.push(`prime + high_stock total: ${primeHigh} (${pct(primeHigh, total)} of catalogue, ${pct(primeHigh, label2.prime || 0)} of prime)`);
-  lines.push('');
-  lines.push('## prime + high_stock by margin band');
-  lines.push(
-    ...formatDist(
-      primeHighStockByMargin,
-      ['margin_30_39', 'margin_40_plus', 'margin_20_29', 'margin_10_19', 'margin_under_10', 'unknown'],
-      primeHigh
-    )
-  );
-  lines.push('');
-  lines.push('## prime + high_stock by price tier');
-  lines.push(...formatDist(primeHighStockByPrice, priceKeys, primeHigh));
-  lines.push('');
-  lines.push('## prime + high_stock contribution distribution');
-  lines.push(
-    ...formatDist(
-      primeHighStockByContribution,
-      ['20_to_30', '30_to_50', '50_plus'],
-      primeHigh
-    )
-  );
-  lines.push('');
-  lines.push('## Prime (all stock) by margin band');
-  lines.push(
-    ...formatDist(
-      primeByMargin,
-      ['margin_30_39', 'margin_40_plus', 'margin_20_29', 'margin_10_19', 'margin_under_10', 'unknown'],
-      label2.prime || 0
-    )
-  );
-  lines.push('');
-  lines.push('## Prime (all stock) by price tier');
-  lines.push(...formatDist(primeByPrice, priceKeys, label2.prime || 0));
-  lines.push('');
-  lines.push('## Prime (all stock) contribution distribution');
-  lines.push(
-    ...formatDist(primeByContribution, ['20_to_30', '30_to_50', '50_plus'], label2.prime || 0)
-  );
-  lines.push('');
-  lines.push('## Cross-tab: custom_label_2 × custom_label_1');
-  lines.push(...formatMatrix(paidXMargin, paidKeys, marginKeys));
-  lines.push('');
-  lines.push('## Cross-tab: custom_label_2 × custom_label_0');
-  lines.push(...formatMatrix(paidXPrice, paidKeys, priceKeys));
-  lines.push('');
-  const vendorKeys = Object.keys(label4).sort(
-    (a, b) => (label4[b] || 0) - (label4[a] || 0) || a.localeCompare(b)
-  );
-  lines.push('## custom_label_4 — Vendor (for Ads include/exclude)');
-  lines.push(`Distinct vendors: ${vendorKeys.length}`);
-  lines.push(...formatDist(label4, vendorKeys, total));
-  lines.push('');
-  lines.push('## Cross-tab: custom_label_2 × custom_label_4 (top vendors)');
-  const topVendors = vendorKeys.slice(0, 15);
-  lines.push(...formatMatrix(paidXVendor, paidKeys, topVendors));
-  lines.push('');
-  for (const vendor of topVendors.slice(0, 10)) {
-    const primeN = paidXVendor.prime?.[vendor] || 0;
-    const strongN = paidXVendor.strong?.[vendor] || 0;
-    lines.push(
-      `  ${vendor}: prime=${primeN} strong=${strongN} (${pct(primeN + strongN, total)} of catalogue paid-eligible)`
-    );
-  }
-  lines.push('');
-  lines.push('## custom_label_0 / 1 / 3');
-  lines.push('### label_0');
-  lines.push(...formatDist(label0, priceKeys, total));
-  lines.push('### label_1');
-  lines.push(...formatDist(label1, marginKeys, total));
-  lines.push('### label_3');
-  lines.push(...formatDist(label3, ['high_stock', 'low_stock'], total));
-  lines.push('');
   lines.push('## Sanity check errors');
-  if (sanityErrors.length === 0) {
-    lines.push('  none');
-  } else {
+  if (sanityErrors.length === 0) lines.push('  none');
+  else {
     lines.push(`  ${sanityErrors.length} errors (showing first 20)`);
     for (const err of sanityErrors.slice(0, 20)) lines.push(`  - ${err}`);
   }
   lines.push('');
-
-  for (const tier of paidKeys) {
-    lines.push(`## Samples — ${tier}`);
-    const rows = samples[tier] || [];
-    if (!rows.length) {
-      lines.push('_No samples_');
-      lines.push('');
-      continue;
-    }
-    for (const row of rows) {
-      lines.push(`- Product: ${row.productTitle}`);
-      lines.push(`  Variant: ${row.variantTitle}`);
-      lines.push(`  GMC item ID: ${row.gmcItemId}`);
-      lines.push(`  Price: A$${row.sellingPrice.toFixed(2)}`);
-      lines.push(
-        `  Margin: ${row.marginPercent == null ? 'unknown' : `${row.marginPercent.toFixed(4)}%`} (${row.marginSource})`
-      );
-      lines.push(
-        `  Contribution: ${row.grossContribution == null ? 'n/a' : `A$${row.grossContribution.toFixed(2)}`}`
-      );
-      lines.push(
-        `  Labels: 0=${row.labels.custom_label_0} | 1=${row.labels.custom_label_1} | 2=${row.labels.custom_label_2} | 3=${row.labels.custom_label_3} | 4=${row.labels.custom_label_4}`
-      );
-      lines.push('');
-    }
+  lines.push('## Spot-check A/B matches');
+  for (const row of spotCheck.slice(0, 20)) {
+    lines.push(
+      `- ${row.productTitle} / ${row.variantTitle} → ${row.labels.custom_label_3} (${row.trailraceMethod}) | paid=${row.labels.custom_label_2} vendor=${row.labels.custom_label_4}`
+    );
   }
+  lines.push('');
 
   const outDir = path.join(process.cwd(), 'reports');
   if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const outPath = path.join(outDir, `gmc-paid-acquisition-validation-${stamp}.md`);
+  const outPath = path.join(outDir, `gmc-trailrace-demand-validation-${stamp}.md`);
   fs.writeFileSync(outPath, lines.join('\n'));
+
+  const reviewPath = path.join(outDir, `gmc-trailrace-demand-review-${stamp}.csv`);
+  const reviewHeader = [
+    'equestrian_id',
+    'equestrian_title',
+    'trailrace_candidate_id',
+    'trailrace_candidate_title',
+    'match_method',
+    'match_confidence',
+    'trailrace_paid_label',
+    'reason_for_review',
+  ];
+  const reviewCsv = [
+    reviewHeader.join(','),
+    ...reviewRows.map((row) =>
+      reviewHeader.map((key) => csvEscape(String(row[key as keyof ReviewRow]))).join(',')
+    ),
+  ].join('\n');
+  fs.writeFileSync(reviewPath, reviewCsv);
+
   console.log(lines.join('\n'));
   console.log(`\nWrote ${outPath}`);
+  console.log(`Wrote ${reviewPath} (${reviewRows.length} ambiguous rows)`);
 }
 
 main().catch((error) => {

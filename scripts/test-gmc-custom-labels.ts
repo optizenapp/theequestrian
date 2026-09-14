@@ -182,7 +182,7 @@ assert.equal(parseExactMarginPercentFromTags(['margin:22%']), 22);
   assert.equal(labels.grossContributionAud, 40);
 }
 
-// Stock unchanged
+// Stock pressure helper still works (not emitted on custom_label_3)
 {
   assert.equal(
     buildGmcCustomLabels({
@@ -192,8 +192,9 @@ assert.equal(parseExactMarginPercentFromTags(['margin:22%']), 22);
       availableForSale: true,
       quantityAvailable: 4,
       tracked: true,
+      trailracePaidLabel: 'tr_none',
     }).custom_label_3,
-    'low_stock'
+    'tr_none'
   );
   assert.equal(
     buildGmcCustomLabels({
@@ -203,8 +204,9 @@ assert.equal(parseExactMarginPercentFromTags(['margin:22%']), 22);
       availableForSale: true,
       quantityAvailable: 5,
       tracked: true,
+      trailracePaidLabel: 'tr_a',
     }).custom_label_3,
-    'high_stock'
+    'tr_a'
   );
 }
 
@@ -242,10 +244,11 @@ assert.equal(getVendorLabel(COLLECTIVE_VENDORS[0]), getVendorLabel(COLLECTIVE_VE
     vendor: 'Toptac International',
     availableForSale: true,
     quantityAvailable: 2,
+    trailracePaidLabel: 'tr_c',
   });
   assert.equal(labels.custom_label_4, 'toptac');
   assert.equal(labels.custom_label_2, 'do_not_advertise');
-  assert.equal(labels.custom_label_3, 'low_stock');
+  assert.equal(labels.custom_label_3, 'tr_c');
 }
 
 // Sale price change does not alter vendor label

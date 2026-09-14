@@ -23,6 +23,11 @@ import {
   loadVariantEconomicsMap,
   type VariantEconomics,
 } from '@/lib/gmc/variant-economics';
+import {
+  loadTrailraceDemandIndex,
+  resolveTrailracePaidDemand,
+  type TrailraceDemandIndex,
+} from '@/lib/gmc/trailrace-paid-demand';
 import type { ProductWithPrimaryCollection, ShopifyVariant } from '@/types/shopify';
 
 function escapeXml(value: string) {
@@ -186,6 +191,7 @@ function buildVariantItem({
   brand,
   shippingRates,
   economics,
+  trailraceDemand,
 }: {
   product: ProductWithPrimaryCollection;
   variant: ShopifyVariant;
@@ -197,6 +203,7 @@ function buildVariantItem({
   brand: string | null;
   shippingRates: ShippingRates;
   economics: VariantEconomics | undefined;
+  trailraceDemand: TrailraceDemandIndex;
 }): { xml: string; variantId: string } | null {
   const productUrl = `${baseUrl}${canonicalPath}`;
   const productImageUrl = product.images.edges[0]?.node.url;
@@ -252,6 +259,14 @@ function buildVariantItem({
 
   // Economics use the price Google will advertise (sale when present).
   const sellingPriceAud = Number(salePair?.saleAmount ?? variant.price.amount);
+  const trailraceMatch = resolveTrailracePaidDemand(trailraceDemand, {
+    marketplaceVariantId: variantId,
+    sku: variant.sku,
+    vendor: product.vendor,
+    productTitle: product.title,
+    variantTitle: variant.title,
+    selectedOptions: variant.selectedOptions,
+  });
   const labels = buildGmcCustomLabels({
     sellingPriceAud: Number.isFinite(sellingPriceAud) ? sellingPriceAud : NaN,
     tags: product.tags,
@@ -261,6 +276,7 @@ function buildVariantItem({
     quantityAvailable: economics?.quantityAvailable ?? null,
     tracked: economics?.tracked ?? null,
     inventoryPolicy: economics?.inventoryPolicy ?? null,
+    trailracePaidLabel: trailraceMatch.label,
   });
 
   const tags = [
@@ -311,22 +327,27 @@ export async function buildGmcFeedXml() {
   );
   const allProductIds = products.map((product) => stripGid(product.id));
   const allHandles = products.map((product) => product.handle);
-  const [urlMap, collectiveLookups, brandMap, shippingRates, economicsMap] = await Promise.all([
-    getProductCanonicalUrls(products),
-    loadCollectiveShippingLookups({
-      variantIds: allVariantIds,
-      productIds: allProductIds,
-    }),
-    loadProductBrandMapByHandles(allHandles),
-    loadShippingRates(),
-    loadVariantEconomicsMap(),
-  ]);
+  const [urlMap, collectiveLookups, brandMap, shippingRates, economicsMap, trailraceDemand] =
+    await Promise.all([
+      getProductCanonicalUrls(products),
+      loadCollectiveShippingLookups({
+        variantIds: allVariantIds,
+        productIds: allProductIds,
+      }),
+      loadProductBrandMapByHandles(allHandles),
+      loadShippingRates(),
+      loadVariantEconomicsMap(),
+      Promise.resolve(loadTrailraceDemandIndex()),
+    ]);
   const missingBrandCount = products.filter((product) => !brandMap.has(product.handle)).length;
   console.log(
     `[gmc:feed] Collective shipping cache: ${collectiveLookups.byVariant.size} variant rows, ${collectiveLookups.byProduct.size} products (${allVariantIds.length} feed variants)`
   );
   console.log(
     `[gmc:feed] DB brands: ${brandMap.size}/${products.length} products (${missingBrandCount} missing → omit g:brand / title prefix)`
+  );
+  console.log(
+    `[gmc:feed] Trailrace demand seed: ${trailraceDemand.seedRows.length} converters, ${trailraceDemand.byMarketplaceVariantId.size} mapped TE variants (${trailraceDemand.sourcePeriod})`
   );
 
   const built = products.flatMap((product) => {
@@ -346,6 +367,7 @@ export async function buildGmcFeedXml() {
           brand,
           shippingRates,
           economics: economicsMap.get(stripGid(variant.id)),
+          trailraceDemand,
         })
       )
       .filter((item): item is { xml: string; variantId: string } => item !== null);
