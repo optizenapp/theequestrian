@@ -4,6 +4,8 @@ import { Pool } from 'pg';
 
 const DRY_RUN = process.env.WEBKUL_DRY_RUN === 'true';
 const WEBHOOK_DISABLED = process.env.WEBKUL_WEBHOOK_DISABLED === 'true';
+/** Permanently off — we no longer bake freight into Webkul/Shopify prices. */
+const PRICE_OFFSET_BAKE_DISABLED = true;
 
 // In-memory cache for rates (15 min TTL)
 interface RateCache {
@@ -194,6 +196,14 @@ export async function POST(req: NextRequest) {
         ok: true, 
         skipped: true, 
         reason: 'Webhook disabled' 
+      });
+    }
+
+    if (PRICE_OFFSET_BAKE_DISABLED) {
+      return NextResponse.json({
+        ok: true,
+        skipped: true,
+        reason: 'Price offset bake disabled — freight calculated at checkout',
       });
     }
 

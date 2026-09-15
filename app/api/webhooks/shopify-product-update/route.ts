@@ -1,27 +1,15 @@
 import { NextRequest, NextResponse, after } from 'next/server';
 import crypto from 'crypto';
 import { neon } from '@neondatabase/serverless';
-import {
-  loadShippingRates,
-  resolveShippingOffset,
-  normalizeTags,
-  getVendorFreeShippingThreshold,
-} from '@/lib/shipping/rates';
-import { isCollectiveProduct } from '@/lib/shipping/collective-vendors';
-import { fetchVendorProduct } from '@/lib/shopify/vendor-shopify-rest';
+import { loadShippingRates, normalizeTags } from '@/lib/shipping/rates';
 import {
   setMarketplaceInventoryLevel,
   setMarketplaceProductStatus,
   updateMarketplaceVariantPriceRest,
 } from '@/lib/shopify/marketplace-inventory-rest';
 import {
-  canRunReconcile,
   getActiveMapsForMarketplaceProduct,
   getMarketplaceVariantLock,
-  getMarketplaceVendorsWithPriceSyncEnabled,
-  getReconcilePriceConnectionsByMarketplaceVendor,
-  isMarketplaceVariantPriceLocked,
-  markReconcileRun,
 } from '@/lib/inventory/vendor-sync/repository';
 import {
   aggregateMarketplaceStatusForProduct,
@@ -186,94 +174,12 @@ async function enforcePriceLocks(
   return { locked, reverted };
 }
 
-async function reconcileDirectVendorPriceDrift(
-  product: MarketplaceWebhookProduct,
-  shippingOffset: number,
-  vendorName: string,
-  freeShippingThreshold: number | null
-): Promise<number> {
-  const connections = await getReconcilePriceConnectionsByMarketplaceVendor(vendorName);
-  if (connections.length === 0) return 0;
-
-  const marketplaceVariantMap = new Map<string, MarketplaceWebhookVariant>();
-  for (const variant of product.variants || []) {
-    marketplaceVariantMap.set(String(variant.id), variant);
-  }
-
-  let reconciled = 0;
-  for (const connection of connections) {
-    if (!canRunReconcile(connection)) continue;
-
-    const maps = await getActiveMapsForMarketplaceProduct(connection.id, String(product.id));
-    if (maps.length === 0) continue;
-
-    const vendorProductIds = Array.from(new Set(maps.map((m) => m.vendor_shopify_product_id)));
-    const vendorVariantMap = new Map<string, { price: string; compare_at_price?: string | null }>();
-
-    for (const vendorProductId of vendorProductIds) {
-      const vendorProduct = await fetchVendorProduct(
-        connection.shop_domain,
-        connection.access_token,
-        Number(vendorProductId)
-      );
-      for (const vv of vendorProduct.variants) {
-        vendorVariantMap.set(String(vv.id), { price: vv.price, compare_at_price: vv.compare_at_price });
-      }
-    }
-
-    let touched = false;
-    for (const mapRow of maps) {
-      if (await isMarketplaceVariantPriceLocked(mapRow.marketplace_variant_id)) {
-        console.log(
-          `[Shopify Webhook] Variant ${mapRow.marketplace_variant_id} is price-locked, skipping reconcile`
-        );
-        continue;
-      }
-
-      const vendorVariant = vendorVariantMap.get(mapRow.vendor_shopify_variant_id);
-      const marketplaceVariant = marketplaceVariantMap.get(mapRow.marketplace_variant_id);
-      if (!vendorVariant || !marketplaceVariant) continue;
-
-      const basePrice = parseFloat(vendorVariant.price);
-      const currentPrice = parseFloat(marketplaceVariant.price);
-      if (Number.isNaN(basePrice) || Number.isNaN(currentPrice)) continue;
-
-      // Items at/above the free-shipping threshold get no offset.
-      const effectiveOffset =
-        freeShippingThreshold != null && basePrice >= freeShippingThreshold ? 0 : shippingOffset;
-      const desiredPrice = (basePrice + effectiveOffset).toFixed(2);
-      if (Math.abs(currentPrice - parseFloat(desiredPrice)) < 0.01) {
-        continue;
-      }
-
-      const vendorCompare = vendorVariant.compare_at_price
-        ? parseFloat(String(vendorVariant.compare_at_price))
-        : null;
-      let desiredCompareAt: string | null = null;
-      if (vendorCompare != null && !Number.isNaN(vendorCompare) && vendorCompare > basePrice) {
-        const ratio = basePrice / vendorCompare;
-        desiredCompareAt = (parseFloat(desiredPrice) / ratio).toFixed(2);
-      }
-
-      await updateVariantPrice(mapRow.marketplace_variant_id, desiredPrice, desiredCompareAt);
-      reconciled += 1;
-      touched = true;
-    }
-
-    if (touched) {
-      await markReconcileRun(connection.id);
-    }
-  }
-
-  return reconciled;
-}
-
 /**
  * Shopify Product Update Webhook
- * 
- * Automatically adds shipping offset to product prices when Webkul syncs to Shopify
- * 
- * This ensures prices ALWAYS include shipping, no matter what Webkul syncs
+ *
+ * Price-offset baking is permanently disabled. This webhook still:
+ * - reverts vendor status drift
+ * - enforces manual price locks
  */
 async function processProductUpdate(
   product: MarketplaceWebhookProduct,
@@ -301,172 +207,18 @@ async function processProductUpdate(
     // variants are reverted to their stored price and excluded from the rest
     // of the pipeline so external syncs (Webkul, vendor-sync, etc.) cannot
     // override the manual override.
-    const { locked: lockedVariantIds, reverted: lockedVariantsReverted } =
-      await enforcePriceLocks(product);
+    const { reverted: lockedVariantsReverted } = await enforcePriceLocks(product);
     if (lockedVariantsReverted > 0) {
       console.log(
         `[Shopify Webhook] Reverted ${lockedVariantsReverted} locked variant(s) to manual price`
       );
     }
 
-    // Collective: shipping is calculated at checkout — never bake freight into price.
-    if (isCollectiveProduct({ vendor, tags })) {
-      console.log(
-        `[Shopify Webhook] Collective product (${vendor}) — skipping shipping price offset`
-      );
-      return;
-    }
-
-    const directPriceVendors = await getMarketplaceVendorsWithPriceSyncEnabled();
-    const vendorNorm = (vendor || '').toLowerCase().trim();
-    if (directPriceVendors.some((x) => x.toLowerCase().trim() === vendorNorm)) {
-      const rates = await loadShippingRates();
-      const { shippingOffset } = resolveShippingOffset(vendor, tags, rates);
-      const offset = shippingOffset ?? 0;
-      const freeShippingThreshold = getVendorFreeShippingThreshold(vendor, rates);
-      const reconciled = await reconcileDirectVendorPriceDrift(
-        product,
-        offset,
-        vendor,
-        freeShippingThreshold
-      );
-      console.log(
-        `[Shopify Webhook] Direct sync vendor (${vendor}) reconcile completed; variants corrected: ${reconciled}`
-      );
-      return;
-    }
-
-    // Load shipping rates from Postgres and calculate offset
-    const rates = await loadShippingRates();
-    const { shippingOffset, tagMatch } = resolveShippingOffset(vendor, tags, rates);
-    
-    if (shippingOffset === null || shippingOffset === 0) {
-      console.log(`[Shopify Webhook] No shipping offset for vendor: ${vendor}, skipping`);
-      return;
-    }
-
-    console.log(`[Shopify Webhook] Applying +$${shippingOffset} shipping offset`);
-
-    // CRITICAL: Prevent infinite loop by checking audit database
-    // Only update if the current price matches the vendor's base price (no offset yet)
-    
-    let variantsUpdated = 0;
-    let skipped = 0;
-    
-    for (const variant of product.variants || []) {
-      const currentPrice = parseFloat(variant.price);
-      const currentCompareAt = variant.compare_at_price ? parseFloat(variant.compare_at_price) : null;
-      const variantId = variant.id.toString();
-
-      // Already revert-handled above by enforcePriceLocks.
-      if (lockedVariantIds.has(variantId)) {
-        console.log(`[Shopify Webhook] Variant ${variantId} is price-locked, skipping offset logic`);
-        skipped++;
-        continue;
-      }
-      if (await isMarketplaceVariantPriceLocked(variantId)) {
-        console.log(`[Shopify Webhook] Variant ${variantId} is price-locked, skipping`);
-        skipped++;
-        continue;
-      }
-
-      // Check audit database to see if we've already processed this variant
-      const auditCheck = await sql`
-        SELECT shopify_price, adjusted_price, shipping_offset, updated_at
-        FROM shopify_price_audit 
-        WHERE variant_id = ${variantId}
-        ORDER BY updated_at DESC 
-        LIMIT 1
-      `;
-
-      let shouldUpdate = true;
-      let isNewVendorPrice = false;
-
-      if (auditCheck.length > 0) {
-        const lastAudit = auditCheck[0];
-        const lastAdjustedPrice = parseFloat(lastAudit.adjusted_price);
-        const lastShopifyPrice = parseFloat(lastAudit.shopify_price);
-        const lastUpdated = new Date(lastAudit.updated_at);
-        const nowTime = new Date();
-        const secondsSinceUpdate = (nowTime.getTime() - lastUpdated.getTime()) / 1000;
-        
-        // Case 1: Current price matches our last adjusted price
-        // This means either:
-        // - Our webhook just updated it (if recent) → SKIP to prevent loop
-        // - Webkul synced back our adjusted price (if old) → SKIP, already correct
-        if (Math.abs(currentPrice - lastAdjustedPrice) < 0.01) {
-          console.log(`[Shopify Webhook] Variant ${variantId} price $${currentPrice} matches last adjusted price, skipping`);
-          shouldUpdate = false;
-        }
-        
-        // Case 2: Current price is different from both shopify and adjusted
-        // This means Webkul synced a NEW vendor price (e.g., sale price) → UPDATE
-        else if (Math.abs(currentPrice - lastShopifyPrice) > 0.01 && 
-                 Math.abs(currentPrice - lastAdjustedPrice) > 0.01) {
-          console.log(`[Shopify Webhook] Variant ${variantId} has new vendor price: $${lastShopifyPrice} → $${currentPrice}`);
-          isNewVendorPrice = true;
-          shouldUpdate = true;
-        }
-        
-        // Case 3: Current price matches last shopify price (no offset)
-        // This means Webkul synced, removing our offset → UPDATE to re-apply offset
-        else if (Math.abs(currentPrice - lastShopifyPrice) < 0.01) {
-          console.log(`[Shopify Webhook] Variant ${variantId} price reset to vendor price $${currentPrice}, re-applying offset`);
-          shouldUpdate = true;
-        }
-      } else {
-        // No audit record, this is the first time we're processing this variant
-        console.log(`[Shopify Webhook] Variant ${variantId} is new, applying offset`);
-        shouldUpdate = true;
-        isNewVendorPrice = true;
-      }
-
-      if (!shouldUpdate) {
-        skipped++;
-        continue;
-      }
-
-      // Calculate new price with shipping
-      const newPrice = (currentPrice + shippingOffset).toFixed(2);
-      
-      // Calculate adjusted compare_at_price (maintain discount ratio)
-      let newCompareAt: string | null = null;
-      if (currentCompareAt && currentCompareAt > currentPrice) {
-        const ratio = currentPrice / currentCompareAt;
-        newCompareAt = (parseFloat(newPrice) / ratio).toFixed(2);
-      }
-
-      // Update the variant price
-      await updateVariantPrice(String(variant.id), newPrice, newCompareAt);
-      
-      // Log to audit database
-      await sql`
-        INSERT INTO shopify_price_audit (
-          variant_id, product_id, vendor_name, shopify_price, shipping_offset, 
-          adjusted_price, last_source, updated_at, tags
-        ) VALUES (
-          ${variantId}, ${productId.toString()}, ${vendor}, ${currentPrice.toFixed(2)}, 
-          ${shippingOffset}, ${newPrice}, 'webhook', NOW(), ${tags}
-        )
-        ON CONFLICT (variant_id) 
-        DO UPDATE SET
-          shopify_price = ${currentPrice.toFixed(2)},
-          shipping_offset = ${shippingOffset},
-          adjusted_price = ${newPrice},
-          last_source = 'webhook',
-          updated_at = NOW()
-      `;
-      
-      variantsUpdated++;
-      console.log(`[Shopify Webhook] Updated variant ${variantId}: $${currentPrice} → $${newPrice}`);
-    }
-
-    if (skipped > 0) {
-      console.log(`[Shopify Webhook] Skipped ${skipped} variants (already processed)`);
-    }
-
-    const duration = Date.now() - startTime;
-    console.log(`[Shopify Webhook] Completed in ${duration}ms: ${variantsUpdated} variants updated`);
+    // Price-offset baking permanently disabled — freight is calculated at checkout.
+    // Do not mutate variant prices here for Collective or any other vendor.
+    console.log(
+      `[Shopify Webhook] Price offset bake disabled — skipping price mutation for ${vendor || product.id}`
+    );
   } catch (error) {
     console.error('[Shopify Webhook] Async processing error:', error);
   }

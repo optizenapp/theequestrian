@@ -3,8 +3,6 @@ import {
   fetchMarketplaceProductTags,
   updateMarketplaceVariantPriceRest,
 } from '@/lib/shopify/marketplace-inventory-rest';
-import { loadShippingRates, normalizeTags, resolveShippingOffset } from '@/lib/shipping/rates';
-import { isCollectiveProduct } from '@/lib/shipping/collective-vendors';
 import { sql } from '@/lib/db/client';
 import {
   getActiveMapsForVendorProduct,
@@ -50,7 +48,6 @@ export async function processVendorProductUpdateWebhook(
     productId
   );
 
-  const rates = await loadShippingRates();
   let updated = 0;
 
   for (const row of maps) {
@@ -76,19 +73,14 @@ export async function processVendorProductUpdateWebhook(
     const { vendor: mpVendor, tags } = await fetchMarketplaceProductTags(
       row.marketplace_product_id
     );
-    const normalizedTags = normalizeTags(tags);
-    // Collective: keep vendor retail as-is — freight is calculated at checkout.
-    const offset = isCollectiveProduct({ vendor: mpVendor, tags: normalizedTags })
-      ? 0
-      : (resolveShippingOffset(mpVendor, normalizedTags, rates, undefined, basePrice)
-          .shippingOffset ?? 0);
-    const newPrice = (basePrice + offset).toFixed(2);
+    // Price-offset baking disabled — sync vendor retail as-is.
+    const offset = 0;
+    const newPrice = basePrice.toFixed(2);
 
     const currentCompare = vv.compare_at_price ? parseFloat(String(vv.compare_at_price)) : null;
     let newCompareAt: string | null = null;
     if (currentCompare != null && !Number.isNaN(currentCompare) && currentCompare > basePrice) {
-      const ratio = basePrice / currentCompare;
-      newCompareAt = (parseFloat(newPrice) / ratio).toFixed(2);
+      newCompareAt = currentCompare.toFixed(2);
     }
 
     await updateMarketplaceVariantPriceRest({

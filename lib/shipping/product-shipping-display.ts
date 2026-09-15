@@ -94,13 +94,23 @@ export function resolveProductShippingDisplaySync(input: {
     };
   }
 
-  const { shippingOffset } = resolveShippingOffset(
+  const { shippingOffset, tagMatch } = resolveShippingOffset(
     input.vendor,
     input.tags,
     input.rates,
     undefined,
     input.price
   );
+
+  // Price-offset baking is disabled storewide — do not treat $0 as "free shipping".
+  if (tagMatch === 'price_offset_disabled') {
+    return {
+      ...origin,
+      shortMessage: SHIPPING_CHECKOUT_MESSAGE,
+      isShippingIncluded: false,
+      hasFreeShipping: false,
+    };
+  }
 
   if (shippingOffset === 0) {
     return freeShippingDisplay({ ...SHIPPING_DISPLAY_FALLBACK, ...origin });

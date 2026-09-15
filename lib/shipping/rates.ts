@@ -8,6 +8,13 @@ import { ensureVendorShippingColumns } from '@/lib/db/ensure-vendor-shipping-col
 import { getVendorAliasKeys, normalizeVendorKey } from '@/lib/shipping/vendor-aliases';
 import { isCollectiveProduct } from '@/lib/shipping/collective-vendors';
 
+/**
+ * HARD OFF — we no longer bake freight into Shopify variant prices.
+ * Shipping is calculated at checkout (Collective rates / cart estimate).
+ * Keep this false forever unless product explicitly re-enables offset baking.
+ */
+export const PRICE_OFFSET_BAKE_ENABLED = false;
+
 export interface VendorRate {
   vendor: string;
   baseRate: number;
@@ -173,6 +180,11 @@ export function resolveShippingOffset(
   weight?: number,
   price?: number
 ): { shippingOffset: number | null; tagMatch: string | null } {
+  // Price-offset baking permanently disabled — freight is never added to variant price.
+  if (!PRICE_OFFSET_BAKE_ENABLED) {
+    return { shippingOffset: 0, tagMatch: 'price_offset_disabled' };
+  }
+
   const normalizedTags = normalizeTags(tags);
 
   // Collective: freight is calculated at checkout — never bake into price.
