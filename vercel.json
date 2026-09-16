@@ -9,6 +9,10 @@
       "schedule": "0 */4 * * *"
     },
     {
+      "path": "/api/cron/meta-catalog-feed",
+      "schedule": "30 */4 * * *"
+    },
+    {
       "path": "/api/cron/collective-shipping",
       "schedule": "15 */2 * * *"
     },

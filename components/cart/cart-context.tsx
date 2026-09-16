@@ -4,6 +4,8 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { useRouter } from 'next/navigation';
 import { ShopifyCart } from '@/types/shopify';
 import { createCart, addToCart, updateCart, removeFromCart, getCart, setCartCookie } from '@/app/actions/cart';
+import { trackMetaAddToCart } from '@/lib/analytics/meta-pixel';
+import { normalizeShopifyNumericId } from '@/lib/analytics/meta-pixel-ids';
 import { readSdAttrPayload, syncPerformCartAttribute } from '@/lib/analytics/perform';
 
 interface CartContextType {
@@ -18,6 +20,22 @@ interface CartContextType {
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
+
+function trackSuccessfulAdd(cart: ShopifyCart, variantId: string, quantity: number) {
+  const addedId = normalizeShopifyNumericId(variantId);
+  const line = cart.lines.edges.find(
+    ({ node }) => normalizeShopifyNumericId(node.merchandise.id) === addedId
+  );
+  const unitPrice = line?.node.merchandise.price.amount;
+  const currency = line?.node.merchandise.price.currencyCode;
+  if (!unitPrice || !currency) return;
+  trackMetaAddToCart({
+    variantId,
+    quantity,
+    unitPrice,
+    currency,
+  });
+}
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -54,23 +72,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
       let updatedCart: ShopifyCart;
 
       if (cart?.id) {
-        // Add to existing cart
         updatedCart = await addToCart(cart.id, [{ merchandiseId: variantId, quantity }]);
       } else {
-        // Create new cart with Perform attribution when available
         const sdAttr = readSdAttrPayload();
         const attributes = sdAttr ? [{ key: '_sd_attr', value: sdAttr }] : undefined;
         updatedCart = await createCart([{ merchandiseId: variantId, quantity }], attributes);
         localStorage.setItem('cartId', updatedCart.id);
-        // Cookie is already set by createCart server action
       }
 
       setCart(updatedCart);
+      trackSuccessfulAdd(updatedCart, variantId, quantity);
       void syncPerformCartAttribute(updatedCart.id);
-      
-      // Refresh server components to update recommendations on cart page
       router.refresh();
-      
       return updatedCart;
     } catch (error) {
       console.error('Error adding item to cart:', error);

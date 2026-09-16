@@ -8,6 +8,7 @@ import { DataTable } from '@/components/admin/DataTable';
 interface FeedStatusResponse {
   status: string;
   feedUrl: string | null;
+  metaFeedUrl?: string | null;
   productCount: number | null;
   lastSync: string | null;
   feeds: Array<{
@@ -60,6 +61,11 @@ export default function AdminFeedsPage() {
   }, []);
 
   const gmcFeed = useMemo(() => feedStatus?.feeds?.find((feed) => feed.id === 'gmc'), [feedStatus]);
+  const facebookFeed = useMemo(
+    () => feedStatus?.feeds?.find((feed) => feed.id === 'facebook'),
+    [feedStatus]
+  );
+  const metaFeedUrl = facebookFeed?.feedFetchUrl ?? feedStatus?.metaFeedUrl ?? null;
   const feedRows = useMemo(
     () => [
       {
@@ -69,10 +75,24 @@ export default function AdminFeedsPage() {
         items: feedStatus?.productCount ? String(feedStatus.productCount) : '-',
         lastSync: gmcFeed?.lastSync ?? 'N/A',
       },
-      { id: '2', feed: 'Facebook Catalog', status: 'Needs setup', items: '-', lastSync: 'N/A' },
-      { id: '3', feed: 'Pixel tracking', status: 'Pending', items: '-', lastSync: 'N/A' },
+      {
+        id: '2',
+        feed: 'Facebook Catalog',
+        status: facebookFeed?.status === 'connected' ? 'Connected' : 'Needs setup',
+        items: feedStatus?.productCount ? String(feedStatus.productCount) : '-',
+        lastSync: facebookFeed?.lastSync ?? 'N/A',
+      },
+      {
+        id: '3',
+        feed: 'Pixel tracking',
+        status: feedStatus?.feeds?.find((feed) => feed.id === 'pixel')?.status === 'connected'
+          ? 'Connected'
+          : 'Needs setup',
+        items: feedStatus?.feeds?.find((feed) => feed.id === 'pixel')?.feedFetchUrl ?? '-',
+        lastSync: 'N/A',
+      },
     ],
-    [feedStatus, gmcFeed]
+    [feedStatus, gmcFeed, facebookFeed]
   );
 
   const handleConnect = () => {
@@ -135,6 +155,11 @@ export default function AdminFeedsPage() {
   const handleCopyFeedUrl = async () => {
     if (!feedStatus?.feedUrl) return;
     await navigator.clipboard.writeText(feedStatus.feedUrl);
+  };
+
+  const handleCopyMetaFeedUrl = async () => {
+    if (!metaFeedUrl) return;
+    await navigator.clipboard.writeText(metaFeedUrl);
   };
 
   const handleSyncShipping = async () => {
@@ -265,6 +290,31 @@ export default function AdminFeedsPage() {
           {shippingMessage ? (
             <p className="mt-2 text-xs text-gray-600">{shippingMessage}</p>
           ) : null}
+        </div>
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+        <h3 className="text-sm font-semibold text-gray-900">Meta Catalog (Advantage+ Ads)</h3>
+        <p className="mt-2 text-sm text-gray-600">
+          CSV feed on S3 for Commerce Manager scheduled fetch. Paste the URL as a data source — no
+          Meta OAuth required.
+        </p>
+        <div className="mt-4 rounded-xl border border-gray-200 p-4">
+          <p className="text-sm font-semibold text-gray-900">S3 catalog URL</p>
+          <p className="mt-2 break-all text-sm text-gray-800">
+            {metaFeedUrl ??
+              'Set GMC_S3_BUCKET (or META_CATALOG_FEED_URL) so the Meta catalog URL can be resolved.'}
+          </p>
+          <div className="mt-3">
+            <button
+              type="button"
+              onClick={handleCopyMetaFeedUrl}
+              disabled={!metaFeedUrl}
+              className="rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:border-gray-400 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Copy Meta catalog URL
+            </button>
+          </div>
         </div>
       </div>
 

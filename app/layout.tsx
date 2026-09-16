@@ -18,6 +18,7 @@ const CartDrawer = dynamic(
 );
 import { NavigationProgress } from '@/components/NavigationProgress';
 import { ConfiguredShopifyInbox } from '@/components/chat/ConfiguredShopifyInbox';
+import { MetaPixelProvider } from '@/components/analytics/MetaPixelProvider';
 import Script from 'next/script';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -104,6 +105,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://perform-by-silicondales.vercel.app" />
+        <link rel="dns-prefetch" href="https://connect.facebook.net" />
 
         <link rel="entitymap" type="application/json" href={`${siteUrl}/entitymap.json`} />
         <script
@@ -137,6 +139,7 @@ export default function RootLayout({
           </>
         ) : null}
         <Script src={PERFORM_SCRIPT} strategy="afterInteractive" />
+        <MetaPixelProvider />
         <CartProvider>
           <NavigationProgress />
           <Header />

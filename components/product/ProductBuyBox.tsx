@@ -11,6 +11,7 @@ import { ProductBuyBoxPriceAndBadges } from './ProductBuyBoxPriceAndBadges';
 import { FulfillmentDelayNotice } from './FulfillmentDelayNotice';
 import { SizeChartModal, SizeChartTriggerButton } from '@/components/sizing/SizeChartModal';
 import { buildGa4ItemFromProduct } from '@/lib/analytics/ga4-ecommerce';
+import { ProductMetaViewContent } from '@/components/analytics/ProductMetaViewContent';
 import { useProductVariantSelection } from '@/hooks/useProductVariantSelection';
 import type { ProductShippingDisplay } from '@/lib/shipping/product-shipping-display';
 import { SHIPPING_DISPLAY_FALLBACK } from '@/lib/shipping/product-shipping-display';
@@ -42,7 +43,8 @@ export function ProductBuyBox({
   shippingDisplay = SHIPPING_DISPLAY_FALLBACK,
   sizing = null,
 }: ProductBuyBoxProps) {
-  const { selectedOptions, selectedVariant, handleOptionSelect } = useProductVariantSelection(product);
+  const { selectedOptions, selectedVariant, handleOptionSelect, selectionReady } =
+    useProductVariantSelection(product);
   const [sizeChartOpen, setSizeChartOpen] = useState(false);
   const ctaRef = useRef<HTMLDivElement>(null);
 
@@ -90,6 +92,13 @@ export function ProductBuyBox({
 
   return (
     <div className="space-y-6">
+      <ProductMetaViewContent
+        productId={product.id}
+        selectionReady={selectionReady}
+        variantId={selectedVariant?.id}
+        unitPrice={selectedVariant?.price.amount}
+        currency={currencyCode}
+      />
       <ProductBuyBoxPriceAndBadges
         priceNum={priceNum}
         compareAmount={displayCompareAtPrice?.amount ?? null}

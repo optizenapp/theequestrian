@@ -3,6 +3,8 @@ import { isAdminRequest } from '@/lib/admin/auth';
 import { getGmcIntegration } from '@/lib/db/gmc';
 import { getDatabaseStats } from '@/lib/db/client';
 import { getConfiguredGmcFeedUrl } from '@/lib/gmc/content';
+import { getConfiguredMetaCatalogFeedUrl } from '@/lib/meta/content';
+import { getMetaPixelId, isMetaStorefrontTrackingEnabled } from '@/lib/analytics/meta-pixel-config';
 
 export async function GET() {
   if (!(await isAdminRequest())) {
@@ -33,9 +35,18 @@ export async function GET() {
     }
   })();
 
+  const metaFeedUrl = (() => {
+    try {
+      return getConfiguredMetaCatalogFeedUrl();
+    } catch {
+      return null;
+    }
+  })();
+
   return NextResponse.json({
     status: hasTokens ? 'connected' : 'not_configured',
     feedUrl,
+    metaFeedUrl,
     productCount: dbStats?.totalProducts ?? null,
     lastSync: dbStats?.lastSync?.completed_at ?? null,
     feeds: [
@@ -48,8 +59,20 @@ export async function GET() {
         feedId: integration?.feed_id ?? null,
         feedFetchUrl: integration?.feed_fetch_url ?? feedUrl,
       },
-      { id: 'facebook', name: 'Facebook Catalog', status: 'pending', lastSync: null },
-      { id: 'pixel', name: 'Pixel tracking', status: 'pending', lastSync: null },
+      {
+        id: 'facebook',
+        name: 'Facebook Catalog',
+        status: metaFeedUrl ? 'connected' : 'pending',
+        lastSync: null,
+        feedFetchUrl: metaFeedUrl,
+      },
+      {
+        id: 'pixel',
+        name: 'Pixel tracking',
+        status: isMetaStorefrontTrackingEnabled() ? 'connected' : 'pending',
+        lastSync: null,
+        feedFetchUrl: getMetaPixelId(),
+      },
     ],
   });
 }

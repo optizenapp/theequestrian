@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { stripShopifyGid } from '@/lib/analytics/ga4-ecommerce';
 import type { ShopifyBuyBoxProduct, ShopifyVariant } from '@/types/shopify';
 
 function byPriceAsc(a: ShopifyVariant, b: ShopifyVariant): number {
@@ -47,11 +48,41 @@ export function buildInitialSelectedOptions(product: ShopifyBuyBoxProduct): Reco
   return initialOptions;
 }
 
+function optionsFromVariant(variant: ShopifyVariant): Record<string, string> {
+  const options: Record<string, string> = {};
+  variant.selectedOptions.forEach((option) => {
+    options[option.name] = option.value;
+  });
+  return options;
+}
+
+function readUrlVariantId(): string | null {
+  if (typeof window === 'undefined') return null;
+  return new URLSearchParams(window.location.search).get('variant');
+}
+
 export function useProductVariantSelection(product: ShopifyBuyBoxProduct) {
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() =>
     buildInitialSelectedOptions(product)
   );
+  const [selectionReady, setSelectionReady] = useState(false);
   const variantNodes = useMemo(() => getVariantNodes(product), [product]);
+  const productRef = useRef(product);
+  productRef.current = product;
+
+  useEffect(() => {
+    const nodes = getVariantNodes(productRef.current);
+    const urlId = readUrlVariantId();
+    if (urlId) {
+      const match = nodes.find(
+        (variant) => stripShopifyGid(variant.id) === stripShopifyGid(urlId)
+      );
+      if (match) {
+        setSelectedOptions(optionsFromVariant(match));
+      }
+    }
+    setSelectionReady(true);
+  }, [product.id]);
 
   const selectedVariant = useMemo((): ShopifyVariant | undefined => {
     if (Object.keys(selectedOptions).length === 0) {
@@ -73,6 +104,7 @@ export function useProductVariantSelection(product: ShopifyBuyBoxProduct) {
   return {
     selectedOptions,
     selectedVariant,
+    selectionReady,
     handleOptionSelect,
     resetToDefaultOptions,
   };
