@@ -1,7 +1,6 @@
 'use client';
 
 import {
-  getMetaPixelId,
   isMetaStorefrontInitiateCheckoutEnabled,
   isMetaStorefrontTrackingEnabled,
 } from '@/lib/analytics/meta-pixel-config';
@@ -23,21 +22,21 @@ const pending: Array<{ event: string; params: Record<string, unknown>; eventID: 
 
 function dispatch(event: string, params: Record<string, unknown>, eventID: string) {
   const fbq = getMetaFbq();
-  const pixelId = getMetaPixelId();
-  if (!fbq || typeof fbq !== 'function' || !pixelId) {
+  if (!fbq || typeof fbq !== 'function') {
     if (pending.length >= MAX_QUEUE) pending.shift();
     pending.push({ event, params, eventID });
     return;
   }
   try {
-    fbq('trackSingle', pixelId, event, params, { eventID });
+    // Single-pixel storefront: `track` is enough and does not depend on client env inlining.
+    fbq('track', event, params, { eventID });
   } catch {
     // Tracking must never break shopping.
   }
 }
 
 export function flushMetaPixelQueue() {
-  if (!getMetaFbq() || !getMetaPixelId()) return;
+  if (!getMetaFbq()) return;
   while (pending.length > 0) {
     const next = pending.shift();
     if (!next) break;
@@ -69,7 +68,7 @@ function catalogParams(input: {
 }
 
 export function trackMetaPageView() {
-  if (!isMetaStorefrontTrackingEnabled()) return;
+  if (!isMetaStorefrontTrackingEnabled() && !(typeof window !== 'undefined' && window.fbq)) return;
   dispatch('PageView', {}, createMetaEventId());
 }
 
@@ -79,7 +78,10 @@ export function trackMetaViewContent(input: {
   unitPrice: number | string;
   currency: string;
 }) {
-  if (!isMetaStorefrontTrackingEnabled()) return;
+  // Allow when bootstrap marked tracking on, or fbq already exists from layout snippet.
+  if (!isMetaStorefrontTrackingEnabled() && !(typeof window !== 'undefined' && typeof window.fbq === 'function')) {
+    return;
+  }
   const id = normalizeShopifyNumericId(input.variantId);
   const price = parseMajorUnitAmount(input.unitPrice);
   const quantity = Math.max(1, Math.floor(input.quantity ?? 1));
@@ -100,7 +102,9 @@ export function trackMetaAddToCart(input: {
   unitPrice: number | string;
   currency: string;
 }) {
-  if (!isMetaStorefrontTrackingEnabled()) return;
+  if (!isMetaStorefrontTrackingEnabled() && !(typeof window !== 'undefined' && typeof window.fbq === 'function')) {
+    return;
+  }
   const id = normalizeShopifyNumericId(input.variantId);
   const price = parseMajorUnitAmount(input.unitPrice);
   const quantity = Math.floor(input.quantity);
