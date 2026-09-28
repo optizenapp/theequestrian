@@ -18,6 +18,9 @@ export const NEWS_PAGE_REVALIDATE_SECONDS = 300;
 /** Brand hub pages. */
 export const BRAND_PAGE_REVALIDATE_SECONDS = 3600;
 
+/** Brand hub `?sort=on-sale` ranking (live Storefront compare-at, cached per brand + filters). */
+export const BRAND_ON_SALE_RANK_REVALIDATE_SECONDS = 300;
+
 /** On-sale collection. */
 export const ON_SALE_PAGE_REVALIDATE_SECONDS = 3600;
 

@@ -1,4 +1,6 @@
+import { unstable_cache } from 'next/cache';
 import { sql } from '@/lib/db/client';
+import { BRAND_PAGE_REVALIDATE_SECONDS } from '@/lib/config/route-revalidate';
 import type { BrandContentRow } from '@/lib/content/brand-content';
 
 export interface BrandCategoryEntry {
@@ -91,6 +93,79 @@ function titleFromPath(path: string): string {
     .join(' ');
 }
 
+/** Throws on DB errors so failures are never written to the categories cache. */
+async function queryBrandCategories(where: string, safeLimit: number): Promise<BrandCategoriesResult> {
+  const [categoryRows, brandRows] = await Promise.all([
+    sql.unsafe(`
+      WITH matched AS (
+        SELECT
+          regexp_replace(pca.canonical_path, '/[^/]+$', '') AS url_path
+        FROM products p
+        JOIN product_category_assignments pca ON pca.product_id = p.id
+        WHERE (${where})
+          AND pca.canonical_path IS NOT NULL
+          AND pca.canonical_path LIKE '/%/%/%'
+      )
+      SELECT url_path, COUNT(*)::int AS count
+      FROM matched
+      WHERE url_path <> '' AND url_path <> '/'
+      GROUP BY url_path
+      ORDER BY count DESC
+      LIMIT ${safeLimit}
+    `) as unknown as Array<{ url_path: string; count: number }>,
+
+    sql.unsafe(`
+      SELECT
+        LOWER(TRIM(p.brand)) AS brand_value,
+        COUNT(*)::int AS count
+      FROM products p
+      WHERE (${where})
+        AND COALESCE(TRIM(p.brand), '') <> ''
+      GROUP BY 1
+      ORDER BY count DESC
+      LIMIT 1
+    `) as unknown as Array<{ brand_value: string; count: number }>,
+  ]);
+
+  const paths = (categoryRows || []).map((r) => r.url_path).filter(Boolean);
+  if (paths.length === 0) {
+    return {
+      categories: [],
+      brandFilterValue: brandRows[0]?.brand_value || null,
+    };
+  }
+
+  const labels = (await sql`
+    SELECT url_path, h1_title, breadcrumb_label
+    FROM collection_content
+    WHERE url_path = ANY(${paths})
+  `) as unknown as Array<{
+    url_path: string;
+    h1_title: string | null;
+    breadcrumb_label: string | null;
+  }>;
+
+  const labelMap = new Map<string, string>();
+  for (const l of labels) {
+    const label =
+      (l.breadcrumb_label?.trim() && l.breadcrumb_label !== 'null'
+        ? l.breadcrumb_label.trim()
+        : l.h1_title?.trim()) || titleFromPath(l.url_path);
+    labelMap.set(l.url_path, label);
+  }
+
+  const categories: BrandCategoryEntry[] = (categoryRows || []).map((r) => ({
+    url_path: r.url_path,
+    label: labelMap.get(r.url_path) || titleFromPath(r.url_path),
+    count: Number(r.count) || 0,
+  }));
+
+  return {
+    categories,
+    brandFilterValue: brandRows[0]?.brand_value || null,
+  };
+}
+
 /**
  * Categories where this brand has products ("What We Stock").
  * Aggregates in SQL — never pulls unbounded assignment rows into Node/Neon work_mem.
@@ -105,75 +180,11 @@ export async function getBrandCategories(
   const safeLimit = Math.max(1, Math.min(limit, 24));
 
   try {
-    const [categoryRows, brandRows] = await Promise.all([
-      sql.unsafe(`
-        WITH matched AS (
-          SELECT
-            regexp_replace(pca.canonical_path, '/[^/]+$', '') AS url_path
-          FROM products p
-          JOIN product_category_assignments pca ON pca.product_id = p.id
-          WHERE (${where})
-            AND pca.canonical_path IS NOT NULL
-            AND pca.canonical_path LIKE '/%/%/%'
-        )
-        SELECT url_path, COUNT(*)::int AS count
-        FROM matched
-        WHERE url_path <> '' AND url_path <> '/'
-        GROUP BY url_path
-        ORDER BY count DESC
-        LIMIT ${safeLimit}
-      `) as unknown as Array<{ url_path: string; count: number }>,
-
-      sql.unsafe(`
-        SELECT
-          LOWER(TRIM(p.brand)) AS brand_value,
-          COUNT(*)::int AS count
-        FROM products p
-        WHERE (${where})
-          AND COALESCE(TRIM(p.brand), '') <> ''
-        GROUP BY 1
-        ORDER BY count DESC
-        LIMIT 1
-      `) as unknown as Array<{ brand_value: string; count: number }>,
-    ]);
-
-    const paths = (categoryRows || []).map((r) => r.url_path).filter(Boolean);
-    if (paths.length === 0) {
-      return {
-        categories: [],
-        brandFilterValue: brandRows[0]?.brand_value || null,
-      };
-    }
-
-    const labels = (await sql`
-      SELECT url_path, h1_title, breadcrumb_label
-      FROM collection_content
-      WHERE url_path = ANY(${paths})
-    `) as unknown as Array<{
-      url_path: string;
-      h1_title: string | null;
-      breadcrumb_label: string | null;
-    }>;
-
-    const labelMap = new Map<string, string>();
-    for (const l of labels) {
-      const label =
-        (l.breadcrumb_label?.trim() && l.breadcrumb_label !== 'null'
-          ? l.breadcrumb_label.trim()
-          : l.h1_title?.trim()) || titleFromPath(l.url_path);
-      labelMap.set(l.url_path, label);
-    }
-
-    const categories: BrandCategoryEntry[] = (categoryRows || []).map((r) => ({
-      url_path: r.url_path,
-      label: labelMap.get(r.url_path) || titleFromPath(r.url_path),
-      count: Number(r.count) || 0,
-    }));
-
-    return {
-      categories,
-      brandFilterValue: brandRows[0]?.brand_value || null,
-    };
+    return await unstable_cache(
+      () => queryBrandCategories(where, safeLimit),
+      ['brand-categories', brand.handle, where, String(safeLimit)],
+      { revalidate: BRAND_PAGE_REVALIDATE_SECONDS, tags: [`brand-${brand.handle}`] }
+    )();
   } catch (error) {
     console.error(
       `[getBrandCategories] failed for ${brand.handle}:`,

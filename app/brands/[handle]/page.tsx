@@ -5,7 +5,7 @@ import { getBrandContentByHandle, getBrandIndexDisplayName } from '@/lib/content
 import { FAQSection } from '@/components/collection/FAQSection';
 import { generateBrandPageSchema } from '@/lib/utils/brand-page-schema';
 import { FAQItem } from '@/lib/content/collections';
-import { getBrandProductsFromDb } from '@/lib/brands/get-brand-products';
+import { countDbProductsForBrand, getBrandProductsFromDb } from '@/lib/brands/get-brand-products';
 import { getBrandCategories } from '@/lib/brands/get-brand-categories';
 import { BrandQuickAnswer } from '@/components/brand/BrandQuickAnswer';
 import { BrandProductLines } from '@/components/brand/BrandProductLines';
@@ -41,8 +41,12 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
     };
   }
 
-  const { totalCount, degraded } = await getBrandProductsFromDb(brand, 1, null);
-  const isEmpty = !degraded && totalCount === 0;
+  let isEmpty = false;
+  try {
+    isEmpty = (await countDbProductsForBrand(brand)) === 0;
+  } catch (error) {
+    console.error(`[brand metadata] count failed for ${handle}:`, error);
+  }
 
   const title = brand.meta_title || `${brand.title} | The Equestrian`;
   const description = brand.meta_description || `Shop the full range of ${brand.title} equestrian products. Saddles, tack, clothing and more from ${brand.title}.`;
@@ -85,7 +89,7 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
 
 export default async function BrandPage({ params, searchParams }: BrandPageProps) {
   const { handle } = await params;
-  const { cursor, brand: brandParam, size, color } = await searchParams;
+  const { cursor, brand: brandParam, size, color, sort } = await searchParams;
   const afterCursor = typeof cursor === 'string' ? cursor : null;
   const filterBrands = brandParam ? (Array.isArray(brandParam) ? brandParam : brandParam.split(',')) : undefined;
   const filterSizes = size ? (Array.isArray(size) ? size : size.split(',')) : undefined;
@@ -112,7 +116,7 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
     brands: filterBrands,
     sizes: filterSizes,
     colors: filterColors,
-  });
+  }, sort === 'on-sale' ? 'on-sale' : undefined);
 
   // Confirmed-empty hubs stay in brand_content; temp-redirect home until sellable stock returns.
   if (!degraded && !hasFilters && !afterCursor && totalProductCount === 0) {

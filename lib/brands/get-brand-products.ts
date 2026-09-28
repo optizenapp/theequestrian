@@ -1,4 +1,6 @@
+import { unstable_cache } from 'next/cache';
 import { sql } from '@/lib/db/client';
+import { BRAND_PAGE_REVALIDATE_SECONDS } from '@/lib/config/route-revalidate';
 import { ensureProductsBrandColumns } from '@/lib/db/ensure-products-brand-columns';
 import type { BrandContentRow } from '@/lib/content/brand-content';
 import {
@@ -20,6 +22,7 @@ import {
 } from '@/lib/filters/product-filters';
 import type { ProductQueryResult } from '@/lib/db/queries';
 import type { ProductWithPrimaryCollection } from '@/types/shopify';
+import { rankBrandProductIdsOnSaleFirst } from '@/lib/brands/brand-on-sale-order';
 
 type BrandRule = { column?: string; relation?: string; condition?: string };
 type BrandProductRow = ProductQueryResult & { canonical_path: string | null };
@@ -29,6 +32,9 @@ export type BrandFilters = {
   sizes?: string[];
   colors?: string[];
 };
+
+/** Only sorts that need a server-side reorder before pagination. */
+export type BrandSort = 'on-sale';
 
 type BrandFacets = {
   brands: { value: string; count: number; displayName: string }[];
@@ -188,6 +194,7 @@ function buildWhereClause(
 }
 
 export async function countDbProductsForBrand(brand: BrandContentRow): Promise<number> {
+  await ensureProductsBrandColumns();
   const brandBase = buildBrandBaseClause(brand);
   if (!brandBase) return 0;
   const rows = (await sql.unsafe(`
@@ -202,7 +209,8 @@ export async function countDbProductsForBrand(brand: BrandContentRow): Promise<n
 // DB-first fast path (uses variant_options — same as category pages)
 // ---------------------------------------------------------------------------
 
-async function getBrandFacetsFromDb(
+/** Throws on DB errors so failures are never written to the facet cache. */
+async function queryBrandFacets(
   brandBase: string,
   filters?: BrandFilters
 ): Promise<BrandFacets> {
@@ -212,78 +220,91 @@ async function getBrandFacetsFromDb(
   const colorWhere = buildWhereClause(brandBase, { brands: filters?.brands, sizes: filters?.sizes });
   const brandWhere = buildWhereClause(brandBase, { sizes: filters?.sizes, colors: filters?.colors });
 
+  const brandRows = (await sql.unsafe(`
+    SELECT
+      LOWER(TRIM(p.brand)) AS value,
+      MIN(TRIM(p.brand)) AS display_name,
+      COUNT(DISTINCT p.id)::int AS count
+    FROM products p
+    WHERE ${brandWhere}
+      AND COALESCE(TRIM(p.brand), '') <> ''
+    GROUP BY LOWER(TRIM(p.brand))
+    ORDER BY count DESC
+    LIMIT 50
+  `)) as unknown as Array<{ value: string; display_name: string; count: number }>;
+
+  const sizeRows = (await sql.unsafe(`
+    SELECT
+      vo.option_value AS value,
+      COUNT(DISTINCT p.id)::int AS count
+    FROM products p
+    JOIN variant_options vo ON vo.product_id = p.id
+    WHERE ${sizeWhere}
+      AND vo.option_name_normalized = 'size'
+      AND COALESCE(vo.option_value, '') <> ''
+    GROUP BY vo.option_value
+    ORDER BY count DESC
+    LIMIT 100
+  `)) as unknown as Array<{ value: string; count: number }>;
+
+  const colorRows = (await sql.unsafe(`
+    SELECT
+      vo.option_value_normalized AS value,
+      MIN(vo.option_value) AS original_value,
+      COUNT(DISTINCT p.id)::int AS count
+    FROM products p
+    JOIN variant_options vo ON vo.product_id = p.id
+    WHERE ${colorWhere}
+      AND vo.option_name_normalized IN ('color', 'colour')
+      AND COALESCE(vo.option_value_normalized, '') <> ''
+    GROUP BY vo.option_value_normalized
+    ORDER BY count DESC
+    LIMIT 100
+  `)) as unknown as Array<{ value: string; original_value: string; count: number }>;
+
+  return {
+    brands: (brandRows as Array<{ value: string; display_name: string; count: number }>)
+      .filter((r) => r.value)
+      .map((r) => ({ value: r.value, count: Number(r.count), displayName: r.display_name || r.value }))
+      .sort((a, b) => a.displayName.localeCompare(b.displayName)),
+
+    sizes: (sizeRows as Array<{ value: string; count: number }>)
+      .map((r) => ({ value: r.value, count: Number(r.count) }))
+      .sort((a, b) => {
+        const an = parseFloat(a.value);
+        const bn = parseFloat(b.value);
+        return !Number.isNaN(an) && !Number.isNaN(bn) ? an - bn : a.value.localeCompare(b.value);
+      }),
+
+    colors: (colorRows as Array<{ value: string; original_value: string; count: number }>)
+      .map((r) => ({ value: r.value, count: Number(r.count), originalValue: r.original_value }))
+      .sort((a, b) => a.originalValue.localeCompare(b.originalValue)),
+
+    price: PRICE_FACET_FALLBACK,
+  };
+}
+
+const EMPTY_FACETS: BrandFacets = { brands: [], sizes: [], colors: [], price: PRICE_FACET_FALLBACK };
+
+async function getBrandFacetsFromDb(
+  brandHandle: string,
+  brandBase: string,
+  filters?: BrandFilters
+): Promise<BrandFacets> {
   try {
-    const brandRows = (await sql.unsafe(`
-      SELECT
-        LOWER(TRIM(p.brand)) AS value,
-        MIN(TRIM(p.brand)) AS display_name,
-        COUNT(DISTINCT p.id)::int AS count
-      FROM products p
-      WHERE ${brandWhere}
-        AND COALESCE(TRIM(p.brand), '') <> ''
-      GROUP BY LOWER(TRIM(p.brand))
-      ORDER BY count DESC
-      LIMIT 50
-    `)) as unknown as Array<{ value: string; display_name: string; count: number }>;
-
-    const sizeRows = (await sql.unsafe(`
-      SELECT
-        vo.option_value AS value,
-        COUNT(DISTINCT p.id)::int AS count
-      FROM products p
-      JOIN variant_options vo ON vo.product_id = p.id
-      WHERE ${sizeWhere}
-        AND vo.option_name_normalized = 'size'
-        AND COALESCE(vo.option_value, '') <> ''
-      GROUP BY vo.option_value
-      ORDER BY count DESC
-      LIMIT 100
-    `)) as unknown as Array<{ value: string; count: number }>;
-
-    const colorRows = (await sql.unsafe(`
-      SELECT
-        vo.option_value_normalized AS value,
-        MIN(vo.option_value) AS original_value,
-        COUNT(DISTINCT p.id)::int AS count
-      FROM products p
-      JOIN variant_options vo ON vo.product_id = p.id
-      WHERE ${colorWhere}
-        AND vo.option_name_normalized IN ('color', 'colour')
-        AND COALESCE(vo.option_value_normalized, '') <> ''
-      GROUP BY vo.option_value_normalized
-      ORDER BY count DESC
-      LIMIT 100
-    `)) as unknown as Array<{ value: string; original_value: string; count: number }>;
-
-    return {
-      brands: (brandRows as Array<{ value: string; display_name: string; count: number }>)
-        .filter((r) => r.value)
-        .map((r) => ({ value: r.value, count: Number(r.count), displayName: r.display_name || r.value }))
-        .sort((a, b) => a.displayName.localeCompare(b.displayName)),
-
-      sizes: (sizeRows as Array<{ value: string; count: number }>)
-        .map((r) => ({ value: r.value, count: Number(r.count) }))
-        .sort((a, b) => {
-          const an = parseFloat(a.value);
-          const bn = parseFloat(b.value);
-          return !Number.isNaN(an) && !Number.isNaN(bn) ? an - bn : a.value.localeCompare(b.value);
-        }),
-
-      colors: (colorRows as Array<{ value: string; original_value: string; count: number }>)
-        .map((r) => ({ value: r.value, count: Number(r.count), originalValue: r.original_value }))
-        .sort((a, b) => a.originalValue.localeCompare(b.originalValue)),
-
-      price: PRICE_FACET_FALLBACK,
-    };
+    // Unfiltered facets are identical for every visitor — share them across requests.
+    if (!hasActiveBrandFilters(filters)) {
+      return await unstable_cache(
+        () => queryBrandFacets(brandBase),
+        ['brand-facets', brandHandle, brandBase],
+        { revalidate: BRAND_PAGE_REVALIDATE_SECONDS, tags: [`brand-${brandHandle}`] }
+      )();
+    }
+    return await queryBrandFacets(brandBase, filters);
   } catch (error) {
     if (isNeonResourceError(error) || isTableMissingError(error)) {
       console.error('[getBrandFacetsFromDb] degraded facets:', neonErrorCode(error) || error);
-      return {
-        brands: [],
-        sizes: [],
-        colors: [],
-        price: PRICE_FACET_FALLBACK,
-      };
+      return EMPTY_FACETS;
     }
     throw error;
   }
@@ -294,9 +315,21 @@ async function fetchBrandProductsFast(
   brandBase: string,
   limit: number,
   offset: number,
-  filters?: BrandFilters
+  filters?: BrandFilters,
+  sort?: BrandSort
 ): Promise<ReturnType<typeof getBrandProductsFromDb>> {
   const whereClause = buildWhereClause(brandBase, filters);
+
+  const pageIds =
+    sort === 'on-sale'
+      ? (await rankBrandProductIdsOnSaleFirst(brand.handle, whereClause)).slice(offset, offset + limit)
+      : null;
+  const rowsWhere = pageIds
+    ? pageIds.length > 0
+      ? `p.id = ANY(ARRAY[${pageIds.map((id) => `'${escapeLiteral(id)}'`).join(',')}]::text[])`
+      : 'FALSE'
+    : whereClause;
+  const rowsPaging = pageIds ? '' : `LIMIT ${limit} OFFSET ${offset}`;
 
   const [countResult, rowsResult] = await Promise.all([
     sql.unsafe(`
@@ -320,14 +353,18 @@ async function fetchBrandProductsFast(
         ORDER BY canonical_path
         LIMIT 1
       ) pca ON true
-      WHERE ${whereClause}
+      WHERE ${rowsWhere}
       ORDER BY p.available_for_sale DESC, p.shopify_created_at DESC NULLS LAST, p.updated_at DESC
-      LIMIT ${limit} OFFSET ${offset}
+      ${rowsPaging}
     `) as unknown as BrandProductRow[],
   ]);
 
   const totalCount = Number((countResult as Array<{ total: number }>)[0]?.total || 0);
   const rows = (Array.isArray(rowsResult) ? rowsResult : []) as BrandProductRow[];
+  if (pageIds) {
+    const rank = new Map(pageIds.map((id, i) => [id, i]));
+    rows.sort((a, b) => (rank.get(a.id) ?? 0) - (rank.get(b.id) ?? 0));
+  }
 
   const enrichedRows = await enrichDbBrandProducts(rows);
   const mappedProducts = enrichedRows.map(dbProductToShopifyFormat);
@@ -337,7 +374,7 @@ async function fetchBrandProductsFast(
   // Keep Neon + Storefront fan-out sequential after the page query — parallel
   // facets were crashing floral-prod (`08P01` / server conn crashed).
   const liveStatus = await getLiveStatusByProductIds(productsWithVariants.map((p) => p.id));
-  const facets = await getBrandFacetsFromDb(brandBase, filters);
+  const facets = await getBrandFacetsFromDb(brand.handle, brandBase, filters);
   const products = applyLiveStatus(productsWithVariants, liveStatus);
   const adjustedTotal = adjustTotalCountAfterLiveFilter(
     totalCount,
@@ -546,7 +583,8 @@ export async function getBrandProductsFromDb(
   brand: BrandContentRow,
   limit: number = 36,
   after: string | null = null,
-  filters?: BrandFilters
+  filters?: BrandFilters,
+  sort?: BrandSort
 ): Promise<{
   products: ReturnType<typeof dbProductToShopifyFormat>[];
   productUrls: Map<string, string>;
@@ -563,7 +601,7 @@ export async function getBrandProductsFromDb(
   const offset = parseOffset(after);
 
   try {
-    return await fetchBrandProductsFast(brand, brandBase, limit, offset, filters);
+    return await fetchBrandProductsFast(brand, brandBase, limit, offset, filters, sort);
   } catch (error) {
     if (isTableMissingError(error)) {
       console.warn(
