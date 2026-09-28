@@ -8,14 +8,12 @@ import { BuyNowButton } from './BuyNowButton';
 import { MobileStickyBar } from './MobileStickyBar';
 import { ProductBuyBoxPostCta } from './ProductBuyBoxPostCta';
 import { ProductBuyBoxPriceAndBadges } from './ProductBuyBoxPriceAndBadges';
-import { FulfillmentDelayNotice } from './FulfillmentDelayNotice';
 import { SizeChartModal, SizeChartTriggerButton } from '@/components/sizing/SizeChartModal';
 import { buildGa4ItemFromProduct } from '@/lib/analytics/ga4-ecommerce';
 import { ProductMetaViewContent } from '@/components/analytics/ProductMetaViewContent';
 import { useProductVariantSelection } from '@/hooks/useProductVariantSelection';
 import type { ProductShippingDisplay } from '@/lib/shipping/product-shipping-display';
 import { SHIPPING_DISPLAY_FALLBACK } from '@/lib/shipping/product-shipping-display';
-import { isExclusivelyEquineFulfillmentDelayVendor } from '@/lib/shipping/exclusively-equine-fulfillment-delay';
 import type { ResolvedBrandSizing } from '@/lib/sizing/types';
 import { resolvedSizingHasContent } from '@/lib/sizing/types';
 
@@ -88,7 +86,6 @@ export function ProductBuyBox({
     <SizeChartTriggerButton onClick={() => setSizeChartOpen(true)} />
   ) : null;
   const hasSizeOption = productHasSizeOption(product);
-  const showFulfillmentDelay = isExclusivelyEquineFulfillmentDelayVendor(product.vendor);
 
   return (
     <div className="space-y-6">
@@ -132,8 +129,6 @@ export function ProductBuyBox({
           <p className="text-red-600 text-sm mt-1">This variant is currently unavailable</p>
         </div>
       )}
-
-      {showFulfillmentDelay ? <FulfillmentDelayNotice variant="cta" /> : null}
 
       <div ref={ctaRef} className="space-y-3">
         <AddToCartButton
