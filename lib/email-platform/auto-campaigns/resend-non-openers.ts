@@ -3,6 +3,7 @@ import { getProductsByHandles } from '@/lib/shopify/products-by-handles';
 import { queueCampaignRecipients, sendQueuedCampaignRecipients } from '@/lib/email-platform/sending';
 import { getAutoCampaignResendConfig } from './config';
 import { generateResendSubjectLine } from './resend-subject';
+import { loadEngagedNonOpenerContactIds } from './engaged-non-openers';
 
 function formatProductContext(
   products: Array<{
@@ -66,15 +67,7 @@ export async function processAutoCampaignResends(): Promise<ResendProcessResult>
         ? meta.subjectLine.trim()
         : parentName;
 
-    const contacts = await sql`
-      SELECT DISTINCT r.contact_id
-      FROM email_campaign_recipients r
-      INNER JOIN email_sends s ON s.campaign_recipient_id = r.id
-      WHERE r.campaign_id = ${parentId}
-        AND r.status IN ('sent', 'delivered')
-        AND s.opened_at IS NULL
-    `;
-    const contactIds = contacts.rows.map((r) => r.contact_id as string);
+    const contactIds = await loadEngagedNonOpenerContactIds(parentId);
     if (contactIds.length === 0) {
       await sql`
         UPDATE email_campaigns

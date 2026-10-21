@@ -111,8 +111,8 @@ export function ResendNonOpenersDialog({
         </h2>
         <p className="mt-2 text-sm text-gray-600">
           Creates a resend campaign for recipients who did not open{' '}
-          <span className="font-medium text-gray-800">{campaignName}</span>, then sends in the
-          background.
+          <span className="font-medium text-gray-800">{campaignName}</span> but opened or clicked
+          another email in the last 90 days, then sends in the background.
         </p>
         {originalSubject ? (
           <p className="mt-3 text-xs text-gray-500">

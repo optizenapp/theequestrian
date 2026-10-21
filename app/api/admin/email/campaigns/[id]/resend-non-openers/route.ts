@@ -60,7 +60,7 @@ export async function POST(
 
     if (result.reason === 'no_non_openers') {
       return NextResponse.json(
-        { error: 'No non-openers to resend (everyone with a tracked send already opened)' },
+        { error: 'No recently engaged non-openers to resend (non-openers must have opened or clicked an email in the last 90 days)' },
         { status: 409 }
       );
     }

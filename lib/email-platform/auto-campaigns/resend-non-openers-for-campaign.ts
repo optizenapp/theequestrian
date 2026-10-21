@@ -5,6 +5,7 @@ import {
   sendQueuedCampaignRecipients,
 } from '@/lib/email-platform/sending';
 import { generateResendSubjectLine } from './resend-subject';
+import { loadEngagedNonOpenerContactIds } from './engaged-non-openers';
 
 export type ResendNonOpenersResult = {
   childCampaignId: string | null;
@@ -43,20 +44,6 @@ async function loadParentCampaign(parentCampaignId: string) {
   return result.rows[0] || null;
 }
 
-async function loadNonOpenerContactIds(parentCampaignId: string): Promise<string[]> {
-  const result = await sql`
-    SELECT DISTINCT r.contact_id
-    FROM email_campaign_recipients r
-    INNER JOIN email_sends s ON s.campaign_recipient_id = r.id
-    WHERE r.campaign_id = ${parentCampaignId}
-      AND r.status IN ('sent', 'delivered')
-      AND s.opened_at IS NULL
-  `;
-  return result.rows
-    .map((row) => row.contact_id as string | null)
-    .filter((value): value is string => Boolean(value));
-}
-
 export async function resendNonOpenersForCampaign(input: {
   parentCampaignId: string;
   actor?: string;
@@ -85,12 +72,15 @@ export async function resendNonOpenersForCampaign(input: {
   }
 
   const meta = (parent.metadata as Record<string, unknown>) || {};
+  if (meta.resendNonOpeners === true) {
+    throw new Error('Only completed campaigns that are not already resends can resend to non-openers');
+  }
   const originalSubject =
     typeof meta.subjectLine === 'string' && meta.subjectLine.trim().length > 0
       ? meta.subjectLine.trim()
       : String(parent.name || 'Campaign');
 
-  const contactIds = await loadNonOpenerContactIds(input.parentCampaignId);
+  const contactIds = await loadEngagedNonOpenerContactIds(input.parentCampaignId);
   if (contactIds.length === 0) {
     return { ...empty, reason: 'no_non_openers' };
   }
