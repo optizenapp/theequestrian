@@ -21,6 +21,11 @@ import type { Metadata } from 'next';
 import { getManualRedirect } from '@/lib/redirects/manual';
 import { getReviewStatsWithCache } from '@/lib/reviews/get-review-stats';
 import { ProductGridSkeleton } from '@/components/filters/ProductGridSkeleton';
+import { CATEGORY_PAGE_SIZE } from '@/lib/pagination/category-cursor';
+import { parseCategoryQuery } from '@/lib/pagination/category-query';
+import { requireCategoryCursor, requireValidCategoryPage } from '@/lib/pagination/category-page-guard';
+import { buildCategoryCanonicalUrl, selfCanonicalCursor } from '@/lib/seo/category-canonical';
+import { resolveCategoryCanonicalUrl } from '@/lib/seo/resolve-category-canonical';
 
 // Lazy load below-the-fold components for better Speed Index
 const ProductGridWithFilters = dynamicImport(
@@ -70,13 +75,9 @@ interface CategoryPageProps {
  */
 export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
   const { category } = await params;
-  const { cursor, brand, size, color, sort } = await searchParams;
-  const afterCursor = typeof cursor === 'string' ? cursor : null;
-  const sortBy =
-    typeof sort === 'string' ? (sort as 'featured' | 'on-sale' | 'newest' | 'oldest' | 'price-asc' | 'price-desc') : undefined;
-  const filterBrands = brand ? (Array.isArray(brand) ? brand : brand.split(',')) : undefined;
-  const filterSizes = size ? (Array.isArray(size) ? size : size.split(',')) : undefined;
-  const filterColors = color ? (Array.isArray(color) ? color : color.split(',')) : undefined;
+  const sp = await searchParams;
+  const { filters, sortBy } = parseCategoryQuery(sp);
+  const { brands: filterBrands, sizes: filterSizes, colors: filterColors } = filters;
 
   const manualRedirect = await getManualRedirect(`/${category}`);
   if (manualRedirect) {
@@ -88,21 +89,23 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
   // Fetch products allocated to this category from product_category_assignments table
   const categoryPath = `/${category}`;
-  const { products: filteredProducts, pageInfo, facets, totalCount } =
+  const afterCursor = requireCategoryCursor(categoryPath, sp);
+  const { products: filteredProducts, pageInfo, pagination, facets, totalCount } =
     await getProductsByCategoryForCollectionPage(
       categoryPath,
-      36,
+      CATEGORY_PAGE_SIZE,
       afterCursor,
-      {
-        brands: filterBrands,
-        sizes: filterSizes,
-        colors: filterColors,
-      },
+      filters,
       sortBy
     );
+  // Before the legacy product fallback: a bad cursor on a real category is a 404, not a product lookup.
+  requireValidCategoryPage(pagination);
+  const showCategoryCopy = pagination.isFirstPage;
+  const canonicalCursor = selfCanonicalCursor(sp, afterCursor, pagination);
   
-  // If no products found, try as a product (fallback)
-  if (totalCount === 0) {
+  // If no products found, try as a product (fallback). A filtered view with no matches renders the empty grid.
+  const hasActiveFilters = Boolean(filterBrands || filterSizes || filterColors);
+  if (totalCount === 0 && !hasActiveFilters) {
     const product = await getProductByHandle(category);
     
     if (!product) {
@@ -269,6 +272,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const collectionSchema = generateCollectionSchemaFast({
     collectionName: pageTitle,
     collectionUrl: `${siteUrl}/${category}`,
+    pageUrl: canonicalCursor ? buildCategoryCanonicalUrl(categoryPath, canonicalCursor) : undefined,
     collectionDescription: content?.meta_description || `Shop premium ${pageTitle.toLowerCase()} from top equestrian brands. Quality products with fast shipping across Australia.`,
     breadcrumbs,
     products: filteredProducts,
@@ -295,10 +299,12 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
           <h1 className="text-4xl font-bold mb-6">{pageTitle}</h1>
           
           {/* Short Description */}
-          <CollectionDescription
-            description={description}
-            parentCollectionLink={parentCollectionLink}
-          />
+          {showCategoryCopy && (
+            <CollectionDescription
+              description={description}
+              parentCollectionLink={parentCollectionLink}
+            />
+          )}
         </div>
 
         <Suspense fallback={<ProductGridSkeleton />}>
@@ -307,6 +313,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             currentCategory={category}
             siloNav={siloNav}
             pageInfo={pageInfo}
+            previousCursor={pagination.previousCursor}
             totalCount={totalProductCount}
             allowedBrands={allowedBrands}
             serverFacets={facets}
@@ -321,12 +328,12 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         </div>
 
         {/* Long Description (Rich Content) */}
-        {content?.long_description && (
+        {showCategoryCopy && content?.long_description && (
           <RichContent html={content.long_description} />
         )}
 
         {/* FAQ Section */}
-        {content?.faq_items && content.faq_items.length > 0 && (
+        {showCategoryCopy && content?.faq_items && content.faq_items.length > 0 && (
           <FAQSection 
             faqs={content.faq_items}
             categoryTitle={pageTitle}
@@ -348,12 +355,12 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 /**
  * Generate metadata for SEO
  */
-export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: CategoryPageProps): Promise<Metadata> {
   const { category } = await params;
   const content = await getCategoryContent(category);
   const mappingTitle = getCollectionTitle(category);
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
-  const canonicalUrl = `${siteUrl}/${category}`;
+  const canonicalUrl = await resolveCategoryCanonicalUrl(`/${category}`, await searchParams);
 
   const title = content?.meta_title || `${mappingTitle} | The Equestrian`;
   const description = content?.meta_description || `Shop ${mappingTitle} products at The Equestrian. Quality equestrian supplies and equipment.`;

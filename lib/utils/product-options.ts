@@ -30,27 +30,22 @@ export const COMMON_COLORS = new Set([
   'gold', 'bronze', 'copper', 'black', 'charcoal', 'slate', 'graphite'
 ]);
 
-// Regex to identify vendor codes prefixing color names
-// Matches patterns like "01-", "7C00-", "8989-", "0001-", "02-Black/"
-const VENDOR_CODE_PREFIX = /^[\w\d]{2,6}[-/\s]/;
+// Supplier codes prefixing colour names: "01-", "7C00-", "8989-", "0001-", "8BGO- ".
+// Must contain a digit and end in a hyphen so real words ("Light ", "Black/") are kept.
+const VENDOR_CODE_PREFIX = /^(?=[A-Z]*\d)[0-9A-Z]{2,4}-\s*(?=\S)/;
 
 /**
- * Normalize a color value to group similar colors together
+ * Normalize a color value for colour-word detection (see `isColorValue`).
+ * Facets and matching use `lib/filters/facet-values.ts` instead.
  * e.g. "7C00-Light Blue" -> "light blue"
- * e.g. "7C00-Light/Blue" -> "light blue"
  */
 export function normalizeColor(value: string): string {
   if (!value) return '';
 
   let normalized = value.trim();
 
-  // Remove vendor code prefixes (e.g. "01-White", "7C00-Blue")
-  if (VENDOR_CODE_PREFIX.test(normalized)) {
-    // Keep removing until no prefix match (in case of multiple like "01-02-Blue")
-    while (VENDOR_CODE_PREFIX.test(normalized)) {
-      normalized = normalized.replace(VENDOR_CODE_PREFIX, '');
-    }
-  }
+  // Remove a vendor code prefix (e.g. "01-White", "7C00-Blue")
+  normalized = normalized.replace(VENDOR_CODE_PREFIX, '');
 
   // Replace separators with spaces
   normalized = normalized.replace(/[-/_]/g, ' ');

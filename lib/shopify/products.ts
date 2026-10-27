@@ -7,11 +7,19 @@ import {
   GET_PRODUCTS_BY_QUERY,
   GET_RECOMMENDED_PRODUCTS_BY_QUERY,
 } from './queries';
-import { normalizeColor, isColorValue } from '@/lib/utils/product-options';
+import { buildFacetValues, filterProductsByOptions } from '@/lib/filters/facet-values';
 import { getProductAllocationByHandle, getProductAllocationByProductId, getProductAllocationMapByProductIds } from '@/lib/db/product-allocations';
 import { CATEGORY_PRODUCTS_CACHE_MS } from '@/lib/config/collection-cache';
 import { getProductOverridesByHandles, getProductOverrideByHandle } from '@/lib/content/product-overrides';
 import { filterExcludedFrontendVendors, isExcludedFrontendVendor } from './vendor-visibility';
+import { compareCategoryProducts } from '@/lib/products/category-sort';
+import {
+  FIRST_PAGE_PAGINATION,
+  INVALID_PAGE_PAGINATION,
+  offsetPathPagination,
+  paginateById,
+  type CategoryPagination,
+} from '@/lib/pagination/category-cursor';
 import type { ShopifyProduct, ProductWithPrimaryCollection } from '@/types/shopify';
 
 interface ProductResponse {
@@ -454,13 +462,7 @@ export async function getProductsByTypes(
     // 1. Brands (Vendors & Tags) - Store both normalized key and display name
     const brandCounts = new Map<string, { count: number; displayName: string }>();
     
-    // 2. Sizes
-    const sizeCounts = new Map<string, number>();
-    
-    // 3. Colors
-    const colorCounts = new Map<string, { count: number; originalValue: string }>();
-    
-    // 4. Prices
+    // 2. Prices
     let minPrice = Infinity;
     let maxPrice = 0;
 
@@ -519,39 +521,6 @@ export async function getProductsByTypes(
       const pMax = parseFloat(p.priceRange.maxVariantPrice.amount);
       if (pMin < minPrice) minPrice = pMin;
       if (pMax > maxPrice) maxPrice = pMax;
-      
-      // Variants (Size & Color)
-      p.variants.edges.forEach(({ node: variant }) => {
-        // Size
-        const sizeOption = variant.selectedOptions.find(
-          (opt) => opt.name.toLowerCase() === 'size'
-        );
-        if (sizeOption) {
-          // Skip if it looks like a color (e.g. "Black", "Navy")
-          // This prevents colors from appearing in the Size filter
-          if (!isColorValue(sizeOption.value)) {
-            const count = sizeCounts.get(sizeOption.value) || 0;
-            sizeCounts.set(sizeOption.value, count + 1);
-          }
-        }
-        
-        // Color
-        const colorOption = variant.selectedOptions.find(
-          (opt) => opt.name.toLowerCase() === 'color'
-        );
-        if (colorOption) {
-          const normalizedValue = normalizeColor(colorOption.value);
-          const existing = colorCounts.get(normalizedValue);
-          if (existing) {
-            existing.count++;
-          } else {
-            colorCounts.set(normalizedValue, {
-              count: 1,
-              originalValue: colorOption.value, // Keep original casing/format for display (optional, or pick best one)
-            });
-          }
-        }
-      });
     });
     
     // Format facets
@@ -563,25 +532,12 @@ export async function getProductsByTypes(
       }))
       .sort((a, b) => a.displayName.localeCompare(b.displayName));
       
-    const sizeFacets = Array.from(sizeCounts.entries())
-      .map(([value, count]) => ({ value, count }))
-      .sort((a, b) => {
-        // Try to sort numerically if possible
-        const aNum = parseFloat(a.value);
-        const bNum = parseFloat(b.value);
-        if (!isNaN(aNum) && !isNaN(bNum)) {
-          return aNum - bNum;
-        }
-        return a.value.localeCompare(b.value);
-      });
-      
-    const colorFacets = Array.from(colorCounts.entries())
-      .map(([value, { count, originalValue }]) => ({ 
-        value, 
-        count, 
-        originalValue 
-      }))
-      .sort((a, b) => a.originalValue.localeCompare(b.originalValue));
+    const sizeFacets = buildFacetValues(allProductsUnfiltered, 'size').map(({ value, count }) => ({ value, count }));
+    const colorFacets = buildFacetValues(allProductsUnfiltered, 'colour').map(({ value, count, label }) => ({
+      value,
+      count,
+      originalValue: label,
+    }));
       
     const priceFacet = {
       min: minPrice === Infinity ? 0 : Math.floor(minPrice / 10) * 10,
@@ -1155,6 +1111,7 @@ export async function getProductsByCategory(
 ): Promise<{
   products: ProductWithPrimaryCollection[];
   pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  pagination: CategoryPagination;
   totalCount: number;
   facets: {
     brands: { value: string; count: number; displayName: string }[];
@@ -1166,6 +1123,7 @@ export async function getProductsByCategory(
   const emptyResult = {
     products: [],
     pageInfo: { hasNextPage: false, endCursor: null },
+    pagination: after ? INVALID_PAGE_PAGINATION : FIRST_PAGE_PAGINATION,
     totalCount: 0,
     facets: { brands: [], sizes: [], colors: [], price: { min: 0, max: 0 } }
   };
@@ -1186,7 +1144,7 @@ export async function getProductsByCategory(
         // Await so rejections are caught here and we can safely fall back to
         // the Shopify path instead of 500ing the whole category page.
         const result = await getProductsByCategoryFromDB(categoryPath, limit, after, filters);
-        return result;
+        return { ...result, pagination: offsetPathPagination(after, result.products.length > 0) };
       } catch (dbError) {
         console.error('[getProductsByCategory] DB-first path failed, falling back to Shopify path:', dbError);
       }
@@ -1381,35 +1339,12 @@ export async function getProductsByCategory(
         }
       }
 
-      if (filters.sizes && filters.sizes.length > 0) {
-        allProducts = allProducts.filter(p =>
-          p.variants.edges.some(({ node: variant }) =>
-            variant.selectedOptions.some(opt =>
-              opt.name.toLowerCase() === 'size' &&
-              filters.sizes!.includes(opt.value)
-            )
-          )
-        );
-      }
-
-      if (filters.colors && filters.colors.length > 0) {
-        allProducts = allProducts.filter(p =>
-          p.variants.edges.some(({ node: variant }) =>
-            variant.selectedOptions.some(opt =>
-              (opt.name.toLowerCase() === 'color' || opt.name.toLowerCase() === 'colour') &&
-              filters.colors!.some(filterColor =>
-                normalizeColor(opt.value) === normalizeColor(filterColor)
-              )
-            )
-          )
-        );
-      }
+      // Size + colour must exist on the same variant.
+      allProducts = filterProductsByOptions(allProducts, { sizes: filters.sizes, colors: filters.colors });
     }
 
     // Calculate facets from filtered products
     const brandCounts = new Map<string, { count: number; displayName: string }>();
-    const sizeCounts = new Map<string, number>();
-    const colorCounts = new Map<string, { count: number; originalValue: string }>();
     let minPrice = Infinity;
     let maxPrice = 0;
 
@@ -1445,53 +1380,18 @@ export async function getProductsByCategory(
       const pMax = parseFloat(p.priceRange.maxVariantPrice.amount);
       if (pMin < minPrice) minPrice = pMin;
       if (pMax > maxPrice) maxPrice = pMax;
-      
-      // Variants (Size & Color)
-      p.variants.edges.forEach(({ node: variant }) => {
-        const sizeOption = variant.selectedOptions.find(
-          (opt) => opt.name.toLowerCase() === 'size'
-        );
-        if (sizeOption && !isColorValue(sizeOption.value)) {
-          const count = sizeCounts.get(sizeOption.value) || 0;
-          sizeCounts.set(sizeOption.value, count + 1);
-        }
-        
-        const colorOption = variant.selectedOptions.find(
-          (opt) => opt.name.toLowerCase() === 'color'
-        );
-        if (colorOption) {
-          const normalizedValue = normalizeColor(colorOption.value);
-          const existing = colorCounts.get(normalizedValue);
-          if (existing) {
-            existing.count++;
-          } else {
-            colorCounts.set(normalizedValue, {
-              count: 1,
-              originalValue: colorOption.value
-            });
-          }
-        }
-      });
     });
 
     const brandFacets = Array.from(brandCounts.entries())
       .map(([value, { count, displayName }]) => ({ value, count, displayName }))
       .sort((a, b) => a.displayName.localeCompare(b.displayName));
-      
-    const sizeFacets = Array.from(sizeCounts.entries())
-      .map(([value, count]) => ({ value, count }))
-      .sort((a, b) => {
-        const aNum = parseFloat(a.value);
-        const bNum = parseFloat(b.value);
-        if (!isNaN(aNum) && !isNaN(bNum)) {
-          return aNum - bNum;
-        }
-        return a.value.localeCompare(b.value);
-      });
-      
-    const colorFacets = Array.from(colorCounts.entries())
-      .map(([value, { count, originalValue }]) => ({ value, count, originalValue }))
-      .sort((a, b) => a.originalValue.localeCompare(b.originalValue));
+
+    const sizeFacets = buildFacetValues(allProducts, 'size').map(({ value, count }) => ({ value, count }));
+    const colorFacets = buildFacetValues(allProducts, 'colour').map(({ value, count, label }) => ({
+      value,
+      count,
+      originalValue: label,
+    }));
       
     const priceFacet = {
       min: minPrice === Infinity ? 0 : Math.floor(minPrice / 10) * 10,
@@ -1506,63 +1406,15 @@ export async function getProductsByCategory(
     };
 
     // Server-side sorting (before pagination) so /?sort=on-sale surfaces on-sale products on page 1.
-    allProducts.sort((a, b) => {
-      const aInStock = a.variants.edges.some(({ node }) => node.availableForSale);
-      const bInStock = b.variants.edges.some(({ node }) => node.availableForSale);
-      const aPrice = parseFloat(a.priceRange?.minVariantPrice?.amount || '0');
-      const bPrice = parseFloat(b.priceRange?.minVariantPrice?.amount || '0');
-      const aCompare = parseFloat(a.compareAtPriceRange?.minVariantPrice?.amount || '0');
-      const bCompare = parseFloat(b.compareAtPriceRange?.minVariantPrice?.amount || '0');
-      const aOnSale = aCompare > aPrice;
-      const bOnSale = bCompare > bPrice;
-      const aCreated = new Date(a.createdAt || 0).getTime();
-      const bCreated = new Date(b.createdAt || 0).getTime();
+    allProducts.sort((a, b) => compareCategoryProducts(a, b, sortBy));
 
-      switch (sortBy) {
-        case 'on-sale':
-          if (aOnSale !== bOnSale) return aOnSale ? -1 : 1;
-          if (aInStock !== bInStock) return aInStock ? -1 : 1;
-          return 0;
-        case 'newest':
-          if (aInStock !== bInStock) return aInStock ? -1 : 1;
-          return bCreated - aCreated;
-        case 'oldest':
-          if (aInStock !== bInStock) return aInStock ? -1 : 1;
-          return aCreated - bCreated;
-        case 'price-asc':
-          if (aInStock !== bInStock) return aInStock ? -1 : 1;
-          return aPrice - bPrice;
-        case 'price-desc':
-          if (aInStock !== bInStock) return aInStock ? -1 : 1;
-          return bPrice - aPrice;
-        case 'featured':
-        default:
-          if (aInStock !== bInStock) return aInStock ? -1 : 1;
-          return 0;
-      }
-    });
-
-    // Implement pagination
     const totalCount = allProducts.length;
-    let startIndex = 0;
-
-    if (after) {
-      // Find the index of the product after the cursor
-      const cursorIndex = allProducts.findIndex(p => p.id === after);
-      if (cursorIndex !== -1) {
-        startIndex = cursorIndex + 1;
-      }
-    }
-
-    const paginatedProducts = allProducts.slice(startIndex, startIndex + limit);
-    const hasNextPage = startIndex + limit < totalCount;
-    const endCursor = paginatedProducts.length > 0 
-      ? paginatedProducts[paginatedProducts.length - 1].id 
-      : null;
+    const { products: paginatedProducts, pageInfo, pagination } = paginateById(allProducts, after, limit);
 
     return {
       products: paginatedProducts,
-      pageInfo: { hasNextPage, endCursor },
+      pageInfo,
+      pagination,
       totalCount,
       facets
     };

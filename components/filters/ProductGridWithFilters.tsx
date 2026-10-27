@@ -7,7 +7,7 @@
  * and displays filtered products
  */
 
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useMemo, useState, useEffect } from 'react';
 import { buildGa4ItemFromProduct, trackViewItemList } from '@/lib/analytics/ga4-ecommerce';
 import Link from 'next/link';
@@ -46,6 +46,8 @@ interface ProductGridWithFiltersProps {
     hasNextPage: boolean;
     endCursor: string | null;
   };
+  /** Cursor of the preceding slice; null/undefined sends Previous to the clean URL. */
+  previousCursor?: string | null;
   totalCount?: number;
   allowedBrands?: { vendors: string[]; tags: string[] }; // Brand vendors and tags from brand-mapping.csv
   serverFacets?: {
@@ -69,6 +71,7 @@ export function ProductGridWithFilters({
   currentSubcategory,
   siloNav,
   pageInfo,
+  previousCursor,
   totalCount,
   allowedBrands,
   serverFacets,
@@ -79,6 +82,7 @@ export function ProductGridWithFilters({
   itemListName: itemListNameProp,
 }: ProductGridWithFiltersProps) {
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const router = useRouter();
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
@@ -306,9 +310,10 @@ export function ProductGridWithFilters({
     if (!currentCursor) return null;
     const params = new URLSearchParams(searchParams.toString());
     params.delete('cursor');
+    if (previousCursor) params.set('cursor', previousCursor);
     const query = params.toString();
-    return query ? `?${query}` : `/${currentCategory}${currentSubcategory ? `/${currentSubcategory}` : ''}`;
-  }, [currentCursor, searchParams, currentCategory, currentSubcategory]);
+    return query ? `${pathname}?${query}` : pathname;
+  }, [currentCursor, previousCursor, searchParams, pathname]);
 
   const nextPageHref = useMemo(() => {
     if (!pageInfo?.hasNextPage || !pageInfo.endCursor) return null;
@@ -549,6 +554,7 @@ export function ProductGridWithFilters({
                       href={previousPageHref}
                       className="px-6 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 font-medium hover:bg-gray-50 transition-colors"
                       rel="prev"
+                      aria-label="Previous page of products"
                     >
                       &larr; Previous Page
                     </Link>
@@ -558,6 +564,7 @@ export function ProductGridWithFilters({
                       href={nextPageHref}
                       className="px-6 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 font-medium hover:bg-gray-50 transition-colors"
                       rel="next"
+                      aria-label="Next page of products"
                     >
                       Next Page &rarr;
                     </Link>

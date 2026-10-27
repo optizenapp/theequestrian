@@ -9,6 +9,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useCallback, useMemo } from 'react';
 import type { FilterOption } from '@/lib/filters/product-filters';
+import { sameFacetValue } from '@/lib/filters/facet-values';
 
 interface AttributeFilterProps {
   title: string;
@@ -33,6 +34,16 @@ export function AttributeFilter({
     return param ? param.split(',') : [];
   }, [searchParams, paramName]);
 
+  /** Size/colour compare through the facet normaliser so legacy URL values still tick and toggle. */
+  const isSameValue = useCallback(
+    (a: string, b: string) => {
+      if (paramName === 'size') return sameFacetValue('size', a, b);
+      if (paramName === 'color') return sameFacetValue('colour', a, b);
+      return a === b;
+    },
+    [paramName]
+  );
+
   const toggleValue = useCallback(
     (value: string) => {
       // Read from window.location.search (always the real current URL) rather than
@@ -46,8 +57,8 @@ export function AttributeFilter({
       const currentValues = currentParam ? currentParam.split(',') : [];
 
       let newValues: string[];
-      if (currentValues.includes(value)) {
-        newValues = currentValues.filter((v) => v !== value);
+      if (currentValues.some((v) => isSameValue(v, value))) {
+        newValues = currentValues.filter((v) => !isSameValue(v, value));
       } else {
         newValues = [...currentValues, value];
       }
@@ -60,7 +71,7 @@ export function AttributeFilter({
 
       router.push(`?${params.toString()}`, { scroll: false });
     },
-    [router, searchParams, paramName]
+    [router, searchParams, paramName, isSameValue]
   );
 
   const displayOptions = showAll ? options : options.slice(0, maxVisible);
@@ -73,7 +84,7 @@ export function AttributeFilter({
 
       <div className="space-y-2">
         {displayOptions.map((option, index) => {
-          const isChecked = selectedValues.includes(option.value);
+          const isChecked = selectedValues.some((v) => isSameValue(v, option.value));
 
           return (
             <label

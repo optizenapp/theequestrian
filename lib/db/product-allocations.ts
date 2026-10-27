@@ -236,6 +236,7 @@ export async function getProductIdsByCategory(categoryPath: string): Promise<str
          AND pca.category_path = ${crossBrandPath}
          AND LOWER(TRIM(COALESCE(p.brand, ''))) = ${crossBrand}
        )
+    ORDER BY product_id_compact
   `;
 
   const rows = (Array.isArray(result) ? result : []) as Array<{

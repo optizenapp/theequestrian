@@ -67,6 +67,11 @@ import { cache } from 'react';
 import { ProductViewTracker } from '@/components/analytics/ProductViewTracker';
 import { ProductGridSkeleton } from '@/components/filters/ProductGridSkeleton';
 import { getProductReviewsWithStats } from '@/lib/reviews/product-reviews';
+import { CATEGORY_PAGE_SIZE } from '@/lib/pagination/category-cursor';
+import { parseCategoryQuery, type CategorySearchParams } from '@/lib/pagination/category-query';
+import { requireCategoryCursor, requireValidCategoryPage } from '@/lib/pagination/category-page-guard';
+import { buildCategoryCanonicalUrl, selfCanonicalCursor } from '@/lib/seo/category-canonical';
+import { resolveCategoryCanonicalUrl } from '@/lib/seo/resolve-category-canonical';
 
 export const revalidate = 172800;
 export const preferredRegion = 'syd1';
@@ -96,13 +101,6 @@ const getResolvedProductBySlug = cache(async (slug: string) => {
 export default async function Page({ params, searchParams }: PageProps) {
   const { category, subcategory, product: thirdSegment } = await params;
   const sp = await searchParams;
-  const { cursor, brand, size, color, sort } = sp;
-  const afterCursor = typeof cursor === 'string' ? cursor : null;
-  const sortBy =
-    typeof sort === 'string' ? (sort as 'featured' | 'on-sale' | 'newest' | 'oldest' | 'price-asc' | 'price-desc') : undefined;
-  const filterBrands = brand ? (Array.isArray(brand) ? brand : brand.split(',')) : undefined;
-  const filterSizes = size ? (Array.isArray(size) ? size : size.split(',')) : undefined;
-  const filterColors = color ? (Array.isArray(color) ? color : color.split(',')) : undefined;
 
   const currentPath = `/${category}/${subcategory}/${thirdSegment}`;
   const { resolvedHandle: preResolvedHandle, product: productAtPath } =
@@ -134,16 +132,7 @@ export default async function Page({ params, searchParams }: PageProps) {
   
   if (existsInDatabase) {
     // Category exists in database, render it (will redirect if empty)
-    return renderSubSubcategoryPage(
-      category,
-      subcategory,
-      thirdSegment,
-      afterCursor,
-      filterBrands,
-      filterSizes,
-      filterColors,
-      sortBy
-    );
+    return renderSubSubcategoryPage(category, subcategory, thirdSegment, sp);
   }
   
   // Check if it has product types mapped (for categories not in database yet)
@@ -151,16 +140,7 @@ export default async function Page({ params, searchParams }: PageProps) {
   
   // If it maps to a collection, render the collection page
   if (allowedProductTypes.length > 0) {
-    return renderSubSubcategoryPage(
-      category,
-      subcategory,
-      thirdSegment,
-      afterCursor,
-      filterBrands,
-      filterSizes,
-      filterColors,
-      sortBy
-    );
+    return renderSubSubcategoryPage(category, subcategory, thirdSegment, sp);
   }
 
   // 2. If not a category, assume it's a product handle
@@ -514,26 +494,25 @@ async function renderSubSubcategoryPage(
   category: string, 
   subcategory: string, 
   subsubcategory: string, 
-  afterCursor: string | null = null,
-  filterBrands?: string[],
-  filterSizes?: string[],
-  filterColors?: string[],
-  sortBy?: 'featured' | 'on-sale' | 'newest' | 'oldest' | 'price-asc' | 'price-desc'
+  sp: CategorySearchParams
 ) {
+  const { filters, sortBy } = parseCategoryQuery(sp);
+  const { brands: filterBrands, sizes: filterSizes, colors: filterColors } = filters;
+
   // Fetch products allocated to this sub-subcategory from product_category_assignments table
   const categoryPath = `/${category}/${subcategory}/${subsubcategory}`;
-  const { products: filteredProducts, pageInfo, facets, totalCount } =
+  const afterCursor = requireCategoryCursor(categoryPath, sp);
+  const { products: filteredProducts, pageInfo, pagination, facets, totalCount } =
     await getProductsByCategoryForCollectionPage(
       categoryPath,
-      36,
+      CATEGORY_PAGE_SIZE,
       afterCursor,
-      {
-        brands: filterBrands,
-        sizes: filterSizes,
-        colors: filterColors,
-      },
+      filters,
       sortBy
     );
+  requireValidCategoryPage(pagination);
+  const showCategoryCopy = pagination.isFirstPage;
+  const canonicalCursor = selfCanonicalCursor(sp, afterCursor, pagination);
 
   // Total count is returned from getProductsByCategoryForCollectionPage (no separate API call needed)
   const totalProductCount = totalCount;
@@ -596,6 +575,7 @@ async function renderSubSubcategoryPage(
   const collectionSchema = generateCollectionSchemaFast({
     collectionName: pageTitle,
     collectionUrl: `${siteUrl}/${category}/${subcategory}/${subsubcategory}`,
+    pageUrl: canonicalCursor ? buildCategoryCanonicalUrl(categoryPath, canonicalCursor) : undefined,
     collectionDescription: content?.meta_description || `Shop premium ${pageTitle.toLowerCase()} from top equestrian brands. Quality products with fast shipping across Australia.`,
     breadcrumbs,
     products: filteredProducts,
@@ -626,10 +606,12 @@ async function renderSubSubcategoryPage(
           <h1 className="text-4xl font-bold mb-6">{pageTitle}</h1>
           
           {/* Collection Description */}
-          <CollectionDescription
-            description={description}
-            parentCollectionLink={parentCollectionLink}
-          />
+          {showCategoryCopy && (
+            <CollectionDescription
+              description={description}
+              parentCollectionLink={parentCollectionLink}
+            />
+          )}
         </div>
 
         <Suspense fallback={<ProductGridSkeleton />}>
@@ -639,6 +621,7 @@ async function renderSubSubcategoryPage(
             currentSubcategory={subcategory}
             siloNav={siloNav}
             pageInfo={pageInfo}
+            previousCursor={pagination.previousCursor}
             totalCount={totalProductCount}
             allowedBrands={allowedBrands}
             serverFacets={facets}
@@ -653,12 +636,12 @@ async function renderSubSubcategoryPage(
         </div>
 
         {/* Long Description (Rich Content) */}
-        {content?.long_description && (
+        {showCategoryCopy && content?.long_description && (
           <RichContent html={content.long_description} />
         )}
 
         {/* FAQ Section */}
-        {content?.faq_items && content.faq_items.length > 0 && (
+        {showCategoryCopy && content?.faq_items && content.faq_items.length > 0 && (
           <FAQSection 
             faqs={content.faq_items}
             categoryTitle={pageTitle}
@@ -680,17 +663,23 @@ async function renderSubSubcategoryPage(
 /**
  * Generate metadata for SEO
  */
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   const { category, subcategory, product: thirdSegment } = await params;
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
   
   // Check if it's a collection
   const allowedProductTypes = await getProductTypesForCollection(category, subcategory, thirdSegment);
-  
-  if (allowedProductTypes.length > 0) {
+  const { categoryExists } = await import('@/lib/content/collections');
+  const isCollection =
+    allowedProductTypes.length > 0 || (await categoryExists(category, subcategory, thirdSegment));
+
+  if (isCollection) {
     const collectionTitle = getCollectionTitle(category, subcategory, thirdSegment);
     const content = await getCategoryContent(category, subcategory, thirdSegment);
-    const canonicalUrl = `${siteUrl}/${category}/${subcategory}/${thirdSegment}`;
+    const canonicalUrl = await resolveCategoryCanonicalUrl(
+      `/${category}/${subcategory}/${thirdSegment}`,
+      await searchParams
+    );
 
     const title = content?.meta_title || `${collectionTitle} | The Equestrian`;
     const description = content?.meta_description || `Shop ${collectionTitle} products at The Equestrian. Quality equestrian supplies and equipment.`;

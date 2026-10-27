@@ -18,6 +18,11 @@ import { getCategorySiloNav } from '@/lib/nav/category-silo';
 import type { Metadata } from 'next';
 import { getManualRedirect } from '@/lib/redirects/manual';
 import { ProductGridSkeleton } from '@/components/filters/ProductGridSkeleton';
+import { CATEGORY_PAGE_SIZE } from '@/lib/pagination/category-cursor';
+import { parseCategoryQuery } from '@/lib/pagination/category-query';
+import { requireCategoryCursor, requireValidCategoryPage } from '@/lib/pagination/category-page-guard';
+import { buildCategoryCanonicalUrl, selfCanonicalCursor } from '@/lib/seo/category-canonical';
+import { resolveCategoryCanonicalUrl } from '@/lib/seo/resolve-category-canonical';
 
 // Lazy load below-the-fold components for better Speed Index
 const ProductGridWithFilters = dynamicImport(
@@ -64,13 +69,9 @@ interface SubcategoryPageProps {
  */
 export default async function SubcategoryPage({ params, searchParams }: SubcategoryPageProps) {
   const { category, subcategory } = await params;
-  const { cursor, brand, size, color, sort } = await searchParams;
-  const afterCursor = typeof cursor === 'string' ? cursor : null;
-  const sortBy =
-    typeof sort === 'string' ? (sort as 'featured' | 'on-sale' | 'newest' | 'oldest' | 'price-asc' | 'price-desc') : undefined;
-  const filterBrands = brand ? (Array.isArray(brand) ? brand : brand.split(',')) : undefined;
-  const filterSizes = size ? (Array.isArray(size) ? size : size.split(',')) : undefined;
-  const filterColors = color ? (Array.isArray(color) ? color : color.split(',')) : undefined;
+  const sp = await searchParams;
+  const { filters, sortBy } = parseCategoryQuery(sp);
+  const { brands: filterBrands, sizes: filterSizes, colors: filterColors } = filters;
 
   const manualRedirect = await getManualRedirect(`/${category}/${subcategory}`);
   if (manualRedirect) {
@@ -82,18 +83,18 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
 
   // Fetch products allocated to this category from product_category_assignments table
   const categoryPath = `/${category}/${subcategory}`;
-  const { products: filteredProducts, pageInfo, facets, totalCount } =
+  const afterCursor = requireCategoryCursor(categoryPath, sp);
+  const { products: filteredProducts, pageInfo, pagination, facets, totalCount } =
     await getProductsByCategoryForCollectionPage(
       categoryPath,
-      36,
+      CATEGORY_PAGE_SIZE,
       afterCursor,
-      {
-        brands: filterBrands,
-        sizes: filterSizes,
-        colors: filterColors,
-      },
+      filters,
       sortBy
     );
+  requireValidCategoryPage(pagination);
+  const showCategoryCopy = pagination.isFirstPage;
+  const canonicalCursor = selfCanonicalCursor(sp, afterCursor, pagination);
   
   // If no products found, check if category exists in collection_content
   if (totalCount === 0) {
@@ -163,6 +164,7 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
   const collectionSchema = generateCollectionSchemaFast({
     collectionName: pageTitle,
     collectionUrl: `${siteUrl}/${category}/${subcategory}`,
+    pageUrl: canonicalCursor ? buildCategoryCanonicalUrl(categoryPath, canonicalCursor) : undefined,
     collectionDescription: content?.meta_description || `Shop premium ${pageTitle.toLowerCase()} from top equestrian brands. Quality products with fast shipping across Australia.`,
     breadcrumbs,
     products: filteredProducts,
@@ -192,10 +194,12 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-6">{pageTitle}</h1>
           
-          <CollectionDescription
-            description={description}
-            parentCollectionLink={parentCollectionLink}
-          />
+          {showCategoryCopy && (
+            <CollectionDescription
+              description={description}
+              parentCollectionLink={parentCollectionLink}
+            />
+          )}
         </div>
 
         <Suspense fallback={<ProductGridSkeleton />}>
@@ -205,6 +209,7 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
             currentSubcategory={subcategory}
             siloNav={siloNav}
             pageInfo={pageInfo}
+            previousCursor={pagination.previousCursor}
             totalCount={totalProductCount}
             allowedBrands={allowedBrands}
             serverFacets={facets}
@@ -219,12 +224,12 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
         </div>
 
         {/* Long Description (Rich Content) */}
-        {content?.long_description && (
+        {showCategoryCopy && content?.long_description && (
           <RichContent html={content.long_description} />
         )}
 
         {/* FAQ Section */}
-        {content?.faq_items && content.faq_items.length > 0 && (
+        {showCategoryCopy && content?.faq_items && content.faq_items.length > 0 && (
           <FAQSection 
             faqs={content.faq_items}
             categoryTitle={pageTitle}
@@ -246,12 +251,12 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
 /**
  * Generate metadata for SEO
  */
-export async function generateMetadata({ params }: SubcategoryPageProps): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: SubcategoryPageProps): Promise<Metadata> {
   const { category, subcategory } = await params;
   const content = await getCategoryContent(category, subcategory);
   const mappingTitle = getCollectionTitle(category, subcategory);
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
-  const canonicalUrl = `${siteUrl}/${category}/${subcategory}`;
+  const canonicalUrl = await resolveCategoryCanonicalUrl(`/${category}/${subcategory}`, await searchParams);
 
   const title = content?.meta_title || `${mappingTitle} | The Equestrian`;
   const description = content?.meta_description || `Shop ${mappingTitle} products at The Equestrian. Quality equestrian supplies and equipment.`;

@@ -11,6 +11,7 @@ import { useMemo } from 'react';
 import type { SubcategoryOption } from '@/lib/filters/category-filter';
 import type { FilterPreferences } from '@/lib/filters/localStorage';
 import { ON_SALE_TOP_CATEGORIES } from '@/lib/filters/on-sale-category';
+import { colourLabel } from '@/lib/filters/colour-normalize';
 
 interface FilterChipsProps {
   filters: FilterPreferences;
@@ -67,7 +68,7 @@ export function FilterChips({ filters, onClearAll }: FilterChipsProps) {
       filters.colors.forEach((color) => {
         chips.push({
           key: `color-${color}`,
-          label: `Color: ${color}`,
+          label: `Color: ${colourLabel(color)}`,
           value: color,
           param: 'color',
         });

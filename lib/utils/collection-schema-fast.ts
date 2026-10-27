@@ -17,6 +17,8 @@ interface CollectionSchemaFastParams {
   // Collection Info
   collectionName: string;
   collectionUrl: string;
+  /** Paginated PLPs: this page's canonical, used for the CollectionPage @id/url. */
+  pageUrl?: string;
   collectionDescription?: string;
   
   // Breadcrumbs
@@ -116,6 +118,7 @@ export function generateCollectionSchemaFast(params: CollectionSchemaFastParams)
   const {
     collectionName,
     collectionUrl,
+    pageUrl,
     collectionDescription,
     breadcrumbs,
     products,
@@ -184,9 +187,9 @@ export function generateCollectionSchemaFast(params: CollectionSchemaFastParams)
   // Build the CollectionPage entity with enhanced schema properties
   const collectionPageEntity: any = {
     '@type': 'CollectionPage',
-    '@id': collectionUrl,
+    '@id': pageUrl ?? collectionUrl,
     name: collectionName,
-    url: collectionUrl,
+    url: pageUrl ?? collectionUrl,
     isPartOf: {
       '@type': 'WebSite',
       '@id': `${siteUrl}#website`,

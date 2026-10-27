@@ -6,7 +6,7 @@
  */
 
 import type { ShopifyProduct, ShopifyVariant } from '@/types/shopify';
-import { normalizeColor, isColorValue } from '@/lib/utils/product-options';
+import { buildFacetValues, filterProductsByOptions } from '@/lib/filters/facet-values';
 
 export interface FilterOption {
   value: string;
@@ -32,77 +32,14 @@ export interface FilterPreferences {
  * Extract unique sizes from products
  */
 export function getSizeOptions(products: ShopifyProduct[]): FilterOption[] {
-  const sizeMap = new Map<string, number>();
-
-  products.forEach((product) => {
-    product.variants.edges.forEach(({ node: variant }) => {
-      const sizeOption = variant.selectedOptions.find(
-        (opt) => opt.name.toLowerCase() === 'size'
-      );
-      if (sizeOption) {
-        // Skip if it looks like a color (e.g. "Black", "Navy")
-        // This prevents colors from appearing in the Size filter
-        if (!isColorValue(sizeOption.value)) {
-          const count = sizeMap.get(sizeOption.value) || 0;
-          sizeMap.set(sizeOption.value, count + 1);
-        }
-      }
-    });
-  });
-
-  return Array.from(sizeMap.entries())
-    .map(([value, count]) => ({
-      value,
-      label: value,
-      count,
-    }))
-    .sort((a, b) => {
-      // Try to sort numerically if possible
-      const aNum = parseFloat(a.value);
-      const bNum = parseFloat(b.value);
-      if (!isNaN(aNum) && !isNaN(bNum)) {
-        return aNum - bNum;
-      }
-      return a.value.localeCompare(b.value);
-    });
+  return buildFacetValues(products, 'size');
 }
 
 /**
  * Extract unique colors from products
  */
 export function getColorOptions(products: ShopifyProduct[]): FilterOption[] {
-  const colorMap = new Map<string, { count: number; originalValue: string }>();
-
-  products.forEach((product) => {
-    product.variants.edges.forEach(({ node: variant }) => {
-      const colorOption = variant.selectedOptions.find(
-        (opt) => {
-          const name = opt.name.toLowerCase();
-          return name === 'color' || name === 'colour'; // Support both US and UK spelling
-        }
-      );
-      if (colorOption) {
-        const normalizedValue = normalizeColor(colorOption.value);
-        const existing = colorMap.get(normalizedValue);
-        if (existing) {
-          existing.count++;
-        } else {
-          colorMap.set(normalizedValue, {
-            count: 1,
-            originalValue: colorOption.value,
-          });
-        }
-      }
-    });
-  });
-
-  return Array.from(colorMap.entries())
-    .map(([value, { count, originalValue }]) => ({
-      value: value.toLowerCase(),
-      label: originalValue, // Keep original casing for display
-      count,
-    }))
-    .sort((a, b) => a.label.localeCompare(b.label));
+  return buildFacetValues(products, 'colour');
 }
 
 /**
@@ -243,15 +180,7 @@ export function filterBySize(
   sizes: string[]
 ): ShopifyProduct[] {
   if (sizes.length === 0) return products;
-
-  return products.filter((product) => {
-    return product.variants.edges.some(({ node: variant }) => {
-      const sizeOption = variant.selectedOptions.find(
-        (opt) => opt.name.toLowerCase() === 'size'
-      );
-      return sizeOption && sizes.includes(sizeOption.value);
-    });
-  });
+  return filterProductsByOptions(products, { sizes });
 }
 
 /**
@@ -262,18 +191,7 @@ export function filterByColor(
   colors: string[]
 ): ShopifyProduct[] {
   if (colors.length === 0) return products;
-
-  return products.filter((product) => {
-    return product.variants.edges.some(({ node: variant }) => {
-      const colorOption = variant.selectedOptions.find(
-        (opt) => opt.name.toLowerCase() === 'color'
-      );
-      // Use normalized value for comparison
-      return (
-        colorOption && colors.includes(normalizeColor(colorOption.value))
-      );
-    });
-  });
+  return filterProductsByOptions(products, { colors });
 }
 
 /**
@@ -348,15 +266,11 @@ export function applyFilters(
     inStockOnly?: boolean;
   }
 ): ShopifyProduct[] {
-  let filtered = [...products];
-
-  if (filters.sizes && filters.sizes.length > 0) {
-    filtered = filterBySize(filtered, filters.sizes);
-  }
-
-  if (filters.colors && filters.colors.length > 0) {
-    filtered = filterByColor(filtered, filters.colors);
-  }
+  // Size + colour must exist on the same variant.
+  let filtered = filterProductsByOptions([...products], {
+    sizes: filters.sizes,
+    colors: filters.colors,
+  });
 
   if (filters.brands && filters.brands.length > 0) {
     filtered = filterByBrand(filtered, filters.brands);

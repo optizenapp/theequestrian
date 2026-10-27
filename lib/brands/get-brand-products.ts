@@ -14,12 +14,12 @@ import { fetchProductVariantsByHandles } from '@/lib/shopify/fetch-product-varia
 import { getProductByHandle } from '@/lib/shopify/products';
 import {
   filterByBrand,
-  filterByColor,
-  filterBySize,
   getColorOptions,
   getPriceRange,
   getSizeOptions,
 } from '@/lib/filters/product-filters';
+import { filterProductsByOptions } from '@/lib/filters/facet-values';
+import { colourExclusionReason, colourLabel } from '@/lib/filters/colour-normalize';
 import type { ProductQueryResult } from '@/lib/db/queries';
 import type { ProductWithPrimaryCollection } from '@/types/shopify';
 import { rankBrandProductIdsOnSaleFirst } from '@/lib/brands/brand-on-sale-order';
@@ -235,14 +235,14 @@ async function queryBrandFacets(
 
   const sizeRows = (await sql.unsafe(`
     SELECT
-      vo.option_value AS value,
+      MIN(vo.option_value) AS value,
       COUNT(DISTINCT p.id)::int AS count
     FROM products p
     JOIN variant_options vo ON vo.product_id = p.id
     WHERE ${sizeWhere}
       AND vo.option_name_normalized = 'size'
       AND COALESCE(vo.option_value, '') <> ''
-    GROUP BY vo.option_value
+    GROUP BY vo.option_value_normalized
     ORDER BY count DESC
     LIMIT 100
   `)) as unknown as Array<{ value: string; count: number }>;
@@ -276,8 +276,10 @@ async function queryBrandFacets(
         return !Number.isNaN(an) && !Number.isNaN(bn) ? an - bn : a.value.localeCompare(b.value);
       }),
 
+    // Value stays the stored normalised string so the SQL colour filter still matches.
     colors: (colorRows as Array<{ value: string; original_value: string; count: number }>)
-      .map((r) => ({ value: r.value, count: Number(r.count), originalValue: r.original_value }))
+      .filter((r) => !colourExclusionReason(r.original_value))
+      .map((r) => ({ value: r.value, count: Number(r.count), originalValue: colourLabel(r.original_value) }))
       .sort((a, b) => a.originalValue.localeCompare(b.originalValue)),
 
     price: PRICE_FACET_FALLBACK,
@@ -296,7 +298,7 @@ async function getBrandFacetsFromDb(
     if (!hasActiveBrandFilters(filters)) {
       return await unstable_cache(
         () => queryBrandFacets(brandBase),
-        ['brand-facets', brandHandle, brandBase],
+        ['brand-facets', 'v2', brandHandle, brandBase],
         { revalidate: BRAND_PAGE_REVALIDATE_SECONDS, tags: [`brand-${brandHandle}`] }
       )();
     }
@@ -447,9 +449,7 @@ function applyInMemoryFilters(
 ): ProductWithPrimaryCollection[] {
   let filtered = products;
   if (filters?.brands?.length) filtered = filterByBrand(filtered, filters.brands) as ProductWithPrimaryCollection[];
-  if (filters?.sizes?.length) filtered = filterBySize(filtered, filters.sizes) as ProductWithPrimaryCollection[];
-  if (filters?.colors?.length) filtered = filterByColor(filtered, filters.colors) as ProductWithPrimaryCollection[];
-  return filtered;
+  return filterProductsByOptions(filtered, { sizes: filters?.sizes, colors: filters?.colors });
 }
 
 function buildFacetsInMemory(
