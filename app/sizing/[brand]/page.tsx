@@ -34,13 +34,13 @@ export async function generateMetadata({ params }: BrandSizingPageProps): Promis
 
   if (!displayName && sizing.source === 'empty') {
     return {
-      title: 'Sizing Guide Not Found | The Equestrian',
+      title: { absolute: 'Sizing Guide Not Found | The Equestrian' },
     };
   }
 
   const name = displayName || brandSlug;
   return {
-    title: `${name} Sizing Guide | The Equestrian`,
+    title: { absolute: `${name} Sizing Guide | The Equestrian` },
     description: `Find the perfect fit with our comprehensive ${name} sizing charts. View detailed sizing information for boots, apparel, and accessories.`,
     alternates: {
       canonical: `${siteUrl}/sizing/${brandSlug}`,

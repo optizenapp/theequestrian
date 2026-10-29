@@ -4,7 +4,7 @@ import { SearchResults } from './SearchResults';
 import { generateSearchPageSchema } from '@/lib/utils/site-schema';
 
 export const metadata: Metadata = {
-  title: 'Search | The Equestrian',
+  title: { absolute: 'Search | The Equestrian' },
   robots: { index: false, follow: true },
 };
 

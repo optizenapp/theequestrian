@@ -1,6 +1,7 @@
 import { PolicyLayout } from '@/components/policy/PolicyLayout';
 import { getStaticPageContent } from '@/lib/content/static-pages';
 import { generateFaqPageSchema, type FaqItem } from '@/lib/utils/site-schema';
+import { pageTitle } from '@/lib/seo/page-title';
 
 const FALLBACK_FAQS: FaqItem[] = [
   {
@@ -60,7 +61,7 @@ export async function generateMetadata() {
   const page = await getStaticPageContent('faq');
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
   return {
-    title: page?.meta_title || 'FAQs | The Equestrian',
+    title: pageTitle(page?.meta_title || 'FAQs'),
     description:
       page?.meta_description ||
       'Frequently asked questions about shipping, returns, sizing, and ordering.',

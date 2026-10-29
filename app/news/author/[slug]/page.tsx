@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: AuthorPageProps): Promise<Met
   const description = `Read all articles written by ${authorName}`;
 
   return {
-    title,
+    title: { absolute: title },
     description,
     alternates: { canonical },
     openGraph: {

@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: WarehousePageProps): Promise<
   const canonicalUrl = `${siteUrl}${warehouseHref(warehouse.slug)}`;
 
   return {
-    title,
+    title: { absolute: title },
     description,
     alternates: { canonical: canonicalUrl },
     openGraph: {

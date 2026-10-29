@@ -1,12 +1,13 @@
 import { PolicyLayout } from '@/components/policy/PolicyLayout';
 import { getStaticPageContent } from '@/lib/content/static-pages';
 import { generateAboutPageSchema } from '@/lib/utils/site-schema';
+import { pageTitle } from '@/lib/seo/page-title';
 
 export async function generateMetadata() {
   const page = await getStaticPageContent('about');
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
   return {
-    title: page?.meta_title || 'About Us | The Equestrian',
+    title: pageTitle(page?.meta_title || 'About Us'),
     description:
       page?.meta_description ||
       'Learn about The Equestrian team and our mission to serve the Australian equestrian community.',

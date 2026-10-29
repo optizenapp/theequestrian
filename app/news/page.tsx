@@ -7,7 +7,7 @@ import { generateBlogIndexSchema } from '@/lib/utils/site-schema';
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
 
 export const metadata: Metadata = {
-  title: 'News & Articles | The Equestrian',
+  title: { absolute: 'News & Articles | The Equestrian' },
   description: 'Latest news, tips, and insights from The Equestrian',
   alternates: {
     canonical: `${siteUrl}/news`,

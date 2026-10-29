@@ -71,7 +71,8 @@ import { CATEGORY_PAGE_SIZE } from '@/lib/pagination/category-cursor';
 import { parseCategoryQuery, type CategorySearchParams } from '@/lib/pagination/category-query';
 import { requireCategoryCursor, requireValidCategoryPage } from '@/lib/pagination/category-page-guard';
 import { buildCategoryCanonicalUrl, selfCanonicalCursor } from '@/lib/seo/category-canonical';
-import { resolveCategoryCanonicalUrl } from '@/lib/seo/resolve-category-canonical';
+import { resolveCategoryPageSeo } from '@/lib/seo/resolve-category-canonical';
+import { paginatedDescription, paginatedTitle } from '@/lib/seo/page-title';
 
 export const revalidate = 172800;
 export const preferredRegion = 'syd1';
@@ -676,16 +677,20 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   if (isCollection) {
     const collectionTitle = getCollectionTitle(category, subcategory, thirdSegment);
     const content = await getCategoryContent(category, subcategory, thirdSegment);
-    const canonicalUrl = await resolveCategoryCanonicalUrl(
+    const { canonicalUrl, pageNumber, totalPages } = await resolveCategoryPageSeo(
       `/${category}/${subcategory}/${thirdSegment}`,
       await searchParams
     );
 
-    const title = content?.meta_title || `${collectionTitle} | The Equestrian`;
-    const description = content?.meta_description || `Shop ${collectionTitle} products at The Equestrian. Quality equestrian supplies and equipment.`;
+    const title = paginatedTitle(content?.meta_title || collectionTitle, pageNumber);
+    const description = paginatedDescription(
+      content?.meta_description || `Shop ${collectionTitle} products at The Equestrian. Quality equestrian supplies and equipment.`,
+      pageNumber,
+      totalPages
+    );
 
     return {
-      title,
+      title: { absolute: title },
       description,
       alternates: {
         canonical: canonicalUrl,

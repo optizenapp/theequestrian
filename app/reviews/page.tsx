@@ -10,7 +10,7 @@ const siteUrl = (
 ).replace(/\/$/, '');
 
 export const metadata: Metadata = {
-  title: 'Customer Reviews | The Equestrian',
+  title: { absolute: 'Customer Reviews | The Equestrian' },
   description:
     'Browse verified customer reviews for products available on The Equestrian.',
   alternates: {

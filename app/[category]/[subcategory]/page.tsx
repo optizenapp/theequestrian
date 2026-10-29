@@ -22,7 +22,8 @@ import { CATEGORY_PAGE_SIZE } from '@/lib/pagination/category-cursor';
 import { parseCategoryQuery } from '@/lib/pagination/category-query';
 import { requireCategoryCursor, requireValidCategoryPage } from '@/lib/pagination/category-page-guard';
 import { buildCategoryCanonicalUrl, selfCanonicalCursor } from '@/lib/seo/category-canonical';
-import { resolveCategoryCanonicalUrl } from '@/lib/seo/resolve-category-canonical';
+import { resolveCategoryPageSeo } from '@/lib/seo/resolve-category-canonical';
+import { paginatedDescription, paginatedTitle } from '@/lib/seo/page-title';
 
 // Lazy load below-the-fold components for better Speed Index
 const ProductGridWithFilters = dynamicImport(
@@ -256,13 +257,20 @@ export async function generateMetadata({ params, searchParams }: SubcategoryPage
   const content = await getCategoryContent(category, subcategory);
   const mappingTitle = getCollectionTitle(category, subcategory);
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
-  const canonicalUrl = await resolveCategoryCanonicalUrl(`/${category}/${subcategory}`, await searchParams);
+  const { canonicalUrl, pageNumber, totalPages } = await resolveCategoryPageSeo(
+    `/${category}/${subcategory}`,
+    await searchParams
+  );
 
-  const title = content?.meta_title || `${mappingTitle} | The Equestrian`;
-  const description = content?.meta_description || `Shop ${mappingTitle} products at The Equestrian. Quality equestrian supplies and equipment.`;
+  const title = paginatedTitle(content?.meta_title || mappingTitle, pageNumber);
+  const description = paginatedDescription(
+    content?.meta_description || `Shop ${mappingTitle} products at The Equestrian. Quality equestrian supplies and equipment.`,
+    pageNumber,
+    totalPages
+  );
 
   return {
-    title,
+    title: { absolute: title },
     description,
     alternates: {
       canonical: canonicalUrl,

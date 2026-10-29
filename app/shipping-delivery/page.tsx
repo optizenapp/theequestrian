@@ -6,7 +6,7 @@ import { generatePolicyPageSchema } from '@/lib/utils/site-schema';
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
 
 export const metadata: Metadata = {
-  title: 'Postage & Delivery | The Equestrian',
+  title: { absolute: 'Postage & Delivery | The Equestrian' },
   description:
     'Australia-wide postage, multi-warehouse parcels, delivery times, tracking, and why you may see more than one shipping rate.',
   alternates: {

@@ -7,7 +7,7 @@ import { ShopifyProduct } from '@/types/shopify';
 import { cookies } from 'next/headers';
 
 export const metadata: Metadata = {
-  title: 'Shopping Cart | The Equestrian',
+  title: { absolute: 'Shopping Cart | The Equestrian' },
   description: 'Review your shopping cart',
   robots: { index: false, follow: true },
 };

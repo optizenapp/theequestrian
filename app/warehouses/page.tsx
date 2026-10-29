@@ -10,7 +10,7 @@ const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.
 );
 
 export const metadata: Metadata = {
-  title: 'Search our warehouses | The Equestrian',
+  title: { absolute: 'Search our warehouses | The Equestrian' },
   description:
     'Browse products by Australian warehouse. Shop from the same warehouse to qualify for free shipping on that parcel.',
   alternates: { canonical: `${siteUrl}/warehouses` },

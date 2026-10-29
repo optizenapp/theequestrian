@@ -5,7 +5,7 @@ import { generatePolicyPageSchema } from '@/lib/utils/site-schema';
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
 
 export const metadata: Metadata = {
-  title: 'Returns & Refunds | The Equestrian',
+  title: { absolute: 'Returns & Refunds | The Equestrian' },
   description: 'Returns and refunds policy for online orders, timeframes, and conditions.',
   alternates: {
     canonical: `${siteUrl}/returns-refunds`,

@@ -17,6 +17,7 @@ import {
   resolveExistingBrandLogoAbsoluteUrl,
 } from '@/lib/brands/resolve-brand-logo';
 import { getCanonicalSiteUrl } from '@/lib/seo/site-url';
+import { brandedTitle } from '@/lib/seo/page-title';
 import { getBrandSizingForHandle } from '@/lib/sizing/resolve-brand-sizing';
 import Link from 'next/link';
 import type { Metadata } from 'next';
@@ -48,7 +49,7 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
     console.error(`[brand metadata] count failed for ${handle}:`, error);
   }
 
-  const title = brand.meta_title || `${brand.title} | The Equestrian`;
+  const title = brandedTitle(brand.meta_title || brand.title);
   const description = brand.meta_description || `Shop the full range of ${brand.title} equestrian products. Saddles, tack, clothing and more from ${brand.title}.`;
   const siteUrl = getCanonicalSiteUrl();
   const canonicalUrl = `${siteUrl}/brands/${handle}`;
@@ -57,7 +58,7 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
 
   if (isEmpty) {
     return {
-      title,
+      title: { absolute: title },
       description,
       robots: { index: false, follow: true },
       alternates: { canonical: canonicalUrl },
@@ -65,7 +66,7 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
   }
 
   return {
-    title,
+    title: { absolute: title },
     description,
     alternates: {
       canonical: canonicalUrl,

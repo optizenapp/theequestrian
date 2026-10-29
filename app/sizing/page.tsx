@@ -5,7 +5,7 @@ import { BRAND_SIZING_DATA } from '@/lib/sizing/sizing-config';
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/$/, '');
 
 export const metadata: Metadata = {
-  title: 'Sizing Charts & Guides | The Equestrian',
+  title: { absolute: 'Sizing Charts & Guides | The Equestrian' },
   description: 'Find the perfect fit with our comprehensive sizing charts for equestrian apparel, boots, helmets, and more. Browse sizing guides from top brands including Ariat, Tucci, Ego 7, and more.',
   alternates: {
     canonical: `${siteUrl}/sizing`,

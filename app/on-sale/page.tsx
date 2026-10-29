@@ -14,6 +14,7 @@ import { FAQItem } from '@/lib/content/collections';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { brandedTitle } from '@/lib/seo/page-title';
 
 const ON_SALE_HERO_IMAGE = '/hero-good-deals.png';
 const ON_SALE_HERO_ALT =
@@ -25,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const pageData = getSalePageByPath('/on-sale');
   
   // Default values if CSV is missing or empty
-  const title = pageData?.meta_title || 'On Sale | The Equestrian';
+  const title = brandedTitle(pageData?.meta_title || 'On Sale');
   const description = pageData?.meta_description || 'Shop our best deals and clearance items at The Equestrian.';
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(
     /\/$/,
@@ -34,7 +35,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const canonicalUrl = `${siteUrl}/on-sale`;
 
   return {
-    title,
+    title: { absolute: title },
     description,
     alternates: {
       canonical: canonicalUrl,

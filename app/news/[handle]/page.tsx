@@ -10,6 +10,7 @@ import { AuthorBox } from '@/components/blog/AuthorBox';
 import { ArticleCommerceCtaBar } from '@/components/blog/ArticleCommerceCtaBar';
 import { RelatedProducts } from '@/components/product/RelatedProducts';
 import { generateArticleSchema } from '@/lib/schema-generator';
+import { pageTitle } from '@/lib/seo/page-title';
 import { prepareArticleBodyHtml } from '@/lib/blog/prepare-article-html';
 import { splitArticleHtmlAfterParagraphs } from '@/lib/blog/split-article-for-related';
 import { loadBlogArticleCommerce } from '@/lib/blog/article-commerce';
@@ -47,7 +48,7 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
   const ogImage = article.featured_image_url || undefined;
 
   return {
-    title,
+    title: pageTitle(title),
     description,
     alternates: { canonical },
     openGraph: {

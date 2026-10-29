@@ -5,7 +5,7 @@ import { ReviewForm } from '@/components/reviews/ReviewForm';
 import { generateSimplePageSchema } from '@/lib/utils/site-schema';
 
 export const metadata = {
-  title: 'Write a Review | The Equestrian',
+  title: { absolute: 'Write a Review | The Equestrian' },
   description: 'Share your experience with our products',
 };
 
