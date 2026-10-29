@@ -14,7 +14,8 @@ import { FAQItem } from '@/lib/content/collections';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { brandedTitle } from '@/lib/seo/page-title';
+import { paginatedDescription, paginatedTitle } from '@/lib/seo/page-title';
+import { parseSaleCursor, saleCanonicalUrl, salePageNumber } from '@/lib/pagination/sale-pagination';
 
 const ON_SALE_HERO_IMAGE = '/hero-good-deals.png';
 const ON_SALE_HERO_ALT =
@@ -22,17 +23,27 @@ const ON_SALE_HERO_ALT =
 
 export const revalidate = 3600;
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}): Promise<Metadata> {
   const pageData = getSalePageByPath('/on-sale');
-  
+  const sp = await searchParams;
+  const pageNumber = salePageNumber(parseSaleCursor(sp));
+
   // Default values if CSV is missing or empty
-  const title = brandedTitle(pageData?.meta_title || 'On Sale');
-  const description = pageData?.meta_description || 'Shop our best deals and clearance items at The Equestrian.';
+  const title = paginatedTitle(pageData?.meta_title || 'On Sale', pageNumber);
+  const description = paginatedDescription(
+    pageData?.meta_description || 'Shop our best deals and clearance items at The Equestrian.',
+    pageNumber,
+    null
+  );
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(
     /\/$/,
     ''
   );
-  const canonicalUrl = `${siteUrl}/on-sale`;
+  const canonicalUrl = saleCanonicalUrl(sp);
 
   return {
     title: { absolute: title },
@@ -57,7 +68,12 @@ export default async function OnSalePage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const params = await searchParams;
-  const afterCursor = typeof params.cursor === 'string' ? params.cursor : null;
+  const saleCursor = parseSaleCursor(params);
+  if (saleCursor.kind === 'invalid') {
+    notFound();
+  }
+  const afterCursor = saleCursor.kind === 'page' ? saleCursor.cursor : null;
+  const showSaleCopy = afterCursor === null;
   const saleCategory =
     typeof params.saleCategory === 'string' ? params.saleCategory : undefined;
 
@@ -74,7 +90,10 @@ export default async function OnSalePage({
       includeOnSaleCategoryFacets: true,
       saleCategory,
     });
-  
+  if (afterCursor && products.length === 0) {
+    notFound();
+  }
+
   // Generate canonical URLs for all products (fast with Neon DB)
   // Product cards will link directly to category-based URLs
   const productUrlsMap = await getProductCanonicalUrls(products);
@@ -94,7 +113,7 @@ export default async function OnSalePage({
   
   let faqItems: FAQItem[] = [];
   try {
-    if (pageData?.faq_json) {
+    if (showSaleCopy && pageData?.faq_json) {
       faqItems = JSON.parse(pageData.faq_json);
     }
   } catch (e) {
@@ -152,7 +171,7 @@ export default async function OnSalePage({
                 <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 md:mb-5">
                   {pageTitle}
                 </h1>
-                <CollectionDescription description={shortDescription} />
+                {showSaleCopy && <CollectionDescription description={shortDescription} />}
                 {totalCount > 0 && (
                   <p className="mt-3 text-sm text-gray-500">
                     {totalCount} {totalCount === 1 ? 'deal' : 'deals'} live now
@@ -194,7 +213,7 @@ export default async function OnSalePage({
           />
 
           {/* Long Description (Rich Content) */}
-          {longDescription && (
+          {showSaleCopy && longDescription && (
             <RichContent html={longDescription} />
           )}
 

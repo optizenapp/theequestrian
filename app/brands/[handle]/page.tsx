@@ -17,7 +17,8 @@ import {
   resolveExistingBrandLogoAbsoluteUrl,
 } from '@/lib/brands/resolve-brand-logo';
 import { getCanonicalSiteUrl } from '@/lib/seo/site-url';
-import { brandedTitle } from '@/lib/seo/page-title';
+import { paginatedDescription, paginatedTitle } from '@/lib/seo/page-title';
+import { BRAND_PAGE_SIZE, brandCanonicalUrl, brandPageNumber, parseBrandCursor } from '@/lib/brands/brand-pagination';
 import { getBrandSizingForHandle } from '@/lib/sizing/resolve-brand-sizing';
 import Link from 'next/link';
 import type { Metadata } from 'next';
@@ -31,8 +32,9 @@ interface BrandPageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-export async function generateMetadata({ params }: BrandPageProps): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: BrandPageProps): Promise<Metadata> {
   const { handle } = await params;
+  const sp = await searchParams;
   const brand = await getBrandContentByHandle(handle);
 
   if (!brand) {
@@ -42,17 +44,23 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
     };
   }
 
-  let isEmpty = false;
+  let productCount: number | null = null;
   try {
-    isEmpty = (await countDbProductsForBrand(brand)) === 0;
+    productCount = await countDbProductsForBrand(brand);
   } catch (error) {
     console.error(`[brand metadata] count failed for ${handle}:`, error);
   }
+  const isEmpty = productCount === 0;
 
-  const title = brandedTitle(brand.meta_title || brand.title);
-  const description = brand.meta_description || `Shop the full range of ${brand.title} equestrian products. Saddles, tack, clothing and more from ${brand.title}.`;
+  const pageNumber = brandPageNumber(parseBrandCursor(sp));
+  const title = paginatedTitle(brand.meta_title || brand.title, pageNumber);
+  const description = paginatedDescription(
+    brand.meta_description || `Shop the full range of ${brand.title} equestrian products. Saddles, tack, clothing and more from ${brand.title}.`,
+    pageNumber,
+    null
+  );
   const siteUrl = getCanonicalSiteUrl();
-  const canonicalUrl = `${siteUrl}/brands/${handle}`;
+  const canonicalUrl = brandCanonicalUrl(handle, sp, productCount);
   const logoAbsolute = resolveExistingBrandLogoAbsoluteUrl(brand, siteUrl);
   const ogImages = logoAbsolute ? [{ url: logoAbsolute }] : undefined;
 
@@ -90,8 +98,14 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
 
 export default async function BrandPage({ params, searchParams }: BrandPageProps) {
   const { handle } = await params;
-  const { cursor, brand: brandParam, size, color, sort } = await searchParams;
-  const afterCursor = typeof cursor === 'string' ? cursor : null;
+  const sp = await searchParams;
+  const { brand: brandParam, size, color, sort } = sp;
+  const brandCursor = parseBrandCursor(sp);
+  if (brandCursor.kind === 'invalid') {
+    notFound();
+  }
+  const afterCursor = brandCursor.kind === 'offset' ? brandCursor.cursor : null;
+  const showBrandCopy = afterCursor === null;
   const filterBrands = brandParam ? (Array.isArray(brandParam) ? brandParam : brandParam.split(',')) : undefined;
   const filterSizes = size ? (Array.isArray(size) ? size : size.split(',')) : undefined;
   const filterColors = color ? (Array.isArray(color) ? color : color.split(',')) : undefined;
@@ -113,7 +127,7 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
     productUrls: productUrlsMap,
     facets,
     degraded,
-  } = await getBrandProductsFromDb(brand, 36, afterCursor, {
+  } = await getBrandProductsFromDb(brand, BRAND_PAGE_SIZE, afterCursor, {
     brands: filterBrands,
     sizes: filterSizes,
     colors: filterColors,
@@ -122,6 +136,9 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
   // Confirmed-empty hubs stay in brand_content; temp-redirect home until sellable stock returns.
   if (!degraded && !hasFilters && !afterCursor && totalProductCount === 0) {
     redirect('/');
+  }
+  if (!degraded && afterCursor && products.length === 0) {
+    notFound();
   }
 
   const brandCategories = await getBrandCategories(brand, 12);
@@ -142,7 +159,7 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
   
   let faqItems: FAQItem[] = [];
   try {
-    if (brand.faq_json) {
+    if (showBrandCopy && brand.faq_json) {
       faqItems = JSON.parse(brand.faq_json);
     }
   } catch (e) {
@@ -218,12 +235,14 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
                 <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
                   {pageTitle}
                 </h1>
-                {brand.quick_answer && <BrandQuickAnswer text={brand.quick_answer} />}
+                {showBrandCopy && brand.quick_answer && <BrandQuickAnswer text={brand.quick_answer} />}
                 <div className="mt-6">
-                  <BrandHubDescriptionSizingTabs
-                    shortDescription={shortDescription}
-                    sizing={brandSizing}
-                  />
+                  {showBrandCopy && (
+                    <BrandHubDescriptionSizingTabs
+                      shortDescription={shortDescription}
+                      sizing={brandSizing}
+                    />
+                  )}
                   {totalProductCount > 0 && (
                     <p className="mt-4 text-sm text-gray-500">
                       Showing {totalProductCount} results
@@ -260,7 +279,7 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
           />
 
           {/* Long about copy — below grid (same pattern as category PLPs) */}
-          {longDescription ? <RichContent html={longDescription} /> : null}
+          {showBrandCopy && longDescription ? <RichContent html={longDescription} /> : null}
 
           {/* Auto-generated Product Lines from product → category joins */}
           <BrandProductLines
