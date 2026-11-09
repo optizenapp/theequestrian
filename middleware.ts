@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { ADMIN_COOKIE, verifyAdminSession } from '@/lib/admin/session';
 import { BRAND_HUB_CONSOLIDATIONS } from '@/lib/brands/hub-consolidations';
 import { blogRedirects, collectionRedirects, pageRedirects } from '@/lib/redirects/maps';
 
@@ -13,8 +14,22 @@ const goneResponse = () =>
     },
   });
 
-export function middleware(request: NextRequest) {
+// Reached by an unauthenticated browser: login, and OAuth providers redirecting back (CSRF via state cookie).
+const PUBLIC_ADMIN_API = new Set([
+  '/api/admin/auth',
+  '/api/admin/gmc/callback',
+  '/api/admin/social/youtube/callback',
+  '/api/admin/social/facebook/callback',
+]);
+
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (pathname.startsWith('/api/admin/') && !PUBLIC_ADMIN_API.has(pathname.replace(/\/+$/, ''))) {
+    if (!(await verifyAdminSession(request.cookies.get(ADMIN_COOKIE)?.value))) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+  }
   const decodedPath = decodeURIComponent(pathname);
   const searchParams = request.nextUrl.searchParams;
 
@@ -132,7 +147,7 @@ export function middleware(request: NextRequest) {
   // Only protect /admin routes
   if (pathname.startsWith('/admin')) {
     // Check if user is authenticated
-    const isAuthenticated = request.cookies.get('admin-auth')?.value === 'true';
+    const isAuthenticated = await verifyAdminSession(request.cookies.get(ADMIN_COOKIE)?.value);
     
     // If not authenticated and not on login page, redirect to login
     if (!isAuthenticated && !request.nextUrl.pathname.startsWith('/admin/login')) {

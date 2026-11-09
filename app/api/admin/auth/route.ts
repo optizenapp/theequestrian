@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createHash, timingSafeEqual } from 'node:crypto';
+import { ADMIN_COOKIE, ADMIN_SESSION_SECONDS, createAdminSession } from '@/lib/admin/session';
+
+const digest = (value: string) => createHash('sha256').update(value).digest();
 
 export async function POST(request: NextRequest) {
   try {
     const { password } = await request.json();
-    
+
     const adminPassword = process.env.ADMIN_PASSWORD;
     
     if (!adminPassword) {
@@ -13,15 +17,14 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    if (password === adminPassword) {
+    if (typeof password === 'string' && timingSafeEqual(digest(password), digest(adminPassword))) {
       const response = NextResponse.json({ success: true });
-      
-      // Set authentication cookie (expires in 7 days)
-      response.cookies.set('admin-auth', 'true', {
+
+      response.cookies.set(ADMIN_COOKIE, await createAdminSession(), {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7, // 7 days
+        maxAge: ADMIN_SESSION_SECONDS,
         path: '/',
       });
       
@@ -44,7 +47,7 @@ export async function POST(request: NextRequest) {
 // Logout endpoint
 export async function DELETE(request: NextRequest) {
   const response = NextResponse.json({ success: true });
-  response.cookies.delete('admin-auth');
+  response.cookies.delete(ADMIN_COOKIE);
   return response;
 }
 

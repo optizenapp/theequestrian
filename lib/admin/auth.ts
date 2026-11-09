@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
+import { ADMIN_COOKIE, verifyAdminSession } from './session';
 
 export async function isAdminRequest(): Promise<boolean> {
   const cookieStore = await cookies();
-  return cookieStore.get('admin-auth')?.value === 'true';
+  return verifyAdminSession(cookieStore.get(ADMIN_COOKIE)?.value);
 }
