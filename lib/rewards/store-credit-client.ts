@@ -43,7 +43,8 @@ export async function postStoreCredit(
   kind: 'credit' | 'debit',
   customerId: string,
   amountCents: number,
-  currencyCode: string
+  currencyCode: string,
+  notify = kind === 'credit'
 ): Promise<PostingResult> {
   const storeDomain = process.env.SHOPIFY_STORE_DOMAIN;
   const accessToken = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
@@ -51,7 +52,9 @@ export async function postStoreCredit(
 
   const money = { amount: centsToAmount(amountCents), currencyCode };
   const variables =
-    kind === 'credit' ? { id: customerId, creditInput: { creditAmount: money } } : { id: customerId, debitInput: { debitAmount: money } };
+    kind === 'credit'
+      ? { id: customerId, creditInput: { creditAmount: money, ...(notify ? { notify: true } : {}) } }
+      : { id: customerId, debitInput: { debitAmount: money } };
 
   let response: Response;
   try {
@@ -75,6 +78,10 @@ export async function postStoreCredit(
     return { outcome: 'ambiguous', error: 'Unreadable Shopify response' };
   }
   if (json.errors?.length) {
+    // A rejected input is never executed, so retrying without the email flag cannot double-credit.
+    if (notify && json.errors.some((e) => /notify/i.test(e.message))) {
+      return postStoreCredit(kind, customerId, amountCents, currencyCode, false);
+    }
     const internal = json.errors.some((e) => e.extensions?.code === 'INTERNAL_SERVER_ERROR');
     return { outcome: internal ? 'ambiguous' : 'failed', error: json.errors.map((e) => e.message).join('; ') };
   }
