@@ -9,11 +9,11 @@ const statusLabel: Record<string, string> = {
   void: 'Cancelled or refunded',
 };
 
-export default function AccountRewards({ rewards }: { rewards: CustomerRewards }) {
+export default function AccountRewards({ rewards, spendable }: { rewards: CustomerRewards; spendable: boolean }) {
   return (
     <section aria-labelledby="rewards-heading" className="rounded-2xl border border-gray-200 bg-white p-6">
       <h2 id="rewards-heading" className="text-lg font-semibold text-gray-900">Equestrian Rewards</h2>
-      <p className="mt-1 text-sm text-gray-600">You earn 2% on eligible purchases. Your rewards never expire.</p>
+      <p className="mt-1 text-sm text-gray-600">You earn rewards on every eligible order. They never expire.</p>
       <dl className="mt-4 grid grid-cols-2 gap-4">
         <div className="rounded-xl bg-emerald-50 p-4">
           <dt className="text-xs font-semibold uppercase tracking-wide text-emerald-800">Earned</dt>
@@ -24,7 +24,11 @@ export default function AccountRewards({ rewards }: { rewards: CustomerRewards }
           <dd className="mt-1 text-2xl font-semibold text-amber-900">{formatAud(rewards.pendingCents)}</dd>
         </div>
       </dl>
-      <p className="mt-3 text-xs text-gray-500">Using rewards at checkout is coming soon.</p>
+      <p className="mt-3 text-xs text-gray-500">
+        {spendable
+          ? 'Earned rewards are added to your account as store credit. Sign in at checkout and apply your store credit to use them.'
+          : 'Earned rewards will be ready to use on a future order.'}
+      </p>
       {rewards.orders.length === 0 ? (
         <p className="mt-6 text-sm text-gray-600">No rewards yet. They&apos;ll appear here after your next order.</p>
       ) : (

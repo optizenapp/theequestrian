@@ -13,6 +13,7 @@ export type RewardsSettings = {
 export type RewardsSettingsUpdate = {
   recordingEnabled?: boolean;
   estimateEnabled?: boolean;
+  issuanceEnabled?: boolean;
   rateBps?: number;
 };
 
@@ -59,7 +60,7 @@ export async function getRewardsSettings(): Promise<RewardsSettings> {
 }
 
 /**
- * Issuance and redemption are deliberately not writable here; they stay off until built and tested.
+ * Redemption needs no flag of ours: Shopify checkout spends store credit natively once issued.
  * The launch timestamp is set once, the first time recording is enabled, and never moved.
  */
 export async function updateRewardsSettings(update: RewardsSettingsUpdate): Promise<RewardsSettings> {
@@ -71,6 +72,7 @@ export async function updateRewardsSettings(update: RewardsSettingsUpdate): Prom
     UPDATE rewards_settings SET
       recording_enabled = COALESCE(${update.recordingEnabled ?? null}::boolean, recording_enabled),
       estimate_enabled = COALESCE(${update.estimateEnabled ?? null}::boolean, estimate_enabled),
+      issuance_enabled = COALESCE(${update.issuanceEnabled ?? null}::boolean, issuance_enabled),
       rate_bps = COALESCE(${update.rateBps ?? null}::integer, rate_bps),
       launch_at = CASE
         WHEN launch_at IS NULL AND COALESCE(${update.recordingEnabled ?? null}::boolean, FALSE) THEN NOW()

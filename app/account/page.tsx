@@ -7,6 +7,7 @@ import { fetchAccountCustomer, type AccountCustomer } from '@/lib/customer-accou
 import { getCustomerAccountEndpoints } from '@/lib/customer-account/discovery';
 import { CUSTOMER_SESSION_COOKIE, isSessionExpired, readCustomerSession } from '@/lib/customer-account/session';
 import { getCustomerRewards } from '@/lib/rewards/customer-history';
+import { getRewardsSettings } from '@/lib/rewards/settings';
 
 export const dynamic = 'force-dynamic';
 export const preferredRegion = 'syd1';
@@ -59,7 +60,7 @@ export default async function AccountPage({ searchParams }: Props) {
     );
   }
 
-  const rewards = await getCustomerRewards(customer.id);
+  const [rewards, settings] = await Promise.all([getCustomerRewards(customer.id), getRewardsSettings()]);
   return (
     <main className="mx-auto max-w-2xl space-y-6 px-4 py-12">
       <div className="flex items-start justify-between gap-4">
@@ -75,7 +76,7 @@ export default async function AccountPage({ searchParams }: Props) {
           </button>
         </form>
       </div>
-      <AccountRewards rewards={rewards} />
+      <AccountRewards rewards={rewards} spendable={settings.issuanceEnabled} />
     </main>
   );
 }

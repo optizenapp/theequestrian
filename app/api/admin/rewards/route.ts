@@ -25,6 +25,7 @@ function parseSettingsUpdate(body: unknown): RewardsSettingsUpdate | null {
   const update: RewardsSettingsUpdate = {};
   if (typeof input.recordingEnabled === 'boolean') update.recordingEnabled = input.recordingEnabled;
   if (typeof input.estimateEnabled === 'boolean') update.estimateEnabled = input.estimateEnabled;
+  if (typeof input.issuanceEnabled === 'boolean') update.issuanceEnabled = input.issuanceEnabled;
   if (typeof input.rateBps === 'number') update.rateBps = input.rateBps;
   return Object.keys(update).length > 0 ? update : null;
 }

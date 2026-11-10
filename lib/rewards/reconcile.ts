@@ -3,15 +3,16 @@ import { fetchRewardsOrder } from './order-source';
 import { buildOrderCalculation, deriveOrderRewardState, isPaidOrder } from './order-state';
 import { planRewardMovements } from './plan-movements';
 import { getRewardsSettings } from './settings';
+import { syncCustomerStoreCredit, type CreditSyncOutcome } from './credit-sync';
 
 export type ReconcileOutcome =
   | { kind: 'skipped'; reason: string }
-  | { kind: 'reconciled'; status: string; awardCents: number; movementsWritten: number };
+  | { kind: 'reconciled'; status: string; awardCents: number; movementsWritten: number; credit: CreditSyncOutcome['kind'] | 'off' };
 
 /**
  * Brings one order's rewards record in line with Shopify's current order state.
  * Safe to call repeatedly, out of order, or concurrently for the same order.
- * Record-only: nothing here issues spendable credit.
+ * Store credit is only written when issuance is switched on.
  */
 export async function reconcileOrderRewards(orderGid: string): Promise<ReconcileOutcome> {
   const settings = await getRewardsSettings();
@@ -40,5 +41,19 @@ export async function reconcileOrderRewards(orderGid: string): Promise<Reconcile
   const movements = planRewardMovements(snapshot.orderId, totals, state);
   const movementsWritten = await insertMovements(snapshot, movements);
 
-  return { kind: 'reconciled', status: state.status, awardCents: state.awardCents, movementsWritten };
+  let credit: CreditSyncOutcome['kind'] | 'off' = 'off';
+  if (settings.issuanceEnabled && snapshot.customerId) {
+    try {
+      const newReversalCents =
+        movementsWritten > 0
+          ? movements.filter((m) => m.bucket === 'available' && m.amountCents < 0).reduce((sum, m) => sum - m.amountCents, 0)
+          : 0;
+      credit = (await syncCustomerStoreCredit(snapshot.customerId, newReversalCents)).kind;
+    } catch (error) {
+      credit = 'failed';
+      console.error('[rewards] Store credit sync failed; catch-up will retry:', { orderId: snapshot.orderId, error });
+    }
+  }
+
+  return { kind: 'reconciled', status: state.status, awardCents: state.awardCents, movementsWritten, credit };
 }

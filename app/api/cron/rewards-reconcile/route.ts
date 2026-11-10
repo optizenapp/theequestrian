@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runRewardsCatchUp } from '@/lib/rewards/catch-up';
+import { runCreditCatchUp } from '@/lib/rewards/credit-catch-up';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -16,9 +17,10 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const result = await runRewardsCatchUp();
-    console.log('[cron:rewards-reconcile] Complete', result);
-    return NextResponse.json({ ok: true, ...result });
+    const result = await runRewardsCatchUp(50, 180_000);
+    const credit = await runCreditCatchUp();
+    console.log('[cron:rewards-reconcile] Complete', { ...result, credit });
+    return NextResponse.json({ ok: true, ...result, credit });
   } catch (error) {
     console.error('[cron:rewards-reconcile] Failed', error);
     return NextResponse.json({ ok: false, error: 'Rewards catch-up failed' }, { status: 500 });

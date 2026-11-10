@@ -19,8 +19,12 @@ export type RewardsOrderSnapshot = {
   currency: string;
   financialStatus: string | null;
   customerId: string | null;
+  /** Paid with store credit (i.e. rewards); that portion earns no further rewards. */
+  storeCreditCents: number;
   lines: RewardsOrderLine[];
 };
+
+const STORE_CREDIT_GATEWAY = /store[\s_-]?credit/i;
 
 type MoneyAmount = { shopMoney: { amount: string } };
 
@@ -34,6 +38,7 @@ type OrderResponse = {
     currencyCode: string;
     displayFinancialStatus: string | null;
     customer: { id: string } | null;
+    transactions: Array<{ kind: string; status: string; gateway: string | null; amountSet: MoneyAmount }>;
     lineItems: {
       pageInfo: { hasNextPage: boolean };
       nodes: Array<{
@@ -60,6 +65,7 @@ const REWARDS_ORDER_QUERY = `
       currencyCode
       displayFinancialStatus
       customer { id }
+      transactions(first: 50) { kind status gateway amountSet { shopMoney { amount } } }
       lineItems(first: 250) {
         pageInfo { hasNextPage }
         nodes {
@@ -97,6 +103,9 @@ export async function fetchRewardsOrder(orderGid: string): Promise<RewardsOrderS
     currency: order.currencyCode,
     financialStatus: order.displayFinancialStatus,
     customerId: order.customer?.id ?? null,
+    storeCreditCents: order.transactions
+      .filter((t) => (t.kind === 'SALE' || t.kind === 'CAPTURE') && t.status === 'SUCCESS' && STORE_CREDIT_GATEWAY.test(t.gateway ?? ''))
+      .reduce((sum, t) => sum + toCents(t.amountSet.shopMoney.amount), 0),
     lines: order.lineItems.nodes.map((line) => {
       const discountCents = line.discountAllocations.reduce(
         (sum, allocation) => sum + toCents(allocation.allocatedAmountSet.shopMoney.amount),

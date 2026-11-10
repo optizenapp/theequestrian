@@ -28,7 +28,7 @@ export function buildOrderCalculation(
       netCents: line.netCents,
       eligible: !line.isGiftCard,
     })),
-    requestedRedemptionCents: 0,
+    requestedRedemptionCents: snapshot.storeCreditCents,
     rateBps,
   });
 }

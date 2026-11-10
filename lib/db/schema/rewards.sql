@@ -50,3 +50,23 @@ CREATE TABLE IF NOT EXISTS rewards_movements (
 
 CREATE INDEX IF NOT EXISTS idx_rewards_movements_order ON rewards_movements (order_id);
 CREATE INDEX IF NOT EXISTS idx_rewards_movements_customer ON rewards_movements (customer_id);
+
+-- Store credit actually written to Shopify. A customer's spendable target is the sum of their
+-- 'available' movements; postings move Shopify towards it. At most one unresolved posting per
+-- customer: an in-flight or ambiguous write blocks further writes until an admin resolves it.
+CREATE TABLE IF NOT EXISTS rewards_credit_postings (
+  id BIGSERIAL PRIMARY KEY,
+  customer_id TEXT NOT NULL,
+  kind TEXT NOT NULL CHECK (kind IN ('credit', 'debit')),
+  amount_cents INTEGER NOT NULL CHECK (amount_cents > 0),
+  currency TEXT NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('in_flight', 'posted', 'failed', 'ambiguous')),
+  shopify_transaction_id TEXT,
+  error TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_rewards_credit_postings_open
+  ON rewards_credit_postings (customer_id) WHERE status IN ('in_flight', 'ambiguous');
+CREATE INDEX IF NOT EXISTS idx_rewards_credit_postings_customer ON rewards_credit_postings (customer_id, status);

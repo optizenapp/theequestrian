@@ -5,6 +5,7 @@ import { AdminLayout } from '@/components/admin/AdminLayout';
 import { StatCard } from '@/components/admin/StatCard';
 import RewardsOrdersTable from '@/components/admin/rewards/RewardsOrdersTable';
 import RewardsSettingsPanel from '@/components/admin/rewards/RewardsSettingsPanel';
+import StoreCreditPanel from '@/components/admin/rewards/StoreCreditPanel';
 import type { AdminRewardsReport } from '@/components/admin/rewards/types';
 import { formatAud } from '@/lib/rewards/money';
 
@@ -46,6 +47,7 @@ export default function AdminRewardsPage() {
             settings={report.settings}
             onSaved={(settings) => setReport({ ...report, settings })}
           />
+          <StoreCreditPanel />
           <div>
             <h2 className="mb-3 text-lg font-semibold text-gray-900">Recent orders</h2>
             <RewardsOrdersTable orders={report.orders} onReconciled={load} />

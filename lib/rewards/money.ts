@@ -14,6 +14,12 @@ export function toCents(amount: string): number {
   return cents;
 }
 
+/** Integer cents to the decimal string Shopify money inputs expect, e.g. 1234 -> "12.34". */
+export function centsToAmount(cents: number): string {
+  assertCents(cents, 'cents');
+  return `${Math.floor(cents / 100)}.${String(cents % 100).padStart(2, '0')}`;
+}
+
 export function formatAud(cents: number): string {
   assertCents(cents, 'cents');
   return new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(cents / 100);

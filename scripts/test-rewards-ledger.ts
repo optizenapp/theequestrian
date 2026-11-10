@@ -23,6 +23,7 @@ const order = (lines: RewardsOrderLine[], overrides: Partial<RewardsOrderSnapsho
   currency: 'AUD',
   financialStatus: 'PAID',
   customerId: 'gid://shopify/Customer/9',
+  storeCreditCents: 0,
   lines,
   ...overrides,
 });

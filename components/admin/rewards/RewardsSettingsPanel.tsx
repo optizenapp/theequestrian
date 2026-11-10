@@ -33,9 +33,15 @@ export default function RewardsSettingsPanel({ settings, onSaved }: Props) {
     }
   };
 
-  const toggles: Array<{ key: 'recordingEnabled' | 'estimateEnabled'; label: string; helper: string }> = [
+  const toggles: Array<{ key: 'recordingEnabled' | 'estimateEnabled' | 'issuanceEnabled'; label: string; helper: string; confirmOn?: string }> = [
     { key: 'recordingEnabled', label: 'Record earnings', helper: 'Track what each paid order earns. Customers see nothing.' },
-    { key: 'estimateEnabled', label: 'Show cart estimate', helper: '“You’ll earn $X in Equestrian Rewards” beside checkout.' },
+    { key: 'estimateEnabled', label: 'Show earn estimates', helper: '“You’ll earn $X in Equestrian Rewards” on product pages and in the cart.' },
+    {
+      key: 'issuanceEnabled',
+      label: 'Issue spendable store credit',
+      helper: 'Adds earned rewards to customers’ Shopify store credit once orders ship; they spend it at checkout.',
+      confirmOn: 'Switch on store credit for ALL customers? Earned rewards will be written to Shopify as spendable credit.',
+    },
   ];
 
   return (
@@ -46,7 +52,7 @@ export default function RewardsSettingsPanel({ settings, onSaved }: Props) {
         {settings.launchAt ? dateFormat.format(new Date(settings.launchAt)) : 'not yet'}
       </p>
       <ul className="mt-4 divide-y divide-gray-100">
-        {toggles.map(({ key, label, helper }) => (
+        {toggles.map(({ key, label, helper, confirmOn }) => (
           <li key={key} className="flex items-center justify-between gap-4 py-3">
             <div>
               <p className="text-sm font-medium text-gray-900">{label}</p>
@@ -58,7 +64,10 @@ export default function RewardsSettingsPanel({ settings, onSaved }: Props) {
               aria-checked={settings[key]}
               aria-label={label}
               disabled={saving !== null}
-              onClick={() => save(key, { [key]: !settings[key] })}
+              onClick={() => {
+                if (!settings[key] && confirmOn && !window.confirm(confirmOn)) return;
+                void save(key, { [key]: !settings[key] });
+              }}
               className={`rounded-full px-4 py-1.5 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-action disabled:opacity-60 ${
                 settings[key] ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-700'
               }`}
@@ -67,13 +76,6 @@ export default function RewardsSettingsPanel({ settings, onSaved }: Props) {
             </button>
           </li>
         ))}
-        <li className="flex items-center justify-between gap-4 py-3">
-          <div>
-            <p className="text-sm font-medium text-gray-900">Issue spendable credit / redemption</p>
-            <p className="text-xs text-gray-500">Not available yet. Requires customer sign-in and a store-credit test.</p>
-          </div>
-          <span className="rounded-full bg-gray-100 px-4 py-1.5 text-sm font-semibold text-gray-500">Off</span>
-        </li>
       </ul>
       {error ? <p role="alert" className="mt-3 text-sm text-rose-600">{error}</p> : null}
     </section>
