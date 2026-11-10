@@ -11,6 +11,8 @@ import {
   UPDATE_CART_ATTRIBUTES,
 } from '@/lib/shopify/queries';
 import { ShopifyCart } from '@/types/shopify';
+import { attachCustomerToCart } from '@/lib/customer-account/cart-identity';
+import { getActiveCustomerAccessToken } from '@/lib/customer-account/current-session';
 
 const CART_COOKIE_NAME = 'shopify_cart_id';
 const CART_COOKIE_MAX_AGE = 60 * 60 * 24 * 14; // 14 days
@@ -98,6 +100,9 @@ export async function createCart(
     
     // Set cart ID in cookie for server-side access
     await setCartCookie(cart.id);
+
+    const customerAccessToken = await getActiveCustomerAccessToken();
+    if (customerAccessToken) await attachCustomerToCart(cart.id, customerAccessToken);
     
     return cart;
   } catch (error) {

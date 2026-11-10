@@ -14,6 +14,7 @@ import {
 } from '@/lib/shipping/messaging';
 import { formatShippingMoney } from '@/components/cart/format-shipping-money';
 import { useCartParcelEstimate } from '@/components/cart/useCartParcelEstimate';
+import RewardsEstimate from '@/components/cart/RewardsEstimate';
 
 export function CartDrawer() {
   const { cart, isOpen, closeCart, updateCartItem, removeCartItem } = useCart();
@@ -236,6 +237,13 @@ export function CartDrawer() {
               <span className="text-base font-bold text-gray-900">${parseFloat(subtotal).toFixed(2)} {currencyCode}</span>
             </div>
             <p className="mb-3 text-xs leading-relaxed text-gray-500">{SHIPPING_ESTIMATE_CHECKOUT_NOTE} Taxes calculated at checkout.</p>
+            {isOpen ? (
+              <RewardsEstimate
+                cartId={cart?.id}
+                cartVersion={`${cart?.totalQuantity ?? 0}:${cart?.cost.totalAmount.amount ?? ''}`}
+                className="mb-3"
+              />
+            ) : null}
             <button
               type="button"
               onClick={() => {

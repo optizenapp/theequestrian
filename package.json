@@ -8,7 +8,7 @@
     "analyze": "ANALYZE=true npm run build -- --webpack",
     "start": "next start",
     "lint": "eslint",
-    "test:rewards": "node --import tsx --test scripts/test-rewards-calculation.ts scripts/test-rewards-ledger.ts",
+    "test:rewards": "node --import tsx --test scripts/test-rewards-calculation.ts scripts/test-rewards-ledger.ts scripts/test-customer-account.ts",
     "video-worker:start": "tsx services/video-worker/index.ts",
     "video-worker:dev": "tsx watch services/video-worker/index.ts",
     "redirects:generate": "tsx scripts/generate-redirects.ts",

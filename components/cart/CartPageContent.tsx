@@ -21,6 +21,7 @@ import {
 } from '@/lib/analytics/ga4-linker';
 import { useCartParcelEstimate } from '@/components/cart/useCartParcelEstimate';
 import { CartShippingSummary } from '@/components/cart/CartShippingSummary';
+import RewardsEstimate from '@/components/cart/RewardsEstimate';
 import { formatShippingMoney } from '@/components/cart/format-shipping-money';
 
 interface CartPageContentProps {
@@ -436,6 +437,12 @@ if (isInCart) return null;
                   pageType="cart"
                   amount={subtotal}
                   currencyCode={currencyCode}
+                  className="mb-4"
+                />
+
+                <RewardsEstimate
+                  cartId={cart?.id}
+                  cartVersion={`${cart?.totalQuantity ?? 0}:${cart?.cost.totalAmount.amount ?? ''}`}
                   className="mb-4"
                 />
 
