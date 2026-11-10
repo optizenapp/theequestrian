@@ -8,6 +8,7 @@ import { BuyNowButton } from './BuyNowButton';
 import { MobileStickyBar } from './MobileStickyBar';
 import { ProductBuyBoxPostCta } from './ProductBuyBoxPostCta';
 import { ProductBuyBoxPriceAndBadges } from './ProductBuyBoxPriceAndBadges';
+import ProductRewardsNote from './ProductRewardsNote';
 import { SizeChartModal, SizeChartTriggerButton } from '@/components/sizing/SizeChartModal';
 import { buildGa4ItemFromProduct } from '@/lib/analytics/ga4-ecommerce';
 import { ProductMetaViewContent } from '@/components/analytics/ProductMetaViewContent';
@@ -106,6 +107,12 @@ export function ProductBuyBox({
         currencyCode={currencyCode}
         sku={sku}
         shippingDisplay={shippingDisplay}
+      />
+
+      <ProductRewardsNote
+        priceAmount={displayPrice.amount}
+        currencyCode={currencyCode}
+        isGiftCard={/gift ?card/i.test(`${product.productType} ${product.title}`)}
       />
 
       {product.variants.edges.length > 1 && (
