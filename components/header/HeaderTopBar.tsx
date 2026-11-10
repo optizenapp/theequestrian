@@ -15,7 +15,7 @@ export function HeaderTopBar() {
     <div className="relative bg-[#1DC4C6]/70 px-9 py-1.5 text-center text-xs font-medium text-black sm:px-4 sm:py-2.5 sm:text-sm">
       <div className="container mx-auto flex min-w-0 items-center justify-center">
         <p className="min-w-0 truncate">
-          <Link href="/account" prefetch={false} className="font-bold underline hover:text-black/80">
+          <Link href="/rewards" className="font-bold underline hover:text-black/80">
             Earn Equestrian Rewards on every order — use them on your next one
           </Link>
         </p>
