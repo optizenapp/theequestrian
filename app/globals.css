@@ -155,6 +155,31 @@ body {
   animation: fade-in 0.2s ease-out;
 }
 
+/* Header rewards strip: two identical groups, shifted by one group width for a seamless loop. */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-track {
+  animation: marquee 35s linear infinite;
+}
+
+.marquee:hover .marquee-track,
+.marquee:focus-within .marquee-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
+}
+
 .fade-in {
   animation: fade-in 0.2s ease-out;
 }

@@ -22,6 +22,10 @@ export function Header() {
         hideMobileChrome ? 'max-lg:-translate-y-full max-lg:pointer-events-none' : 'translate-y-0'
       }`}
     >
+      <div className={atTop ? undefined : 'max-lg:hidden'}>
+        <HeaderTopBar />
+      </div>
+
       <div className="border-b border-gray-100 py-2 lg:py-4">
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
           {/* Mobile Layout */}
@@ -136,10 +140,6 @@ export function Header() {
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 flex justify-center">
           <HeaderNavigation />
         </div>
-      </div>
-
-      <div className={atTop ? undefined : 'max-lg:hidden'}>
-        <HeaderTopBar />
       </div>
     </header>
   );
