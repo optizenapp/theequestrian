@@ -9,6 +9,9 @@ const sitemapRewriteBase = process.env.SITEMAP_REWRITE_BASE_URL?.replace(/\/+$/,
 
 const nextConfig: NextConfig = {
   images: {
+    // Shopify changes the ?v= param when an image is replaced, so a long TTL is safe.
+    minimumCacheTTL: 2678400,
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
     remotePatterns: [
       {
         protocol: 'https',

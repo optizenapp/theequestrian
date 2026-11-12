@@ -64,6 +64,7 @@ export function ProductImageGallery({ images, productTitle }: ProductImageGaller
             >
               <Image
                 src={getShopifyImageUrl(image.url, 160)}
+                unoptimized
                 alt={image.altText || `${productTitle} - Image ${index + 1}`}
                 fill
                 className="w-full h-full object-cover"

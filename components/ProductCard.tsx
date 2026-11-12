@@ -6,6 +6,7 @@ import { ProductPrice } from './ProductPrice';
 import { ProductReviewBadge, type ReviewStats } from './reviews/ProductReviewBadge';
 import { ProductCardActions } from './product/ProductCardActions';
 import type { ShopifyProduct } from '@/types/shopify';
+import { shopifyImageLoader } from '@/lib/shopify/image-loader';
 import { buildGa4ItemFromProduct, trackSelectItem } from '@/lib/analytics/ga4-ecommerce';
 
 interface ProductCardProps {
@@ -75,6 +76,7 @@ export function ProductCard({
             {image ? (
               <Image
                 src={image.url}
+                loader={shopifyImageLoader}
                 alt={image.altText || product.title}
                 fill
                 className="object-contain object-center transition-transform duration-300 group-hover:scale-105"
