@@ -231,6 +231,8 @@ export default async function OnSalePage({
             productUrls={productUrls}
             reviewStatsMap={reviewStats}
             onSaleCategoryOptions={onSaleCategoryOptions}
+            defaultSort="newest"
+            newestBy="updatedAt"
           />
 
           {/* Long Description (Rich Content) */}

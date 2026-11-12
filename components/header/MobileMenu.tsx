@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { SearchBar } from './SearchBar';
@@ -198,9 +199,10 @@ export function MobileMenu({ saleLabel }: { saleLabel?: string }) {
         </svg>
       </button>
 
-      {isOpen && (
+      {/* Portal: the sticky header's translate makes it the containing block for fixed children. */}
+      {isOpen && createPortal(
         <div
-          className="fixed inset-0 z-50 bg-black bg-opacity-50 lg:hidden"
+          className="fixed inset-0 z-[60] bg-black/50 lg:hidden"
           onClick={closeMenu}
         >
           <div
@@ -254,7 +256,8 @@ export function MobileMenu({ saleLabel }: { saleLabel?: string }) {
               </ul>
             </nav>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

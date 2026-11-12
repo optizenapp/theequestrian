@@ -63,6 +63,10 @@ interface ProductGridWithFiltersProps {
   /** Override GA4 `item_list_id` (defaults from category path) */
   itemListId?: string;
   itemListName?: string;
+  /** Sort used when the URL has no `sort` param (defaults to "featured"). */
+  defaultSort?: string;
+  /** Date field behind Newest/Oldest; /on-sale uses updatedAt so fresh price drops lead. */
+  newestBy?: 'createdAt' | 'updatedAt';
 }
 
 export function ProductGridWithFilters({
@@ -80,6 +84,8 @@ export function ProductGridWithFilters({
   onSaleCategoryOptions: onSaleCategoryOptionsProp,
   itemListId: itemListIdProp,
   itemListName: itemListNameProp,
+  defaultSort = 'featured',
+  newestBy = 'createdAt',
 }: ProductGridWithFiltersProps) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -99,7 +105,7 @@ export function ProductGridWithFilters({
   const filters = useMemo(() => getFiltersFromSearchParams(searchParams), [searchParams]);
   
   // Get sort option from URL params
-  const sortBy = searchParams.get('sort') || 'featured';
+  const sortBy = searchParams.get('sort') || defaultSort;
   
   // Sort options configuration
   const sortOptions = [
@@ -169,8 +175,8 @@ export function ProductGridWithFilters({
             return a.availableForSale ? -1 : 1;
           }
           // Second: Sort by date
-          const dateA = new Date(a.createdAt || 0).getTime();
-          const dateB = new Date(b.createdAt || 0).getTime();
+          const dateA = new Date(a[newestBy] || 0).getTime();
+          const dateB = new Date(b[newestBy] || 0).getTime();
           return dateB - dateA; // Newest first
         });
       
@@ -181,8 +187,8 @@ export function ProductGridWithFilters({
             return a.availableForSale ? -1 : 1;
           }
           // Second: Sort by date
-          const dateA = new Date(a.createdAt || 0).getTime();
-          const dateB = new Date(b.createdAt || 0).getTime();
+          const dateA = new Date(a[newestBy] || 0).getTime();
+          const dateB = new Date(b[newestBy] || 0).getTime();
           return dateA - dateB; // Oldest first
         });
       
@@ -212,7 +218,7 @@ export function ProductGridWithFilters({
           return 0; // Keep original order for same availability
         });
     }
-  }, [filteredProducts, sortBy]);
+  }, [filteredProducts, sortBy, newestBy]);
 
   const listId =
     itemListIdProp ??
@@ -324,7 +330,7 @@ export function ProductGridWithFilters({
 
   const handleSortChange = (newSort: string) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (newSort === 'featured') {
+    if (newSort === defaultSort) {
       params.delete('sort');
     } else {
       params.set('sort', newSort);
