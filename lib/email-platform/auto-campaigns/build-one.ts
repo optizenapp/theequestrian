@@ -878,6 +878,7 @@ export async function buildAutoCampaignForNextSlot(options: BuildNextSlotOptions
       await sendSesEmail({
         from: process.env.SES_AWS_FROM_EMAIL || 'support@theequestrian.com.au',
         to: [APPROVAL_EMAIL],
+        campaign: 'internal_auto_campaign_approval',
         subject: `Email campaign ready for approval: ${name}`,
         html: `
           <p>A new automated email campaign is ready for your approval.</p>
@@ -926,6 +927,7 @@ export async function buildAutoCampaignsForTomorrowAllTypes(options: { scheduled
     await sendSesEmail({
       from: process.env.SES_AWS_FROM_EMAIL || 'support@theequestrian.com.au',
       to: [APPROVAL_EMAIL],
+      campaign: 'internal_auto_campaign_approval',
       subject: `Auto campaigns ready for approval (${built.length})`,
       html: `
         <p>Automated campaigns are ready for approval.</p>

@@ -1,13 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import { processSesEventFromSnsMessage } from '@/lib/email-platform/ses-sns-event-handler';
+import { forwardToStitchStack } from '@/lib/email-platform/stitchstack-forward';
+import { verifySnsSignature, type SnsSignedMessage } from '@/lib/email-platform/sns-signature';
 
 export const dynamic = 'force-dynamic';
 
-type SnsEnvelope = {
-  Type?: string;
-  Message?: string;
-  SubscribeURL?: string;
-};
+type SnsEnvelope = SnsSignedMessage;
 
 function isLikelySnsRequest(request: NextRequest): boolean {
   const messageType = request.headers.get('x-amz-sns-message-type') || '';
@@ -17,15 +15,14 @@ function isLikelySnsRequest(request: NextRequest): boolean {
 
 function hasValidWebhookSecret(request: NextRequest): boolean {
   const expected = process.env.AWS_SNS_WEBHOOK_SECRET;
-  if (!expected) return true;
+  if (!expected) return false;
   const providedHeader = request.headers.get('x-sns-webhook-secret') || '';
   if (providedHeader === expected) return true;
   const providedQuery =
     request.nextUrl.searchParams.get('x-sns-webhook-secret') ||
     request.nextUrl.searchParams.get('secret') ||
     '';
-  if (providedQuery === expected) return true;
-  return isLikelySnsRequest(request);
+  return providedQuery === expected;
 }
 
 async function confirmSubscription(url: string): Promise<void> {
@@ -37,16 +34,20 @@ async function confirmSubscription(url: string): Promise<void> {
 
 export async function POST(request: NextRequest) {
   try {
-    if (!hasValidWebhookSecret(request)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const raw = await request.text();
     let envelope: SnsEnvelope;
     try {
       envelope = JSON.parse(raw) as SnsEnvelope;
     } catch {
       return NextResponse.json({ error: 'Invalid SNS payload JSON' }, { status: 400 });
+    }
+
+    if (!hasValidWebhookSecret(request) && !(await verifySnsSignature(envelope))) {
+      console.warn('SES SNS webhook rejected: no valid secret or SNS signature', {
+        type: envelope.Type || 'none',
+        topicArn: envelope.TopicArn || request.headers.get('x-amz-sns-topic-arn') || 'none',
+      });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const type = envelope.Type || '';
@@ -68,11 +69,13 @@ export async function POST(request: NextRequest) {
       } catch {
         return NextResponse.json({ error: 'Invalid SES message JSON' }, { status: 400 });
       }
+      after(() => forwardToStitchStack(sesMessage));
       await processSesEventFromSnsMessage(sesMessage);
       return NextResponse.json({ ok: true, type });
     }
 
     if (!type && isLikelySnsRequest(request)) {
+      after(() => forwardToStitchStack(envelope));
       await processSesEventFromSnsMessage(envelope);
       return NextResponse.json({ ok: true, type: 'RawNotification' });
     }

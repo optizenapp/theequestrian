@@ -233,6 +233,7 @@ export async function POST(request: NextRequest) {
       to: [to],
       subject: `[TEST][AUTO ${type}] ${finalSubjectLine}`,
       html: rendered.html,
+      campaign: 'test_auto_campaign',
     });
 
     return NextResponse.json({

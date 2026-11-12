@@ -245,6 +245,7 @@ async function runStep(
         to: [email],
         subject: rendered.subject,
         html: rendered.html,
+        campaign: `sequence-${enrollment.sequence_id}`,
       });
 
       await sql`

@@ -136,6 +136,7 @@ export async function POST(request: NextRequest) {
         html: htmlWithUtm,
       });
 
+        campaign: 'test_template',
       if (platformSendId) {
         await sql`
           UPDATE email_sends

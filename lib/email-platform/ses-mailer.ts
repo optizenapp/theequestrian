@@ -43,8 +43,28 @@ type SendInput = {
   replyTo?: string[];
   headers?: Array<{ name: string; value: string }>;
   tags?: Array<{ name: string; value: string }>;
+  /** Sent as the SES `campaign` message tag; downstream reporting (Stitch Stack) groups by it. */
+  campaign?: string;
   text?: string;
 };
+
+// SES rejects the whole send if a tag value has characters outside [A-Za-z0-9_-] or exceeds 256 chars.
+function toSesTagValue(raw: string): string {
+  const value = raw
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, '-')
+    .replace(/-{2,}/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 256);
+  return value || 'unknown';
+}
+
+function buildEmailTags(input: SendInput): Array<{ Name: string; Value: string }> | undefined {
+  const tags = (input.tags ?? []).map((tag) => ({ Name: tag.name, Value: tag.value }));
+  if (input.campaign) tags.push({ Name: 'campaign', Value: toSesTagValue(input.campaign) });
+  return tags.length > 0 ? tags : undefined;
+}
 
 export async function sendSesEmail(input: SendInput): Promise<string> {
   const client = getClient();
@@ -56,7 +76,7 @@ export async function sendSesEmail(input: SendInput): Promise<string> {
     },
     ReplyToAddresses: input.replyTo,
     ConfigurationSetName: configSet || undefined,
-    EmailTags: input.tags?.map((tag) => ({ Name: tag.name, Value: tag.value })),
+    EmailTags: buildEmailTags(input),
     Content: {
       Simple: {
         Subject: { Data: input.subject, Charset: 'UTF-8' },

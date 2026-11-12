@@ -111,6 +111,7 @@ export async function POST(request: NextRequest) {
         to: [to],
         subject: `[TEST] ${subject}`,
         html,
+        campaign: 'test_review_request',
       });
 
       // Update test email send record to 'sent' status

@@ -256,6 +256,8 @@ npm run db:sync
 ### Optional Services
 - `SES_AWS_ACCESS_KEY_ID` / `SES_AWS_SECRET_ACCESS_KEY` - SES credentials
 - `SES_AWS_REGION` / `SES_AWS_FROM_EMAIL` - SES region + sender
+- `AWS_SNS_TOPIC_ARNS` - Optional comma-separated SNS topic ARNs allowed to post signed SES events to `/api/webhooks/aws/ses-sns` (requests with `AWS_SNS_WEBHOOK_SECRET` are always accepted)
+- `STITCHSTACK_EMAIL_TOKEN` - Forwards SES events from `/api/webhooks/aws/ses-sns` to Stitch Stack for email reporting; unset disables forwarding
 - `MOOSEND_API_KEY` - Newsletter integration
 
 ## Troubleshooting

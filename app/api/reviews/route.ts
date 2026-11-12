@@ -94,6 +94,7 @@ async function sendAdminNotification(review: ReviewRecord) {
     await sendSesEmail({
       from: process.env.SES_AWS_FROM_EMAIL || process.env.RESEND_FROM_EMAIL || 'reviews@theequestrian.com.au',
       to: [adminEmail],
+      campaign: 'internal_review_notification',
       subject: `🔔 New Review: ${review.product_title} (${review.rating}★)`,
       html: `
         <!DOCTYPE html>

@@ -389,6 +389,7 @@ async function sendReviewRequestEmail({
       to: [customerEmail],
       subject,
       html,
+      campaign: 'review_request',
     });
 
     if (emailSendId) {

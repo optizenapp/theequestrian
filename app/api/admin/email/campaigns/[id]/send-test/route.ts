@@ -138,6 +138,7 @@ export async function POST(
       to: [to],
       subject: `[TEST] ${subjectLine}`,
       html: rendered.html,
+      campaign: 'test_campaign',
     });
 
     return NextResponse.json({

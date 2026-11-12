@@ -338,6 +338,7 @@ export async function sendQueuedCampaignRecipients(input: {
           { name: 'campaign_recipient_id', value: recipientId },
           { name: 'template_version_id', value: templateVersion.id },
         ],
+        campaign: campaignName,
       });
 
       await sql`

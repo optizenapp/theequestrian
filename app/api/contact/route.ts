@@ -39,6 +39,7 @@ export async function POST(request: Request) {
       from: fromEmail,
       to: [toEmail],
       replyTo: [email],
+      campaign: 'internal_contact_form',
       subject: subject || `New Contact Form Submission from ${name}`,
       html: `
         <!DOCTYPE html>
