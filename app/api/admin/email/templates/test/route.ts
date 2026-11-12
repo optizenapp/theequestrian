@@ -134,9 +134,9 @@ export async function POST(request: NextRequest) {
         to: [to],
         subject: testSubject,
         html: htmlWithUtm,
+        campaign: 'test_template',
       });
 
-        campaign: 'test_template',
       if (platformSendId) {
         await sql`
           UPDATE email_sends
