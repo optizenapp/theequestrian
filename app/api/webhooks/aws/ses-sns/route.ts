@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse, after } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { processSesEventFromSnsMessage } from '@/lib/email-platform/ses-sns-event-handler';
 import { forwardToStitchStack } from '@/lib/email-platform/stitchstack-forward';
 import { verifySnsSignature, type SnsSignedMessage } from '@/lib/email-platform/sns-signature';
@@ -69,14 +69,12 @@ export async function POST(request: NextRequest) {
       } catch {
         return NextResponse.json({ error: 'Invalid SES message JSON' }, { status: 400 });
       }
-      after(() => forwardToStitchStack(sesMessage));
-      await processSesEventFromSnsMessage(sesMessage);
+      await Promise.all([forwardToStitchStack(sesMessage), processSesEventFromSnsMessage(sesMessage)]);
       return NextResponse.json({ ok: true, type });
     }
 
     if (!type && isLikelySnsRequest(request)) {
-      after(() => forwardToStitchStack(envelope));
-      await processSesEventFromSnsMessage(envelope);
+      await Promise.all([forwardToStitchStack(envelope), processSesEventFromSnsMessage(envelope)]);
       return NextResponse.json({ ok: true, type: 'RawNotification' });
     }
 
