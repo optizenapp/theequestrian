@@ -40,10 +40,13 @@ async function fetchSubcategories(categoryHandle: string): Promise<SubcategoryIt
 function MobileNavLink({
   item,
   onNavigate,
+  saleLabel,
 }: {
   item: TopLevelMenuItem;
   onNavigate: () => void;
+  saleLabel?: string;
 }) {
+  const isPromoSale = item.handle === 'sale' && Boolean(saleLabel);
   const pathname = usePathname();
   const isActive = isNavItemActive(pathname, item);
   const isWarehouses = item.handle === 'warehouses';
@@ -74,15 +77,17 @@ function MobileNavLink({
         <Link
           href={item.href}
           onClick={onNavigate}
-          className={`block px-4 py-3 text-base font-medium rounded-md transition-colors ${
-            item.isHighlight
-              ? 'text-primary bg-primary/10'
-              : isActive
-                ? 'text-action bg-gray-50'
-                : 'text-gray-700 hover:text-action hover:bg-gray-50'
+          className={`block px-4 py-3 text-base rounded-md transition-colors ${
+            isPromoSale
+              ? 'font-bold uppercase tracking-wide text-white bg-[#DB1A84] hover:bg-[#B8146E]'
+              : item.isHighlight
+                ? 'font-medium text-primary bg-primary/10'
+                : isActive
+                  ? 'font-medium text-action bg-gray-50'
+                  : 'font-medium text-gray-700 hover:text-action hover:bg-gray-50'
           }`}
         >
-          {item.label}
+          {isPromoSale ? saleLabel : item.label}
         </Link>
       </li>
     );
@@ -159,7 +164,7 @@ function MobileNavLink({
   );
 }
 
-export function MobileMenu() {
+export function MobileMenu({ saleLabel }: { saleLabel?: string }) {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
@@ -230,7 +235,7 @@ export function MobileMenu() {
               <p className="px-4 pb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">Discover</p>
               <ul className="space-y-1 mb-6">
                 {UTILITY_MENU.map((item) => (
-                  <MobileNavLink key={item.label} item={item} onNavigate={closeMenu} />
+                  <MobileNavLink key={item.label} item={item} onNavigate={closeMenu} saleLabel={saleLabel} />
                 ))}
               </ul>
 

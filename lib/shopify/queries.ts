@@ -231,6 +231,8 @@ export const GET_COLLECTION_PRODUCTS_PAGE = `
             handle
             title
             availableForSale
+            createdAt
+            updatedAt
             vendor
             priceRange {
               minVariantPrice {

@@ -110,7 +110,14 @@ export type CollectionPaginationOptions = {
   saleCategory?: string;
   /** Build Horse/Rider/… facet options from every sale product (not just the page). */
   includeOnSaleCategoryFacets?: boolean;
+  /** Within each stock group, most recently updated first (surfaces fresh vendor price drops). */
+  sortRecentlyUpdated?: boolean;
 };
+
+function updatedAtMs(product: ShopifyProduct): number {
+  const ms = product.updatedAt ? Date.parse(product.updatedAt) : NaN;
+  return Number.isNaN(ms) ? 0 : ms;
+}
 
 /**
  * Get a collection with paginated products, sorted with in-stock items first
@@ -203,8 +210,8 @@ export async function getCollectionWithPagination(
 
   // Sort: In-stock first, out-of-stock last
   visibleProducts.sort((a, b) => {
-    if (a.availableForSale === b.availableForSale) return 0;
-    return a.availableForSale ? -1 : 1;
+    if (a.availableForSale !== b.availableForSale) return a.availableForSale ? -1 : 1;
+    return options?.sortRecentlyUpdated ? updatedAtMs(b) - updatedAtMs(a) : 0;
   });
 
   let onSaleCategoryOptions: FilterOption[] | undefined;

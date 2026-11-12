@@ -4,6 +4,7 @@ import { SITE_DESCRIPTION, SITE_NAME, SITE_NAME_DISPLAY } from '@/lib/seo/site-i
 import { generateSitewideSchemaGraph } from '@/lib/utils/site-schema';
 import './globals.css';
 import { Header } from '@/components/header/Header';
+import { getActiveHeaderPromo } from '@/lib/content/promo-banner';
 import { CrawlNav } from '@/components/header/CrawlNav';
 import { Footer } from '@/components/footer/Footer';
 import dynamic from 'next/dynamic';
@@ -110,6 +111,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headerPromo = getActiveHeaderPromo();
   return (
     <html lang="en-AU" className={manrope.variable}>
       <head>
@@ -164,7 +166,7 @@ export default function RootLayout({
         <MetaPixelProvider />
         <CartProvider>
           <NavigationProgress />
-          <Header />
+          <Header promo={headerPromo} />
           <CrawlNav />
           <main className="min-h-screen overflow-x-hidden">
             {children}

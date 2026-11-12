@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import { HeaderNavigation } from './HeaderNavigation';
 import { HeaderTopBar } from './HeaderTopBar';
+import { PromoTopBar } from './PromoTopBar';
+import { usePromoUntilExpiry } from './usePromoUntilExpiry';
+import type { HeaderPromo } from '@/lib/content/promo-banner';
 import { MobileMenu } from './MobileMenu';
 import { SearchBar } from './SearchBar';
 import { Logo } from '../Logo';
@@ -10,7 +13,8 @@ import Link from 'next/link';
 import { useCart } from '@/components/cart/cart-context';
 import { useMobileHeaderScroll } from '@/hooks/useMobileHeaderScroll';
 
-export function Header() {
+export function Header({ promo }: { promo?: HeaderPromo | null }) {
+  const activePromo = usePromoUntilExpiry(promo ?? null);
   const { cart } = useCart();
   const itemCount = cart?.totalQuantity || 0;
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
@@ -24,6 +28,7 @@ export function Header() {
     >
       <div className={atTop ? undefined : 'max-lg:hidden'}>
         <HeaderTopBar />
+        {activePromo && <PromoTopBar promo={activePromo} />}
       </div>
 
       <div className="border-b border-gray-100 py-2 lg:py-4">
@@ -32,7 +37,7 @@ export function Header() {
           <div className="relative flex h-12 items-center justify-between lg:hidden">
             {/* Left: Hamburger Menu */}
             <div className="flex items-center">
-              <MobileMenu />
+              <MobileMenu saleLabel={activePromo?.navLabel} />
             </div>
 
             {/* Center: Logo */}
@@ -138,7 +143,7 @@ export function Header() {
       {/* Secondary Navigation - Categories */}
       <div className="hidden lg:flex border-b border-gray-100 bg-surface py-2 relative z-50">
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 flex justify-center">
-          <HeaderNavigation />
+          <HeaderNavigation saleLabel={activePromo?.navLabel} />
         </div>
       </div>
     </header>

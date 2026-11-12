@@ -10,6 +10,8 @@ export interface ShopifyProduct {
   descriptionHtml: string;
   availableForSale: boolean;
   createdAt?: string; // ISO 8601 date string
+  /** Bumped by any product/variant edit, including vendor price syncs. */
+  updatedAt?: string;
   priceRange: {
     minVariantPrice: {
       amount: string;

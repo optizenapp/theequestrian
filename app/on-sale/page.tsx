@@ -11,6 +11,7 @@ import { CollectionDescription } from '@/components/CollectionDescription';
 import { HeroImageLeftWaveFrame } from '@/components/collection/HeroWaveEdge';
 import { generateCollectionSchemaFast } from '@/lib/utils/collection-schema-fast';
 import { FAQItem } from '@/lib/content/collections';
+import { getActivePromoBanner } from '@/lib/content/promo-banner';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { Metadata } from 'next';
@@ -74,6 +75,10 @@ export default async function OnSalePage({
   }
   const afterCursor = saleCursor.kind === 'page' ? saleCursor.cursor : null;
   const showSaleCopy = afterCursor === null;
+  const promoBanner = getActivePromoBanner();
+  const heroImage = promoBanner?.desktop
+    ? { src: promoBanner.desktop.src, alt: promoBanner.alt, position: 'object-left' }
+    : { src: ON_SALE_HERO_IMAGE, alt: ON_SALE_HERO_ALT, position: 'object-center' };
   const saleCategory =
     typeof params.saleCategory === 'string' ? params.saleCategory : undefined;
 
@@ -89,6 +94,7 @@ export default async function OnSalePage({
       maxProducts: 2000,
       includeOnSaleCategoryFacets: true,
       saleCategory,
+      sortRecentlyUpdated: true,
     });
   if (afterCursor && products.length === 0) {
     notFound();
@@ -178,14 +184,14 @@ export default async function OnSalePage({
                   </p>
                 )}
               </div>
-              <div className="h-40 w-full flex-1 overflow-hidden rounded-r-xl sm:h-44 md:h-[11.5rem] lg:h-[12.5rem]">
+              <div className="h-40 w-full overflow-hidden md:flex-1 rounded-r-xl sm:h-44 md:h-[11.5rem] lg:h-[12.5rem]">
                 <HeroImageLeftWaveFrame className="h-full w-full">
                   <div className="relative h-full w-full bg-gray-100">
                     <Image
-                      src={ON_SALE_HERO_IMAGE}
-                      alt={ON_SALE_HERO_ALT}
+                      src={heroImage.src}
+                      alt={heroImage.alt}
                       fill
-                      className="object-cover object-center"
+                      className={`object-cover ${heroImage.position}`}
                       sizes="(max-width: 768px) 100vw, 60vw"
                       priority
                     />

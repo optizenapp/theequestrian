@@ -3,6 +3,8 @@ import type { Metadata } from 'next';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_NAME_DISPLAY } from '@/lib/seo/site-identity';
 import { Hero } from '@/components/Hero';
 import { HeroSlider } from '@/components/HeroSlider';
+import { PromoBanner } from '@/components/home/PromoBanner';
+import { getActivePromoBanner } from '@/lib/content/promo-banner';
 import { TrustSignals } from '@/components/TrustSignals';
 import dynamicImport from 'next/dynamic';
 import { getCachedHomeSectionsWithProducts } from '@/lib/content/home-page-cached';
@@ -69,6 +71,7 @@ function InlineHtml({ html }: { html?: string }) {
 
 export default async function Home() {
   const sectionsWithProducts = await getCachedHomeSectionsWithProducts();
+  const promoBanner = getActivePromoBanner();
 
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au').replace(/\/+$/, '');
 
@@ -240,6 +243,9 @@ export default async function Home() {
       {sectionsWithProducts.map((section, index) => {
         switch (section.type) {
           case 'hero':
+            if (promoBanner) {
+              return <PromoBanner key={promoBanner.key} banner={promoBanner} />;
+            }
             if (section.hero_slides && section.hero_slides.length > 0) {
               return (
                 <HeroSlider

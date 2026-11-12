@@ -28,7 +28,18 @@ function NavChevron({ open }: { open: boolean }) {
   );
 }
 
-function getNavLinkClassName(item: TopLevelMenuItem, isActive: boolean, isOpen: boolean): string {
+function getNavLinkClassName(
+  item: TopLevelMenuItem,
+  isActive: boolean,
+  isOpen: boolean,
+  promoActive: boolean
+): string {
+  if (item.handle === 'sale' && promoActive) {
+    return `px-4 py-2 text-sm font-bold uppercase tracking-wide text-white transition-colors rounded-full shadow-sm ${
+      isActive ? 'bg-[#9E115F]' : 'bg-[#DB1A84] hover:bg-[#B8146E]'
+    }`;
+  }
+
   if (item.isHighlight) {
     return `px-4 py-2 text-sm font-semibold transition-colors rounded-full ${
       isActive ? 'text-primary bg-primary/15' : 'text-primary bg-primary/10 hover:bg-primary/15'
@@ -42,7 +53,7 @@ function getNavLinkClassName(item: TopLevelMenuItem, isActive: boolean, isOpen: 
   }`;
 }
 
-export function HeaderNavigation() {
+export function HeaderNavigation({ saleLabel }: { saleLabel?: string }) {
   const pathname = usePathname();
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -121,11 +132,11 @@ export function HeaderNavigation() {
         <Link
           href={item.href}
           onClick={() => setActiveMenu(null)}
-          className={`${item.handle === 'sale' ? 'ml-3' : ''} ${getNavLinkClassName(item, isActive, isOpen)}`}
+          className={`${item.handle === 'sale' ? 'ml-3' : ''} ${getNavLinkClassName(item, isActive, isOpen, Boolean(saleLabel))}`}
           aria-haspopup={hasMegaMenu ? 'true' : undefined}
           aria-expanded={isOpen ? 'true' : 'false'}
         >
-          {item.label}
+          {item.handle === 'sale' && saleLabel ? saleLabel : item.label}
           {item.showChevron && <NavChevron open={isOpen} />}
         </Link>
       </div>
