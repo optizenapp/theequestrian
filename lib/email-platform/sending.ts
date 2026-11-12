@@ -2,6 +2,7 @@ import { sql } from '@/lib/db/vercel-postgres';
 import { getTemplateVersion, renderTemplateContent, addUtmParamsToEmailHtml, proxyEmailImages } from '@/lib/email-platform/templates';
 import { buildUnsubscribeUrl, clearMarketingAudiences } from '@/lib/email-platform/unsubscribe';
 import { sendSesEmail } from '@/lib/email-platform/ses-mailer';
+import { addEmailHashToStoreLinks } from '@/lib/email-platform/email-hash-links';
 import { ON_SALE_CTA_LABEL, onSalePageUrlFromMapping } from '@/lib/email-platform/auto-campaigns/build-one';
 
 export async function shouldSuppressContact(contactId: string): Promise<{ suppress: boolean; reason?: string }> {
@@ -283,13 +284,17 @@ export async function sendQueuedCampaignRecipients(input: {
     });
     const subject = campaignSubjectLine ?? renderedRaw.subject;
     const renderedHtml = proxyEmailImages(
-      addUtmParamsToEmailHtml(
-        renderedRaw.html,
-        {
-          source: 'email',
-          medium: 'newsletter',
-          campaign: campaignName,
-        },
+      addEmailHashToStoreLinks(
+        addUtmParamsToEmailHtml(
+          renderedRaw.html,
+          {
+            source: 'email',
+            medium: 'newsletter',
+            campaign: campaignName,
+          },
+          campaignSiteUrl
+        ),
+        email,
         campaignSiteUrl
       ),
       campaignSiteUrl

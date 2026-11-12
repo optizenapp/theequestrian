@@ -2,6 +2,7 @@ import { sql } from '@/lib/db/vercel-postgres';
 import { getTemplateVersion, renderTemplateContent, addUtmParamsToEmailHtml, proxyEmailImages } from '@/lib/email-platform/templates';
 import { buildUnsubscribeUrl } from '@/lib/email-platform/unsubscribe';
 import { sendSesEmail } from '@/lib/email-platform/ses-mailer';
+import { addEmailHashToStoreLinks } from '@/lib/email-platform/email-hash-links';
 import { shouldSuppressContact } from '@/lib/email-platform/sending';
 
 type SequenceStepRecord = {
@@ -226,17 +227,25 @@ async function runStep(
     });
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theequestrian.com.au';
     const renderedHtml = proxyEmailImages(
-      addUtmParamsToEmailHtml(
-        renderedRaw.html,
-        {
-          source: 'email',
-          medium: 'sequence',
-          campaign: 'equestrian-sequence',
-        },
+      addEmailHashToStoreLinks(
+        addUtmParamsToEmailHtml(
+          renderedRaw.html,
+          {
+            source: 'email',
+            medium: 'sequence',
+            campaign: 'equestrian-sequence',
+          },
+          siteUrl
+        ),
+        email,
         siteUrl
       ),
       siteUrl
     );
+    const sequenceLookup = await sql`
+      SELECT name FROM email_sequences WHERE id = ${enrollment.sequence_id} LIMIT 1
+    `;
+    const sequenceName = (sequenceLookup.rows[0]?.name as string | undefined) || enrollment.sequence_id;
     const rendered = { ...renderedRaw, html: renderedHtml };
 
     try {
@@ -245,7 +254,7 @@ async function runStep(
         to: [email],
         subject: rendered.subject,
         html: rendered.html,
-        campaign: `sequence-${enrollment.sequence_id}`,
+        campaign: `sequence-${sequenceName}`,
       });
 
       await sql`
