@@ -77,8 +77,21 @@ export default async function OnSalePage({
   const showSaleCopy = afterCursor === null;
   const promoBanner = getActivePromoBanner();
   const heroImage = promoBanner?.desktop
-    ? { src: promoBanner.desktop.src, alt: promoBanner.alt, position: 'object-left' }
-    : { src: ON_SALE_HERO_IMAGE, alt: ON_SALE_HERO_ALT, position: 'object-center' };
+    ? {
+        src: promoBanner.desktop.src,
+        alt: promoBanner.alt,
+        position: 'object-contain object-left sm:object-cover',
+        // Wave clip reaches ~12% in; inset so left-anchored banner text is not cut.
+        frame: 'bg-[#0F040A]',
+        inset: 'left-[12%]',
+      }
+    : {
+        src: ON_SALE_HERO_IMAGE,
+        alt: ON_SALE_HERO_ALT,
+        position: 'object-cover object-center',
+        frame: 'bg-gray-100',
+        inset: 'left-0',
+      };
   const saleCategory =
     typeof params.saleCategory === 'string' ? params.saleCategory : undefined;
 
@@ -186,15 +199,17 @@ export default async function OnSalePage({
               </div>
               <div className="h-40 w-full overflow-hidden md:flex-1 rounded-r-xl sm:h-44 md:h-[11.5rem] lg:h-[12.5rem]">
                 <HeroImageLeftWaveFrame className="h-full w-full">
-                  <div className="relative h-full w-full bg-gray-100">
-                    <Image
-                      src={heroImage.src}
-                      alt={heroImage.alt}
-                      fill
-                      className={`object-cover ${heroImage.position}`}
-                      sizes="(max-width: 768px) 100vw, 60vw"
-                      priority
-                    />
+                  <div className={`relative h-full w-full ${heroImage.frame}`}>
+                    <div className={`absolute inset-y-0 right-0 ${heroImage.inset}`}>
+                      <Image
+                        src={heroImage.src}
+                        alt={heroImage.alt}
+                        fill
+                        className={heroImage.position}
+                        sizes="(max-width: 768px) 100vw, 60vw"
+                        priority
+                      />
+                    </div>
                   </div>
                 </HeroImageLeftWaveFrame>
               </div>
