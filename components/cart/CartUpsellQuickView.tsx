@@ -1,0 +1,125 @@
+'use client';
+
+import { useEffect, useId, useRef, useState } from 'react';
+import { CartUpsellQuickViewBody } from '@/components/cart/CartUpsellQuickViewBody';
+import type { ShopifyProduct } from '@/types/shopify';
+
+type Props = {
+  handle: string | null;
+  onClose: () => void;
+};
+
+type ApiResponse = {
+  product?: ShopifyProduct;
+  productHref?: string;
+  error?: string;
+};
+
+export function CartUpsellQuickView({ handle, onClose }: Props) {
+  const open = Boolean(handle);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
+  const [product, setProduct] = useState<ShopifyProduct | null>(null);
+  const [productHref, setProductHref] = useState('/products');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (open && !dialog.open) dialog.showModal();
+    else if (!open && dialog.open) dialog.close();
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!handle) {
+      setProduct(null);
+      setError(null);
+      return;
+    }
+    const controller = new AbortController();
+    setLoading(true);
+    setError(null);
+    setProduct(null);
+    (async () => {
+      try {
+        const res = await fetch(
+          `/api/products/quick-view?handle=${encodeURIComponent(handle)}`,
+          { signal: controller.signal, cache: 'no-store' }
+        );
+        const data = (await res.json()) as ApiResponse;
+        if (!res.ok || !data.product) {
+          throw new Error(data.error || 'Product unavailable');
+        }
+        setProduct(data.product);
+        setProductHref(data.productHref || `/products/${data.product.handle}`);
+      } catch (err) {
+        if ((err as Error).name === 'AbortError') return;
+        setError(err instanceof Error ? err.message : 'Failed to load');
+      } finally {
+        setLoading(false);
+      }
+    })();
+    return () => controller.abort();
+  }, [handle]);
+
+  return (
+    <dialog
+      ref={dialogRef}
+      aria-labelledby={titleId}
+      className="!fixed !inset-0 !z-[80] !m-0 !h-[100dvh] !w-full !max-h-none !max-w-none border-0 bg-black/60 p-0 shadow-none open:!flex open:items-end open:justify-center sm:open:items-center sm:p-4 [&::backdrop]:bg-transparent"
+      onClose={onClose}
+      onClick={(e) => {
+        if (e.target === dialogRef.current) onClose();
+      }}
+    >
+      <div
+        className="flex min-h-0 w-full max-h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-0.75rem)] flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:w-[min(560px,calc(100vw-2rem))] sm:max-h-[min(90dvh,calc(100dvh-4rem))] sm:rounded-2xl"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-3 border-b border-gray-200 px-4 py-3 shrink-0">
+          <h2 id={titleId} className="line-clamp-2 pr-2 text-base font-bold text-gray-900">
+            {product?.title || (loading ? 'Loading…' : 'Product')}
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="shrink-0 rounded-full p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+            aria-label="Close product preview"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4">
+          {loading ? (
+            <p className="text-sm text-gray-500">Loading product…</p>
+          ) : error ? (
+            <p className="text-sm text-rose-600" role="alert">
+              {error}
+            </p>
+          ) : product ? (
+            <CartUpsellQuickViewBody
+              key={product.id}
+              product={product}
+              productHref={productHref}
+              onAdded={onClose}
+            />
+          ) : null}
+        </div>
+      </div>
+    </dialog>
+  );
+}
