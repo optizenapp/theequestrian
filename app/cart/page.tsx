@@ -3,7 +3,9 @@ import { CartPageContent } from '@/components/cart/CartPageContent';
 import { getSmartCartRecommendations } from '@/lib/shopify/products';
 import { getCanonicalHrefByHandles } from '@/lib/shopify/product-href';
 import { getCartCookie, getCart } from '@/app/actions/cart';
-import { ShopifyProduct } from '@/types/shopify';
+import { resolveCartUpsells } from '@/lib/cart-upsells/resolve';
+import { cartUpsellFromShopifyProduct } from '@/lib/cart-upsells/from-shopify-product';
+import type { CartUpsellProduct } from '@/lib/cart-upsells/types';
 import { cookies } from 'next/headers';
 
 export const metadata: Metadata = {
@@ -12,22 +14,20 @@ export const metadata: Metadata = {
   robots: { index: false, follow: true },
 };
 
-// Make this page dynamic so it always fetches fresh cart data
 export const dynamic = 'force-dynamic';
+export const preferredRegion = 'syd1';
 
 export default async function CartPage() {
-  // Try to get cart ID from cookies (server-side access)
   let cartId = await getCartCookie();
-  
-  // Fallback: If no cookie, check if there's a cart ID in the request
-  // (This helps during development/initial setup)
+
   if (!cartId) {
     const cookieStore = await cookies();
     const allCookies = cookieStore.getAll();
-    console.log('[CartPage] Available cookies:', allCookies.map(c => c.name));
+    console.log('[CartPage] Available cookies:', allCookies.map((c) => c.name));
   }
-  
-  let recommendedProducts: ShopifyProduct[] = [];
+
+  let upsellProducts: CartUpsellProduct[] = [];
+  let upsellHeadline = 'Want These In Your Cart Too?';
   let cartForHrefs: Awaited<ReturnType<typeof getCart>> = null;
 
   if (cartId) {
@@ -36,33 +36,39 @@ export default async function CartPage() {
       cartForHrefs = cart;
 
       if (cart && cart.lines.edges.length > 0) {
-        const cartItems = cart.lines.edges.map(({ node: line }) => {
-          const product = line.merchandise.product;
-          return {
-            handle: product?.handle || '',
-            productType: product?.productType || '',
-            vendor: product?.vendor || '',
-            price: parseFloat(line.merchandise.price.amount),
-          };
-        }).filter((item) => item.handle);
+        const cartItems = cart.lines.edges
+          .map(({ node: line }) => {
+            const product = line.merchandise.product;
+            return {
+              handle: product?.handle || '',
+              productType: product?.productType || '',
+              vendor: product?.vendor || '',
+              price: parseFloat(line.merchandise.price.amount),
+            };
+          })
+          .filter((item) => item.handle);
 
-        console.log(`[CartPage] Fetching smart recommendations for ${cartItems.length} cart items`);
-        recommendedProducts = await getSmartCartRecommendations(cartItems, 4);
+        const curated = await resolveCartUpsells(cartItems, 3);
+        if (curated.source === 'curated' && curated.products.length > 0) {
+          upsellProducts = curated.products;
+          upsellHeadline = curated.headline || upsellHeadline;
+        } else {
+          const recommended = await getSmartCartRecommendations(cartItems, 4);
+          upsellProducts = recommended.map(cartUpsellFromShopifyProduct);
+        }
       }
     } catch (error) {
-      console.error('[CartPage] Error fetching cart or recommendations:', error);
+      console.error('[CartPage] Error fetching cart or upsells:', error);
     }
   }
 
-  if (recommendedProducts.length === 0) {
-    console.log('[CartPage] No cart found, using generic recommendations');
-    recommendedProducts = await getSmartCartRecommendations([], 4);
+  if (upsellProducts.length === 0) {
+    const recommended = await getSmartCartRecommendations([], 4);
+    upsellProducts = recommended.map(cartUpsellFromShopifyProduct);
   }
 
   const hrefHandles = new Set<string>();
-  for (const p of recommendedProducts) {
-    hrefHandles.add(p.handle);
-  }
+  for (const p of upsellProducts) hrefHandles.add(p.handle);
   for (const { node: line } of cartForHrefs?.lines.edges ?? []) {
     const h = line.merchandise.product?.handle;
     if (h) hrefHandles.add(h);
@@ -71,11 +77,9 @@ export default async function CartPage() {
 
   return (
     <CartPageContent
-      recommendedProducts={recommendedProducts}
+      upsellProducts={upsellProducts}
+      upsellHeadline={upsellHeadline}
       productHrefByHandle={productHrefByHandle}
     />
   );
 }
-
-
-

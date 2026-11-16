@@ -33,6 +33,7 @@
       { href: '/admin/ads', label: 'Ad Optimization', icon: 'ads' },
       { href: '/admin/reviews', label: 'Reviews', icon: 'reviews' },
       { href: '/admin/rewards', label: 'Rewards', icon: 'reviews' },
+      { href: '/admin/upsells', label: 'Cart Upsells', icon: 'ads' },
       { href: '/admin/categories', label: 'Categories', icon: 'chart' },
       { href: '/admin/mega-menu', label: 'Mega Menu', icon: 'menu' },
       { href: '/admin/allocations', label: 'Product Allocation', icon: 'chart' },

@@ -15,6 +15,7 @@ import {
 import { formatShippingMoney } from '@/components/cart/format-shipping-money';
 import { useCartParcelEstimate } from '@/components/cart/useCartParcelEstimate';
 import RewardsEstimate from '@/components/cart/RewardsEstimate';
+import { CartDrawerUpsells } from '@/components/cart/CartDrawerUpsells';
 
 export function CartDrawer() {
   const { cart, isOpen, closeCart, updateCartItem, removeCartItem } = useCart();
@@ -201,6 +202,7 @@ export function CartDrawer() {
                   </ul>
                 </div>
               ))}
+              <CartDrawerUpsells />
             </div>
           )}
         </div>
