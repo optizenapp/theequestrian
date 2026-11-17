@@ -4,7 +4,7 @@ export type FieldValue = string | string[] | FaqItem[] | null;
 
 export type ContentFields = Record<string, FieldValue>;
 
-export type TargetType = 'category' | 'brand' | 'product' | 'none';
+export type TargetType = 'category' | 'brand' | 'product' | 'article' | 'none';
 
 export type ProposalTarget = { type: TargetType; key: string | null };
 
@@ -63,6 +63,9 @@ export const COPY_FIELDS = [
   'faq_items',
 ] as const;
 
+/** News article fields the SEO bot can rewrite onto the Neon `article` row. */
+export const ARTICLE_FIELDS = ['meta_title', 'meta_description'] as const;
+
 /** Product copy field → the override flag that makes it render on the PDP. */
 export const PRODUCT_FIELD_FLAGS = {
   title_override: 'use_headless_title',
@@ -77,5 +80,6 @@ export const PRODUCT_FIELD_FLAGS = {
 export function editableFields(type: TargetType): readonly string[] {
   if (type === 'product') return Object.keys(PRODUCT_FIELD_FLAGS);
   if (type === 'category' || type === 'brand') return COPY_FIELDS;
+  if (type === 'article') return ARTICLE_FIELDS;
   return [];
 }

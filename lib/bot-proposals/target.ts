@@ -16,6 +16,11 @@ export async function resolveTarget(pagePath: string): Promise<ProposalTarget> {
   const brand = path.match(/^\/brands\/([^/]+)$/);
   if (brand) return { type: 'brand', key: brand[1] };
 
+  const article = path.match(/^\/news\/([^/]+)$/);
+  if (article && article[1] !== 'author') {
+    return { type: 'article', key: article[1] };
+  }
+
   const category = await sql`SELECT url_path FROM collection_content WHERE url_path = ${path} LIMIT 1`;
   if (category.rows.length > 0) return { type: 'category', key: path };
 

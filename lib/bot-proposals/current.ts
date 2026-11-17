@@ -1,3 +1,4 @@
+import { readArticleCopy } from './article-store';
 import { readCopy } from './copy-store';
 import { readProductCopy } from './product-store';
 import type { ContentFields, ProposalTarget } from './types';
@@ -17,6 +18,9 @@ export async function loadCurrent(target: ProposalTarget): Promise<CurrentConten
   }
   if (target.type === 'category' || target.type === 'brand') {
     return { fields: await readCopy(target.type, target.key), flags: null };
+  }
+  if (target.type === 'article') {
+    return { fields: await readArticleCopy(target.key), flags: null };
   }
   return { fields: null, flags: null };
 }

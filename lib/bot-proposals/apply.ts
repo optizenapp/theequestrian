@@ -1,8 +1,10 @@
 import { revalidatePath } from 'next/cache';
+import { invalidateNewsArticlesCache } from '@/lib/articles/news-public';
 import { invalidateCache } from '@/lib/content/collections';
 import { invalidateBrandContentCache } from '@/lib/content/brand-content';
 import { invalidateProductOverrideCache } from '@/lib/content/product-overrides';
 import { claimProposal, finishProposal, getProposal } from './db';
+import { readArticleCopy, writeArticleCopy } from './article-store';
 import { readCopy, writeCopy } from './copy-store';
 import { readProductCopy, writeProductCopy } from './product-store';
 import { resolveTarget } from './target';
@@ -15,6 +17,7 @@ function refresh(target: ProposalTarget, pagePath: string) {
   if (target.type === 'category') invalidateCache();
   if (target.type === 'brand') invalidateBrandContentCache();
   if (target.type === 'product') invalidateProductOverrideCache();
+  if (target.type === 'article') invalidateNewsArticlesCache();
   revalidatePath(pagePath);
 }
 
@@ -26,6 +29,7 @@ async function write(target: ProposalTarget, fields: ContentFields, flags?: Reco
   if (!target.key) throw new Error('Page has no editable content row');
   if (target.type === 'product') return writeProductCopy(target.key, fields, flags);
   if (target.type === 'category' || target.type === 'brand') return writeCopy(target.type, target.key, fields);
+  if (target.type === 'article') return writeArticleCopy(target.key, fields);
   throw new Error('Page has no editable content row');
 }
 
@@ -59,6 +63,10 @@ export async function approveProposal(id: number, edited?: unknown): Promise<Act
     } else if ((target.type === 'category' || target.type === 'brand') && target.key) {
       const current = await readCopy(target.type, target.key);
       if (!current) throw new Error(`No ${target.type} content row for ${target.key}`);
+      result.previous = pick(current, names);
+    } else if (target.type === 'article' && target.key) {
+      const current = await readArticleCopy(target.key);
+      if (!current) throw new Error(`No article row for ${target.key}`);
       result.previous = pick(current, names);
     }
     if (problems.length > 0) result.note = `Skipped: ${problems.join('; ')}`;
