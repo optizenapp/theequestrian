@@ -27,11 +27,19 @@ const emptyForm = (): FormState => ({
   maxProducts: 3,
 });
 
+/** One value per line only — types like "Tack, Rug & Stable Cleaning" contain commas. */
 function linesToList(text: string): string[] {
-  return text
-    .split(/[\n,]+/)
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const raw of text.split('\n')) {
+    const v = raw.trim();
+    if (!v) continue;
+    const key = v.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(v);
+  }
+  return out;
 }
 
 export default function AdminUpsellsPage() {

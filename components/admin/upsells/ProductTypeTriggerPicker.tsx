@@ -52,27 +52,33 @@ export function ProductTypeTriggerPicker({ selected, onChange }: Props) {
     return () => window.clearTimeout(t);
   }, [query, load]);
 
+  const dedupe = (values: string[]): string[] => {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const raw of values) {
+      const v = raw.trim();
+      if (!v) continue;
+      const key = normalizeKey(v);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(v);
+    }
+    return out;
+  };
+
   const addType = (type: string) => {
     const key = normalizeKey(type);
     if (!key || selectedKeys.has(key)) return;
-    onChange([...selected, type.trim()]);
+    onChange(dedupe([...selected, type]));
   };
 
   const removeType = (type: string) => {
     const key = normalizeKey(type);
-    onChange(selected.filter((t) => normalizeKey(t) !== key));
+    onChange(dedupe(selected.filter((t) => normalizeKey(t) !== key)));
   };
 
   const addAllVisible = () => {
-    const next = [...selected];
-    const seen = new Set(selectedKeys);
-    for (const row of rows) {
-      const key = normalizeKey(row.type);
-      if (seen.has(key)) continue;
-      seen.add(key);
-      next.push(row.type);
-    }
-    onChange(next);
+    onChange(dedupe([...selected, ...rows.map((r) => r.type)]));
   };
 
   return (
@@ -91,13 +97,18 @@ export function ProductTypeTriggerPicker({ selected, onChange }: Props) {
 
       {selected.length > 0 ? (
         <div className="flex flex-wrap gap-1.5">
-          {selected.map((type) => (
+          {dedupe(selected).map((type) => (
             <button
-              key={type}
+              key={normalizeKey(type)}
               type="button"
-              onClick={() => removeType(type)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                removeType(type);
+              }}
               className="inline-flex items-center gap-1 rounded-full border border-gray-300 bg-gray-50 px-2.5 py-1 text-xs text-gray-800 hover:border-rose-300 hover:bg-rose-50"
-              title="Remove"
+              title={`Remove ${type}`}
+              aria-label={`Remove ${type}`}
             >
               <span className="max-w-[14rem] truncate">{type}</span>
               <span aria-hidden className="text-gray-400">
