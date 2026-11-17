@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { ProductTypeTriggerPicker } from '@/components/admin/upsells/ProductTypeTriggerPicker';
 import type { CartUpsellOffer, CartUpsellTriggerType } from '@/lib/cart-upsells/types';
 
 type FormState = {
@@ -226,17 +227,28 @@ export default function AdminUpsellsPage() {
                 <option value="vendor">Vendor</option>
               </select>
             </label>
-            <label className="block">
-              <span className="font-medium text-gray-700">
-                Trigger values (one per line)
-              </span>
-              <textarea
-                className="mt-1 h-24 w-full rounded border border-gray-300 px-3 py-2 font-mono text-xs"
-                value={form.triggerValuesText}
-                onChange={(e) => setForm({ ...form, triggerValuesText: e.target.value })}
-                placeholder="Riding Helmets"
+            {form.triggerType === 'product_type' ? (
+              <ProductTypeTriggerPicker
+                selected={linesToList(form.triggerValuesText)}
+                onChange={(next) =>
+                  setForm((f) => ({ ...f, triggerValuesText: next.join('\n') }))
+                }
               />
-            </label>
+            ) : (
+              <label className="block">
+                <span className="font-medium text-gray-700">
+                  Trigger values (one per line)
+                </span>
+                <textarea
+                  className="mt-1 h-24 w-full rounded border border-gray-300 px-3 py-2 font-mono text-xs"
+                  value={form.triggerValuesText}
+                  onChange={(e) => setForm({ ...form, triggerValuesText: e.target.value })}
+                  placeholder={
+                    form.triggerType === 'vendor' ? 'Exclusively Equine' : 'product-handle'
+                  }
+                />
+              </label>
+            )}
             <label className="block">
               <span className="font-medium text-gray-700">
                 Candidate product handles (one per line)
